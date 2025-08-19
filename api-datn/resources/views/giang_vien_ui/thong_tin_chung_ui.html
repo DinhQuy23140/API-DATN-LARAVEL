@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Khai báo thông tin chung - Giảng viên</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/@phosphor-icons/web"></script>
+</head>
+
+<body class="bg-gray-50 font-sans text-gray-800">
+  <div class="min-h-screen flex">
+
+    <!-- Sidebar -->
+    <aside class="w-64 bg-white shadow-lg border-r">
+      <div class="p-5 border-b">
+        <h2 class="text-lg font-semibold leading-tight text-gray-800">
+          Xin chào<br>
+          <span class="text-blue-600">ThS. Nguyễn Văn A</span>
+        </h2>
+      </div>
+      <nav class="p-4 text-gray-700 space-y-2">
+        <!-- Dashboard -->
+        <button onclick="selectRole(this, 'dashboard')" class="sidebar-btn flex items-center gap-2 w-full text-left p-2 rounded hover:text-blue-600">
+          <i class="ph ph-house text-xl"></i> Dashboard
+        </button>
+
+        <!-- Giảng viên -->
+        <details open class="group">
+          <summary class="sidebar-btn flex items-center gap-2 w-full text-left p-2 rounded text-blue-600 font-semibold cursor-pointer">
+            <i class="ph ph-user-circle text-xl"></i> Giảng viên
+          </summary>
+          <div class="ml-6 mt-1 space-y-1 text-sm text-gray-700">
+            <button onclick="selectRole(this, 'gv')" class="block p-2 rounded bg-blue-100 font-medium text-blue-700">Khai báo thông tin chung</button>
+            <button onclick="selectRole(this, 'gv')" class="block p-2 rounded hover:bg-gray-100">Khai báo hướng nghiên cứu</button>
+          </div>
+        </details>
+
+        <!-- Các vai trò khác -->
+        <details class="group">
+        <summary class="sidebar-btn flex flex-col items-start gap-1 w-full text-left p-2 rounded hover:text-blue-600 cursor-pointer">
+            <div class="flex items-center gap-2 w-full">
+            <i class="ph ph-chalkboard-teacher text-xl"></i>
+            <span class="font-medium">Giảng viên HD</span>
+            </div>
+        </summary>
+        <div class="ml-6 mt-1 space-y-1 text-sm">
+            <button onclick="selectRole(this, 'gvu')" class="block w-full text-left p-2 rounded hover:bg-gray-100">
+            Phê duyệt đăng ký GVHD
+            </button>
+            <button onclick="selectRole(this, 'gvu')" class="block w-full text-left p-2 rounded hover:bg-gray-100">
+            Quản lý SV hướng dẫn
+            </button>
+            <button onclick="selectRole(this, 'gvu')" class="block w-full text-left p-2 rounded hover:bg-gray-100">
+            Phê duyệt/Chỉnh sửa đề cương
+            </button>
+            <button onclick="selectRole(this, 'gvu')" class="block w-full text-left p-2 rounded hover:bg-gray-100">
+            Theo dõi nhật ký, nhận xét, báo cáo
+            </button>
+        </div>
+        </details>
+
+        <details class="group">
+          <summary class="sidebar-btn flex items-center gap-2 w-full text-left p-2 rounded hover:text-blue-600 cursor-pointer">
+            <i class="ph ph-users-three text-xl"></i> Trưởng bộ môn
+          </summary>
+          <div class="ml-6 mt-1 space-y-1 text-sm">
+            <button onclick="selectRole(this, 'truong')" class="block p-2 rounded hover:bg-gray-100">Phân công GVHD</button>
+            <button onclick="selectRole(this, 'truong')" class="block p-2 rounded hover:bg-gray-100">Phân công phản biện</button>
+            <button onclick="selectRole(this, 'truong')" class="block p-2 rounded hover:bg-gray-100">Xét duyệt đề cương</button>
+          </div>
+        </details>
+
+        <details class="group">
+          <summary class="sidebar-btn flex items-center gap-2 w-full text-left p-2 rounded hover:text-blue-600 cursor-pointer">
+            <i class="ph ph-clipboard-text text-xl"></i> GV phản biện
+          </summary>
+          <div class="ml-6 mt-1 space-y-1 text-sm">
+            <button onclick="selectRole(this, 'phanbien')" class="block p-2 rounded hover:bg-gray-100">Xem và phản biện đề cương</button>
+          </div>
+        </details>
+
+        <details class="group">
+          <summary class="sidebar-btn flex items-center gap-2 w-full text-left p-2 rounded hover:text-blue-600 cursor-pointer">
+            <i class="ph ph-file-text text-xl"></i> Thư ký
+          </summary>
+          <div class="ml-6 mt-1 space-y-1 text-sm">
+            <button onclick="selectRole(this, 'thuky')" class="block p-2 rounded hover:bg-gray-100">Lập biên bản</button>
+            <button onclick="selectRole(this, 'thuky')" class="block p-2 rounded hover:bg-gray-100">Cập nhật điểm</button>
+          </div>
+        </details>
+
+        <details class="group">
+          <summary class="sidebar-btn flex items-center gap-2 w-full text-left p-2 rounded hover:text-blue-600 cursor-pointer">
+            <i class="ph ph-users text-xl"></i> Hội đồng
+          </summary>
+          <div class="ml-6 mt-1 space-y-1 text-sm">
+            <button onclick="selectRole(this, 'hoidong')" class="block p-2 rounded hover:bg-gray-100">Danh sách sinh viên bảo vệ</button>
+            <button onclick="selectRole(this, 'hoidong')" class="block p-2 rounded hover:bg-gray-100">Chấm điểm bảo vệ</button>
+          </div>
+        </details>
+
+        <details class="group">
+          <summary class="sidebar-btn flex items-center gap-2 w-full text-left p-2 rounded hover:text-blue-600 cursor-pointer">
+            <i class="ph ph-shield-check text-xl"></i> Giám sát
+          </summary>
+          <div class="ml-6 mt-1 space-y-1 text-sm">
+            <button onclick="selectRole(this, 'giam_sat')" class="block p-2 rounded hover:bg-gray-100">Theo dõi toàn bộ quá trình</button>
+          </div>
+        </details>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="flex-1 p-8">
+      <h1 class="text-2xl font-semibold mb-6 text-blue-700">Khai báo thông tin chung</h1>
+
+      <form class="bg-white p-6 rounded-lg shadow-md space-y-6 max-w-4xl">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label for="name" class="block text-sm font-medium mb-1">Họ và tên</label>
+            <input type="text" id="name" name="name" placeholder="Nhập họ và tên"
+              class="w-full border-gray-300 focus:ring-blue-500 focus:border-blue-500 rounded-md shadow-sm" />
+          </div>
+          <div>
+            <label for="email" class="block text-sm font-medium mb-1">Email</label>
+            <input type="email" id="email" name="email" placeholder="abc@university.edu"
+              class="w-full border-gray-300 focus:ring-blue-500 focus:border-blue-500 rounded-md shadow-sm" />
+          </div>
+          <div>
+            <label for="phone" class="block text-sm font-medium mb-1">Số điện thoại</label>
+            <input type="tel" id="phone" name="phone" placeholder="0123xxxxxxx"
+              class="w-full border-gray-300 focus:ring-blue-500 focus:border-blue-500 rounded-md shadow-sm" />
+          </div>
+          <div>
+            <label for="degree" class="block text-sm font-medium mb-1">Học vị</label>
+            <select id="degree" name="degree"
+              class="w-full border-gray-300 focus:ring-blue-500 focus:border-blue-500 rounded-md shadow-sm">
+              <option value="">Chọn học vị</option>
+              <option value="ths">Thạc sĩ</option>
+              <option value="ts">Tiến sĩ</option>
+              <option value="pgs">Phó giáo sư</option>
+              <option value="gs">Giáo sư</option>
+            </select>
+          </div>
+          <div class="md:col-span-2">
+            <label for="description" class="block text-sm font-medium mb-1">Giới thiệu</label>
+            <textarea id="description" name="description" rows="4" placeholder="Một vài thông tin mô tả..."
+              class="w-full border-gray-300 focus:ring-blue-500 focus:border-blue-500 rounded-md shadow-sm"></textarea>
+          </div>
+        </div>
+
+        <div class="flex justify-end">
+          <button type="submit"
+            class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-6 py-2 rounded-md shadow">
+            Lưu thông tin
+          </button>
+        </div>
+      </form>
+    </main>
+  </div>
+</body>
+
+</html>

@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\Project;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use Illuminate\Support\Str;
 
@@ -21,7 +22,7 @@ class ProgressLogFactory extends Factory
         $end = (clone $start)->modify('+'.rand(1, 10).' days');
 
         return [
-                'process_id' => Str::uuid(),  // Giả lập ID tiến trình
+                'project_id' => Project::inRandomOrder()->value('id'),
                 'title' => $this->faker->sentence(6),
                 'description' => $this->faker->paragraph(),
                 'start_date_time' => $start,

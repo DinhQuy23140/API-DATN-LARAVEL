@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Quản lý Cán bộ - Giảng viên</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="flex">
+
+  <!-- Sidebar -->
+  <aside class="w-64 bg-white shadow-lg h-screen fixed">
+    <div class="p-6 font-bold text-xl text-blue-600 border-b leading-tight">
+      Trợ lý khoa<br />Khoa Công nghệ thông tin
+    </div>
+    <nav class="p-4 space-y-2 text-sm">
+      <a href="#" class="block px-3 py-2 rounded hover:bg-gray-200">📊 Dashboard</a>
+      <a href="#" class="block px-3 py-2 rounded hover:bg-gray-200">📅 Quản lý đợt đồ án</a>
+      <a href="#" class="block px-3 py-2 rounded hover:bg-gray-200">📥 Danh sách SV đủ điều kiện</a>
+      <a href="#" class="block px-3 py-2 rounded hover:bg-gray-200">🏢 Quản lý bộ môn</a>
+      <a href="#" class="block px-3 py-2 rounded hover:bg-gray-200">🎓 Quản lý ngành</a>
+      <a href="#" class="block px-3 py-2 rounded bg-blue-200 font-semibold">👨‍🏫 Quản lý cán bộ - giảng viên</a>
+      <a href="#" class="block px-3 py-2 rounded hover:bg-gray-200">📈 Thống kê – Báo cáo</a>
+      <a href="#" class="block px-3 py-2 rounded hover:bg-gray-200">📚 Quản lý đề tài đồ án</a>
+    </nav>
+  </aside>
+
+  <!-- Content -->
+  <main class="flex-1 ml-64 p-6 bg-gray-50 min-h-screen">
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="text-2xl font-semibold text-gray-700">Quản lý Cán bộ - Giảng viên</h1>
+      <button onclick="document.getElementById('dialogGV').showModal()"
+        class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">+ Thêm giảng viên</button>
+    </div>
+
+    <!-- Bảng danh sách giảng viên -->
+    <div class="bg-white shadow rounded-lg p-4">
+      <table class="w-full table-auto text-sm">
+        <thead>
+          <tr class="bg-gray-100 text-left">
+            <th class="p-2">Họ tên</th>
+            <th class="p-2">Email</th>
+            <th class="p-2">SĐT</th>
+            <th class="p-2">Bộ môn</th>
+            <th class="p-2">Môn dạy</th>
+            <th class="p-2">Học vị</th>
+            <th class="p-2">Chức vụ</th>
+            <th class="p-2 text-center">Thao tác</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Dữ liệu mẫu -->
+          <tr class="border-t">
+            <td class="p-2">Nguyễn Văn A</td>
+            <td class="p-2">vana@university.edu</td>
+            <td class="p-2">0123456789</td>
+            <td class="p-2">Khoa học máy tính</td>
+            <td class="p-2">CTDL-GT, OOP</td>
+            <td class="p-2">Tiến sĩ</td>
+            <td class="p-2">Giảng viên, Trưởng bộ môn</td>
+            <td class="p-2 text-center space-x-2">
+              <button onclick="openEditDialog()" class="text-blue-600 hover:underline">Sửa</button>
+              <button class="text-red-600 hover:underline">Xóa</button>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <dialog id="dialogEditGV" class="rounded-lg p-6 w-[650px] max-w-full shadow-lg">
+  <form method="dialog" class="space-y-5">
+    <h2 class="text-2xl font-semibold text-green-700 border-b pb-2">✏️ Sửa thông tin giảng viên</h2>
+
+    <div class="grid grid-cols-2 gap-4">
+      <div>
+        <label class="text-sm font-medium">Họ và tên</label>
+        <input type="text" class="w-full border px-3 py-2 rounded-md focus:outline-none focus:ring focus:border-green-500" value="Nguyễn Văn A" required>
+      </div>
+      <div>
+        <label class="text-sm font-medium">Email</label>
+        <input type="email" class="w-full border px-3 py-2 rounded-md focus:outline-none focus:ring focus:border-green-500" value="vana@university.edu" required>
+      </div>
+      <div>
+        <label class="text-sm font-medium">Số điện thoại</label>
+        <input type="text" class="w-full border px-3 py-2 rounded-md focus:outline-none focus:ring focus:border-green-500" value="0123456789" required>
+      </div>
+      <div>
+        <label class="text-sm font-medium">Bộ môn</label>
+        <select class="w-full border px-3 py-2 rounded-md">
+          <option selected>Khoa học máy tính</option>
+          <option>HTTT</option>
+          <option>CNPM</option>
+        </select>
+      </div>
+      <div>
+        <label class="text-sm font-medium">Học vị</label>
+        <select class="w-full border px-3 py-2 rounded-md">
+          <option>Cử nhân</option>
+          <option>Thạc sĩ</option>
+          <option selected>Tiến sĩ</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Chức vụ -->
+    <div>
+      <label class="text-sm font-medium">Chức vụ</label>
+      <select id="selectChucVuEdit" class="w-full border px-3 py-2 rounded-md" onchange="addTag(this, 'chucVuEdit')">
+        <option disabled selected>Chọn chức vụ</option>
+        <option>Giảng viên</option>
+        <option>Trưởng bộ môn</option>
+        <option>Phó khoa</option>
+        <option>Trưởng khoa</option>
+      </select>
+      <div id="selectedChucVuEdit" class="flex flex-wrap gap-2 mt-2">
+        <!-- Thêm tag động -->
+      </div>
+    </div>
+
+    <!-- Môn giảng dạy -->
+    <div>
+      <label class="text-sm font-medium">Môn giảng dạy</label>
+      <select id="selectMonEdit" class="w-full border px-3 py-2 rounded-md" onchange="addTag(this, 'monEdit')">
+        <option disabled selected>Chọn môn học</option>
+        <option>Cấu trúc dữ liệu</option>
+        <option>Lập trình Java</option>
+        <option>Phân tích hệ thống</option>
+        <option>AI cơ bản</option>
+      </select>
+      <div id="selectedMonEdit" class="flex flex-wrap gap-2 mt-2">
+        <!-- Thêm tag động -->
+      </div>
+    </div>
+
+    <div class="flex justify-end gap-2 pt-4 border-t">
+      <button type="button" onclick="document.getElementById('dialogEditGV').close()"
+        class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400 transition">Hủy</button>
+      <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition">Cập nhật</button>
+    </div>
+  </form>
+</dialog>
+
+<script>
+  const selectedEdit = {
+    chucVuEdit: new Set(),
+    monEdit: new Set()
+  };
+
+  function openEditDialog() {
+    document.getElementById('dialogEditGV').showModal();
+    // Optional: preload tags
+    selectedEdit.chucVuEdit = new Set(["Giảng viên", "Trưởng bộ môn"]);
+    selectedEdit.monEdit = new Set(["CTDL-GT", "OOP"]);
+    renderTags('chucVuEdit');
+    renderTags('monEdit');
+  }
+
+  function addTag(selectEl, type) {
+    const value = selectEl.value;
+    if (!value || selectedEdit[type].has(value)) return;
+    selectedEdit[type].add(value);
+    renderTags(type);
+    selectEl.selectedIndex = 0;
+  }
+
+  function removeTag(value, type) {
+    selectedEdit[type].delete(value);
+    renderTags(type);
+  }
+
+  function renderTags(type) {
+    const container = document.getElementById(`selected${capitalize(type)}`);
+    container.innerHTML = '';
+    selectedEdit[type].forEach(val => {
+      const tag = document.createElement('span');
+      tag.className = "bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm flex items-center gap-2";
+      tag.innerHTML = `${val}<button onclick="removeTag('${val}', '${type}')" class="text-red-500 font-bold">×</button>`;
+      container.appendChild(tag);
+    });
+  }
+
+  function capitalize(str) {
+    return str[0].toUpperCase() + str.slice(1);
+  }
+</script>
+
+  </main>
+
+<dialog id="dialogGV" class="rounded-lg p-6 w-[650px] max-w-full shadow-lg">
+  <form method="dialog" class="space-y-5">
+    <h2 class="text-2xl font-semibold text-blue-700 border-b pb-2">Thêm giảng viên mới</h2>
+
+    <div class="grid grid-cols-2 gap-4">
+      <div>
+        <label class="text-sm font-medium">Họ và tên</label>
+        <input type="text" class="w-full border px-3 py-2 rounded-md focus:outline-none focus:ring focus:border-blue-500" required>
+      </div>
+      <div>
+        <label class="text-sm font-medium">Email</label>
+        <input type="email" class="w-full border px-3 py-2 rounded-md focus:outline-none focus:ring focus:border-blue-500" required>
+      </div>
+      <div>
+        <label class="text-sm font-medium">Số điện thoại</label>
+        <input type="text" class="w-full border px-3 py-2 rounded-md focus:outline-none focus:ring focus:border-blue-500" required>
+      </div>
+      <div>
+        <label class="text-sm font-medium">Bộ môn</label>
+        <select class="w-full border px-3 py-2 rounded-md">
+          <option>CNTT</option>
+          <option>HTTT</option>
+          <option>CNPM</option>
+        </select>
+      </div>
+      <div>
+        <label class="text-sm font-medium">Học vị</label>
+        <select class="w-full border px-3 py-2 rounded-md">
+          <option>Cử nhân</option>
+          <option>Thạc sĩ</option>
+          <option>Tiến sĩ</option>
+        </select>
+      </div>
+
+      <!-- Trưởng bộ môn checkbox -->
+      <div class="flex items-center space-x-2 mt-6">
+        <input type="checkbox" id="truongBM" />
+        <label for="truongBM" class="text-sm">Là trưởng bộ môn</label>
+      </div>
+    </div>
+
+    <!-- Chức vụ -->
+    <div>
+      <label class="text-sm font-medium">Chức vụ</label>
+      <select id="selectChucVu" class="w-full border px-3 py-2 rounded-md" onchange="addTag(this, 'chucVu')">
+        <option disabled selected>Chọn chức vụ</option>
+        <option>Giảng viên</option>
+        <option>Trưởng bộ môn</option>
+        <option>Phó khoa</option>
+        <option>Trưởng khoa</option>
+      </select>
+      <div id="selectedChucVu" class="flex flex-wrap gap-2 mt-2"></div>
+    </div>
+
+    <!-- Môn giảng dạy -->
+    <div>
+      <label class="text-sm font-medium">Môn giảng dạy</label>
+      <select id="selectMon" class="w-full border px-3 py-2 rounded-md" onchange="addTag(this, 'mon')">
+        <option disabled selected>Chọn môn học</option>
+        <option>Cấu trúc dữ liệu</option>
+        <option>Lập trình Java</option>
+        <option>Phân tích hệ thống</option>
+        <option>AI cơ bản</option>
+      </select>
+      <div id="selectedMon" class="flex flex-wrap gap-2 mt-2"></div>
+    </div>
+
+    <!-- Buttons -->
+    <div class="flex justify-end gap-2 pt-4 border-t">
+      <button type="button" onclick="document.getElementById('dialogGV').close()"
+        class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400 transition">Hủy</button>
+      <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">Lưu</button>
+    </div>
+  </form>
+</dialog>
+
+<script>
+  const selected = {
+    chucVu: new Set(),
+    mon: new Set()
+  };
+
+  function addTag(selectEl, type) {
+    const value = selectEl.value;
+    if (!value || selected[type].has(value)) return;
+    selected[type].add(value);
+    renderTags(type);
+    selectEl.selectedIndex = 0;
+  }
+
+  function removeTag(value, type) {
+    selected[type].delete(value);
+    renderTags(type);
+  }
+
+  function renderTags(type) {
+    const container = document.getElementById(`selected${capitalize(type)}`);
+    container.innerHTML = '';
+    selected[type].forEach(val => {
+      const tag = document.createElement('span');
+      tag.className = "bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm flex items-center gap-2";
+      tag.innerHTML = `${val}<button onclick="removeTag('${val}', '${type}')" class="text-red-500 font-bold">×</button>`;
+      container.appendChild(tag);
+    });
+  }
+
+  function capitalize(str) {
+    return str[0].toUpperCase() + str.slice(1);
+  }
+</script>
+
+
+
+
+</body>
+</html>

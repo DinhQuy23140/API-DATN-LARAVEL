@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Phân quyền người dùng</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="flex min-h-screen bg-gray-100">
+
+  <!-- Sidebar -->
+  <aside class="w-64 bg-white shadow-md">
+    <div class="p-4 text-xl font-bold text-blue-600">Quản trị hệ thống</div>
+    <nav class="mt-6">
+      <ul class="space-y-2 px-4">
+        <li><a href="C:\Users\quy14\Desktop\UI_DATN\qtv_ui\dashboard_ui.html" class="block px-2 py-2 rounded hover:bg-blue-100">Dashboard</a></li>
+        <li><a href="C:\Users\quy14\Desktop\UI_DATN\qtv_ui\quan_li_khoa_ui.html" class="block px-2 py-2 rounded hover:bg-blue-100">Danh sách Khoa</a></li>
+        <li><a href="C:\Users\quy14\Desktop\UI_DATN\qtv_ui\quan_li_nganh_ui.html" class="block px-2 py-2 rounded hover:bg-blue-100">Danh sách Ngành</a></li>
+        <li><a href="C:\Users\quy14\Desktop\UI_DATN\qtv_ui\quan_li_bo_mon_ui.html" class="block px-2 py-2 rounded hover:bg-blue-100">Danh sách Bộ môn</a></li>
+        <li class="mt-4"><a href="C:\Users\quy14\Desktop\UI_DATN\qtv_ui\quan_li_tai_khoan_ui.html" class="block px-2 py-2 rounded hover:bg-blue-100">Quản lý tài khoản</a></li>
+        <li><a href="C:\Users\quy14\Desktop\UI_DATN\qtv_ui\phan_quyen_nguoi_dung_ui.html" class="block px-2 py-2 bg-blue-200 rounded font-semibold">Phân quyền người dùng</a></li>
+        <li><a href="C:\Users\quy14\Desktop\UI_DATN\qtv_ui\quan_li_tro_ly_khoa_ui.html" class="block px-2 py-2 rounded hover:bg-blue-100">Tài khoản Trợ lý Khoa</a></li>
+        <li class="mt-4"><a href="C:\Users\quy14\Desktop\UI_DATN\qtv_ui\dashboard_ui.html" class="block px-2 py-2 rounded hover:bg-red-100 text-red-600">Đăng xuất</a></li>
+      </ul>
+    </nav>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="flex-1 p-8">
+    <!-- Thêm vào phần "Main Content" bên dưới dòng tiêu đề -->
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="text-2xl font-bold">Phân quyền người dùng</h1>
+      <button onclick="openAddUserForm()" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">
+        ➕ Thêm người dùng
+      </button>
+    </div>
+
+
+    <!-- Tìm kiếm -->
+    <div class="mb-4">
+      <label for="searchUser" class="block mb-1 text-gray-700 font-medium">Tìm theo tên người dùng:</label>
+      <input id="searchUser" type="text" placeholder="Nhập tên..." class="w-full sm:w-64 p-2 border border-gray-300 rounded" />
+    </div>
+
+    <!-- Bảng người dùng -->
+    <div class="bg-white rounded shadow p-4 overflow-x-auto">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="bg-gray-100 text-gray-700">
+            <th class="p-3 border-b">Tên người dùng</th>
+            <th class="p-3 border-b">Email</th>
+            <th class="p-3 border-b">Vai trò hiện tại</th>
+            <th class="p-3 border-b">Gán quyền</th>
+          </tr>
+        </thead>
+        <tbody id="userTable">
+          <!-- Dữ liệu từ JS -->
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <script>
+    const users = [
+      { name: 'Nguyễn Văn A', email: 'a@example.com', role: 'Admin' },
+      { name: 'Trần Thị B', email: 'b@example.com', role: 'User' },
+      { name: 'Lê Văn C', email: 'c@example.com', role: 'User' },
+    ];
+
+    const roles = ['Admin', 'User'];
+
+    const userTable = document.getElementById('userTable');
+    const searchUser = document.getElementById('searchUser');
+
+    function renderUserTable(keyword = '') {
+      userTable.innerHTML = '';
+      const filtered = users.filter(u => u.name.toLowerCase().includes(keyword.toLowerCase()));
+
+      if (filtered.length === 0) {
+        userTable.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-gray-500">Không tìm thấy người dùng phù hợp.</td></tr>`;
+        return;
+      }
+
+      filtered.forEach(user => {
+        const options = roles.map(role =>
+          `<option value="${role}" ${user.role === role ? 'selected' : ''}>${role}</option>`
+        ).join('');
+
+        userTable.innerHTML += `
+          <tr class="hover:bg-gray-50">
+            <td class="p-3 border-b">${user.name}</td>
+            <td class="p-3 border-b">${user.email}</td>
+            <td class="p-3 border-b">${user.role}</td>
+            <td class="p-3 border-b">
+              <select class="border border-gray-300 p-2 rounded" onchange="updateRole('${user.email}', this.value)">
+                ${options}
+              </select>
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    function updateRole(email, newRole) {
+      const user = users.find(u => u.email === email);
+      if (user) {
+        user.role = newRole;
+        renderUserTable(searchUser.value);
+        alert(`Đã cập nhật quyền cho ${user.name} thành "${newRole}"`);
+      }
+    }
+
+    searchUser.addEventListener('input', () => renderUserTable(searchUser.value));
+    renderUserTable();
+  </script>
+
+</body>
+</html>

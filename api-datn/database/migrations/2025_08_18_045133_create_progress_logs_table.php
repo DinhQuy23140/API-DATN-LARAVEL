@@ -15,7 +15,7 @@ return new class extends Migration
     {
         Schema::create('progress_logs', function (Blueprint $table) {
             $table->id();
-            $table->string('process_id');
+            $table->unsignedBigInteger('project_id');
             $table->string('title');
             $table->text('description')->nullable();
             $table->dateTime('start_date_time')->nullable();
@@ -24,6 +24,8 @@ return new class extends Migration
             $table->string('student_status')->default('chua_bat_dau');     // Enum-like string
             $table->string('instructor_status')->default('chua_danh_gia'); // Enum-like string
             $table->timestamps();
+
+            $table->foreign('project_id')->references('id')->on('projects')->onDelete('cascade');
         });
     }
 

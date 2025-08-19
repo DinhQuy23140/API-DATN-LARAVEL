@@ -40,10 +40,6 @@ class ProgressLogController extends Controller
         ]);
 
         $log = ProgressLog::create($data);
-
-        // return (new ProgressLogResource($log->load('attachments')))
-        //            ->response()
-        //            ->setStatusCode(201); // hoặc 200 nếu bạn thích
         return response()->json($log->load('attachments'), 201);
 
     }
@@ -62,15 +58,15 @@ class ProgressLogController extends Controller
      */
     public function update(Request $request, ProgressLog $progressLog)
     {
-                $data = $request->validate([
-            'process_id' => 'sometimes|string',
-            'title' => 'sometimes|string|max:255',
-            'description' => 'nullable|string',
-            'start_date_time' => 'sometimes|date',
-            'end_date_time' => 'sometimes|date|after_or_equal:start_date_time',
-            'student_status' => 'sometimes|string',
-            'instructor_status' => 'nullable|string',
-            'instructor_comment' => 'nullable|string',
+        $data = $request->validate([
+        'process_id' => 'sometimes|string',
+        'title' => 'sometimes|string|max:255',
+        'description' => 'nullable|string',
+        'start_date_time' => 'sometimes|date',
+        'end_date_time' => 'sometimes|date|after_or_equal:start_date_time',
+        'student_status' => 'sometimes|string',
+        'instructor_status' => 'nullable|string',
+        'instructor_comment' => 'nullable|string',
         ]);
 
         $progressLog->update($data);

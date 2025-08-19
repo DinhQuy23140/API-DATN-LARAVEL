@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Danh sách Ngành</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="flex min-h-screen bg-gray-100">
+
+  <!-- Sidebar -->
+  <aside class="w-64 bg-white shadow-md">
+    <div class="p-4 text-xl font-bold text-blue-600">Quản trị hệ thống</div>
+    <nav class="mt-6">
+      <ul class="space-y-2 px-4">
+        <li><a href="C:\Users\quy14\Desktop\UI_DATN\qtv_ui\dashboard_ui.html" class="block px-2 py-2 rounded hover:bg-blue-100">Dashboard</a></li>
+        <li><a href="C:\Users\quy14\Desktop\UI_DATN\qtv_ui\quan_li_khoa_ui.html" class="block px-2 py-2 rounded hover:bg-blue-100">Danh sách Khoa</a></li>
+        <li><a href="C:\Users\quy14\Desktop\UI_DATN\qtv_ui\quan_li_nganh_ui.html" class="block px-2 py-2 bg-blue-200 rounded font-semibold">Danh sách Ngành</a></li>
+        <li><a href="C:\Users\quy14\Desktop\UI_DATN\qtv_ui\quan_li_bo_mon_ui.html" class="block px-2 py-2 rounded hover:bg-blue-100">Danh sách Bộ môn</a></li>
+        <li class="mt-4"><a href="C:\Users\quy14\Desktop\UI_DATN\qtv_ui\quan_li_tai_khoan_ui.html" class="block px-2 py-2 rounded hover:bg-blue-100">Quản lý tài khoản</a></li>
+        <li><a href="C:\Users\quy14\Desktop\UI_DATN\qtv_ui\phan_quyen_nguoi_dung_ui.html" class="block px-2 py-2 rounded hover:bg-blue-100">Phân quyền người dùng</a></li>
+        <li><a href="C:\Users\quy14\Desktop\UI_DATN\qtv_ui\quan_li_tro_ly_khoa_ui.html" class="block px-2 py-2 rounded hover:bg-blue-100">Tài khoản Trợ lý Khoa</a></li>
+        <li class="mt-4"><a href="C:\Users\quy14\Desktop\UI_DATN\qtv_ui\dashboard_ui.html" class="block px-2 py-2 rounded hover:bg-red-100 text-red-600">Đăng xuất</a></li>
+      </ul>
+    </nav>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="flex-1 p-8">
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="text-2xl font-bold">Danh sách Ngành</h1>
+      <button class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">+ Thêm Ngành</button>
+    </div>
+
+    <!-- Bộ lọc -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:space-x-4 space-y-2 sm:space-y-0 mb-4">
+      <div>
+        <label for="khoaSelect" class="block mb-1 text-gray-700 font-medium">Chọn khoa:</label>
+        <select id="khoaSelect" class="w-full sm:w-64 p-2 border border-gray-300 rounded">
+          <option value="all">-- Tất cả khoa --</option>
+          <option value="cntt">Công nghệ thông tin</option>
+          <option value="kt">Kinh tế</option>
+        </select>
+      </div>
+      <div class="flex-1">
+        <label for="searchInput" class="block mb-1 text-gray-700 font-medium">Tìm theo tên ngành:</label>
+        <input id="searchInput" type="text" placeholder="Nhập tên ngành..." class="w-full p-2 border border-gray-300 rounded" />
+      </div>
+    </div>
+
+    <!-- Bảng ngành -->
+    <div class="bg-white rounded shadow p-4 overflow-x-auto">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="bg-gray-100 text-gray-700">
+            <th class="p-3 border-b">Tên ngành</th>
+            <th class="p-3 border-b">Mã ngành</th>
+            <th class="p-3 border-b">Khoa</th>
+            <th class="p-3 border-b">Thao tác</th>
+          </tr>
+        </thead>
+        <tbody id="nganhTable">
+          <!-- Dữ liệu ngành sẽ được hiển thị bởi JS -->
+        </tbody>
+      </table>
+    </div>
+  </main>
+
+  <!-- JavaScript lọc -->
+  <script>
+    const nganhData = [
+      { ten: 'Kỹ thuật phần mềm', ma: 'KTPM', khoa: 'cntt', khoaTen: 'Công nghệ thông tin' },
+      { ten: 'Hệ thống thông tin', ma: 'HTTT', khoa: 'cntt', khoaTen: 'Công nghệ thông tin' },
+      { ten: 'Trí tuệ nhân tạo', ma: 'AI', khoa: 'cntt', khoaTen: 'Công nghệ thông tin' },
+      { ten: 'Kinh tế quốc tế', ma: 'KTQT', khoa: 'kt', khoaTen: 'Kinh tế' },
+      { ten: 'Kinh tế phát triển', ma: 'KTPD', khoa: 'kt', khoaTen: 'Kinh tế' },
+    ];
+
+    const tableBody = document.getElementById('nganhTable');
+    const selectKhoa = document.getElementById('khoaSelect');
+    const searchInput = document.getElementById('searchInput');
+
+    function renderTable(filterKhoa, keyword) {
+      tableBody.innerHTML = '';
+      const filtered = nganhData.filter(n => {
+        const matchKhoa = filterKhoa === 'all' || n.khoa === filterKhoa;
+        const matchKeyword = n.ten.toLowerCase().includes(keyword.toLowerCase());
+        return matchKhoa && matchKeyword;
+      });
+
+      if (filtered.length === 0) {
+        tableBody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-gray-500">Không tìm thấy ngành phù hợp.</td></tr>`;
+        return;
+      }
+
+      filtered.forEach(n => {
+        tableBody.innerHTML += `
+          <tr class="hover:bg-gray-50">
+            <td class="p-3 border-b">${n.ten}</td>
+            <td class="p-3 border-b">${n.ma}</td>
+            <td class="p-3 border-b">${n.khoaTen}</td>
+            <td class="p-3 border-b space-x-2">
+              <button class="text-blue-600 hover:underline">Sửa</button>
+              <button class="text-red-600 hover:underline">Xóa</button>
+            </td>
+          </tr>`;
+      });
+    }
+
+    // Event listeners
+    selectKhoa.addEventListener('change', () => {
+      renderTable(selectKhoa.value, searchInput.value);
+    });
+
+    searchInput.addEventListener('input', () => {
+      renderTable(selectKhoa.value, searchInput.value);
+    });
+
+    // Mặc định ban đầu
+    renderTable('all', '');
+  </script>
+
+</body>
+</html>

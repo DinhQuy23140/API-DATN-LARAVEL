@@ -10,7 +10,7 @@ class ProgressLog extends Model
     use HasFactory;
     protected $table = 'progress_logs';
     protected $fillable = [
-        'process_id',
+        'project_id',
         'title',
         'description',
         'start_date_time',
@@ -28,5 +28,9 @@ class ProgressLog extends Model
     public function attachments()
     {
         return $this->hasMany(Attachment::class);
+    }
+
+    public function project() {
+        return $this->belongsTo(Project::class);
     }
 }

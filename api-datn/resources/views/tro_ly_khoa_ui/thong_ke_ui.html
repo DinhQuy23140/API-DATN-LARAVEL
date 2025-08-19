@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Thống kê - Báo cáo</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    function toggleDetails(id, title) {
+      const detailIds = ["detail1", "detail2", "detail3", "detail4"];
+      detailIds.forEach(d => {
+        document.getElementById(d).classList.add("hidden");
+      });
+      document.getElementById(id).classList.remove("hidden");
+      document.getElementById("section-title").textContent = title;
+    }
+  </script>
+</head>
+<body class="flex bg-gray-100 min-h-screen">
+
+  <!-- Sidebar -->
+    <aside class="w-64 bg-white shadow-lg fixed h-full">
+      <div class="p-6 font-bold text-xl text-blue-600 border-b">
+        <div>Trợ lý khoa</div>
+        <div>Khoa công nghệ thông tin</div>
+      </div>
+      <nav class="p-4 space-y-2 text-sm">
+        <a href="#" class="block px-3 py-2 rounded hover:bg-gray-200">📊 Dashboard</a>
+        <a href="#" class="block px-3 py-2 rounded hover:bg-gray-200">📅 Quản lý đợt đồ án</a>
+        <a href="#" class="block px-3 py-2 rounded hover:bg-gray-200">📥 DS SV đủ điều kiện</a>
+        <a href="#" class="block px-3 py-2 rounded hover:bg-gray-200">🏢 Quản lý bộ môn</a>
+        <a href="#" class="block px-3 py-2 rounded hover:bg-gray-200">🎓 Quản lý ngành</a>
+        <a href="#" class="block px-3 py-2 rounded hover:bg-gray-200">👨‍🏫 Quản lý cán bộ - giảng viên</a>
+        <a href="#" class="block px-3 py-2 rounded bg-blue-200 font-semibold">📈 Thống kê – Báo cáo</a>
+        <a href="#" class="block px-3 py-2 rounded hover:bg-gray-200">📚 Quản lý đề tài đồ án</a>
+      </nav>
+    </aside>
+
+  <!-- Main Content -->
+  <main class="ml-64 p-6 w-full">
+    <h1 class="text-2xl font-bold text-gray-800 mb-4">Thống kê - Báo cáo</h1>
+
+    <!-- Bộ lọc -->
+    <div class="bg-white rounded-lg shadow p-4 mb-6">
+      <h2 class="text-lg font-semibold mb-4 text-blue-700">Bộ lọc thống kê</h2>
+      <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+        <div>
+          <label class="text-sm font-medium">Năm học</label>
+          <select class="w-full border px-3 py-2 rounded-md">
+            <option>2024 - 2025</option>
+            <option>2023 - 2024</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-sm font-medium">Học kỳ</label>
+          <select class="w-full border px-3 py-2 rounded-md">
+            <option>Học kỳ 1</option>
+            <option>Học kỳ 2</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-sm font-medium">Khoa</label>
+          <select class="w-full border px-3 py-2 rounded-md">
+            <option>Tất cả</option>
+            <option>Khoa CNTT</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-sm font-medium">Ngành</label>
+          <select class="w-full border px-3 py-2 rounded-md">
+            <option>Tất cả</option>
+            <option>Công nghệ phần mềm</option>
+          </select>
+        </div>
+        <div class="flex items-end">
+          <button class="w-full px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">Xem thống kê</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Các thẻ thống kê -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div onclick="toggleDetails('detail1', 'Chi tiết đồ án')" class="bg-blue-100 hover:bg-blue-200 cursor-pointer p-4 rounded-lg shadow">
+        <h2 class="text-lg font-semibold text-blue-700">Đồ án</h2>
+        <p class="text-2xl font-bold">120</p>
+      </div>
+      <div onclick="toggleDetails('detail2', 'Chi tiết sinh viên')" class="bg-green-100 hover:bg-green-200 cursor-pointer p-4 rounded-lg shadow">
+        <h2 class="text-lg font-semibold text-green-700">Sinh viên</h2>
+        <p class="text-2xl font-bold">350</p>
+      </div>
+      <div onclick="toggleDetails('detail3', 'Chi tiết hội đồng')" class="bg-yellow-100 hover:bg-yellow-200 cursor-pointer p-4 rounded-lg shadow">
+        <h2 class="text-lg font-semibold text-yellow-700">Hội đồng</h2>
+        <p class="text-2xl font-bold">25</p>
+      </div>
+      <div onclick="toggleDetails('detail4', 'Chi tiết phân công')" class="bg-red-100 hover:bg-red-200 cursor-pointer p-4 rounded-lg shadow">
+        <h2 class="text-lg font-semibold text-red-700">Phân công</h2>
+        <p class="text-2xl font-bold">300</p>
+      </div>
+    </div>
+
+    <!-- Tiêu đề chi tiết -->
+    <h2 id="section-title" class="text-xl font-bold text-gray-700 mt-8"></h2>
+
+    <!-- Bảng dữ liệu -->
+    <div id="detail1" class="hidden bg-white p-4 rounded shadow">
+      <table class="w-full text-sm border border-gray-200">
+        <thead>
+          <tr class="bg-gray-100 text-left">
+            <th class="p-2 border">STT</th>
+            <th class="p-2 border">Tên đề tài</th>
+            <th class="p-2 border">Sinh viên</th>
+            <th class="p-2 border">Giảng viên</th>
+            <th class="p-2 border">Trạng thái</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="p-2 border">1</td>
+            <td class="p-2 border">Hệ thống quản lý đồ án</td>
+            <td class="p-2 border">Nguyễn Văn A</td>
+            <td class="p-2 border">ThS. Trần B</td>
+            <td class="p-2 border text-green-600 font-semibold">Hoàn thành</td>
+          </tr>
+          <tr>
+            <td class="p-2 border">2</td>
+            <td class="p-2 border">Ứng dụng AI dự đoán điểm</td>
+            <td class="p-2 border">Lê Thị B</td>
+            <td class="p-2 border">TS. Nguyễn C</td>
+            <td class="p-2 border text-yellow-600 font-semibold">Đang thực hiện</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div id="detail2" class="hidden bg-white p-4 rounded shadow">
+      <table class="w-full text-sm border border-gray-200">
+        <thead>
+          <tr class="bg-gray-100 text-left">
+            <th class="p-2 border">MSSV</th>
+            <th class="p-2 border">Tên</th>
+            <th class="p-2 border">Ngành</th>
+            <th class="p-2 border">Năm</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="p-2 border">SV001</td>
+            <td class="p-2 border">Trần Văn D</td>
+            <td class="p-2 border">CNTT</td>
+            <td class="p-2 border">Năm 3</td>
+          </tr>
+          <tr>
+            <td class="p-2 border">SV002</td>
+            <td class="p-2 border">Hoàng Thị E</td>
+            <td class="p-2 border">KTPM</td>
+            <td class="p-2 border">Năm 4</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div id="detail3" class="hidden bg-white p-4 rounded shadow">
+      <table class="w-full text-sm border border-gray-200">
+        <thead>
+          <tr class="bg-gray-100 text-left">
+            <th class="p-2 border">STT</th>
+            <th class="p-2 border">Tên hội đồng</th>
+            <th class="p-2 border">Thành viên</th>
+            <th class="p-2 border">Học kỳ</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="p-2 border">1</td>
+            <td class="p-2 border">HĐ bảo vệ KTPM</td>
+            <td class="p-2 border">GV A, GV B</td>
+            <td class="p-2 border">HK1</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div id="detail4" class="hidden bg-white p-4 rounded shadow">
+      <table class="w-full text-sm border border-gray-200">
+        <thead>
+          <tr class="bg-gray-100 text-left">
+            <th class="p-2 border">STT</th>
+            <th class="p-2 border">Loại</th>
+            <th class="p-2 border">Người được phân</th>
+            <th class="p-2 border">Nội dung</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td class="p-2 border">1</td>
+            <td class="p-2 border">Hướng dẫn</td>
+            <td class="p-2 border">ThS. Hưng</td>
+            <td class="p-2 border">Đồ án A</td>
+          </tr>
+          <tr>
+            <td class="p-2 border">2</td>
+            <td class="p-2 border">Chấm điểm</td>
+            <td class="p-2 border">TS. An</td>
+            <td class="p-2 border">Đồ án B</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+  </main>
+</body>
+</html>

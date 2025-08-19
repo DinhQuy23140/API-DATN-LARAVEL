@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quản lý ngành đào tạo</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-100">
+  <div class="flex min-h-screen">
+    <!-- Sidebar -->
+    <aside class="w-64 bg-white shadow-lg fixed h-full">
+      <div class="p-6 font-bold text-xl text-blue-600 border-b">
+        <div>Trợ lý khoa</div>
+        <div>Khoa công nghệ thông tin</div>
+      </div>
+      <nav class="p-4 space-y-2 text-sm">
+        <a href="#" class="block px-3 py-2 rounded hover:bg-gray-200">📊 Dashboard</a>
+        <a href="#" class="block px-3 py-2 rounded hover:bg-gray-200">📅 Quản lý đợt đồ án</a>
+        <a href="#" class="block px-3 py-2 rounded hover:bg-gray-200">📥 DS SV đủ điều kiện</a>
+        <a href="#" class="block px-3 py-2 rounded hover:bg-gray-200">🏢 Quản lý bộ môn</a>
+        <a href="#" class="block px-3 py-2 rounded bg-blue-200 font-semibold">🎓 Quản lý ngành</a>
+        <a href="#" class="block px-3 py-2 rounded hover:bg-gray-200">👨‍🏫 Quản lý cán bộ - giảng viên</a>
+        <a href="#" class="block px-3 py-2 rounded hover:bg-gray-200">📈 Thống kê – Báo cáo</a>
+        <a href="#" class="block px-3 py-2 rounded hover:bg-gray-200">📚 Quản lý đề tài đồ án</a>
+      </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="ml-64 p-6 w-full">
+      <div class="flex justify-between items-center mb-4">
+        <h1 class="text-2xl font-bold text-gray-800">Quản lý ngành đào tạo</h1>
+        <button onclick="document.getElementById('addModal').classList.remove('hidden')" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow">+ Thêm ngành đào tạo</button>
+      </div>
+
+      <!-- Table -->
+      <div class="bg-white p-4 rounded shadow">
+        <table class="w-full text-sm text-left">
+          <thead>
+            <tr class="bg-gray-100 text-gray-600">
+              <th class="p-2 border">#</th>
+              <th class="p-2 border">Mã ngành</th>
+              <th class="p-2 border">Tên ngành</th>
+              <th class="p-2 border">Mô tả</th>
+              <th class="p-2 border">Thao tác</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="p-2 border">1</td>
+              <td class="p-2 border">CNTT</td>
+              <td class="p-2 border">Công nghệ thông tin</td>
+              <td class="p-2 border">Ngành đào tạo về CNTT, lập trình, hệ thống</td>
+              <td class="p-2 border space-x-2">
+                <button onclick="document.getElementById('editModal').classList.remove('hidden')" class="text-blue-600 hover:underline">Sửa</button>
+                <button class="text-red-600 hover:underline">Xoá</button>
+              </td>
+            </tr>
+            <!-- Các dòng dữ liệu ngành đào tạo khác -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Dialog thêm ngành -->
+      <div id="addModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+        <div class="bg-white p-6 rounded-lg shadow w-full max-w-xl">
+          <h2 class="text-lg font-semibold mb-4">Thêm ngành đào tạo</h2>
+          <form class="space-y-4">
+            <div>
+              <label class="block font-medium mb-1">Mã ngành</label>
+              <input type="text" class="w-full border px-3 py-2 rounded" placeholder="Nhập mã ngành">
+            </div>
+            <div>
+              <label class="block font-medium mb-1">Tên ngành</label>
+              <input type="text" class="w-full border px-3 py-2 rounded" placeholder="Nhập tên ngành">
+            </div>
+            <div>
+              <label class="block font-medium mb-1">Mô tả</label>
+              <textarea class="w-full border px-3 py-2 rounded" rows="3" placeholder="Mô tả ngành"></textarea>
+            </div>
+            <!-- Có thể thêm thông tin khác nếu cần -->
+            <div class="flex justify-end space-x-2">
+              <button type="button" onclick="document.getElementById('addModal').classList.add('hidden')" class="px-4 py-2 bg-gray-300 rounded">Huỷ</button>
+              <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded">Lưu</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <!-- Dialog sửa ngành -->
+<div id="editModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+  <div class="bg-white p-6 rounded-lg shadow-xl w-full max-w-2xl">
+    <div class="flex justify-between items-center mb-4">
+      <h2 class="text-xl font-semibold text-gray-800">Cập nhật ngành đào tạo</h2>
+      <button onclick="document.getElementById('editModal').classList.add('hidden')" class="text-gray-500 hover:text-gray-800">&times;</button>
+    </div>
+    <form class="grid grid-cols-2 gap-4">
+      <div class="col-span-1">
+        <label class="block font-medium mb-1">Mã ngành</label>
+        <input type="text" class="w-full border px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Nhập mã ngành" id="editMaNganh">
+      </div>
+      <div class="col-span-1">
+        <label class="block font-medium mb-1">Tên ngành</label>
+        <input type="text" class="w-full border px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Nhập tên ngành" id="editTenNganh">
+      </div>
+      <div class="col-span-2">
+        <label class="block font-medium mb-1">Mô tả</label>
+        <textarea rows="3" class="w-full border px-3 py-2 rounded focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Mô tả ngành" id="editMoTa"></textarea>
+      </div>
+      <div class="col-span-2 flex justify-end space-x-2 pt-2">
+        <button type="button" onclick="document.getElementById('editModal').classList.add('hidden')" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">Huỷ</button>
+        <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Cập nhật</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+    </main>
+  </div>
+</body>
+
+</html>
