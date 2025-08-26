@@ -17,9 +17,11 @@ return new class extends Migration
             $table->id();
             $table->string('fullname');
             $table->string('email')->unique();
+            $table->string('phone')->nullable();
             $table->string('password');
             $table->date('dob');
             $table->string('gender');
+            $table->text('address')->nullable(); // <-- thêm dòng này
             $table->string('image')->nullable();
             $table->string('role');
             $table->rememberToken()->nullable(); // <-- thêm dòng này

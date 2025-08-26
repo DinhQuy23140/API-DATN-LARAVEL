@@ -21,8 +21,10 @@ class UserFactory extends Factory
             'fullname' => $this->faker->name(),
             'email' => $this->faker->unique()->safeEmail(),
             'password' => bcrypt('password'), // có thể dùng Hash::make
+            'phone' => '0' . $this->faker->numberBetween(100000000, 999999999),
             'dob' => $this->faker->date(),
             'gender' => $this->faker->randomElement(['male', 'female']),
+            'address' => $this->faker->address(),
             'image' => $this->faker->imageUrl(200, 200, 'people'),
             'role' => $this->faker->randomElement(['student', 'teacher']),
             'remember_token' => Str::random(10),

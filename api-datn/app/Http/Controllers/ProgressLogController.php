@@ -9,9 +9,6 @@ use Illuminate\Http\JsonResponse;
 
 class ProgressLogController extends Controller
 {
-    /**
-     * @return \Illuminate\Http\Resources\Json\AnonymousResourceCollection
-     */
     public function index()
     {
         $logs = ProgressLog::with('attachments')->get();
@@ -45,17 +42,17 @@ class ProgressLogController extends Controller
     }
 
 
-    /**
-     * @return \App\Http\Resources\ProgressLogResource
-     */
     public function show(ProgressLog $progressLog)
     {
         return response()->json($progressLog->load('attachments'));
     }
 
-    /**
-     * @return \App\Http\Resources\ProgressLogResource
-     */
+    public function getProjectLogByIdProject($projectId)
+    {
+        $logs = ProgressLog::where('project_id', $projectId)->with('attachments')->get();
+        return response()->json($logs);
+    }
+
     public function update(Request $request, ProgressLog $progressLog)
     {
         $data = $request->validate([

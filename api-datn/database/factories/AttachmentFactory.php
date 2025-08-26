@@ -19,7 +19,6 @@ class AttachmentFactory extends Factory
     public function definition()
     {
         return [
-            'progress_log_id' => ProgressLog::factory(), // tự tạo log nếu chưa có
             'file_name' => $this->faker->words(2, true) . '.' . $this->faker->fileExtension(),
             'file_url' => $this->faker->url(),
             'file_type' => $this->faker->randomElement(['pdf', 'image', 'doc', 'xlsx', 'ppt']),

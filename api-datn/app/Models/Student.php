@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Batch_student;
 
 class Student extends Model
 {
@@ -23,8 +24,8 @@ class Student extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function assignment() {
-        return $this->hasMany(Assignment::class);
+    public function batch_students() {
+        return $this->hasMany(BatchStudent::class);
     }
 
 }

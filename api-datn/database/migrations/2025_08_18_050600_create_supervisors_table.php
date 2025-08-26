@@ -16,8 +16,10 @@ return new class extends Migration
         Schema::create('supervisors', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('teacher_id')->nullable();
+            $table->unsignedBigInteger('project_term_id')->nullable();
             $table->integer('max_students')->nullable();
             $table->string('expertise')->nullable();
+            $table->string('status')->nullable();
             $table->timestamps();
             $table->foreign('teacher_id')->references('id')->on('teachers')->onDelete('cascade');
         });

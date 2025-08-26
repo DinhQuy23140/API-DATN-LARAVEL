@@ -18,8 +18,9 @@ class Project extends Model
         return $this->hasMany(Assignment::class);
     }
 
-    public function progressLog()
+    public function progressLogs()
     {
         return $this->hasMany(ProgressLog::class);
     }
+
 }

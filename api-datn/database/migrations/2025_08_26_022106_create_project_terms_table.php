@@ -13,14 +13,14 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('councils', function (Blueprint $table) {
+        Schema::create('project_terms', function (Blueprint $table) {
             $table->id();
-            $table->string('name');
-            $table->string('description')->nullable();
-            $table->date('date')->nullable();
-            $table->string('thesis_batches_id')->nullable();
-            $table->string('term')->nullable();
+            $table->unsignedBigInteger('academy_year_id');
+            $table->text('term_name');
+            $table->text('start_date');
+            $table->text('end_date');
             $table->timestamps();
+            $table->foreign('academy_year_id')->references('id')->on('academy_years')->onDelete('cascade');
         });
     }
 
@@ -31,6 +31,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('councils');
+        Schema::dropIfExists('project_terms');
     }
 };

@@ -10,7 +10,7 @@ class AssignmentController extends Controller
 {
     public function index(Request $request)
     {
-        $assignments = Assignment::with(['student','supervisor','project'])->paginate(15);
+        $assignments = Assignment::with(['batch_student.student.user','supervisor.teacher.user', 'project.progressLogs.attachments'])->get();
         return response()->json($assignments);
     }
 
@@ -23,12 +23,21 @@ class AssignmentController extends Controller
             'status' => 'required|string|max:100'
         ]);
         $assignment = Assignment::create($data);
-        return response()->json($assignment->load(['student','supervisor','project']),201);
+        return response()->json($assignment->load(['batch_student.student.user','supervisor.teacher.user', 'project.progressLogs.attachments']),201);
+    }
+
+    public function getAssignmentByStudentId($studentId)
+    {
+        $assignment = Assignment::with(['student.user','supervisor.teacher.user','project.progressLogs.attachments'])
+            ->where('student_id', $studentId)
+            ->first();
+
+        return response()->json($assignment);
     }
 
     public function show(Assignment $assignment)
     {
-        return response()->json($assignment->load(['student','supervisor','project']));
+        return response()->json($assignment->load(['batch_student.student.user','supervisor.teacher.user', 'project.progressLogs.attachments']));
     }
 
     public function update(Request $request, Assignment $assignment)

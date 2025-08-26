@@ -23,19 +23,32 @@ class UsersController extends Controller
             'password' => ['required','string']
         ]);
 
+        // $user = User::where('email', $data['email'])->first();
+        // if (!$user || !Hash::check($data['password'], $user->password)) {
+        //     return response()->json([
+        //         'success' => false,
+        //         'message' => 'Sai email hoặc mật khẩu'
+        //     ], 401);
+        // }
+
         $user = User::where('email', $data['email'])->first();
-        if (!$user || !Hash::check($data['password'], $user->password)) {
+
+        if (!$user || $data['password'] !== $user->password) {
             return response()->json([
                 'success' => false,
                 'message' => 'Sai email hoặc mật khẩu'
             ], 401);
         }
 
-    // Xóa tất cả token cũ để đảm bảo chỉ duy nhất 1 phiên đăng nhập
-    $user->tokens()->delete();
 
-    // Tạo token mới
-    $token = $user->createToken('api-token')->plainTextToken;
+        // Xóa tất cả token cũ để đảm bảo chỉ duy nhất 1 phiên đăng nhập
+        $user->tokens()->delete();
+
+        // Tạo token mới
+        $token = $user->createToken('api-token')->plainTextToken;
+
+        // Load thông tin student nếu có
+        $user->loadMissing('student');
 
         return response()->json([
             'success' => true,
@@ -46,7 +59,20 @@ class UsersController extends Controller
                 'id' => $user->id,
                 'fullname' => $user->fullname,
                 'email' => $user->email,
+                'phone' => $user->phone,
+                'dob' => $user->dob,
+                'gender' => $user->gender,
+                'image' => $user->image,
+                'address' => $user->address,
                 'role' => $user->role,
+                'student' => $user->student ? [
+                    'id' => $user->student->id,
+                    'student_code' => $user->student->student_code,
+                    'class_code' => $user->student->class_code,
+                    'major_id' => $user->student->major_id,
+                    'department_id' => $user->student->department_id,
+                    'course_year' => $user->student->course_year,
+                ] : null,
             ],
         ]);
     }

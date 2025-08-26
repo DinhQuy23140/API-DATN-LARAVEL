@@ -15,9 +15,9 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
-        $this->call([
-            UsersSeeder::class,
-        ]);
+        // $this->call([
+        //     UsersSeeder::class,
+        // ]);
 
         $this->call([
             StudentSeeder::class,
@@ -25,6 +25,18 @@ class DatabaseSeeder extends Seeder
 
         $this->call([
             TeacherSeeder::class,
+        ]);
+
+        $this->call([
+            AcademyYearSeeder::class,
+        ]);
+
+        $this->call([
+            ProjectTermsSeeder::class,
+        ]);
+
+        $this->call([
+            BatchStudentSeeder::class,
         ]);
 
         $this->call([

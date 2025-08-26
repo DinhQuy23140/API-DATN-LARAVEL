@@ -10,7 +10,7 @@ class SupervisorController extends Controller
 {
     public function index(Request $request)
     {
-        $supervisors = Supervisor::with('teacher')->paginate(15);
+        $supervisors = Supervisor::with('teacher.user')->get();
         return response()->json($supervisors);
     }
 
@@ -27,7 +27,7 @@ class SupervisorController extends Controller
 
     public function show(Supervisor $supervisor)
     {
-        return response()->json($supervisor->load('teacher'));
+        return response()->json($supervisor->load('teacher.user'));
     }
 
     public function update(Request $request, Supervisor $supervisor)

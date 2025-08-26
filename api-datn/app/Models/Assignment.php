@@ -15,8 +15,8 @@ class Assignment extends Model
         'status',
     ];
 
-    public function student() {
-        return $this->belongsTo(Student::class);
+    public function batch_student() {
+        return $this->belongsTo(BatchStudent::class);
     }
 
     public function supervisor() {

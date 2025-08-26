@@ -4,6 +4,9 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Web\UserController as WebUserController;
 use App\Http\Controllers\Web\ProgressLogController as WebProgressLogController;
 use App\Http\Controllers\Web\AttachmentController as WebAttachmentController;
+use App\Http\Controllers\Web\AcademyYearController as WebAcademyYearController;
+use App\Http\Controllers\Web\ProjectTermsController as WebProjectTermsController;
+use App\Http\Controllers\Web\BatchStudentController as WebBatchStudentController;
 
 /*
 |--------------------------------------------------------------------------
@@ -18,6 +21,36 @@ use App\Http\Controllers\Web\AttachmentController as WebAttachmentController;
 
 Route::get('/', function () {
     return view('welcome');
+});
+
+Route::prefix('academy-years')->name('web.academy_years.')->group(function(){
+    Route::get('/', [WebAcademyYearController::class, 'index'])->name('index');
+    Route::get('/create', [WebAcademyYearController::class, 'create'])->name('create');
+    Route::post('/', [WebAcademyYearController::class, 'store'])->name('store');
+    Route::get('/{academy_year}', [WebAcademyYearController::class, 'show'])->name('show');
+    Route::get('/{academy_year}/edit', [WebAcademyYearController::class, 'edit'])->name('edit');
+    Route::put('/{academy_year}', [WebAcademyYearController::class, 'update'])->name('update');
+    Route::delete('/{academy_year}', [WebAcademyYearController::class, 'destroy'])->name('destroy');
+});
+
+Route::prefix('project-terms')->name('web.project_terms.')->group(function(){
+    Route::get('/', [WebProjectTermsController::class, 'index'])->name('index');
+    Route::get('/create', [WebProjectTermsController::class, 'create'])->name('create');
+    Route::post('/', [WebProjectTermsController::class, 'store'])->name('store');
+    Route::get('/{project_term}', [WebProjectTermsController::class, 'show'])->name('show');
+    Route::get('/{project_term}/edit', [WebProjectTermsController::class, 'edit'])->name('edit');
+    Route::put('/{project_term}', [WebProjectTermsController::class, 'update'])->name('update');
+    Route::delete('/{project_term}', [WebProjectTermsController::class, 'destroy'])->name('destroy');
+});
+
+Route::prefix('batch-students')->name('web.batch_students.')->group(function(){
+    Route::get('/', [WebBatchStudentController::class, 'index'])->name('index');
+    Route::get('/create', [WebBatchStudentController::class, 'create'])->name('create');
+    Route::post('/', [WebBatchStudentController::class, 'store'])->name('store');
+    Route::get('/{batch_student}', [WebBatchStudentController::class, 'show'])->name('show');
+    Route::get('/{batch_student}/edit', [WebBatchStudentController::class, 'edit'])->name('edit');
+    Route::put('/{batch_student}', [WebBatchStudentController::class, 'update'])->name('update');
+    Route::delete('/{batch_student}', [WebBatchStudentController::class, 'destroy'])->name('destroy');
 });
 
 Route::prefix('users')->name('web.users.')->group(function () {

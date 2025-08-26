@@ -11,8 +11,10 @@ class Supervisor extends Model
 
     protected $fillable = [
         'teacher_id',
+        'project_term_id',
         'max_students',
         'expertise',
+        'status',
     ];
 
     public function teacher()
@@ -23,5 +25,10 @@ class Supervisor extends Model
     public function assignment()
     {
         return $this->hasMany(Assignment::class);
+    }
+
+    public function project_term()
+    {
+        return $this->belongsTo(ProjectTerm::class);
     }
 }

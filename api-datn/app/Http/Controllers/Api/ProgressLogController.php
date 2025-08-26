@@ -36,6 +36,15 @@ class ProgressLogController extends Controller
         return response()->json($progressLog->load('attachments'));
     }
 
+    // Lấy danh sách progress logs theo project_id
+    public function getProjectLogByIdProject($projectId)
+    {
+        $logs = ProgressLog::where('project_id', $projectId)
+            ->with('attachments')
+            ->get();
+        return response()->json($logs);
+    }
+
     public function update(Request $request, ProgressLog $progressLog)
     {
         $data = $request->validate([
