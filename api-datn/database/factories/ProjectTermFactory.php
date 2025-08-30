@@ -18,9 +18,11 @@ class ProjectTermFactory extends Factory
     {
         return [
             'academy_year_id' => \App\Models\AcademyYear::inRandomOrder()->value('id'),
-            'term_name' => $this->faker->word(),
+            'stage' => random_int(1, 2),
+            'description' => $this->faker->text(),
             'start_date' => $this->faker->date(),
             'end_date' => $this->faker->date(),
+            'status' => $this->faker->randomElement(['active', 'inactive'])
         ];
     }
 }

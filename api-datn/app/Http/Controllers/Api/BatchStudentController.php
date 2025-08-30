@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Batch_student;
 use App\Models\BatchStudent;
 use Illuminate\Http\Request;
 
@@ -20,7 +19,7 @@ class BatchStudentController extends Controller
     {
         $data = $request->validate([
             'student_id' => 'required|integer|exists:students,id',
-            'project_terms_id' => 'required|integer|exists:project_terms,id',
+            'project_term_id' => 'required|integer|exists:project_terms,id',
             'status' => 'required|string|max:100',
         ]);
         $item = BatchStudent::create($data);
@@ -36,7 +35,7 @@ class BatchStudentController extends Controller
     {
         $data = $request->validate([
             'student_id' => 'sometimes|integer|exists:students,id',
-            'project_terms_id' => 'sometimes|integer|exists:project_terms,id',
+            'project_term_id' => 'sometimes|integer|exists:project_terms,id',
             'status' => 'sometimes|string|max:100',
         ]);
         $batch_student->update($data);

@@ -25,7 +25,7 @@ class Student extends Model
     }
 
     public function batch_students() {
-        return $this->hasMany(BatchStudent::class);
+        return $this->hasOne(BatchStudent::class);
     }
 
 }

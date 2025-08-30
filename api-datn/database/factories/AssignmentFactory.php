@@ -21,10 +21,10 @@ class AssignmentFactory extends Factory
     public function definition()
     {
         return [
-            'batch_student_id' => BatchStudent::inRandomOrder()->value('id'),
-            'supervisor_id' => Supervisor::inRandomOrder()->value('id'),
-            'project_id' => Project::inRandomOrder()->value('id'),
-            'status' => $this->faker->randomElement(['pending', 'accepted', 'rejected']),
+            'batch_student_id' => BatchStudent::factory(),
+            'project_id' => Project::factory(),
+            'status' => $this->faker->randomElement(['pending', 'approved', 'rejected']),
+            'role' => $this->faker->randomElement(['leader', 'member', null]),
         ];
     }
 }

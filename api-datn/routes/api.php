@@ -32,10 +32,12 @@ Route::middleware('auth:sanctum')->post('auth/logout', [UsersController::class, 
 Route::apiResource('projects', ProjectController::class);
 Route::apiResource('assignments', AssignmentController::class);
 Route::get('/assignments/student/{studentId}', [AssignmentController::class, 'getAssignmentByStudentId']);
+Route::get('/assignments/student/{studentId}/project-term/{projectTermId}', [AssignmentController::class, 'getAssignmentByStudentIdAndProjectTermId']);
 Route::apiResource('students', StudentController::class);
 Route::apiResource('supervisors', SupervisorController::class);
 Route::apiResource('teachers', TeacherController::class);
 Route::apiResource('academy-years', AcademyYearController::class);
 Route::apiResource('project-terms', ProjectTermsController::class);
+Route::get('/project-terms/student/{studentId}', [ProjectTermsController::class, 'getProjectTermbyStudentId']);
 Route::apiResource('batch-students', BatchStudentController::class);
 

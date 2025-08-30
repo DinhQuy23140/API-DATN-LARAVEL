@@ -16,7 +16,7 @@ class ProgressLogResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'process_id' => $this->process_id,
+            'project_id' => $this->project_id,
             'title' => $this->title,
             'description' => $this->description,
             'start_date_time' => $this->start_date_time,

@@ -10,7 +10,11 @@ class StudentController extends Controller
 {
     public function index(Request $request)
     {
-        $students = Student::with('user')->paginate(15);
+        $withBatch = filter_var($request->query('with_batch'), FILTER_VALIDATE_BOOL);
+        $students = Student::with(array_filter([
+            'user',
+            $withBatch ? 'batch_students.project_term.academy_year' : null,
+        ]))->paginate(15);
         return response()->json($students);
     }
 
@@ -30,7 +34,7 @@ class StudentController extends Controller
 
     public function show(Student $student)
     {
-        return response()->json($student->load('user'));
+        return response()->json($student->load(['user','batch_students.project_term.academy_year']));
     }
 
     public function update(Request $request, Student $student)
@@ -51,5 +55,8 @@ class StudentController extends Controller
     {
         $student->delete();
         return response()->json(['message'=>'Deleted']);
+    }
+
+    public function getProjectTermbyStudentId(String $studentId) {
     }
 }

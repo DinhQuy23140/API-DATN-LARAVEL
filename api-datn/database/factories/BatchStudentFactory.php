@@ -18,7 +18,7 @@ class BatchStudentFactory extends Factory
     {
         return [
             'student_id' => \App\Models\Student::inRandomOrder()->value('id'),
-            'project_terms_id' => \App\Models\ProjectTerm::inRandomOrder()->value('id'),
+            'project_term_id' => \App\Models\ProjectTerm::inRandomOrder()->value('id'),
             'status' => $this->faker->randomElement(['active', 'inactive']),
         ];
     }

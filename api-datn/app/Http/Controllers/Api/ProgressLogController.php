@@ -17,7 +17,7 @@ class ProgressLogController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'process_id' => 'required|string',
+            'project_id' => 'required|integer|exists:projects,id',
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
             'start_date_time' => 'required|date',
@@ -48,7 +48,7 @@ class ProgressLogController extends Controller
     public function update(Request $request, ProgressLog $progressLog)
     {
         $data = $request->validate([
-            'process_id' => 'sometimes|string',
+            'project_id' => 'sometimes|integer|exists:projects,id',
             'title' => 'sometimes|string|max:255',
             'description' => 'nullable|string',
             'start_date_time' => 'sometimes|date',

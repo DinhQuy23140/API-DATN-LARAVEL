@@ -54,5 +54,9 @@ class DatabaseSeeder extends Seeder
         $this->call([
             AssignmentSeeder::class,
         ]);
+
+        $this->call([
+            AssignmentSupervisorSeeder::class,
+        ]);
     }
 }

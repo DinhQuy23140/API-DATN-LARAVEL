@@ -3,7 +3,6 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Project_terms;
 use App\Models\ProjectTerm;
 use Illuminate\Http\Request;
 
@@ -12,7 +11,8 @@ class ProjectTermsController extends Controller
     public function index(Request $request)
     {
         $terms = ProjectTerm::with('academy_year')
-            ->latest('id')->paginate(15)->appends($request->query());
+            ->latest('id')
+            ->get();
         return response()->json($terms);
     }
 
@@ -20,9 +20,11 @@ class ProjectTermsController extends Controller
     {
         $data = $request->validate([
             'academy_year_id' => 'required|integer|exists:academy_years,id',
-            'term_name' => 'required|string|max:255',
+            'stage' => 'required|string|max:255',
+            'description' => 'nullable|string|max:1000',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
+            'status' => 'required|string|max:255',
         ]);
         $term = ProjectTerm::create($data);
         return response()->json($term->load('academy_year'),201);
@@ -37,9 +39,11 @@ class ProjectTermsController extends Controller
     {
         $data = $request->validate([
             'academy_year_id' => 'sometimes|integer|exists:academy_years,id',
-            'term_name' => 'sometimes|string|max:255',
+            'stage' => 'sometimes|string|max:255',
+            'description' => 'nullable|string|max:1000',
             'start_date' => 'sometimes|date',
             'end_date' => 'sometimes|date|after_or_equal:start_date',
+            'status' => 'sometimes|string|max:255',
         ]);
         $project_term->update($data);
         return response()->json($project_term->load('academy_year'));
@@ -49,5 +53,21 @@ class ProjectTermsController extends Controller
     {
         $project_term->delete();
         return response()->json(['message' => 'Deleted']);
+    }
+
+    public function getProjectTermbyStudentId($studentId) {
+        $term = ProjectTerm::with([
+                'academy_year',
+                'batch_students' => function ($query) use ($studentId) {
+                    $query->where('student_id', $studentId);
+                },
+                'batch_students.student'
+            ])
+            ->whereHas('batch_students', function($query) use ($studentId) {
+                $query->where('student_id', $studentId);
+            })
+            ->get();
+
+        return response()->json($term);
     }
 }

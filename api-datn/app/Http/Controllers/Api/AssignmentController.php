@@ -10,26 +10,80 @@ class AssignmentController extends Controller
 {
     public function index(Request $request)
     {
-        $assignments = Assignment::with(['batch_student.student.user','supervisor.teacher.user', 'project.progressLogs.attachments'])->get();
+        $assignments = Assignment::with([
+            'batch_student.student.user',
+            'batch_student.project_term.academy_year',
+            'supervisors.teacher.user',
+            'project.progressLogs.attachments',
+        ])
+        ->when($request->query('student_id'), function($q, $sid){
+            $q->whereHas('batch_student', fn($qb)=>$qb->where('student_id', $sid));
+        })
+        ->when($request->query('project_term_id'), function($q, $ptid){
+            $q->whereHas('batch_student', fn($qb)=>$qb->where('project_term_id', $ptid));
+        })
+        ->latest('id')
+        ->get();
         return response()->json($assignments);
     }
 
     public function store(Request $request)
     {
         $data = $request->validate([
-            'student_id' => 'required|integer|exists:students,id',
-            'supervisor_id' => 'required|integer|exists:supervisors,id',
+            'batch_student_id' => 'required|integer|exists:batch_students,id',
             'project_id' => 'required|integer|exists:projects,id',
-            'status' => 'required|string|max:100'
+            'status' => 'required|string|max:100',
+            'supervisor_ids' => 'sometimes|array',
+            'supervisor_ids.*' => 'integer|exists:supervisors,id',
         ]);
-        $assignment = Assignment::create($data);
-        return response()->json($assignment->load(['batch_student.student.user','supervisor.teacher.user', 'project.progressLogs.attachments']),201);
+
+        $assignment = Assignment::create([
+            'batch_student_id' => $data['batch_student_id'],
+            'project_id' => $data['project_id'],
+            'status' => $data['status'],
+        ]);
+
+        if (!empty($data['supervisor_ids'])) {
+            $assignment->supervisors()->sync($data['supervisor_ids']);
+        }
+
+        return response()->json(
+            $assignment->load([
+                'batch_student.student.user',
+                'batch_student.project_term.academy_year',
+                'supervisors.teacher.user',
+                'project.progressLogs.attachments',
+            ]),
+            201
+        );
     }
 
     public function getAssignmentByStudentId($studentId)
     {
-        $assignment = Assignment::with(['student.user','supervisor.teacher.user','project.progressLogs.attachments'])
-            ->where('student_id', $studentId)
+        $assignment = Assignment::with([
+                'batch_student.student.user',
+                'supervisors.teacher.user',
+                'project.progressLogs.attachments',
+            ])
+            ->whereHas('batch_student', function ($query) use ($studentId) {
+                $query->where('student_id', $studentId);
+            })
+            ->first();
+
+        return response()->json($assignment);
+    }
+
+    public function getAssignmentByStudentIdAndProjectTermId($studentId, $projectTermId)
+    {
+        $assignment = Assignment::with([
+                'batch_student.student.user',
+                'supervisors.teacher.user',
+                'project.progressLogs.attachments',
+            ])
+            ->whereHas('batch_student', function ($query) use ($studentId, $projectTermId) {
+                $query->where('student_id', $studentId)
+                      ->where('project_term_id', $projectTermId);
+            })
             ->first();
 
         return response()->json($assignment);
@@ -37,23 +91,45 @@ class AssignmentController extends Controller
 
     public function show(Assignment $assignment)
     {
-        return response()->json($assignment->load(['batch_student.student.user','supervisor.teacher.user', 'project.progressLogs.attachments']));
+        return response()->json(
+            $assignment->load([
+                'batch_student.student.user',
+                'batch_student.project_term.academy_year',
+                'supervisors.teacher.user',
+                'project.progressLogs.attachments',
+            ])
+        );
     }
 
     public function update(Request $request, Assignment $assignment)
     {
         $data = $request->validate([
-            'student_id' => 'sometimes|integer|exists:students,id',
-            'supervisor_id' => 'sometimes|integer|exists:supervisors,id',
+            'batch_student_id' => 'sometimes|integer|exists:batch_students,id',
             'project_id' => 'sometimes|integer|exists:projects,id',
-            'status' => 'sometimes|string|max:100'
+            'status' => 'sometimes|string|max:100',
+            'supervisor_ids' => 'sometimes|array',
+            'supervisor_ids.*' => 'integer|exists:supervisors,id',
         ]);
-        $assignment->update($data);
-        return response()->json($assignment->load(['student','supervisor','project']));
+
+        $assignment->update(collect($data)->only(['batch_student_id','project_id','status'])->toArray());
+
+        if (array_key_exists('supervisor_ids', $data)) {
+            $assignment->supervisors()->sync($data['supervisor_ids'] ?? []);
+        }
+
+        return response()->json(
+            $assignment->load([
+                'batch_student.student.user',
+                'supervisors.teacher.user',
+                'project.progressLogs.attachments',
+            ])
+        );
     }
 
     public function destroy(Assignment $assignment)
     {
+        // detach any linked supervisors in pivot before delete
+        $assignment->supervisors()->detach();
         $assignment->delete();
         return response()->json(['message'=>'Deleted']);
     }

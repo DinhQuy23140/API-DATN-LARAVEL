@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class BatchStudent extends Model
 {
     use HasFactory;
-    protected $fillable = ['student_id', 'project_terms_id', 'status'];
+    protected $fillable = ['student_id', 'project_term_id', 'status'];
 
     public function student()
     {

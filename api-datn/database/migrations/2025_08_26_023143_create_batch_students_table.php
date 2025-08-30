@@ -16,11 +16,11 @@ return new class extends Migration
         Schema::create('batch_students', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('student_id');
-            $table->unsignedBigInteger('project_terms_id');
+            $table->unsignedBigInteger('project_term_id');
             $table->text('status');
             $table->timestamps();
             $table->foreign('student_id')->references('id')->on('students')->onDelete('cascade');
-            $table->foreign('project_terms_id')->references('id')->on('project_terms')->onDelete('cascade');
+            $table->foreign('project_term_id')->references('id')->on('project_terms')->onDelete('cascade');
         });
     }
 

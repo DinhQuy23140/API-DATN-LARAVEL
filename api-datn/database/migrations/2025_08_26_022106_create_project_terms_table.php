@@ -16,9 +16,11 @@ return new class extends Migration
         Schema::create('project_terms', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('academy_year_id');
-            $table->text('term_name');
+            $table->text('stage');
+            $table->text('description');
             $table->text('start_date');
             $table->text('end_date');
+            $table->text('status');
             $table->timestamps();
             $table->foreign('academy_year_id')->references('id')->on('academy_years')->onDelete('cascade');
         });

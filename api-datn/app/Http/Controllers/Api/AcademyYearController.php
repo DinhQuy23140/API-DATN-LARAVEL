@@ -10,10 +10,7 @@ class AcademyYearController extends Controller
 {
     public function index(Request $request)
     {
-        $years = AcademyYear::withCount('project_terms')
-            ->latest('id')
-            ->paginate(15)
-            ->appends($request->query());
+        $years = AcademyYear::latest('id')->get();
         return response()->json($years);
     }
 

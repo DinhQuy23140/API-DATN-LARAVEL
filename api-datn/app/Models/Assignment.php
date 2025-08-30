@@ -9,8 +9,7 @@ class Assignment extends Model
 {
     use HasFactory;
     protected $fillable = [
-        'student_id',
-        'supervisor_id',
+        'batch_student_id',
         'project_id',
         'status',
     ];
@@ -19,11 +18,14 @@ class Assignment extends Model
         return $this->belongsTo(BatchStudent::class);
     }
 
-    public function supervisor() {
-        return $this->belongsTo(Supervisor::class);
-    }
-
     public function project() {
         return $this->belongsTo(Project::class);
+    }
+
+    public function supervisors()
+    {
+        return $this->belongsToMany(Supervisor::class, 'assignment_supervisors')
+            ->withPivot('role')
+            ->withTimestamps();
     }
 }
