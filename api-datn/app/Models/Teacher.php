@@ -23,7 +23,7 @@ class Teacher extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function supervisors()
+    public function supervisor()
     {
         return $this->hasOne(Supervisor::class);
     }

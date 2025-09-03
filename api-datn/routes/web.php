@@ -7,22 +7,35 @@ use App\Http\Controllers\Web\AttachmentController as WebAttachmentController;
 use App\Http\Controllers\Web\AcademyYearController as WebAcademyYearController;
 use App\Http\Controllers\Web\ProjectTermsController as WebProjectTermsController;
 use App\Http\Controllers\Web\BatchStudentController as WebBatchStudentController;
+use App\Http\Controllers\Web\SupervisorController as WebSupervisorController;
 
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider within a group which
-| contains the "web" middleware group. Now create something great!
-|
-*/
+// Guest (login)
+Route::middleware('guest')->group(function () {
+    Route::get('/login', [WebUserController::class, 'showLoginForm'])->name('web.auth.login');
+    Route::post('/login', [WebUserController::class, 'login'])->name('web.auth.login.post');
 
-Route::get('/', function () {
-    return view('welcome');
+    // Forgot password page
+    Route::get('/forgot-password', function () {
+        return view('login.forgot_pass_ui');
+    })->name('web.auth.forgot');
 });
 
+// Authenticated
+Route::middleware('auth')->group(function () {
+    Route::post('/logout', [WebUserController::class, 'logout'])->name('web.auth.logout');
+    // Lecturer UI pages
+    Route::get('/teacher/overview', [WebUserController::class, 'showOverView'])->name('web.teacher.overview'); // trang tổng quan
+    Route::get('/teacher/profile', [WebUserController::class, 'showProfile'])->name('web.teacher.profile');
+    Route::get('/teacher/research', fn () => view('lecturer-ui.research'))->name('web.teacher.research');
+    Route::get('/teacher/students/{supervisorId}', [WebSupervisorController::class, 'getStudentBySupervisor'])->name('web.teacher.students');
+    Route::get('/teacher/thesis-internship', fn () => view('lecturer-ui.thesis-internship'))->name('web.teacher.thesis_internship');
+    Route::get('/teacher/thesis-rounds', fn () => view('lecturer-ui.thesis-rounds'))->name('web.teacher.thesis_rounds');
+
+    // Optional: /teacher -> overview
+    Route::get('/teacher', fn () => redirect()->route('web.teacher.overview'))->name('web.teacher.home');
+});
+
+// Academy Years
 Route::prefix('academy-years')->name('web.academy_years.')->group(function(){
     Route::get('/', [WebAcademyYearController::class, 'index'])->name('index');
     Route::get('/create', [WebAcademyYearController::class, 'create'])->name('create');
@@ -33,6 +46,7 @@ Route::prefix('academy-years')->name('web.academy_years.')->group(function(){
     Route::delete('/{academy_year}', [WebAcademyYearController::class, 'destroy'])->name('destroy');
 });
 
+// Project Terms
 Route::prefix('project-terms')->name('web.project_terms.')->group(function(){
     Route::get('/', [WebProjectTermsController::class, 'index'])->name('index');
     Route::get('/create', [WebProjectTermsController::class, 'create'])->name('create');
@@ -43,6 +57,7 @@ Route::prefix('project-terms')->name('web.project_terms.')->group(function(){
     Route::delete('/{project_term}', [WebProjectTermsController::class, 'destroy'])->name('destroy');
 });
 
+// Batch Students
 Route::prefix('batch-students')->name('web.batch_students.')->group(function(){
     Route::get('/', [WebBatchStudentController::class, 'index'])->name('index');
     Route::get('/create', [WebBatchStudentController::class, 'create'])->name('create');
@@ -53,6 +68,7 @@ Route::prefix('batch-students')->name('web.batch_students.')->group(function(){
     Route::delete('/{batch_student}', [WebBatchStudentController::class, 'destroy'])->name('destroy');
 });
 
+// Users (có thể bọc middleware('auth') nếu cần)
 Route::prefix('users')->name('web.users.')->group(function () {
     Route::get('/', [WebUserController::class, 'index'])->name('index');
     Route::get('/create', [WebUserController::class, 'create'])->name('create');
@@ -63,6 +79,7 @@ Route::prefix('users')->name('web.users.')->group(function () {
     Route::delete('/{user}', [WebUserController::class, 'destroy'])->name('destroy');
 });
 
+// Progress Logs + nested attachments
 Route::prefix('progress-logs')->name('web.progress_logs.')->group(function () {
     Route::get('/', [WebProgressLogController::class, 'index'])->name('index');
     Route::get('/create', [WebProgressLogController::class, 'create'])->name('create');
@@ -72,12 +89,24 @@ Route::prefix('progress-logs')->name('web.progress_logs.')->group(function () {
     Route::put('/{progress_log}', [WebProgressLogController::class, 'update'])->name('update');
     Route::delete('/{progress_log}', [WebProgressLogController::class, 'destroy'])->name('destroy');
 
-    // Nested attachments (only create/store) referencing parent log
     Route::get('/{progress_log}/attachments/create', [WebAttachmentController::class, 'create'])->name('attachments.create');
     Route::post('/{progress_log}/attachments', [WebAttachmentController::class, 'store'])->name('attachments.store');
 });
 
-// Attachment routes that operate on single attachment (edit/update/delete)
+// Single attachment operations
 Route::get('attachments/{attachment}/edit', [WebAttachmentController::class, 'edit'])->name('web.attachments.edit');
 Route::put('attachments/{attachment}', [WebAttachmentController::class, 'update'])->name('web.attachments.update');
 Route::delete('attachments/{attachment}', [WebAttachmentController::class, 'destroy'])->name('web.attachments.destroy');
+
+// Root redirect theo trạng thái đăng nhập
+Route::get('/', function () {
+    return auth()->check()
+        ? redirect()->route('web.teacher.dashboard')
+        : redirect()->route('web.auth.login');
+})->name('web.home');
+
+// Map /home về dashboard
+Route::get('/home', fn() => redirect()->route('web.teacher.overview'));
+
+// Fallback: URL không khớp
+Route::fallback(fn() => redirect()->route('web.auth.login'));

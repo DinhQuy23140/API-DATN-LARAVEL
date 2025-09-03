@@ -6,10 +6,135 @@ use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 
 class UserController extends Controller
 {
+    // Hiển thị form đăng nhập (Web)
+    public function showLoginForm()
+    {
+        // kết nối tới resources/views/login/login.blade.php
+        return view('login.login');
+    }
+
+    // Xử lý đăng nhập (Web)
+    // public function login(Request $request)
+    // {
+    //     $credentials = $request->validate([
+    //         'email' => ['required','email'],
+    //         'password' => ['required','string'],
+    //     ]);
+
+    //     if (!Auth::attempt($credentials)) {
+    //         return back()
+    //             ->withErrors(['email' => 'Thông tin đăng nhập không đúng'])
+    //             ->onlyInput('email');
+    //     }
+
+    //     $request->session()->regenerate();
+    //     // Optional: nạp quan hệ student cho phiên làm việc
+    //     Auth::user()->loadMissing('student');
+
+    //     return redirect()->intended(route('web.users.index'))
+    //         ->with('status', 'Đăng nhập thành công');
+    // }
+    public function login(Request $request)
+    {
+        $data = $request->validate([
+            'email' => ['required','email'],
+            'password' => ['required','string'],
+        ]);
+
+        // TẠM THỜI: so sánh mật khẩu plain trong DB (không an toàn cho production)
+        $user = User::where('email', $data['email'])->first();
+
+        if (!$user || $user->password !== $data['password']) {
+            return back()
+                ->withErrors(['email' => 'Thông tin đăng nhập không đúng'])
+                ->onlyInput('email');
+        }
+
+        Auth::login($user, $request->boolean('remember'));
+        $request->session()->regenerate();
+        $user->loadMissing( 'teacher', 'supervisor', 'assignment_supervisors', 'assignment', 'batch_student', 'student');
+
+        // Nếu là giáo viên → chuyển tới lecturer-ui/overview.blade.php
+        if ($user->role === 'teacher') {
+            return redirect()->route('web.teacher.overview', compact('user'))
+                ->with('status', 'Đăng nhập thành công');
+        }
+
+        // Mặc định
+        return redirect()->intended(route('web.users.index'))
+            ->with('status', 'Đăng nhập thành công');
+    }
+
+    public function showOverView()
+    {
+        $id = Auth::id();
+        $user = User::with('teacher.supervisor')
+    ->with('teacher.supervisor.assignment_supervisors.assignment')
+    ->findOrFail(Auth::id());
+
+        return view('lecturer-ui.overview', compact('user'));
+    }
+
+    public function showProfile()
+    {
+        $id = Auth::id();
+        $user = User::with('teacher.supervisor')->findOrFail($id);
+        return view('lecturer-ui.profile', compact('user'));
+    }
+    
+    //login 
+    // public function login(Request $request)
+    // {
+    //     $data = $request->validate([
+    //         'email' => ['required','email'],
+    //         'password' => ['required','string'],
+    //     ]);
+
+    //     // Tìm user theo email
+    //     $user = User::where('email', $data['email'])->first();
+
+    //     // Kiểm tra user tồn tại và password có khớp không (dùng bcrypt hash check)
+    //     if (!$user || !Hash::check($data['password'], $user->password)) {
+    //         return back()
+    //             ->withErrors(['email' => 'Thông tin đăng nhập không đúng'])
+    //             ->onlyInput('email');
+    //     }
+
+    //     // Đăng nhập user
+    //     Auth::login($user, $request->boolean('remember'));
+    //     $request->session()->regenerate();
+
+    //     // Load thêm quan hệ cần thiết (nếu có)
+    //     $user->loadMissing('teacher', 'supervisor');
+
+    //     // Nếu là giáo viên → chuyển tới giao diện giảng viên
+    //     if ($user->role === 'teacher') {
+    //         return redirect()->route('web.teacher.overview')
+    //             ->with('status', 'Đăng nhập thành công');
+    //     }
+
+    //     // Mặc định
+    //     return redirect()->intended(route('web.users.index'))
+    //         ->with('status', 'Đăng nhập thành công');
+    // }
+
+
+    // Đăng xuất (Web)
+    public function logout(Request $request)
+    {
+        Auth::logout();
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect()->route('web.auth.login')
+            ->with('status', 'Đã đăng xuất');
+    }
+
     // Danh sách người dùng
     public function index(Request $request)
     {
@@ -47,7 +172,7 @@ class UserController extends Controller
         ]);
         $data['password'] = Hash::make($data['password']);
         $user = User::create($data);
-        return redirect()->route('web.users.show', $user)->with('status', 'Tạo người dùng thành công');
+        return redirect()->route('web.teacher.show', $user)->with('status', 'Tạo người dùng thành công');
     }
 
     // Chi tiết

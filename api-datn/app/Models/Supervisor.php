@@ -22,13 +22,18 @@ class Supervisor extends Model
         return $this->belongsTo(Teacher::class);
     }
 
-    public function assignment()
-    {
-        return $this->hasMany(Assignment::class);
-    }
+    // public function assignments()
+    // {
+    //     return $this->hasMany(Assignment::class);
+    // }
 
     public function project_term()
     {
-        return $this->belongsTo(ProjectTerm::class);
+        return $this->belongsToMany(ProjectTerm::class);
+    }
+
+    public function assignment_supervisors()
+    {
+        return $this->hasMany(AssignmentSupervisor::class);
     }
 }

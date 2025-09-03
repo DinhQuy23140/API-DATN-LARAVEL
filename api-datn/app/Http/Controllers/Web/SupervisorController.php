@@ -3,9 +3,14 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
+use App\Models\AcademyYear;
+use App\Models\ProjectTerm;
 use App\Models\Supervisor;
 use App\Models\Teacher;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use App\Models\Student;
+use App\Models\User;
 
 class SupervisorController extends Controller
 {
@@ -35,4 +40,17 @@ class SupervisorController extends Controller
         return redirect()->route('web.supervisors.show',$supervisor)->with('status','Cập nhật thành công');
     }
     public function destroy(Supervisor $supervisor){$supervisor->delete(); return redirect()->route('web.supervisors.index')->with('status','Đã xóa');}
+
+// WebSupervisorController.php
+    public function getStudentBySupervisor($supervisorId)
+    {
+        $idUser = Auth::id();
+        $user = User::with('teacher.supervisor')
+        ->with('teacher.supervisor.assignment_supervisors.assignment')
+        ->findOrFail(Auth::id());
+        $years = AcademyYear::orderBy('year_name', 'desc')->get();
+
+        $terms = ProjectTerm::select('stage')->distinct()->pluck('stage');
+        return view('lecturer-ui.students', compact( 'user', 'years', 'terms'));
+    }
 }

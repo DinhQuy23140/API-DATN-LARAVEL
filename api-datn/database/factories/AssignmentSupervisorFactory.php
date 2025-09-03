@@ -19,8 +19,8 @@ class AssignmentSupervisorFactory extends Factory
     public function definition()
     {
         return [
-            'assignment_id' => Assignment::factory(),
-            'supervisor_id' => Supervisor::factory(),
+            'assignment_id' => Assignment::inRandomOrder()->first()->id ?? Assignment::factory(),
+            'supervisor_id' => Supervisor::inRandomOrder()->first()->id ?? Supervisor::factory(),
             'role' => $this->faker->randomElement(['main', 'coo']),
         ];
     }
