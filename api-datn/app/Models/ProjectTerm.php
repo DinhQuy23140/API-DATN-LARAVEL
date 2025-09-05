@@ -24,4 +24,9 @@ class ProjectTerm extends Model
     {
         return $this->belongsToMany(Supervisor::class);
     }
+
+    public function stageTimelines()
+    {
+        return $this->hasMany(stage_timeline::class);
+    }
 }

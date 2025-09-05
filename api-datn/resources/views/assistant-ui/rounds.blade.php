@@ -36,11 +36,11 @@
           </div>
         </div>
         <nav class="flex-1 overflow-y-auto p-3">
-          <a href="dashboard.html" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-gauge"></i><span class="sidebar-label">Bảng điều khiển</span></a>
-          <a href="manage-departments.html" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-buildings"></i><span class="sidebar-label">Bộ môn</span></a>
-          <a href="manage-majors.html" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-book-open-text"></i><span class="sidebar-label">Ngành</span></a>
-          <a href="manage-staff.html" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-chalkboard-teacher"></i><span class="sidebar-label">Giảng viên</span></a>
-          <a href="assign-head.html" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-user-switch"></i><span class="sidebar-label">Gán trưởng bộ môn</span></a>
+          <a href="{{ route('web.assistant.dashboard') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-gauge"></i><span class="sidebar-label">Bảng điều khiển</span></a>
+          <a href="{{ route('web.assistant.manage_departments') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-buildings"></i><span class="sidebar-label">Bộ môn</span></a>
+          <a href="{{ route('web.assistant.manage_majors') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-book-open-text"></i><span class="sidebar-label">Ngành</span></a>
+          <a href="{{ route('web.assistant.manage_staffs') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-chalkboard-teacher"></i><span class="sidebar-label">Giảng viên</span></a>
+          <a href="{{ route('web.assistant.assign_head') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-user-switch"></i><span class="sidebar-label">Gán trưởng bộ môn</span></a>
           <div class="sidebar-label text-xs uppercase text-slate-400 px-3 mt-3">Học phần tốt nghiệp</div>
           <div class="graduation-item">
             <div class="flex items-center justify-between px-3 py-2 cursor-pointer toggle-button">
@@ -52,7 +52,7 @@
             </div>
             <div class="submenu hidden pl-6">
               <a href="internship.html" class="block px-3 py-2 hover:bg-slate-100">Thực tập tốt nghiệp</a>
-              <a href="rounds.html" class="block px-3 py-2 hover:bg-slate-100">Đồ án tốt nghiệp</a>
+              <a href="{{ route('web.assistant.rounds') }}" class="block px-3 py-2 hover:bg-slate-100">Đồ án tốt nghiệp</a>
             </div>
           </div>
         </nav>
@@ -110,26 +110,22 @@
                   </tr>
                 </thead>
                 <tbody id="tableBody">
+                  @foreach ($terms as $term)
+                    @php
+                      $start_year = $term->start_date ? substr($term->start_date, 0, 4) : '';
+                      $end_year = $term->end_date ? substr($term->end_date, 0, 4) : '';
+                    @endphp
                   <tr class="hover:bg-slate-50">
-                    <td class="py-3 px-4"><a href="round-detail.html" class="text-blue-600 hover:underline">Đợt HK1 2025-2026</a></td>
-                    <td class="py-3 px-4">01/08/2025 - 30/10/2025</td>
+                    <td class="py-3 px-4"><a href="{{ route('web.assistant.round_detail', ['round_id' => $term->id]) }}" class="text-blue-600 hover:underline">{{"Đợt " . $term->stage . " " . $start_year . "-" . $end_year}}</a></td>
+                    <td class="py-3 px-4">{{$term->start_date}} - {{$term->end_date}}</td>
                     <td class="py-3 px-4">12</td>
                     <td class="py-3 px-4 text-right space-x-2">
-                      <a class="px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-slate-600" href="round-detail.html"><i class="ph ph-eye"></i></a>
+                      <a class="px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-slate-600" href="{{ route('web.assistant.round_detail', ['round_id' => $term->id]) }}"><i class="ph ph-eye"></i></a>
                       <button class="px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-slate-600" onclick="openModal('edit')"><i class="ph ph-pencil"></i></button>
                       <button class="px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-rose-600"><i class="ph ph-trash"></i></button>
                     </td>
                   </tr>
-                  <tr class="hover:bg-slate-50">
-                    <td class="py-3 px-4"><a href="round-detail.html" class="text-blue-600 hover:underline">Đợt HK2 2025-2026</a></td>
-                    <td class="py-3 px-4">15/12/2025 - 30/03/2026</td>
-                    <td class="py-3 px-4">10</td>
-                    <td class="py-3 px-4 text-right space-x-2">
-                      <a class="px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-slate-600" href="round-detail.html"><i class="ph ph-eye"></i></a>
-                      <button class="px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-slate-600" onclick="openModal('edit')"><i class="ph ph-pencil"></i></button>
-                      <button class="px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-rose-600"><i class="ph ph-trash"></i></button>
-                    </td>
-                  </tr>
+                  @endforeach
                 </tbody>
               </table>
             </div>
@@ -139,30 +135,54 @@
       </div>
     </div>
 
-    <!-- Modal -->
-    <div id="modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm hidden items-center justify-center z-50">
+    <!-- Modal (static) -->
+    <div id="modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm hidden flex items-center justify-center z-50">
       <div class="bg-white rounded-xl w-full max-w-lg shadow-xl">
         <div class="p-4 border-b flex items-center justify-between">
           <h3 id="modalTitle" class="font-semibold">Tạo đợt mới</h3>
-          <button class="p-2 hover:bg-slate-100 rounded-lg" onclick="closeModal()"><i class="ph ph-x"></i></button>
+          <button class="p-2 hover:bg-slate-100 rounded-lg" onclick="closeModal()" data-close aria-label="Đóng"><i class="ph ph-x"></i></button>
         </div>
-        <form class="p-4 space-y-4" onsubmit="event.preventDefault(); closeModal();">
-          <div>
-            <label class="text-sm font-medium">Tên đợt</label>
-            <input required class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600" placeholder="VD: Đợt HK1 2025-2026" />
+        <form class="p-4 space-y-5" onsubmit="event.preventDefault(); closeModal();">
+          <!-- Năm học + Đợt (gọn) -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div class="relative">
+              <label class="text-sm font-medium">Năm học</label>
+              <i class="ph ph-calendar text-slate-400 absolute left-3 bottom-3.5 pointer-events-none"></i>
+              <select id="modalYearSelect" required class="mt-1 w-full pl-9 pr-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600">
+                <!-- JS sẽ render options hoặc render Blade nếu có -->
+              </select>
+            </div>
+            <div class="relative">
+              <label class="text-sm font-medium">Đợt</label>
+              <i class="ph ph-flag text-slate-400 absolute left-3 bottom-3.5 pointer-events-none"></i>
+              <select id="modalStageSelect" required class="mt-1 w-full pl-9 pr-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600">
+                <option value="1">Đợt 1</option>
+                <option value="2">Đợt 2</option>
+                <option value="Hè">Đợt Hè</option>
+              </select>
+            </div>
           </div>
+
+          <!-- Thời gian đợt -->
           <div class="grid sm:grid-cols-2 gap-4">
-            <div>
+            <div> <!-- Ngày bắt đầu (static modal) -->
               <label class="text-sm font-medium">Ngày bắt đầu</label>
-              <input type="date" required class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200" />
+              <div class="relative mt-1">
+                <i class="ph ph-calendar-check text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                <input type="date" required class="w-full pl-9 pr-3 py-2 rounded-lg border border-slate-200 text-sm" />
+              </div>
             </div>
-            <div>
+            <div> <!-- Ngày kết thúc (static modal) -->
               <label class="text-sm font-medium">Ngày kết thúc</label>
-              <input type="date" required class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200" />
+              <div class="relative mt-1">
+                <i class="ph ph-calendar-x text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                <input type="date" required class="w-full pl-9 pr-3 py-2 rounded-lg border border-slate-200 text-sm" />
+              </div>
             </div>
           </div>
+
           <div class="flex items-center justify-end gap-2 pt-2">
-            <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-lg border hover:bg-slate-50">Hủy</button>
+            <button type="button" onclick="closeModal()" data-close class="px-4 py-2 rounded-lg border hover:bg-slate-50">Hủy</button>
             <button class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700">Lưu</button>
           </div>
         </form>
@@ -277,11 +297,34 @@
         const panel=wrapper.querySelector('[data-modal-container]');
         function close(){ wrapper.remove(); document.removeEventListener('keydown', esc); }
         function esc(e){ if(e.key==='Escape') close(); }
-        wrapper.addEventListener('click',e=>{ if(e.target.hasAttribute('data-overlay')||e.target.hasAttribute('data-close')) close(); });
+        // Sửa: dùng closest('[data-close]') để bắt cả click vào icon trong button
+        wrapper.addEventListener('click',e=>{
+          if (e.target.hasAttribute('data-overlay') || e.target.closest('[data-close]')) {
+            close();
+          }
+        });
         panel.addEventListener('click',e=> e.stopPropagation());
         document.addEventListener('keydown', esc);
         const first=panel.querySelector('input,select,textarea,button'); first && first.focus();
       }
+      // Tạo options năm học dạng 2025-2026, 2024-2025, ...
+      function buildYearOptions(count = 6) {
+        const now = new Date().getFullYear();
+        const items = [];
+        for (let i = 0; i < count; i++) {
+          const start = now - i;
+          const end = start + 1;
+          const y = `${start}-${end}`;
+          items.push(`<option value="${y}">${y}</option>`);
+        }
+        return items.join('');
+      }
+
+      // Khởi tạo options cho select Năm học trong modal tĩnh
+      const modalYear = document.getElementById('modalYearSelect');
+      if (modalYear) modalYear.innerHTML = buildYearOptions(6);
+
+      // Thay thế hàm modal cũ
       function openCreateRoundModal(){
         const wrap=document.createElement('div');
         wrap.className='fixed inset-0 z-50 flex items-end sm:items-center justify-center';
@@ -290,57 +333,81 @@
           <div class="bg-white w-full sm:max-w-4xl max-h-[92vh] overflow-auto rounded-t-2xl sm:rounded-2xl shadow-xl relative z-10" data-modal-container>
             <div class="p-5 border-b flex items-center justify-between sticky top-0 bg-white">
               <h3 class="font-semibold text-base">Tạo đợt đồ án tốt nghiệp</h3>
-              <button data-close class="p-2 hover:bg-slate-100 rounded-lg"><i class="ph ph-x"></i></button>
+              <button data-close class="p-2 hover:bg-slate-100 rounded-lg" aria-label="Đóng"><i class="ph ph-x"></i></button>
             </div>
-            <form id="createRoundForm" class="p-5 space-y-6">
+
+            <form id="createRoundForm" method="POST" action="{{ route('web.assistant.rounds.store') }}" class="p-5 space-y-6">
+              <input type="hidden" name="_token" value="{{ csrf_token() }}">
+              <!-- Năm học + Đợt -->
               <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label class="text-sm font-medium">Tên đợt</label>
-                  <input name="name" required class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600" placeholder="VD: Đợt HK1 2025-2026" />
-                </div>
-                <div>
-                  <label class="text-sm font-medium">Học kỳ</label>
-                  <select name="semester" class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200">
-                    <option value="HK1">HK1</option>
-                    <option value="HK2">HK2</option>
-                    <option value="HK3">HK3</option>
+                <div class="relative">
+                  <label class="text-sm font-medium">Năm học</label>
+                  <i class="ph ph-calendar text-slate-400 absolute left-3 bottom-3.5 pointer-events-none"></i>
+                  <select name="academy_year_id" required class="mt-1 w-full pl-9 pr-3 py-2 rounded-lg border border-slate-200 text-sm">
+                    @foreach ($years as $year)
+                      <option value="{{ $year->id }}">{{ $year->year_name }}</option>
+                    @endforeach
                   </select>
                 </div>
-                <div>
-                  <label class="text-sm font-medium">Năm học</label>
-                  <input name="schoolYear" required class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200" placeholder="2025-2026" />
-                </div>
-                <div>
-                  <label class="text-sm font-medium">Ngày bắt đầu đợt (tuỳ chọn)</label>
-                  <input type="date" name="roundStart" class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200" />
-                </div>
-                <div>
-                  <label class="text-sm font-medium">Ngày kết thúc đợt (tuỳ chọn)</label>
-                  <input type="date" name="roundEnd" class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200" />
-                </div>
-                <div class="md:col-span-2">
-                  <label class="text-sm font-medium">Mô tả</label>
-                  <textarea name="description" rows="2" class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200" placeholder="Ghi chú / phạm vi triển khai"></textarea>
+                <div class="relative">
+                  <label class="text-sm font-medium">Đợt</label>
+                  <i class="ph ph-flag text-slate-400 absolute left-3 bottom-3.5 pointer-events-none"></i>
+                  <select name="stage" required class="mt-1 w-full pl-9 pr-3 py-2 rounded-lg border border-slate-200 text-sm">
+                    <option value="1">Đợt 1</option>
+                    <option value="2">Đợt 2</option>
+                    <option value="Hè">Đợt Hè</option>
+                  </select>
                 </div>
               </div>
 
+              <!-- Ngày bắt đầu/kết thúc -->
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label class="text-sm font-medium">Ngày bắt đầu đợt</label>
+                  <div class="relative mt-1">
+                    <i class="ph ph-calendar-check text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                    <input type="date" name="start_date" class="w-full pl-9 pr-3 py-2 rounded-lg border border-slate-200 text-sm" />
+                  </div>
+                </div>
+                <div>
+                  <label class="text-sm font-medium">Ngày kết thúc đợt</label>
+                  <div class="relative mt-1">
+                    <i class="ph ph-calendar-x text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                    <input type="date" name="end_date" class="w-full pl-9 pr-3 py-2 rounded-lg border border-slate-200 text-sm" />
+                  </div>
+                </div>
+              </div>
+
+              <!-- Mô tả -->
+              <div>
+                <label class="text-sm font-medium">Mô tả</label>
+                <input name="description" class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 text-sm" placeholder="VD: Đợt 1 2025-2026" />
+              </div>
+
+              <!-- Timeline 1–8 -->
               <div>
                 <div class="flex items-center justify-between mb-2">
                   <h4 class="font-semibold">Mốc timeline (1–8)</h4>
-                  <span class="text-xs text-slate-500">Chỉ cần nhập thời gian bắt đầu và kết thúc cho từng mốc</span>
+                  <span class="text-xs text-slate-500">Nhập thời gian cho từng mốc</span>
                 </div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  ${AU_STAGES.map(s=>`
-                    <div class="border rounded-lg p-3">
-                      <div class="font-medium mb-2">Timeline ${s.id}: ${s.name}</div>
+                  ${[1,2,3,4,5,6,7,8].map(i=>`
+                    <div class="rounded-lg border border-slate-200 p-3 bg-slate-50/50">
+                      <div class="font-medium mb-2">Bước ${i}</div>
                       <div class="grid grid-cols-2 gap-3">
                         <div>
                           <label class="block text-xs text-slate-600 mb-1">Bắt đầu</label>
-                          <input type="date" name="stage_${s.id}_start" class="w-full border border-slate-200 rounded px-2 py-1.5 focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600" required>
+                          <div class="relative">
+                            <i class="ph ph-clock text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                            <input type="date" name="stage_${i}_start" class="w-full pl-8 pr-2 py-1.5 border border-slate-200 rounded text-sm">
+                          </div>
                         </div>
                         <div>
                           <label class="block text-xs text-slate-600 mb-1">Kết thúc</label>
-                          <input type="date" name="stage_${s.id}_end" class="w-full border border-slate-200 rounded px-2 py-1.5 focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600" required>
+                          <div class="relative">
+                            <i class="ph ph-clock-afternoon text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                            <input type="date" name="stage_${i}_end" class="w-full pl-8 pr-2 py-1.5 border border-slate-200 rounded text-sm">
+                          </div>
                         </div>
                       </div>
                     </div>`).join('')}
@@ -349,57 +416,45 @@
 
               <div class="flex items-center justify-end gap-2 pt-2 border-t">
                 <button type="button" data-close class="px-4 py-2 rounded-lg border hover:bg-slate-50">Hủy</button>
-                <button class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700">Tạo đợt</button>
+                <button type="submit" class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700">Tạo đợt</button>
               </div>
             </form>
           </div>`;
         document.body.appendChild(wrap);
         au_registerModal(wrap);
 
-        const form=wrap.querySelector('#createRoundForm');
-        form.addEventListener('submit',(e)=>{
-          e.preventDefault();
-          const fd=new FormData(form);
-          const stages=AU_STAGES.map(s=>{
-            const start=fd.get(`stage_${s.id}_start`);
-            const end=fd.get(`stage_${s.id}_end`);
-            return { id:s.id, name:s.name, start:String(start||''), end:String(end||'') };
-          });
-          // validate
-          let ok=true;
-          stages.forEach(st=>{
-            const sEl=form.querySelector(`[name=stage_${st.id}_start]`);
-            const eEl=form.querySelector(`[name=stage_${st.id}_end]`);
-            sEl.classList.remove('border-rose-300'); eEl.classList.remove('border-rose-300');
-            if(!st.start || !st.end || st.start>st.end){ ok=false; sEl.classList.add('border-rose-300'); eEl.classList.add('border-rose-300'); }
-          });
-          if(!ok) return;
-
-          const round={
-            id:'r_'+Date.now(),
-            name:String(fd.get('name')||''),
-            semester:String(fd.get('semester')||''),
-            schoolYear:String(fd.get('schoolYear')||''),
-            description:String(fd.get('description')||''),
-            roundStart:String(fd.get('roundStart')||''),
-            roundEnd:String(fd.get('roundEnd')||''),
-            stages,
-            createdAt:new Date().toISOString()
-          };
-          const key='assistant_rounds';
-          const list=JSON.parse(localStorage.getItem(key)||'[]');
-          list.push(round);
-          localStorage.setItem(key, JSON.stringify(list));
-          // Notify and close
-          window.dispatchEvent(new CustomEvent('assistant:round:created',{detail:round}));
-          wrap.remove();
-          // Optional: navigate to detail page
-          // location.href='round-detail.html?id='+encodeURIComponent(round.id);
-        });
+        // LƯU Ý: Không chặn submit nữa (để POST về server)
       }
 
-      // Expose for button
-      window.openCreateRoundModal=openCreateRoundModal;
+      // Close/Open static modal (#modal)
+      const modalEl = document.getElementById('modal');
+      const modalPanel = modalEl?.querySelector('div.bg-white');
+
+      function openModal() {
+        modalEl?.classList.remove('hidden');
+      }
+
+      function closeModal() {
+        modalEl?.classList.add('hidden');
+      }
+
+      // Click outside to close
+      modalEl?.addEventListener('click', (e) => {
+        if (e.target === modalEl) closeModal();
+      });
+      // Prevent bubbling when clicking inside panel
+      modalPanel?.addEventListener('click', (e) => e.stopPropagation());
+
+      // ESC to close
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && modalEl && !modalEl.classList.contains('hidden')) {
+          closeModal();
+        }
+      });
+
+      // Expose for buttons already using onclick
+      window.openModal = openModal;
+      window.closeModal = closeModal;
     </script>
   </body>
 </html>

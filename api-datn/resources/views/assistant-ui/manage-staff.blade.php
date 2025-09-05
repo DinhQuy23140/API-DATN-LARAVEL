@@ -23,6 +23,10 @@
   .submenu:not(.hidden) {
     display: block;
   }
+
+  /* Ẩn message của pagination Tailwind ("Showing ...") */
+  .pg-wrap .sm\:justify-between > div:first-child { display: none !important; }
+  .pg-wrap p.text-sm { display: none !important; }
     </style>
   </head>
   <body class="bg-slate-50 text-slate-800">
@@ -36,11 +40,11 @@
           </div>
         </div>
         <nav class="flex-1 overflow-y-auto p-3">
-          <a href="dashboard.html" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-gauge"></i><span class="sidebar-label">Bảng điều khiển</span></a>
-          <a href="manage-departments.html" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-buildings"></i><span class="sidebar-label">Bộ môn</span></a>
-          <a href="manage-majors.html" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-book-open-text"></i><span class="sidebar-label">Ngành</span></a>
-          <a href="manage-staff.html" class="flex items-center gap-3 px-3 py-2 rounded-lg bg-slate-100 font-semibold"><i class="ph ph-chalkboard-teacher"></i><span class="sidebar-label">Giảng viên</span></a>
-          <a href="assign-head.html" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-user-switch"></i><span class="sidebar-label">Gán trưởng bộ môn</span></a>
+          <a href="{{ route('web.assistant.dashboard') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-gauge"></i><span class="sidebar-label">Bảng điều khiển</span></a>
+          <a href="{{ route('web.assistant.manage_departments') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-buildings"></i><span class="sidebar-label">Bộ môn</span></a>
+          <a href="{{ route('web.assistant.manage_majors') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-book-open-text"></i><span class="sidebar-label">Ngành</span></a>
+          <a href="{{ route('web.assistant.manage_staffs') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg bg-slate-100 font-semibold"><i class="ph ph-chalkboard-teacher"></i><span class="sidebar-label">Giảng viên</span></a>
+          <a href="{{ route('web.assistant.assign_head') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-user-switch"></i><span class="sidebar-label">Gán trưởng bộ môn</span></a>
           <div class="sidebar-label text-xs uppercase text-slate-400 px-3 mt-3">Học phần tốt nghiệp</div>
           <div class="graduation-item">
             <div class="flex items-center justify-between px-3 py-2 cursor-pointer toggle-button">
@@ -52,7 +56,7 @@
             </div>
             <div class="submenu hidden pl-6">
               <a href="internship.html" class="block px-3 py-2 hover:bg-slate-100">Thực tập tốt nghiệp</a>
-              <a href="rounds.html" class="block px-3 py-2 hover:bg-slate-100">Đồ án tốt nghiệp</a>
+              <a href="{{ route('web.assistant.rounds') }}" class="block px-3 py-2 hover:bg-slate-100">Đồ án tốt nghiệp</a>
             </div>
           </div>
         </nav>
@@ -109,46 +113,38 @@
                   </tr>
                 </thead>
                 <tbody id="tableBody">
-                  <tr class="hover:bg-slate-50">
-                    <td class="py-3 px-4"><input type="checkbox" class="rowChk h-4 w-4"/></td>
-                    <td class="py-3 px-4">GV001</td>
-                    <td class="py-3 px-4"><a class="text-blue-600 hover:underline" href="../lecturer-ui/profile.html">Ngô Hải Nam</a></td>
-                    <td class="py-3 px-4">CNTT</td>
-                    <td class="py-3 px-4">Giảng viên</td>
-                    <td class="py-3 px-4">KTPM</td>
-                    <td class="py-3 px-4">nam.ngo@uni.edu</td>
-                    <td class="py-3 px-4"><span class="px-2 py-1 rounded-full text-xs bg-emerald-50 text-emerald-700">Active</span></td>
-                    <td class="py-3 px-4 text-right space-x-2">
-                      <button class="px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-slate-600" onclick="openModal('edit')"><i class="ph ph-pencil"></i></button>
-                      <button class="px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-rose-600"><i class="ph ph-trash"></i></button>
-                    </td>
-                  </tr>
-                  <tr class="hover:bg-slate-50">
-                    <td class="py-3 px-4"><input type="checkbox" class="rowChk h-4 w-4"/></td>
-                    <td class="py-3 px-4">GV002</td>
-                    <td class="py-3 px-4"><a class="text-blue-600 hover:underline" href="../lecturer-ui/profile.html">Lê Thu Hằng</a></td>
-                    <td class="py-3 px-4">Điện</td>
-                    <td class="py-3 px-4">Phó bộ môn</td>
-                    <td class="py-3 px-4">TĐH</td>
-                    <td class="py-3 px-4">hang.le@uni.edu</td>
-                    <td class="py-3 px-4"><span class="px-2 py-1 rounded-full text-xs bg-slate-100 text-slate-700">Inactive</span></td>
-                    <td class="py-3 px-4 text-right space-x-2">
-                      <button class="px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-slate-600" onclick="openModal('edit')"><i class="ph ph-pencil"></i></button>
-                      <button class="px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-rose-600"><i class="ph ph-trash"></i></button>
-                    </td>
-                  </tr>
+                  @foreach ($teachers as $teacher)
+                    <tr class="hover:bg-slate-50">
+                      <td class="py-3 px-4"><input type="checkbox" class="rowChk h-4 w-4"/></td>
+                      <td class="py-3 px-4">{{ $teacher->id }}</td>
+                      <td class="py-3 px-4"><a class="text-blue-600 hover:underline" href="../lecturer-ui/profile.html">{{ $teacher->user->fullname }}</a></td>
+                      <td class="py-3 px-4">Điện</td>
+                      <td class="py-3 px-4">{{ $teacher->position }}</td>
+                      <td class="py-3 px-4">CNTT</td>
+                      <td class="py-3 px-4">{{ $teacher->user->email }}</td>
+                      <td class="py-3 px-4"><span class="px-2 py-1 rounded-full text-xs bg-slate-100 text-slate-700">Inactive</span></td>
+                      <td class="py-3 px-4 text-right space-x-2">
+                        <button class="px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-slate-600" onclick="openModal('edit')"><i class="ph ph-pencil"></i></button>
+                        <button class="px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-rose-600"><i class="ph ph-trash"></i></button>
+                      </td>
+                    </tr>
+                  @endforeach
                 </tbody>
               </table>
             </div>
             <div class="p-4 flex items-center justify-between text-sm text-slate-600">
-              <div>Hiển thị 1-2 của 145</div>
-              <div class="inline-flex rounded-lg border border-slate-200 overflow-hidden">
-                <button class="px-3 py-1.5 hover:bg-slate-50"><i class="ph ph-caret-left"></i></button>
-                <button class="px-3 py-1.5 bg-slate-100 font-medium">1</button>
-                <button class="px-3 py-1.5 hover:bg-slate-50">2</button>
-                <button class="px-3 py-1.5 hover:bg-slate-50">3</button>
-                <button class="px-3 py-1.5 hover:bg-slate-50"><i class="ph ph-caret-right"></i></button>
-              </div>
+              @if ($teachers instanceof \Illuminate\Contracts\Pagination\LengthAwarePaginator)
+                <div>
+                  Hiển thị {{ $teachers->firstItem() }}-{{ $teachers->lastItem() }} của {{ $teachers->total() }}
+                </div>
+                <div class="ml-auto pg-wrap">
+                  {!! method_exists($teachers, 'links')
+                        ? $teachers->appends(request()->query())->links('pagination::tailwind')
+                        : $teachers->appends(request()->query())->render() !!}
+                </div>
+              @else
+                <div>Hiển thị {{ count($teachers ?? []) }} mục</div>
+              @endif
             </div>
           </div>
         </div>

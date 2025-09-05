@@ -19,7 +19,9 @@ class StudentFactory extends Factory
     {
                 return [
             // Liên kết user
-            'user_id' => User::inRandomOrder()->first()->id ?? User::factory(),
+            'user_id' => User::factory()->state([
+                'role' => 'student',
+            ]),
 
             // Sinh mã SV ngẫu nhiên (ví dụ: STU12345)
             'student_code' => 'STU' . $this->faker->unique()->numerify('#####'),

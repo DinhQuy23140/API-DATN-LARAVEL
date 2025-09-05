@@ -5,9 +5,12 @@ use App\Http\Controllers\Web\UserController as WebUserController;
 use App\Http\Controllers\Web\ProgressLogController as WebProgressLogController;
 use App\Http\Controllers\Web\AttachmentController as WebAttachmentController;
 use App\Http\Controllers\Web\AcademyYearController as WebAcademyYearController;
-use App\Http\Controllers\Web\ProjectTermsController as WebProjectTermsController;
+use App\Http\Controllers\Web\ProjectTermsController;
+use App\Http\Controllers\Web\StageTimeLineController;
 use App\Http\Controllers\Web\BatchStudentController as WebBatchStudentController;
 use App\Http\Controllers\Web\SupervisorController as WebSupervisorController;
+use App\Http\Controllers\Web\ProjectTermsController as WebProjectTermsController;
+use App\Http\Controllers\Web\TeacherController as WebTeacherController;
 
 // Guest (login)
 Route::middleware('guest')->group(function () {
@@ -30,9 +33,18 @@ Route::middleware('auth')->group(function () {
     Route::get('/teacher/students/{supervisorId}', [WebSupervisorController::class, 'getStudentBySupervisor'])->name('web.teacher.students');
     Route::get('/teacher/thesis-internship', fn () => view('lecturer-ui.thesis-internship'))->name('web.teacher.thesis_internship');
     Route::get('/teacher/thesis-rounds', fn () => view('lecturer-ui.thesis-rounds'))->name('web.teacher.thesis_rounds');
-
     // Optional: /teacher -> overview
     Route::get('/teacher', fn () => redirect()->route('web.teacher.overview'))->name('web.teacher.home');
+
+
+    //login as admin
+    Route::get('/admin/dashboard', fn () => view('admin-ui.dashboard'))->name('web.admin.overview');
+
+    //login as assistant
+    Route::get('/assistant/dashboard', fn () => view('assistant-ui.dashboard'))->name('web.assistant.overview');
+
+    //login as head
+    Route::get('/head/dashboard', fn () => view('head-ui.overview'))->name('web.head.overview');  
 });
 
 // Academy Years
@@ -101,7 +113,7 @@ Route::delete('attachments/{attachment}', [WebAttachmentController::class, 'dest
 // Root redirect theo trạng thái đăng nhập
 Route::get('/', function () {
     return auth()->check()
-        ? redirect()->route('web.teacher.dashboard')
+        ? redirect()->route('web.teacher.overview')
         : redirect()->route('web.auth.login');
 })->name('web.home');
 
@@ -110,3 +122,27 @@ Route::get('/home', fn() => redirect()->route('web.teacher.overview'));
 
 // Fallback: URL không khớp
 Route::fallback(fn() => redirect()->route('web.auth.login'));
+
+// Head UI
+Route::middleware('auth')->prefix('head')->name('web.head.')->group(function () {
+    Route::view('/overview', 'head-ui.overview')->name('overview');
+    Route::view('/profile', 'head-ui.profile')->name('profile');
+    Route::view('/research', 'head-ui.research')->name('research');
+    Route::view('/students', 'head-ui.students')->name('students');
+    Route::view('/thesis/internship', 'head-ui.thesis-internship')->name('thesis_internship');
+    Route::view('/thesis/rounds', 'head-ui.thesis-rounds')->name('thesis_rounds');
+});
+
+Route::middleware('auth')->prefix('assistant')->name('web.assistant.')->group(function () {
+    Route::view('/dash', 'assistant-ui.dashboard')->name('dashboard');
+    Route::view('/manage_departments', 'assistant-ui.manage-departments')->name('manage_departments');
+    Route::view('/manage_majors', 'assistant-ui.manage-majors')->name('manage_majors');
+    Route::view('/manage_staffs', 'assistant-ui.manage-staff')->name('manage_staffs');
+    Route::view('/assign_head', 'assistant-ui.assign-head')->name('assign_head');
+    Route::get('/rounds', [WebProjectTermsController::class, 'loadRounds'])->name('rounds');
+    Route::view('/round-detail', 'assistant-ui.round-detail')->name('round_detail');
+    Route::get('/round-detail/{round_id}', [WebProjectTermsController::class, 'loadRoundDetail'])->name('round_detail');
+    Route::get('/thesis/rounds', [ProjectTermsController::class, 'loadRounds'])->name('rounds');
+    Route::get('/thesis/rounds/{round_id}', [ProjectTermsController::class, 'loadRoundDetail'])->name('round_detail');
+    Route::post('/thesis/rounds', [ProjectTermsController::class, 'store'])->name('rounds.store');
+});

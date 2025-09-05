@@ -46,11 +46,11 @@
           </div>
         </div>
         <nav class="flex-1 overflow-y-auto p-3">
-          <a href="dashboard.html" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-gauge"></i><span class="sidebar-label">Bảng điều khiển</span></a>
-          <a href="manage-departments.html" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-buildings"></i><span class="sidebar-label">Bộ môn</span></a>
-          <a href="manage-majors.html" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-book-open-text"></i><span class="sidebar-label">Ngành</span></a>
-          <a href="manage-staff.html" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-chalkboard-teacher"></i><span class="sidebar-label">Giảng viên</span></a>
-          <a href="assign-head.html" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-user-switch"></i><span class="sidebar-label">Gán trưởng bộ môn</span></a>
+          <a href="{{ route('web.assistant.dashboard') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-gauge"></i><span class="sidebar-label">Bảng điều khiển</span></a>
+          <a href="{{ route('web.assistant.manage_departments') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-buildings"></i><span class="sidebar-label">Bộ môn</span></a>
+          <a href="{{ route('web.assistant.manage_majors') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-book-open-text"></i><span class="sidebar-label">Ngành</span></a>
+          <a href="{{ route('web.assistant.manage_staffs') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-chalkboard-teacher"></i><span class="sidebar-label">Giảng viên</span></a>
+          <a href="{{ route('web.assistant.assign_head') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-user-switch"></i><span class="sidebar-label">Gán trưởng bộ môn</span></a>
           <div class="sidebar-label text-xs uppercase text-slate-400 px-3 mt-3">Học phần tốt nghiệp</div>
           <div class="graduation-item">
             <div class="flex items-center justify-between px-3 py-2 cursor-pointer toggle-button">
@@ -62,7 +62,7 @@
             </div>
             <div class="submenu hidden pl-6">
               <a href="internship.html" class="block px-3 py-2 hover:bg-slate-100">Thực tập tốt nghiệp</a>
-              <a href="rounds.html" class="block px-3 py-2 hover:bg-slate-100">Đồ án tốt nghiệp</a>
+              <a href="{{ route('web.assistant.rounds') }}" class="block px-3 py-2 hover:bg-slate-100">Đồ án tốt nghiệp</a>
             </div>
           </div>
         </nav>
@@ -98,12 +98,17 @@
 
         <main class="flex-1 overflow-y-auto px-4 md:px-6 py-6 space-y-6">
           <div class="max-w-6xl mx-auto space-y-6">
-          <section class="bg-white rounded-xl border border-slate-200 p-5">
+          <section id="roundMeta" class="bg-white rounded-xl border border-slate-200 p-5"
+                   data-start="{{ $round_detail->start_date }}" data-end="{{ $round_detail->end_date }}">
             <div class="flex items-center justify-between">
               <div>
-                <div class="text-sm text-slate-500">Mã đợt: <span class="font-medium text-slate-700">ROUND-2025-01</span></div>
-                <h2 class="font-semibold text-lg mt-1">Đợt HK1 2025-2026</h2>
-                <div class="text-sm text-slate-600">01/08/2025 - 30/10/2025</div>
+                <div class="text-sm text-slate-500">Mã đợt: <span class="font-medium text-slate-700">{{ $round_detail->id }}</span></div>
+                @php
+                    $start_year = $round_detail->start_date ? substr($round_detail->start_date, 0, 4) : '';
+                    $end_year = $round_detail->end_date ? substr($round_detail->end_date, 0, 4) : '';
+                @endphp
+                <h2 class="font-semibold text-lg mt-1">{{ "Đợt " . $round_detail->stage . " năm học " . $start_year . "-" . $end_year}}</h2>
+                <div class="text-sm text-slate-600">{{ $round_detail->start_date }} - {{ $round_detail->end_date }}</div>
               </div>
             </div>
           </section>
@@ -293,6 +298,53 @@
         const timelineStages = document.querySelectorAll('.timeline-stage');
         const stageContent = document.getElementById('stageContent');
 
+        // Helpers: parse ngày linh hoạt và format ngày
+        function toDateAny(s) {
+          s = (s || '').trim();
+          // dd/mm/yyyy
+          let m = s.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+          if (m) return new Date(+m[3], +m[2] - 1, +m[1]);
+          // yyyy-mm-dd
+          m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+          if (m) return new Date(+m[1], +m[2] - 1, +m[3]);
+          const d = new Date(s);
+          return isNaN(d) ? null : d;
+        }
+        function formatVN(d) {
+          if (!(d instanceof Date) || isNaN(d)) return '';
+          const dd = String(d.getDate()).padStart(2, '0');
+          const mm = String(d.getMonth() + 1).padStart(2, '0');
+          const yy = d.getFullYear();
+          return `${dd}/${mm}/${yy}`;
+        }
+        function getRoundDates() {
+          // Ưu tiên lấy từ data-* để đảm bảo định dạng
+          const meta = document.getElementById('roundMeta');
+          let a = meta?.dataset.start || '';
+          let b = meta?.dataset.end || '';
+          // Fallback từ text nếu thiếu
+          if (!a || !b) {
+            const rangeEl = document.querySelector('main section:first-of-type .text-sm.text-slate-600');
+            const txt = (rangeEl?.textContent || '').trim();
+            [a, b] = txt.split('-').map(s => (s || '').trim());
+          }
+          const start = toDateAny(a);
+          const end = toDateAny(b);
+          return { start, end };
+        }
+        function getStagePeriod(stageNum, totalStages = 8) {
+          const { start, end } = getRoundDates();
+          if (!start || !end || end < start) return null;
+          const totalMs = end.getTime() - start.getTime();
+          const slice = Math.floor(totalMs / totalStages);
+          const segStart = new Date(start.getTime() + slice * (stageNum - 1));
+          // segEnd: nếu là stage cuối dùng end, ngược lại lấy mốc trước của stage tiếp theo
+          const segEnd = stageNum === totalStages
+            ? end
+            : new Date(start.getTime() + slice * stageNum - 1);
+          return { start: segStart, end: segEnd };
+        }
+
         const stageData = {
           1: {
             title: 'Nhập danh sách sinh viên đủ điều kiện',
@@ -361,41 +413,41 @@
           }
         };
 
+        function renderStage(stageNum) {
+          const data = stageData[stageNum];
+          // highlight active bubble
+          document.querySelectorAll('.timeline-stage').forEach(s => s.classList.remove('active'));
+          document.querySelector(`.timeline-stage[data-stage="${stageNum}"]`)?.classList.add('active');
+
+          const period = getStagePeriod(stageNum, 8);
+          const timeHtml = period
+            ? `<div class="mt-2 text-xs text-slate-500"><i class="ph ph-calendar"></i> Thời gian: ${formatVN(period.start)} - ${formatVN(period.end)}</div>`
+            : '';
+
+          if (data) {
+            stageContent.innerHTML = `
+              <h3 class="font-semibold text-lg">${data.title}</h3>
+              <p class="text-sm text-slate-600">${data.description}</p>
+              ${timeHtml}
+              <div class="mt-4 space-y-2">
+                ${data.actions.map(action => `<a href="${action.href}" class="text-blue-600 hover:underline">${action.label}</a>`).join('<br>')}
+              </div>
+            `;
+          } else {
+            stageContent.innerHTML = '<p class="text-sm text-slate-500">No data available for this stage.</p>' + timeHtml;
+          }
+        }
+
+        // Bind click
         timelineStages.forEach(stage => {
           stage.addEventListener('click', () => {
             const stageNum = parseInt(stage.dataset.stage);
-            const data = stageData[stageNum];
-
-            // highlight active bubble
-            document.querySelectorAll('.timeline-stage').forEach(s=>s.classList.remove('active'));
-            stage.classList.add('active');
-
-            // Stage 3 now navigates to a dedicated page via actions; default renderer applies
-
-            if (data) {
-              stageContent.innerHTML = `
-                <h3 class="font-semibold text-lg">${data.title}</h3>
-                <p class="text-sm text-slate-600">${data.description}</p>
-                <div class="mt-4 space-y-2">
-                  ${data.actions.map(action => `<a href="${action.href}" class="text-blue-600 hover:underline">${action.label}</a>`).join('<br>')}
-                </div>
-              `;
-            } else {
-              stageContent.innerHTML = '<p class="text-sm text-slate-500">No data available for this stage.</p>';
-            }
+            renderStage(stageNum);
           });
         });
 
-        // Show the first stage by default
-        if (stageData[1]) {
-          stageContent.innerHTML = `
-            <h3 class="font-semibold text-lg">${stageData[1].title}</h3>
-            <p class="text-sm text-slate-600">${stageData[1].description}</p>
-            <div class="mt-4 space-y-2">
-              ${stageData[1].actions.map(action => `<a href="${action.href}" class="text-blue-600 hover:underline">${action.label}</a>`).join('<br>')}
-            </div>
-          `;
-        }
+        // Show stage 1 by default (kèm thời gian)
+        renderStage(1);
       });
 
       // Timeline Stage 3 Functions

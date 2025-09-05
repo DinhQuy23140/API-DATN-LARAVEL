@@ -18,6 +18,7 @@ return new class extends Migration
             $table->unsignedBigInteger('assignment_id');
             $table->unsignedBigInteger('supervisor_id');
             $table->string('role')->nullable(); // e.g., 'main' or 'co'
+            $table->string('status')->default('pending'); // e.g., 'approved', 'pending', 'rejected'
             $table->timestamps();
 
             $table->foreign('assignment_id')->references('id')->on('assignments')->onDelete('cascade');

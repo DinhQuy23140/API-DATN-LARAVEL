@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 
-class SupervisorController extends Controller
+class StageTimelineController extends Controller
 {
     //
 }

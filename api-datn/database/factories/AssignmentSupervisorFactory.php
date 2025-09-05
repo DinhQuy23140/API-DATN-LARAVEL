@@ -22,6 +22,7 @@ class AssignmentSupervisorFactory extends Factory
             'assignment_id' => Assignment::inRandomOrder()->first()->id ?? Assignment::factory(),
             'supervisor_id' => Supervisor::inRandomOrder()->first()->id ?? Supervisor::factory(),
             'role' => $this->faker->randomElement(['main', 'coo']),
+            'status' => $this->faker->randomElement(['approved', 'pending', 'rejected']),
         ];
     }
 }

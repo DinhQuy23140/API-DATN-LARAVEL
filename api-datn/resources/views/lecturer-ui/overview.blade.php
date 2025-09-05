@@ -40,7 +40,7 @@
     $subtitle = trim(($dept ? "Bộ môn $dept" : '') . (($dept && $faculty) ? ' • ' : '') . ($faculty ? "Khoa $faculty" : ''));
     $degree = $user->teacher->degree ?? '';
     $expertise = $user->teacher->supervisor->expertise ?? 'null';
-    $data_assignment_supervisors = $user->teacher->supervisor->assignment_supervisors ?? "null";
+    $data_assignment_supervisors = $user->teacher->supervisor->assignment_supervisors ?? collect();;
     $avatarUrl = $user->avatar_url
       ?? $user->profile_photo_url
       ?? 'https://ui-avatars.com/api/?name=' . urlencode($userName) . '&background=0ea5e9&color=ffffff';
@@ -75,10 +75,14 @@
           <i class="ph ph-flask"></i><span class="sidebar-label">Nghiên cứu</span>
         </a>
 
-        <a href="{{ route('web.teacher.students', ['supervisorId' => $user->teacher->supervisor->id]) }}"
-           class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('web.teacher.students') ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}">
-          <i class="ph ph-student"></i><span class="sidebar-label">Sinh viên</span>
-        </a>
+        @if($user->teacher && $user->teacher->supervisor)
+            <a href="{{ route('web.teacher.students', ['supervisorId' => $user->teacher->supervisor->id]) }}">
+                <i class="ph ph-student"></i><span class="sidebar-label">Sinh viên</span>
+            </a>
+        @else
+            <span class="text-slate-400">Chưa có supervisor</span>
+        @endif
+
 
         <!-- Mục cha: Học phần tốt nghiệp (accordion) -->
         <button type="button" id="toggleThesisMenu"
@@ -124,7 +128,10 @@
         <div class="relative">
           <button id="profileBtn" class="flex items-center gap-3 px-2 py-1.5 rounded-lg hover:bg-slate-100">
             <img class="h-9 w-9 rounded-full object-cover" src="{{ $avatarUrl }}" alt="avatar" />
-            <span class="hidden sm:block text-sm">{{ $email }}</span>
+              <div class="hidden sm:block text-left">
+                <div class="text-sm font-semibold leading-4">{{ $userName }}</div>
+                <div class="text-xs text-slate-500">{{ $email }}</div>
+              </div>
             <i class="ph ph-caret-down text-slate-500 hidden sm:block"></i>
           </button>
           <div id="profileMenu"
@@ -199,7 +206,10 @@
             <div class="bg-white rounded-xl border border-slate-200 p-5 lg:col-span-3">
               <div class="flex items-center justify-between gap-3 flex-wrap">
                 <h2 class="font-semibold">SV đang hướng dẫn</h2>
-                <a href="{{ route('web.teacher.students', ['supervisorId' => $user->teacher->supervisor->id]) }}" class="text-blue-600 hover:underline text-sm">Xem tất cả</a>
+                <a href="{{ route('web.teacher.students', ['supervisorId' => $user->teacher?->supervisor?->id ?? 0]) }}"
+                  class="text-blue-600 hover:underline text-sm">
+                  Xem tất cả
+                </a>
               </div>
 
               <!-- Filters -->

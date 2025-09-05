@@ -17,7 +17,7 @@ class BatchStudentFactory extends Factory
     public function definition()
     {
         return [
-            'student_id' => \App\Models\Student::inRandomOrder()->value('id'),
+            'student_id' => \App\Models\Student::inRandomOrder()->first()->id ?? \App\Models\Student::factory()->create()->id,
             'project_term_id' => \App\Models\ProjectTerm::inRandomOrder()->value('id'),
             'status' => $this->faker->randomElement(['active', 'inactive']),
         ];

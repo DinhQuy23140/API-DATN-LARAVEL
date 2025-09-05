@@ -12,6 +12,7 @@ class AssignmentSupervisor extends Model
         'assignment_id',
         'supervisor_id',
         'role',
+        'status',
     ];
 
     public function assignment()

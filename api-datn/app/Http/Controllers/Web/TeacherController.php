@@ -13,6 +13,10 @@ class TeacherController extends Controller
         $teachers = Teacher::with('user')->latest('id')->paginate(15);
         return view('teachers.index', compact('teachers'));
     }
+    public function loadTeachers(){
+        $teachers = Teacher::with('user')->latest('id')->paginate(15);
+        return view('assistant-ui.manage-staff', compact('teachers'));
+    }
     public function create(){return view('teachers.create',['teacher'=>new Teacher(),'users'=>User::all()]);}
     public function store(Request $request){
         $data=$request->validate([

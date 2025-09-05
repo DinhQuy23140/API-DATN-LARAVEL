@@ -57,14 +57,24 @@ class UserController extends Controller
 
         Auth::login($user, $request->boolean('remember'));
         $request->session()->regenerate();
-        $user->loadMissing( 'teacher', 'supervisor', 'assignment_supervisors', 'assignment', 'batch_student', 'student');
+        $user->loadMissing([
+            'teacher.supervisor.assignment_supervisors.assignment.batch_student.student'
+        ]);
 
         // Nếu là giáo viên → chuyển tới lecturer-ui/overview.blade.php
         if ($user->role === 'teacher') {
             return redirect()->route('web.teacher.overview', compact('user'))
                 ->with('status', 'Đăng nhập thành công');
+        } else if($user->role=== 'head') {
+            return redirect()->route('web.head.overview', compact('user'))
+                ->with('status', 'Đăng nhập thành công');
+        } else if ($user->role === 'admin') {
+            return redirect()->route('web.admin.overview', compact('user'))
+                ->with('status', 'Đăng nhập thành công');
+        } else if($user->role === 'assistant') {
+            return redirect()->route('web.assistant.overview', compact('user'))
+                ->with('status', 'Đăng nhập thành công');
         }
-
         // Mặc định
         return redirect()->intended(route('web.users.index'))
             ->with('status', 'Đăng nhập thành công');

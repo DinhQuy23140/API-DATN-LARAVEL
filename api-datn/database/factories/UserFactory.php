@@ -26,7 +26,7 @@ class UserFactory extends Factory
             'gender' => $this->faker->randomElement(['male', 'female']),
             'address' => $this->faker->address(),
             'image' => $this->faker->imageUrl(200, 200, 'people'),
-            'role' => $this->faker->randomElement(['student', 'teacher']),
+            'role' => $this->faker->randomElement(['student', 'teacher', 'admin', 'assistant', 'head']),
             'remember_token' => Str::random(10),
         ];
     }
