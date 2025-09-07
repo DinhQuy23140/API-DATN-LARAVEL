@@ -145,6 +145,10 @@ Route::middleware('auth')->prefix('assistant')->name('web.assistant.')->group(fu
     Route::get('/thesis/rounds', [ProjectTermsController::class, 'loadRounds'])->name('rounds');
     Route::get('/thesis/rounds/{round_id}', [ProjectTermsController::class, 'loadRoundDetail'])->name('round_detail');
     Route::post('/thesis/rounds', [ProjectTermsController::class, 'store'])->name('rounds.store');
-    Route::view('/students/import_students', 'assistant-ui.students-import')->name('students_import');
-    Route::view('/staffs/import_supervisors', 'assistant-ui.supervisors-import')->name('supervisors_import');
+    Route::get('/students/import_students/{termId}', [WebBatchStudentController::class, 'getStudentNotInProjectTerm'])->name('students_import');
+    Route::get('/staffs/import_supervisors/{termId}', [WebSupervisorController::class, 'getSupervisorNotInProjectTerm'])->name('supervisors_import');
+    Route::get('/students_detail/{termId}', [WebBatchStudentController::class, 'getAllBatchStudentsByTerm'])->name('students_detail');
+    Route::get('/supervisors_detail/{termId}', [WebSupervisorController::class, 'getAllSupervisorsByTerm'])->name('supervisors_detail');
+    Route::post('/batch-students/bulk', [WebBatchStudentController::class,'storeBulk'])->name('batch_students.bulk_store');
+    Route::post('/supervisors/bulk', [WebSupervisorController::class,'storeBulk'])->name('supervisors.bulk_store');
 });

@@ -22,7 +22,7 @@ class ProjectTerm extends Model
 
     public function supervisors()
     {
-        return $this->belongsToMany(Supervisor::class);
+        return $this-> hasMany(Supervisor::class);
     }
 
     public function stageTimelines()

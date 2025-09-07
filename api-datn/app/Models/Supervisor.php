@@ -29,7 +29,7 @@ class Supervisor extends Model
 
     public function project_term()
     {
-        return $this->belongsToMany(ProjectTerm::class);
+        return $this->belongsTo(ProjectTerm::class);
     }
 
     public function assignment_supervisors()

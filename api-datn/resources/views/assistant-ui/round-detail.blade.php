@@ -489,7 +489,7 @@
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   <!-- Thêm sinh viên -->
-                  <a href="{{ route('web.assistant.students_import') }}" class="group border border-slate-200 hover:border-blue-300 rounded-xl p-4 bg-white hover:shadow-sm transition">
+                  <a href="{{ route('web.assistant.students_import', [$round_detail->id]) }}" class="group border border-slate-200 hover:border-blue-300 rounded-xl p-4 bg-white hover:shadow-sm transition">
                     <div class="flex items-start gap-3">
                       <div class="h-10 w-10 rounded-lg grid place-items-center bg-blue-50 text-blue-600 group-hover:bg-blue-100">
                         <i class="ph ph-user-plus"></i>
@@ -507,7 +507,7 @@
                   </a>
 
                   <!-- Thêm giảng viên hướng dẫn -->
-                  <a href="{{ route('web.assistant.supervisors_import') }}" class="group border border-slate-200 hover:border-blue-300 rounded-xl p-4 bg-white hover:shadow-sm transition">
+                  <a href="{{ route('web.assistant.supervisors_import', [$round_detail->id]) }}" class="group border border-slate-200 hover:border-blue-300 rounded-xl p-4 bg-white hover:shadow-sm transition">
                     <div class="flex items-start gap-3">
                       <div class="h-10 w-10 rounded-lg grid place-items-center bg-indigo-50 text-indigo-600 group-hover:bg-indigo-100">
                         <i class="ph ph-users-three"></i>
@@ -525,7 +525,7 @@
                   </a>
 
                   <!-- Xem danh sách giảng viên hướng dẫn -->
-                  <a href="{{ route('web.assistant.manage_staffs') }}" class="group border border-slate-200 hover:border-blue-300 rounded-xl p-4 bg-white hover:shadow-sm transition">
+                  <a href="{{ route('web.assistant.supervisors_detail', [$round_detail->id]) }}" class="group border border-slate-200 hover:border-blue-300 rounded-xl p-4 bg-white hover:shadow-sm transition">
                     <div class="flex items-start gap-3">
                       <div class="h-10 w-10 rounded-lg grid place-items-center bg-emerald-50 text-emerald-600 group-hover:bg-emerald-100">
                         <i class="ph ph-address-book"></i>
@@ -543,7 +543,7 @@
                   </a>
 
                   <!-- Xem danh sách sinh viên -->
-                  <a href="#" id="btnViewStudents" class="group border border-slate-200 hover:border-blue-300 rounded-xl p-4 bg-white hover:shadow-sm transition">
+                  <a href="{{ route('web.assistant.students_detail', [$round_detail->id]) }}" id="btnViewStudents" class="group border border-slate-200 hover:border-blue-300 rounded-xl p-4 bg-white hover:shadow-sm transition">
                     <div class="flex items-start gap-3">
                       <div class="h-10 w-10 rounded-lg grid place-items-center bg-teal-50 text-teal-600 group-hover:bg-teal-100">
                         <i class="ph ph-graduation-cap"></i>

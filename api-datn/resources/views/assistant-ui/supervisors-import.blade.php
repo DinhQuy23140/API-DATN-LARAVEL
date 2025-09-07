@@ -59,6 +59,14 @@
           <div class="h-full flex items-center justify-between px-4 md:px-6">
             <div class="flex items-center gap-3">
               <button id="openSidebar" class="md:hidden p-2 rounded-lg hover:bg-slate-100"><i class="ph ph-list"></i></button>
+              <a href="{{ url()->previous() ?: route('web.assistant.rounds') }}"
+                 class="hidden sm:inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-200 hover:bg-slate-50"
+                 title="Quay lại">
+                <i class="ph ph-arrow-left"></i><span class="text-sm">Quay lại</span>
+              </a>
+              <button type="button" onclick="history.back()" class="sm:hidden p-2 rounded-lg hover:bg-slate-100" aria-label="Quay lại">
+                <i class="ph ph-arrow-left"></i>
+              </button>
               <div>
                 <h1 class="text-lg md:text-xl font-semibold">Thêm giảng viên hướng dẫn</h1>
                 <p class="text-xs text-slate-500 mt-0.5">Trang chủ / Trợ lý khoa / Học phần tốt nghiệp / Đồ án tốt nghiệp / Thêm giảng viên</p>
@@ -74,7 +82,7 @@
             </button>
           </div>
         </header>
-        <main class="pt-20 px-4 md:px-6 pb-10 md:pl-[284px] space-y-6">
+        <main class="pt-20 px-4 md:px-6 pb-10 md:pl-[260px] space-y-6">
           <!-- Card: Tải tệp Excel -->
           <section class="bg-white border border-slate-200 rounded-xl p-5">
             <h2 class="font-semibold">Chọn tệp Excel</h2>
@@ -103,11 +111,58 @@
             </div>
 
             <div class="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <!-- Danh sách ứng viên -->
+              <!-- Danh sách ứng viên (table + checkbox) -->
               <div class="rounded-xl border border-slate-200 overflow-hidden">
-                <div class="h-10 bg-slate-50 border-b border-slate-200 px-3 text-xs text-slate-500 flex items-center">Danh sách giảng viên</div>
-                <div id="pool" class="max-h-96 overflow-auto divide-y">
-                  <!-- render by script -->
+                <div class="h-10 bg-slate-50 border-b border-slate-200 px-3 text-xs text-slate-500 flex items-center justify-between">
+                  <span>Danh sách giảng viên</span>
+                  <label class="flex items-center gap-2 text-[13px] text-slate-600">
+                    <input type="checkbox" id="selectAllSup" class="rounded border-slate-300"> Chọn tất cả
+                  </label>
+                </div>
+                <div class="max-h-96 overflow-auto">
+                  <table class="w-full text-sm">
+                    <thead class="sticky top-0 bg-slate-50 border-b border-slate-200">
+                      <tr class="text-left text-slate-600">
+                        <th class="py-2 px-3 w-10"></th>
+                        <th class="py-2 px-3">Email</th>
+                        <th class="py-2 px-3">Họ tên</th>
+                        <th class="py-2 px-3">Bộ môn</th>
+                        <th class="py-2 px-3">Học vị</th>
+                      </tr>
+                    </thead>
+                    <tbody id="supTbody">
+                      @php
+                        // Dữ liệu server: danh sách GV chưa trong đợt
+                        $supItems = $items ?? $supervisors ?? [];
+                      @endphp
+                      @if(!empty($supItems) && count($supItems))
+                        @foreach($supItems as $t)
+                          @php
+                            $email = optional(optional($t)->user)->email ?? $t->email ?? '';
+                            $name  = optional(optional($t)->user)->fullname ?? $t->fullname ?? ($t->name ?? '');
+                            $dept  = optional($t->department)->name ?? ($t->department_name ?? ($t->dept ?? ''));
+                            $title = $t->degree ?? ($t->title ?? '');
+                          @endphp
+                          <tr class="hover:bg-slate-50">
+                            <td class="py-2 px-3">
+                              <input type="checkbox"
+                                class="rounded border-slate-300"
+                                data-email="{{ $email }}"
+                                data-name="{{ $name }}"
+                                data-dept="{{ $dept }}"
+                                data-title="{{ $title }}">
+                            </td>
+                            <td class="py-2 px-3 font-medium">{{ $email }}</td>
+                            <td class="py-2 px-3">{{ $name }}</td>
+                            <td class="py-2 px-3">{{ $dept ?: '-' }}</td>
+                            <td class="py-2 px-3">{{ $title ?: '-' }}</td>
+                          </tr>
+                        @endforeach
+                      @else
+                        <tr><td colspan="5" class="py-4 px-3 text-slate-500">Không có dữ liệu.</td></tr>
+                      @endif
+                    </tbody>
+                  </table>
                 </div>
               </div>
 
@@ -189,101 +244,17 @@
         setTimeout(()=> el.remove(), 2100);
       }
 
-      // Data store keys
-      const POOL_KEY='assistant_candidate_supervisors';
-      const SAVED_KEY='assistant_supervisors';
-
-      // Seed demo data if empty
-      function getKV(key, fallback){ try{const v=localStorage.getItem(key); return v?JSON.parse(v):fallback;}catch{return fallback;} }
-      function setKV(key, val){ localStorage.setItem(key, JSON.stringify(val)); }
-
-      let candidates=getKV(POOL_KEY, []);
-      if (!candidates.length) {
-        candidates=[
-          {email:'gv.a@uni.edu', name:'TS. Nguyễn Văn A', dept:'CNTT', title:'Tiến sĩ'},
-          {email:'gv.b@uni.edu', name:'ThS. Trần Thị B', dept:'CNTT', title:'Thạc sĩ'},
-          {email:'gv.c@uni.edu', name:'PGS. Lê Văn C', dept:'HTTT', title:'Phó Giáo sư'},
-          {email:'gv.d@uni.edu', name:'TS. Phạm Thị D', dept:'KTPM', title:'Tiến sĩ'},
-          {email:'gv.e@uni.edu', name:'ThS. Nguyễn Thị E', dept:'MMT', title:'Thạc sĩ'},
-          {email:'gv.f@uni.edu', name:'TS. Đỗ Văn F', dept:'KHMT', title:'Tiến sĩ'}
-        ];
-        setKV(POOL_KEY, candidates);
-      }
-      let saved=getKV(SAVED_KEY, []);
-
-      // UI refs
+      // Chọn/Thêm giống trang students-import
       const qInput=document.getElementById('qInput');
-      const pool=document.getElementById('pool');
+      const supTbody=document.getElementById('supTbody');
       const chosenTbody=document.getElementById('chosenTbody');
       const btnCommit=document.getElementById('btnCommit');
+      const selectAllSup=document.getElementById('selectAllSup');
 
-      // Selection state
-      const selected=new Set();
+      const selected=new Set();          // key: email
+      const selectedData=new Map();      // email -> {email,name,dept,title}
 
-      function alreadySaved(email){ return saved.some(x=>x.email===email); }
-
-      function renderPool(){
-        const q=(qInput?.value||'').toLowerCase();
-        const data=candidates.filter(x=>{
-          if(!q) return true;
-          return x.email.toLowerCase().includes(q) || x.name.toLowerCase().includes(q) || (x.dept||'').toLowerCase().includes(q);
-        });
-        if(!data.length){
-          pool.innerHTML='<div class="p-4 text-slate-500 text-sm">Không tìm thấy giảng viên phù hợp.</div>';
-          return;
-        }
-        pool.innerHTML=data.map(x=>{
-          const dis=alreadySaved(x.email);
-          const checked=selected.has(x.email);
-          return `<label class="flex items-center gap-3 p-3 hover:bg-slate-50 ${dis?'opacity-60 cursor-not-allowed':''}">
-            <input type="checkbox" data-email="${x.email}" class="rounded border-slate-300" ${checked?'checked':''} ${dis?'disabled':''}>
-            <div class="flex-1">
-              <div class="font-medium">${x.name} <span class="text-slate-500 font-normal">(${x.email})</span></div>
-              <div class="text-xs text-slate-500">${x.title||'-'} • ${x.dept||'-'}</div>
-            </div>
-            ${dis?'<span class="text-xs px-2 py-1 rounded-full bg-green-50 text-green-700 border border-green-100">Đã có</span>':''}
-          </label>`;
-        }).join('');
-        pool.querySelectorAll('input[type=checkbox][data-email]').forEach(cb=>{
-          cb.addEventListener('change', ()=>{
-            const em=cb.getAttribute('data-email');
-            if(cb.checked) selected.add(em); else selected.delete(em);
-            refreshChosen();
-            syncCommitBtn();
-          });
-        });
-      }
-
-      function refreshChosen(){
-        if(!selected.size){
-          chosenTbody.innerHTML='<tr><td colspan="5" class="py-4 px-3 text-slate-500">Chưa chọn giảng viên nào.</td></tr>';
-          return;
-        }
-        const rows=[...selected].map(em=>{
-          const t=candidates.find(x=>x.email===em);
-          if(!t) return '';
-          return `<tr class="border-b">
-            <td class="py-2 px-3 font-medium">${t.email}</td>
-            <td class="py-2 px-3">${t.name}</td>
-            <td class="py-2 px-3">${t.dept||'-'}</td>
-            <td class="py-2 px-3">${t.title||'-'}</td>
-            <td class="py-2 px-3 text-right">
-              <button class="px-2 py-1 text-xs rounded border border-slate-200 hover:bg-slate-50" data-remove="${t.email}">Bỏ chọn</button>
-            </td>
-          </tr>`;
-        }).join('');
-        chosenTbody.innerHTML=rows;
-        chosenTbody.querySelectorAll('[data-remove]').forEach(btn=>{
-          btn.addEventListener('click', ()=>{
-            selected.delete(btn.getAttribute('data-remove'));
-            refreshChosen();
-            renderPool();
-            syncCommitBtn();
-          });
-        });
-      }
-
-      function syncCommitBtn(){
+      function updateBtn(){
         const n=selected.size;
         btnCommit.disabled = n===0;
         btnCommit.textContent = `Thêm giảng viên (${n})`;
@@ -292,31 +263,137 @@
         btnCommit.classList.toggle('hover:bg-blue-700', n>0);
       }
 
-      btnCommit?.addEventListener('click', ()=>{
-        if(!selected.size) return;
-        const toAdd=[...selected]
-          .map(em=> candidates.find(x=>x.email===em))
-          .filter(Boolean)
-          .filter(x=> !alreadySaved(x.email));
-        if(!toAdd.length){ pushToast('Không có giảng viên mới để thêm.'); return; }
-        saved = getKV(SAVED_KEY, []);
-        saved.push(...toAdd);
-        setKV(SAVED_KEY, saved);
-        const count=toAdd.length;
-        selected.clear();
-        refreshChosen();
-        renderPool();
-        syncCommitBtn();
-        pushToast(`Đã thêm ${count} giảng viên`);
+      function renderChosen(){
+        if(!selected.size){
+          chosenTbody.innerHTML = `<tr><td colspan="5" class="py-4 px-3 text-slate-500">Chưa chọn giảng viên nào.</td></tr>`;
+          updateBtn(); return;
+        }
+        const rows=[...selected].map(email=>{
+          const t=selectedData.get(email); if(!t) return '';
+          return `<tr class="border-b">
+            <td class="py-2 px-3 font-medium">${t.email}</td>
+            <td class="py-2 px-3">${t.name||''}</td>
+            <td class="py-2 px-3">${t.dept||'-'}</td>
+            <td class="py-2 px-3">${t.title||'-'}</td>
+            <td class="py-2 px-3 text-right">
+              <button class="px-2 py-1 text-xs rounded border border-slate-200 hover:bg-slate-50" data-remove="${t.email}">Bỏ chọn</button>
+            </td>
+          </tr>`;
+        }).join('');
+        chosenTbody.innerHTML=rows;
+        chosenTbody.querySelectorAll('[data-remove]').forEach(b=>{
+          b.addEventListener('click', ()=>{
+            const em=b.getAttribute('data-remove');
+            selected.delete(em); selectedData.delete(em);
+            // Uncheck nguồn
+            const cb=supTbody.querySelector(`input[type=checkbox][data-email="${em}"]`);
+            if(cb) cb.checked=false;
+            renderChosen(); updateBtn(); syncSelectAll();
+          });
+        });
+        updateBtn();
+      }
+
+      function bindSupList(){
+        supTbody.querySelectorAll('input[type=checkbox][data-email]').forEach(cb=>{
+          cb.addEventListener('change', ()=>{
+            const email=cb.dataset.email;
+            if(cb.checked){
+              selected.add(email);
+              selectedData.set(email, {
+                email,
+                name: cb.dataset.name || '',
+                dept: cb.dataset.dept || '',
+                title: cb.dataset.title || ''
+              });
+            }else{
+              selected.delete(email);
+              selectedData.delete(email);
+            }
+            renderChosen(); updateBtn(); syncSelectAll();
+          });
+        });
+        syncSelectAll();
+      }
+
+      function syncSelectAll(){
+        const boxes=[...supTbody.querySelectorAll('tr:not([style*="display: none"]) input[type=checkbox][data-email]')];
+        const all= boxes.length>0 && boxes.every(cb=>cb.checked);
+        selectAllSup.checked = all;
+        selectAllSup.indeterminate = !all && boxes.some(cb=>cb.checked);
+      }
+      selectAllSup?.addEventListener('change', ()=>{
+        const target=selectAllSup.checked;
+        supTbody.querySelectorAll('tr:not([style*="display: none"]) input[type=checkbox][data-email]').forEach(cb=>{
+          cb.checked=target;
+          const email=cb.dataset.email;
+          if(target){
+            selected.add(email);
+            selectedData.set(email, {
+              email,
+              name: cb.dataset.name || '',
+              dept: cb.dataset.dept || '',
+              title: cb.dataset.title || ''
+            });
+          }else{
+            selected.delete(email);
+            selectedData.delete(email);
+          }
+        });
+        renderChosen(); updateBtn(); syncSelectAll();
       });
 
-      qInput?.addEventListener('input', renderPool);
-      document.getElementById('btnUpload')?.addEventListener('click', ()=> pushToast('Đang xử lý tệp...'));
+      function applySearch(){
+        const q=(qInput?.value||'').toLowerCase();
+        supTbody.querySelectorAll('tr').forEach(tr=>{
+          const txt=tr.innerText.toLowerCase();
+          tr.style.display = txt.includes(q) ? '' : 'none';
+        });
+        syncSelectAll();
+      }
+      qInput?.addEventListener('input', applySearch);
+
+      // Gọi API thêm danh sách GV vào đợt (cần route backend)
+      btnCommit?.addEventListener('click', async ()=>{
+        if(!selected.size) return;
+        const termId = {{ $projectTerm->id ?? ($round->id ?? ($term->id ?? 'null')) }};
+        if(!termId){ pushToast('Thiếu thông tin đợt đồ án'); return; }
+        const supervisors=[...selectedData.values()].map(x=> x.email).filter(Boolean);
+
+        const prev=btnCommit.textContent;
+        btnCommit.disabled=true; btnCommit.textContent='Đang thêm...';
+        try{
+          const res = await fetch(`{{ route('web.assistant.supervisors.bulk_store', [], false) }}`, {
+            method:'POST',
+            headers:{
+              'Content-Type':'application/json',
+              'Accept':'application/json',
+              'X-CSRF-TOKEN': `{{ csrf_token() }}`
+            },
+            body: JSON.stringify({ project_term_id: termId, supervisors })
+          });
+          const data = await res.json().catch(()=>({}));
+          if(!res.ok){
+            pushToast(data?.message||'Thêm thất bại');
+          }else{
+            pushToast(`Đã thêm ${data.added||0} GV, bỏ qua ${data.skipped||0}`);
+            selected.clear(); selectedData.clear();
+            renderChosen();
+            supTbody.querySelectorAll('input[type=checkbox][data-email]').forEach(cb=> cb.checked=false);
+            syncSelectAll();
+          }
+        }catch(e){
+          pushToast('Lỗi mạng khi thêm giảng viên');
+        }finally{
+          btnCommit.disabled=false; btnCommit.textContent=prev; updateBtn();
+        }
+      });
 
       // Init
-      renderPool();
-      refreshChosen();
-      syncCommitBtn();
+      bindSupList();
+      renderChosen();
+      updateBtn();
+      applySearch();
 
       // Mở sẵn submenu "Học phần tốt nghiệp" + đánh dấu mục "Đồ án tốt nghiệp"
       document.addEventListener('DOMContentLoaded', () => {
