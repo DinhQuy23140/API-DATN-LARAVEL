@@ -45,4 +45,10 @@ class TeacherController extends Controller
         return redirect()->route('web.teachers.show',$teacher)->with('status','Cập nhật thành công');
     }
     public function destroy(Teacher $teacher){$teacher->delete(); return redirect()->route('web.teachers.index')->with('status','Đã xóa');}
+
+    public function loadDashboardAssistant(){
+        $countTeachers = Teacher::count();
+        $teachers = Teacher::with('user')->latest('created_at')->paginate(7);
+        return view('assistant-ui.dashboard', compact('countTeachers', 'teachers'));
+    }
 }

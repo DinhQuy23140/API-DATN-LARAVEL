@@ -36,6 +36,21 @@
     </style>
   </head>
   <body class="bg-slate-50 text-slate-800">
+    @php
+      $user = auth()->user();
+      $userName = $user->fullname ?? $user->name ?? 'Giảng viên';
+      $email = $user->email ?? '';
+      // Tùy mô hình dữ liệu, thay các field bên dưới cho khớp
+      $dept = $user->department_name ?? optional($user->teacher)->department ?? '';
+      $faculty = $user->faculty_name ?? optional($user->teacher)->faculty ?? '';
+      $subtitle = trim(($dept ? "Bộ môn $dept" : '') . (($dept && $faculty) ? ' • ' : '') . ($faculty ? "Khoa $faculty" : ''));
+      $degree = $user->teacher->degree ?? '';
+      $expertise = $user->teacher->supervisor->expertise ?? 'null';
+      $data_assignment_supervisors = $user->teacher->supervisor->assignment_supervisors ?? collect();;
+      $avatarUrl = $user->avatar_url
+        ?? $user->profile_photo_url
+        ?? 'https://ui-avatars.com/api/?name=' . urlencode($userName) . '&background=0ea5e9&color=ffffff';
+    @endphp
     <div class="flex min-h-screen">
       <aside id="sidebar" class="sidebar fixed inset-y-0 left-0 z-30 bg-white border-r border-slate-200 flex flex-col transition-all">
         <div class="h-16 flex items-center gap-3 px-4 border-b border-slate-200">
@@ -60,9 +75,11 @@
               </span>
               <i class="ph ph-caret-down"></i>
             </div>
-            <div class="submenu hidden pl-6">
-              <a href="internship.html" class="block px-3 py-2 hover:bg-slate-100">Thực tập tốt nghiệp</a>
-              <a href="{{ route('web.assistant.rounds') }}" class="block px-3 py-2 hover:bg-slate-100">Đồ án tốt nghiệp</a>
+            <div id="gradMenu" class="submenu pl-6">
+              <a href="#" class="block px-3 py-2 rounded hover:bg-slate-100">Thực tập tốt nghiệp</a>
+              <a href="{{ route('web.assistant.rounds') }}"
+                 class="block px-3 py-2 rounded hover:bg-slate-100 bg-slate-100 font-semibold"
+                 aria-current="page">Đồ án tốt nghiệp</a>
             </div>
           </div>
         </nav>
@@ -82,16 +99,19 @@
           </div>
           <div class="relative">
             <button id="profileBtn" class="flex items-center gap-3 px-2 py-1.5 rounded-lg hover:bg-slate-100">
-              <img class="h-9 w-9 rounded-full object-cover" src="https://i.pravatar.cc/100?img=6" alt="avatar" />
+              <img class="h-9 w-9 rounded-full object-cover" src="{{ $avatarUrl }}" alt="avatar" />
               <div class="hidden sm:block text-left">
-                <div class="text-sm font-semibold leading-4">Assistant</div>
-                <div class="text-xs text-slate-500">assistant@uni.edu</div>
+                <div class="text-sm font-semibold leading-4">{{ $userName }}</div>
+                <div class="text-xs text-slate-500">{{ $email }}</div>
               </div>
               <i class="ph ph-caret-down text-slate-500 hidden sm:block"></i>
             </button>
             <div id="profileMenu" class="hidden absolute right-0 mt-2 w-44 bg-white border border-slate-200 rounded-lg shadow-lg py-1 text-sm">
               <a href="#" class="flex items-center gap-2 px-3 py-2 hover:bg-slate-50"><i class="ph ph-user"></i>Xem thông tin</a>
-              <a href="#" class="flex items-center gap-2 px-3 py-2 hover:bg-slate-50 text-rose-600"><i class="ph ph-sign-out"></i>Đăng xuất</a>
+              <a href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();" class="flex items-center gap-2 px-3 py-2 hover:bg-slate-50 text-rose-600"><i class="ph ph-sign-out"></i>Đăng xuất</a>
+              <form id="logout-form" action="{{ route('web.auth.logout') }}" method="POST" class="hidden">
+                @csrf
+              </form>
             </div>
           </div>
         </header>
@@ -413,6 +433,40 @@
           }
         };
 
+// Thêm: helper tạo card hành động giống panel timeline 1
+        function actionCard(action) {
+          const label = action.label || 'Mở';
+          const href = action.href || '#';
+          // Gợi ý icon/màu theo nhãn
+          let icon = 'ph ph-rocket', color = 'bg-slate-50 text-slate-600', colorHover = 'group-hover:bg-slate-100';
+          const l = label.toLowerCase();
+          if (l.includes('import')) { icon = 'ph ph-upload-simple'; color = 'bg-blue-50 text-blue-600'; colorHover = 'group-hover:bg-blue-100'; }
+          else if (l.includes('danh sách') || l.includes('list')) { icon = 'ph ph-list-bullets'; color = 'bg-emerald-50 text-emerald-600'; colorHover = 'group-hover:bg-emerald-100'; }
+          else if (l.includes('đề cương') || l.includes('outline')) { icon = 'ph ph-notebook'; color = 'bg-indigo-50 text-indigo-600'; colorHover = 'group-hover:bg-indigo-100'; }
+          else if (l.includes('tiến độ') || l.includes('progress')) { icon = 'ph ph-chart-line-up'; color = 'bg-teal-50 text-teal-600'; colorHover = 'group-hover:bg-teal-100'; }
+          else if (l.includes('báo cáo') || l.includes('report')) { icon = 'ph ph-file-text'; color = 'bg-amber-50 text-amber-600'; colorHover = 'group-hover:bg-amber-100'; }
+          else if (l.includes('hội đồng') || l.includes('committee')) { icon = 'ph ph-users-three'; color = 'bg-fuchsia-50 text-fuchsia-600'; colorHover = 'group-hover:bg-fuchsia-100'; }
+          else if (l.includes('lịch') || l.includes('schedule')) { icon = 'ph ph-calendar-check'; color = 'bg-cyan-50 text-cyan-600'; colorHover = 'group-hover:bg-cyan-100'; }
+
+          return `
+            <a href="${href}" class="group border border-slate-200 hover:border-blue-300 rounded-xl p-4 bg-white hover:shadow-sm transition">
+              <div class="flex items-start gap-3">
+                <div class="h-10 w-10 rounded-lg grid place-items-center ${color} ${colorHover}">
+                  <i class="${icon}"></i>
+                </div>
+                <div class="flex-1">
+                  <div class="font-medium">${label}</div>
+                  <div class="text-xs text-slate-500 mt-0.5">${action.desc || 'Đi tới chức năng'}</div>
+                  <div class="mt-3">
+                    <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-600 text-white text-sm">
+                      <i class="ph ph-arrow-right"></i> Mở
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </a>`;
+        }
+
         function renderStage(stageNum) {
           const data = stageData[stageNum];
           // highlight active bubble
@@ -424,17 +478,118 @@
             ? `<div class="mt-2 text-xs text-slate-500"><i class="ph ph-calendar"></i> Thời gian: ${formatVN(period.start)} - ${formatVN(period.end)}</div>`
             : '';
 
-          if (data) {
+          // Panel hiện đại cho Stage 1 (đã có)
+          if (stageNum === 1) {
             stageContent.innerHTML = `
-              <h3 class="font-semibold text-lg">${data.title}</h3>
-              <p class="text-sm text-slate-600">${data.description}</p>
-              ${timeHtml}
-              <div class="mt-4 space-y-2">
-                ${data.actions.map(action => `<a href="${action.href}" class="text-blue-600 hover:underline">${action.label}</a>`).join('<br>')}
+              <div class="space-y-4">
+                <div>
+                  <h3 class="font-semibold text-lg">Nhập danh sách sinh viên đủ điều kiện</h3>
+                  <p class="text-sm text-slate-600">Chuẩn bị dữ liệu cho kỳ đồ án: SV đủ điều kiện và giảng viên hướng dẫn.</p>
+                  ${timeHtml}
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  <!-- Thêm sinh viên -->
+                  <a href="{{ route('web.assistant.students_import') }}" class="group border border-slate-200 hover:border-blue-300 rounded-xl p-4 bg-white hover:shadow-sm transition">
+                    <div class="flex items-start gap-3">
+                      <div class="h-10 w-10 rounded-lg grid place-items-center bg-blue-50 text-blue-600 group-hover:bg-blue-100">
+                        <i class="ph ph-user-plus"></i>
+                      </div>
+                      <div class="flex-1">
+                        <div class="font-medium">Thêm sinh viên</div>
+                        <div class="text-xs text-slate-500 mt-0.5">Tạo mới/nhập danh sách sinh viên</div>
+                        <div class="mt-3">
+                          <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-600 text-white text-sm">
+                            <i class="ph ph-plus"></i> Thêm
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </a>
+
+                  <!-- Thêm giảng viên hướng dẫn -->
+                  <a href="{{ route('web.assistant.supervisors_import') }}" class="group border border-slate-200 hover:border-blue-300 rounded-xl p-4 bg-white hover:shadow-sm transition">
+                    <div class="flex items-start gap-3">
+                      <div class="h-10 w-10 rounded-lg grid place-items-center bg-indigo-50 text-indigo-600 group-hover:bg-indigo-100">
+                        <i class="ph ph-users-three"></i>
+                      </div>
+                      <div class="flex-1">
+                        <div class="font-medium">Thêm giảng viên hướng dẫn</div>
+                        <div class="text-xs text-slate-500 mt-0.5">Tạo mới/nhập danh sách giảng viên</div>
+                        <div class="mt-3">
+                          <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-indigo-600 text-white text-sm">
+                            <i class="ph ph-plus"></i> Thêm
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </a>
+
+                  <!-- Xem danh sách giảng viên hướng dẫn -->
+                  <a href="{{ route('web.assistant.manage_staffs') }}" class="group border border-slate-200 hover:border-blue-300 rounded-xl p-4 bg-white hover:shadow-sm transition">
+                    <div class="flex items-start gap-3">
+                      <div class="h-10 w-10 rounded-lg grid place-items-center bg-emerald-50 text-emerald-600 group-hover:bg-emerald-100">
+                        <i class="ph ph-address-book"></i>
+                      </div>
+                      <div class="flex-1">
+                        <div class="font-medium">Xem danh sách giảng viên hướng dẫn</div>
+                        <div class="text-xs text-slate-500 mt-0.5">Quản lý hồ sơ và trạng thái GVHD</div>
+                        <div class="mt-3">
+                          <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-sm">
+                            <i class="ph ph-list-bullets"></i> Xem danh sách
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </a>
+
+                  <!-- Xem danh sách sinh viên -->
+                  <a href="#" id="btnViewStudents" class="group border border-slate-200 hover:border-blue-300 rounded-xl p-4 bg-white hover:shadow-sm transition">
+                    <div class="flex items-start gap-3">
+                      <div class="h-10 w-10 rounded-lg grid place-items-center bg-teal-50 text-teal-600 group-hover:bg-teal-100">
+                        <i class="ph ph-graduation-cap"></i>
+                      </div>
+                      <div class="flex-1">
+                        <div class="font-medium">Xem danh sách sinh viên</div>
+                        <div class="text-xs text-slate-500 mt-0.5">Sinh viên đủ điều kiện tham gia</div>
+                        <div class="mt-3">
+                          <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-teal-600 text-white text-sm">
+                            <i class="ph ph-list-checks"></i> Xem danh sách
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </a>
+                </div>
+              </div>
+            `;
+
+            // XÓA handler import GVHD cũ vì đã chuyển sang link
+            // document.getElementById('btnImportAdvisors')?.addEventListener(...); // removed
+
+            return;
+          }
+
+          // Mặc định: các stage khác render cùng layout card như stage 1
+          if (data) {
+            const cards = (data.actions || []).map(actionCard).join('');
+            stageContent.innerHTML = `
+              <div class="space-y-4">
+                <div>
+                  <h3 class="font-semibold text-lg">${data.title}</h3>
+                  <p class="text-sm text-slate-600">${data.description || ''}</p>
+                  ${timeHtml}
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  ${cards || `<div class="text-sm text-slate-500">Chưa có hành động cho giai đoạn này.</div>`}
+                </div>
               </div>
             `;
           } else {
-            stageContent.innerHTML = '<p class="text-sm text-slate-500">No data available for this stage.</p>' + timeHtml;
+            stageContent.innerHTML = `
+              <div class="space-y-2">
+                <p class="text-sm text-slate-500">Chưa có dữ liệu cho giai đoạn này.</p>
+                ${timeHtml}
+              </div>`;
           }
         }
 
@@ -497,7 +652,7 @@
               <p class="text-sm text-slate-600">Danh sách sinh viên và nhật ký thực hiện</p>
             </div>
             <div class="hidden md:flex gap-2 text-sm">
-              <span class="px-2 py-1 rounded-full bg-blue-50 text-blue-700">Đã bắt đầu: ${students.length}</span>
+              <span class="px-2 py-1 rounded-full bg-blue-700 text-white">Đã bắt đầu: ${students.length}</span>
             </div>
           </div>
 
@@ -1078,17 +1233,20 @@
           (function(){
             const current = location.pathname.split('/').pop();
             document.querySelectorAll('aside nav a').forEach(a=>{
+              // Giữ nguyên những link đã gắn aria-current (ví dụ: Đồ án tốt nghiệp)
+              if (a.hasAttribute('aria-current')) return;
               const href=a.getAttribute('href')||'';
               const active=href.endsWith(current);
               a.classList.toggle('bg-slate-100', active);
               a.classList.toggle('font-semibold', active);
-              if(active) a.classList.add('text-slate-900');
+              a.classList.toggle('text-slate-900', active);
             });
           })();
 
-          document.addEventListener('DOMContentLoaded', () => {
+  document.addEventListener('DOMContentLoaded', () => {
     const sidebarItems = document.querySelectorAll('.sidebar-item');
 
+   
     sidebarItems.forEach(item => {
       const toggleButton = item.querySelector('.toggle-button');
       const submenu = item.querySelector('.submenu');
@@ -1136,6 +1294,28 @@
       });
     }
   });
+
+// Mở sẵn submenu "Học phần tốt nghiệp"
+document.addEventListener('DOMContentLoaded', () => {
+  const wrap = document.querySelector('.graduation-item');
+  if (!wrap) return;
+  const toggleBtn = wrap.querySelector('.toggle-button');
+  const submenu = wrap.querySelector('.submenu');
+  const caret = wrap.querySelector('.ph.ph-caret-down');
+
+  if (submenu && submenu.classList.contains('hidden')) submenu.classList.remove('hidden');
+  if (toggleBtn) toggleBtn.setAttribute('aria-expanded', 'true');
+  caret?.classList.add('transition-transform', 'rotate-180');
+
+  // Giữ hành vi toggle khi nhấn
+  toggleBtn?.addEventListener('click', (e) => {
+    e.preventDefault();
+    submenu?.classList.toggle('hidden');
+    const expanded = !submenu?.classList.contains('hidden');
+    toggleBtn.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+    caret?.classList.toggle('rotate-180', expanded);
+  });
+});
     </script>
   </body>
 </html>

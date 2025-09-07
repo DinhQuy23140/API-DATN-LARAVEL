@@ -134,10 +134,10 @@ Route::middleware('auth')->prefix('head')->name('web.head.')->group(function () 
 });
 
 Route::middleware('auth')->prefix('assistant')->name('web.assistant.')->group(function () {
-    Route::view('/dash', 'assistant-ui.dashboard')->name('dashboard');
+    Route::get('/dash', [WebTeacherController::class, 'loadDashboardAssistant'])->name('dashboard');
     Route::view('/manage_departments', 'assistant-ui.manage-departments')->name('manage_departments');
     Route::view('/manage_majors', 'assistant-ui.manage-majors')->name('manage_majors');
-    Route::view('/manage_staffs', 'assistant-ui.manage-staff')->name('manage_staffs');
+    Route::get('/manage_staffs', [WebTeacherController::class, 'loadTeachers'])->name('manage_staffs');
     Route::view('/assign_head', 'assistant-ui.assign-head')->name('assign_head');
     Route::get('/rounds', [WebProjectTermsController::class, 'loadRounds'])->name('rounds');
     Route::view('/round-detail', 'assistant-ui.round-detail')->name('round_detail');
@@ -145,4 +145,6 @@ Route::middleware('auth')->prefix('assistant')->name('web.assistant.')->group(fu
     Route::get('/thesis/rounds', [ProjectTermsController::class, 'loadRounds'])->name('rounds');
     Route::get('/thesis/rounds/{round_id}', [ProjectTermsController::class, 'loadRoundDetail'])->name('round_detail');
     Route::post('/thesis/rounds', [ProjectTermsController::class, 'store'])->name('rounds.store');
+    Route::view('/students/import_students', 'assistant-ui.students-import')->name('students_import');
+    Route::view('/staffs/import_supervisors', 'assistant-ui.supervisors-import')->name('supervisors_import');
 });

@@ -30,8 +30,23 @@
     </style>
   </head>
   <body class="bg-slate-50 text-slate-800">
+    @php
+      $user = auth()->user();
+      $userName = $user->fullname ?? $user->name ?? 'Giảng viên';
+      $email = $user->email ?? '';
+      // Tùy mô hình dữ liệu, thay các field bên dưới cho khớp
+      $dept = $user->department_name ?? optional($user->teacher)->department ?? '';
+      $faculty = $user->faculty_name ?? optional($user->teacher)->faculty ?? '';
+      $subtitle = trim(($dept ? "Bộ môn $dept" : '') . (($dept && $faculty) ? ' • ' : '') . ($faculty ? "Khoa $faculty" : ''));
+      $degree = $user->teacher->degree ?? '';
+      $expertise = $user->teacher->supervisor->expertise ?? 'null';
+      $data_assignment_supervisors = $user->teacher->supervisor->assignment_supervisors ?? collect();;
+      $avatarUrl = $user->avatar_url
+        ?? $user->profile_photo_url
+        ?? 'https://ui-avatars.com/api/?name=' . urlencode($userName) . '&background=0ea5e9&color=ffffff';
+    @endphp
     <div class="flex min-h-screen">
-      <aside id="sidebar" class="sidebar fixed inset-y-0 left-0 z-30 bg-white border-r border-slate-200 flex flex-col transition-all">
+      <aside id="sidebar" class="sidebar fixed inset-y-0 left-0 z-30 bg-white border-r border-slate-200 flex flex-col transition-transform transform -translate-x-full md:translate-x-0">
         <div class="h-16 flex items-center gap-3 px-4 border-b border-slate-200">
           <div class="h-9 w-9 grid place-items-center rounded-lg bg-blue-600 text-white"><i class="ph ph-buildings"></i></div>
           <div class="sidebar-label">
@@ -76,17 +91,24 @@
           </div>
           <div class="relative">
             <button id="profileBtn" class="flex items-center gap-3 px-2 py-1.5 rounded-lg hover:bg-slate-100">
-              <img class="h-9 w-9 rounded-full object-cover" src="https://i.pravatar.cc/100?img=6" alt="avatar" />
+              <img class="h-9 w-9 rounded-full object-cover" src="{{ $avatarUrl }}" alt="avatar" />
+              <div class="hidden sm:block text-left">
+                <div class="text-sm font-semibold leading-4">{{ $userName }}</div>
+                <div class="text-xs text-slate-500">{{ $email }}</div>
+              </div>
               <i class="ph ph-caret-down text-slate-500 hidden sm:block"></i>
             </button>
             <div id="profileMenu" class="hidden absolute right-0 mt-2 w-44 bg-white border border-slate-200 rounded-lg shadow-lg py-1 text-sm">
               <a href="#" class="flex items-center gap-2 px-3 py-2 hover:bg-slate-50"><i class="ph ph-user"></i>Xem thông tin</a>
-              <a href="#" class="flex items-center gap-2 px-3 py-2 hover:bg-slate-50 text-rose-600"><i class="ph ph-sign-out"></i>Đăng xuất</a>
+              <a href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();" class="flex items-center gap-2 px-3 py-2 hover:bg-slate-50 text-rose-600"><i class="ph ph-sign-out"></i>Đăng xuất</a>
+              <form id="logout-form" action="{{ route('web.auth.logout') }}" method="POST" class="hidden">
+                @csrf
+              </form>
             </div>
           </div>
         </header>
 
-  <main class="pt-20 px-4 md:px-6 pb-10 space-y-5">
+  <main class="pt-20 px-4 md:px-6 pb-10 space-y-5 md:pl-[260px]">
     <div class="max-w-6xl mx-auto space-y-5">
           <div class="bg-white border border-slate-200 rounded-xl p-4 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
             <div class="relative w-full sm:max-w-sm">
@@ -217,11 +239,25 @@
 
     <script>
       const html=document.documentElement, sidebar=document.getElementById('sidebar');
-  function setCollapsed(c){const h=document.querySelector('header');const m=document.querySelector('main'); if(c){html.classList.add('sidebar-collapsed');h.classList.add('md:left-[72px]');h.classList.remove('md:left-[260px]');m.classList.add('md:pl-[72px]');m.classList.remove('md:pl-[260px]');} else {html.classList.remove('sidebar-collapsed');h.classList.remove('md:left-[72px]');h.classList.add('md:left-[260px]');m.classList.remove('md:pl-[72px]');}}
+  function setCollapsed(c){
+    const h=document.querySelector('header');
+    const m=document.querySelector('main');
+    if(c){
+      html.classList.add('sidebar-collapsed');
+      h.classList.add('md:left-[72px]'); h.classList.remove('md:left-[260px]');
+      m.classList.add('md:pl-[72px]');   m.classList.remove('md:pl-[260px]');
+    } else {
+      html.classList.remove('sidebar-collapsed');
+      h.classList.remove('md:left-[72px]'); h.classList.add('md:left-[260px]');
+      m.classList.remove('md:pl-[72px]');   m.classList.add('md:pl-[260px]');
+    }
+  }
       document.getElementById('toggleSidebar')?.addEventListener('click',()=>{const c=!html.classList.contains('sidebar-collapsed');setCollapsed(c);localStorage.setItem('assistant_sidebar',''+(c?1:0));});
       document.getElementById('openSidebar')?.addEventListener('click',()=>sidebar.classList.toggle('-translate-x-full'));
       if(localStorage.getItem('assistant_sidebar')==='1') setCollapsed(true);
-      sidebar.classList.add('md:translate-x-0','-translate-x-full','md:static');
+      // Init: sidebar luôn fixed; mobile ẩn, md+ hiện
+      sidebar.classList.add('transition-transform','transform','-translate-x-full','md:translate-x-0');
+      if (window.matchMedia('(min-width:768px)').matches) sidebar.classList.remove('-translate-x-full');
 
       function openModal(mode){document.getElementById('modalTitle').textContent = mode==='edit'?'Sửa giảng viên':'Thêm giảng viên'; const m=document.getElementById('modal');m.classList.remove('hidden');m.classList.add('flex');}
       function closeModal(){const m=document.getElementById('modal');m.classList.add('hidden');m.classList.remove('flex');}

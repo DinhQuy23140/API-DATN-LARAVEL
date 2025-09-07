@@ -27,6 +27,21 @@
     </style>
   </head>
   <body class="bg-slate-50 text-slate-800">
+    @php
+      $user = auth()->user();
+      $userName = $user->fullname ?? $user->name ?? 'Giảng viên';
+      $email = $user->email ?? '';
+      // Tùy mô hình dữ liệu, thay các field bên dưới cho khớp
+      $dept = $user->department_name ?? optional($user->teacher)->department ?? '';
+      $faculty = $user->faculty_name ?? optional($user->teacher)->faculty ?? '';
+      $subtitle = trim(($dept ? "Bộ môn $dept" : '') . (($dept && $faculty) ? ' • ' : '') . ($faculty ? "Khoa $faculty" : ''));
+      $degree = $user->teacher->degree ?? '';
+      $expertise = $user->teacher->supervisor->expertise ?? 'null';
+      $data_assignment_supervisors = $user->teacher->supervisor->assignment_supervisors ?? collect();;
+      $avatarUrl = $user->avatar_url
+        ?? $user->profile_photo_url
+        ?? 'https://ui-avatars.com/api/?name=' . urlencode($userName) . '&background=0ea5e9&color=ffffff';
+    @endphp
     <div class="flex min-h-screen">
       <!-- Sidebar -->
       <aside id="sidebar" class="sidebar fixed inset-y-0 left-0 z-30 bg-white border-r border-slate-200 flex flex-col transition-all">
@@ -76,10 +91,10 @@
           </div>
           <div class="relative">
             <button id="profileBtn" class="flex items-center gap-3 px-2 py-1.5 rounded-lg hover:bg-slate-100">
-              <img class="h-9 w-9 rounded-full object-cover" src="https://i.pravatar.cc/100?img=6" alt="avatar" />
+              <img class="h-9 w-9 rounded-full object-cover" src="{{ $avatarUrl }}" alt="avatar" />
               <div class="hidden sm:block text-left">
-                <div class="text-sm font-semibold leading-4">Assistant</div>
-                <div class="text-xs text-slate-500">assistant@uni.edu</div>
+                <div class="text-sm font-semibold leading-4">{{ $userName }}</div>
+                <div class="text-xs text-slate-500">{{ $email }}</div>
               </div>
               <i class="ph ph-caret-down text-slate-500 hidden sm:block"></i>
             </button>
@@ -108,7 +123,7 @@
             </div>
             <div class="bg-white rounded-xl border border-slate-200 p-5 flex items-center gap-4">
               <div class="h-12 w-12 rounded-lg bg-blue-50 text-blue-600 grid place-items-center"><i class="ph ph-chalkboard-teacher text-xl"></i></div>
-              <div><div class="text-sm text-slate-500">Giảng viên</div><div class="text-2xl font-semibold">145</div></div>
+              <div><div class="text-sm text-slate-500">Giảng viên</div><div class="text-2xl font-semibold">{{ $countTeachers }}</div></div>
             </div>
           </section>
 
@@ -150,37 +165,21 @@
                     </tr>
                   </thead>
                   <tbody>
-                    <tr class="hover:bg-slate-50">
-                      <td class="py-3"><input type="checkbox" class="rowChk h-4 w-4" /></td>
-                      <td class="py-3">GV001</td><td class="py-3">Ngô Hải Nam</td><td class="py-3">CNTT</td><td class="py-3">05/08/2025</td>
-                      <td class="py-3 text-right"><a href="manage-staff.html" class="text-blue-600 hover:underline">Xem chi tiết</a></td>
-                    </tr>
-                    <tr class="hover:bg-slate-50">
-                      <td class="py-3"><input type="checkbox" class="rowChk h-4 w-4" /></td>
-                      <td class="py-3">GV002</td><td class="py-3">Lê Thu Hằng</td><td class="py-3">Điện</td><td class="py-3">04/08/2025</td>
-                      <td class="py-3 text-right"><a href="manage-staff.html" class="text-blue-600 hover:underline">Xem chi tiết</a></td>
-                    </tr>
-                    <tr class="hover:bg-slate-50">
-                      <td class="py-3"><input type="checkbox" class="rowChk h-4 w-4" /></td>
-                      <td class="py-3">GV003</td><td class="py-3">Phạm Đức Minh</td><td class="py-3">Quản trị</td><td class="py-3">02/08/2025</td>
-                      <td class="py-3 text-right"><a href="manage-staff.html" class="text-blue-600 hover:underline">Xem chi tiết</a></td>
-                    </tr>
-                    <tr class="hover:bg-slate-50">
-                      <td class="py-3"><input type="checkbox" class="rowChk h-4 w-4" /></td>
-                      <td class="py-3">GV004</td><td class="py-3">Trần Mỹ Linh</td><td class="py-3">Marketing</td><td class="py-3">01/08/2025</td>
-                      <td class="py-3 text-right"><a href="manage-staff.html" class="text-blue-600 hover:underline">Xem chi tiết</a></td>
-                    </tr>
-                    <tr class="hover:bg-slate-50">
-                      <td class="py-3"><input type="checkbox" class="rowChk h-4 w-4" /></td>
-                      <td class="py-3">GV005</td><td class="py-3">Đỗ Anh Quân</td><td class="py-3">Tài chính</td><td class="py-3">31/07/2025</td>
-                      <td class="py-3 text-right"><a href="manage-staff.html" class="text-blue-600 hover:underline">Xem chi tiết</a></td>
-                    </tr>
+                    @foreach ($teachers as $teacher)
+                        <tr class="hover:bg-slate-50">
+                        <td class="py-3"><input type="checkbox" class="rowChk h-4 w-4" /></td>
+                        <td class="py-3">{{ $teacher->id }}</td>
+                        <td class="py-3">{{ $teacher->user->fullname }}</td>
+                        <td class="py-3">CNTT</td>
+                        <td class="py-3">{{ $teacher->created_at->format('d/m/Y') }}</td>
+                        <td class="py-3 text-right"><a href="{{ route('web.users.show', $teacher->id) }}" class="text-blue-600 hover:underline">Xem chi tiết</a></td>
+                      </tr>
+                    @endforeach
                   </tbody>
                 </table>
               </div>
             </div>
           </section>
-
           <!-- Project rounds overview -->
           <section class="bg-white rounded-xl border border-slate-200 p-5">
             <div class="flex items-center justify-between">

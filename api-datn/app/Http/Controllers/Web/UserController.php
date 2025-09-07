@@ -72,7 +72,7 @@ class UserController extends Controller
             return redirect()->route('web.admin.overview', compact('user'))
                 ->with('status', 'Đăng nhập thành công');
         } else if($user->role === 'assistant') {
-            return redirect()->route('web.assistant.overview', compact('user'))
+            return redirect()->route('web.assistant.dashboard', compact('user'))
                 ->with('status', 'Đăng nhập thành công');
         }
         // Mặc định
