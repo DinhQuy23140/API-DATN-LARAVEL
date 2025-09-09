@@ -19,9 +19,7 @@ class TeacherFactory extends Factory
     {
         return [
             // Liên kết với user có role = teacher
-            'user_id' => User::factory()->state([
-                'role' => 'teacher',
-            ]),
+            'user_id' => User::factory()->state(['role' => 'teacher']),
 
             // Sinh mã giảng viên ngẫu nhiên: GV + số random
             'teacher_code' => 'GV' . $this->faker->unique()->numerify('###'),

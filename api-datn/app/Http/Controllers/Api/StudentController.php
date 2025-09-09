@@ -13,7 +13,7 @@ class StudentController extends Controller
         $withBatch = filter_var($request->query('with_batch'), FILTER_VALIDATE_BOOL);
         $students = Student::with(array_filter([
             'user',
-            $withBatch ? 'batch_students.project_term.academy_year' : null,
+            $withBatch ? 'assignments.project_term.academy_year' : null,
         ]))->paginate(15);
         return response()->json($students);
     }

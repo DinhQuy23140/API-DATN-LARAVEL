@@ -16,6 +16,37 @@
     .sidebar-collapsed .sidebar-label { display:none; }
     .sidebar-collapsed .sidebar { width:72px; }
     .sidebar { width:260px; }
+    /* Modern modal */
+    .modal-overlay {
+      animation: modalFade .25s ease;
+    }
+    .modal-shell {
+      animation: modalPop .28s cubic-bezier(.4,.2,.2,1);
+    }
+    @keyframes modalFade {
+      from { opacity:0; }
+      to { opacity:1; }
+    }
+    @keyframes modalPop {
+      0% { opacity:0; transform:translateY(8px) scale(.96); }
+      100% { opacity:1; transform:translateY(0) scale(1); }
+    }
+    .floating-label { position:relative; }
+    .floating-label input,
+    .floating-label textarea,
+    .floating-label select {
+      padding-top:1.35rem;
+    }
+    .floating-label label {
+      position:absolute; left:.75rem; top:.65rem;
+      font-size:.70rem; letter-spacing:.5px;
+      font-weight:500; text-transform:uppercase;
+      color:rgb(100 116 139);
+      pointer-events:none;
+    }
+    .tag-chip {
+      @apply px-2 py-0.5 rounded-full text-xs bg-slate-100 text-slate-700 border border-slate-200;
+    }
   </style>
 </head>
 <body class="bg-slate-50 text-slate-800">
@@ -171,72 +202,130 @@
       `).join('');
     }
 
-    // Modal helper
-    function createModal(title, content){
-      const modal = document.createElement('div');
-      modal.className = 'fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center z-50';
-      modal.innerHTML = `
-        <div class="bg-white rounded-xl w-full max-w-3xl mx-4 max-h-[90vh] overflow-y-auto">
-          <div class="p-4 border-b flex items-center justify-between sticky top-0 bg-white">
-            <h3 class="font-semibold text-lg">${title}</h3>
-            <button class="p-2 hover:bg-slate-100 rounded-lg" onclick="this.closest('.fixed').remove()"><i class="ph ph-x"></i></button>
+    // Modern modal helper
+    function createModal(opts){
+      const { title, content, width='max-w-3xl' } = opts;
+      const wrap = document.createElement('div');
+      wrap.className = 'modal-overlay fixed inset-0 z-50 flex items-center justify-center px-4';
+      wrap.innerHTML = `
+        <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"></div>
+        <div class="modal-shell relative bg-white/95 supports-[backdrop-filter]:bg-white/80 border border-slate-200 shadow-xl rounded-2xl w-full ${width} max-h-[92vh] flex flex-col overflow-hidden">
+          <div class="px-5 py-4 border-b border-slate-200 flex items-center justify-between bg-gradient-to-r from-white/90 to-white/40 backdrop-blur-md">
+            <div class="flex items-center gap-2">
+              <div class="h-9 w-9 rounded-lg bg-blue-600/10 text-blue-600 grid place-items-center"><i class="ph ph-plus"></i></div>
+              <h3 class="font-semibold text-lg">${title}</h3>
+            </div>
+            <button type="button" data-close class="p-2 rounded-lg hover:bg-slate-100 text-slate-500 hover:text-slate-700 transition"><i class="ph ph-x text-lg"></i></button>
           </div>
-          <div class="p-6">${content}</div>
-        </div>`;
-      modal.addEventListener('click',(e)=>{ if(e.target===modal) modal.remove(); });
-      return modal;
+          <div class="flex-1 overflow-y-auto custom-scroll px-6 py-6">
+            ${content}
+          </div>
+          <div class="px-6 py-4 border-t border-slate-200 bg-slate-50/80 backdrop-blur-sm flex items-center justify-end gap-3">
+            <button type="button" data-close class="px-4 py-2 text-sm font-medium rounded-lg border border-slate-300 hover:bg-slate-100">Hủy</button>
+            <button type="submit" form="topicForm" class="px-4 py-2 text-sm font-semibold rounded-lg bg-blue-600 text-white hover:bg-blue-700 shadow-sm flex items-center gap-2">
+              <i class="ph ph-check-circle"></i><span>Lưu đề tài</span>
+            </button>
+          </div>
+        </div>
+      `;
+      wrap.addEventListener('click', e => { if(e.target === wrap) destroy(); });
+      function destroy(){ wrap.classList.add('opacity-0'); setTimeout(()=>wrap.remove(),150); }
+      wrap.querySelectorAll('[data-close]').forEach(btn => btn.addEventListener('click', destroy));
+      document.addEventListener('keydown', escHandler);
+      function escHandler(e){ if(e.key==='Escape'){ destroy(); document.removeEventListener('keydown', escHandler);} }
+      return { el: wrap, destroy };
     }
 
-    // Add topic
-    document.getElementById('btnAdd').addEventListener('click', ()=>{
-      const html = `
-        <form id="topicForm" class="space-y-3">
-          <div>
-            <label class="block text-sm mb-1">Tiêu đề</label>
-            <input name="title" class="w-full px-3 py-2 border border-slate-200 rounded" placeholder="VD: Hệ thống ..." required />
-          </div>
-          <div>
-            <label class="block text-sm mb-1">Mô tả</label>
-            <textarea name="desc" class="w-full px-3 py-2 border border-slate-200 rounded h-28" placeholder="Mô tả ngắn..."></textarea>
-          </div>
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-            <div>
-              <label class="block text-sm mb-1">Thẻ (phân cách bằng dấu phẩy)</label>
-              <input name="tags" class="w-full px-3 py-2 border border-slate-200 rounded" placeholder="Web, React, AI" />
+    // Enhanced input decorator
+    function baseInputCls(extra=''){
+      return `w-full rounded-lg border border-slate-200 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition px-3 py-2 text-sm ${extra}`;
+    }
+
+    function chipsPreviewTemplate(){
+      return `<div id="tagsPreview" class="flex flex-wrap gap-1 mt-1"></div>`;
+    }
+
+    function renderTagPreview(container, raw){
+      const tags = raw.split(/[;,]/).map(t=>t.trim()).filter(Boolean);
+      container.innerHTML = tags.map(t=>`<span class="tag-chip flex items-center gap-1">${t}</span>`).join('') || '<span class="text-xs text-slate-400">Chưa có thẻ</span>';
+    }
+
+    // Add topic (modern modal)
+    document.getElementById('btnAdd').addEventListener('click', () => {
+      const formHTML = `
+        <form id="topicForm" class="space-y-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="floating-label">
+              <label>Tiêu đề *</label>
+              <input name="title" required maxlength="180" class="${baseInputCls()}" placeholder=" " />
+              <p class="mt-1 text-xs text-slate-500">Đặt tên rõ ràng, mô tả sản phẩm/kết quả cuối.</p>
             </div>
-            <div>
-              <label class="block text-sm mb-1">Chỉ tiêu (SV)</label>
-              <input type="number" min="1" name="slots" class="w-full px-3 py-2 border border-slate-200 rounded" value="1" />
-            </div>
-            <div>
-              <label class="block text-sm mb-1">Trạng thái</label>
-              <select name="status" class="w-full px-3 py-2 border border-slate-200 rounded"><option>Mở</option><option>Đóng</option></select>
+            <div class="floating-label">
+              <label>Chỉ tiêu (SV)</label>
+              <input type="number" name="slots" min="1" value="1" class="${baseInputCls()}" placeholder=" " />
             </div>
           </div>
-          <div class="flex gap-2 pt-1">
-            <button class="px-3 py-1.5 bg-blue-600 text-white rounded text-sm" type="submit"><i class="ph ph-check"></i> Thêm</button>
-            <button class="px-3 py-1.5 border border-slate-200 rounded text-sm" type="button" id="cancelBtn">Hủy</button>
+          <div class="floating-label">
+            <label>Mô tả</label>
+            <textarea name="desc" rows="5" class="${baseInputCls('resize-y')}" placeholder=" "></textarea>
           </div>
-        </form>`;
-      const m = createModal('Thêm đề tài', html);
-      document.body.appendChild(m);
-      m.querySelector('#cancelBtn').addEventListener('click',()=>m.remove());
-      m.querySelector('#topicForm').addEventListener('submit',(e)=>{
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="floating-label md:col-span-2">
+              <label>Thẻ (ngăn cách phẩy / chấm phẩy)</label>
+              <input name="tags" class="${baseInputCls()}" placeholder=" " />
+              ${chipsPreviewTemplate()}
+            </div>
+            <div class="floating-label">
+              <label>Trạng thái</label>
+              <select name="status" class="${baseInputCls()}">
+                <option value="Mở">Mở</option>
+                <option value="Đóng">Đóng</option>
+              </select>
+            </div>
+          </div>
+          <fieldset class="border border-slate-200 rounded-xl p-4">
+            <legend class="px-2 text-xs font-semibold text-slate-500">Tùy chọn nâng cao</legend>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <label class="flex items-center gap-3 text-sm">
+                <input type="checkbox" name="allow_edit" class="rounded border-slate-300">
+                Cho phép SV tùy chỉnh tiêu đề
+              </label>
+              <label class="flex items-center gap-3 text-sm">
+                <input type="checkbox" name="require_outline" class="rounded border-slate-300">
+                Yêu cầu nộp đề cương sớm
+              </label>
+            </div>
+          </fieldset>
+        </form>
+      `;
+      const modal = createModal({ title: 'Thêm đề tài mới', content: formHTML });
+      document.body.appendChild(modal.el);
+
+      // Preview tags
+      const tagsInput = modal.el.querySelector('input[name="tags"]');
+      const tagsPreview = modal.el.querySelector('#tagsPreview');
+      const updateTags = () => renderTagPreview(tagsPreview, tagsInput.value || '');
+      tagsInput?.addEventListener('input', updateTags);
+      updateTags();
+
+      // Submit
+      modal.el.querySelector('#topicForm')?.addEventListener('submit', (e) => {
         e.preventDefault();
-        const f = new FormData(e.target);
+        const fd = new FormData(e.target);
+        const title = String(fd.get('title')||'').trim();
+        if(!title) return;
         const payload = {
           id: 'T' + Math.floor(Math.random()*900+100),
-          title: String(f.get('title')||'').trim(),
-          description: String(f.get('desc')||'').trim(),
-          tags: String(f.get('tags')||'').split(',').map(x=>x.trim()).filter(Boolean),
-          slots: Math.max(1, Number(f.get('slots')||1)),
-          status: f.get('status')||'Mở',
+          title,
+          description: String(fd.get('desc')||'').trim(),
+          tags: String(fd.get('tags')||'').split(',').map(x=>x.trim()).filter(Boolean),
+          slots: Math.max(1, Number(fd.get('slots')||1)),
+          status: fd.get('status')||'Mở',
           registered: 0,
           updatedAt: new Date().toLocaleDateString('vi-VN')
         };
-        if(!payload.title) return;
         topics.unshift(payload);
-        m.remove();
+        modal.destroy();
         render();
       });
     });

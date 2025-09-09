@@ -2,11 +2,10 @@
 
 namespace Database\Factories;
 
-use App\Models\BatchStudent;
+use App\Models\ProjectTerm;
 use Illuminate\Database\Eloquent\Factories\Factory;
-use App\Models\Batch_student;
-use App\Models\Supervisor;
 use App\Models\Project;
+use App\Models\Student;
 
 /**
  * @extends \Illuminate\Database\Eloquent\Factories\Factory<\App\Models\Assignment>
@@ -21,8 +20,9 @@ class AssignmentFactory extends Factory
     public function definition()
     {
         return [
-            'batch_student_id' => BatchStudent::inRandomOrder()->first()->id ?? BatchStudent::factory(),
+            'student_id' => Student::inRandomOrder()->first()->id ?? Student::factory(),
             'project_id' => Project::inRandomOrder()->first()->id ?? Project::factory(),
+            'project_term_id' => ProjectTerm::inRandomOrder()->first()->id ?? null,
             'status' => $this->faker->randomElement(['pending', 'approved', 'rejected']),
             'role' => $this->faker->randomElement(['leader', 'member', null]),
         ];

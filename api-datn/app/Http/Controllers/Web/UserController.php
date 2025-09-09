@@ -58,7 +58,7 @@ class UserController extends Controller
         Auth::login($user, $request->boolean('remember'));
         $request->session()->regenerate();
         $user->loadMissing([
-            'teacher.supervisor.assignment_supervisors.assignment.batch_student.student'
+            'teacher.supervisor.assignment_supervisors.assignment.student'
         ]);
 
         // Nếu là giáo viên → chuyển tới lecturer-ui/overview.blade.php
@@ -84,8 +84,8 @@ class UserController extends Controller
     {
         $id = Auth::id();
         $user = User::with('teacher.supervisor')
-    ->with('teacher.supervisor.assignment_supervisors.assignment')
-    ->findOrFail(Auth::id());
+        ->with('teacher.supervisor.assignment_supervisors.assignment.project_term.academy_year')
+        ->findOrFail(Auth::id());
 
         return view('lecturer-ui.overview', compact('user'));
     }

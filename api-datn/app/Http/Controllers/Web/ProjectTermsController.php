@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Models\AcademyYear;
+use App\Models\AssignmentSupervisor;
 use App\Models\ProjectTerm;
 use App\Models\stage_timeline; // dùng đúng Model bạn đang có
+use App\Models\Supervisor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -135,5 +137,46 @@ class ProjectTermsController extends Controller
         }
 
         return $rows;
+    }
+
+    public function getProjectTermByTeacherId($teacherId)
+    {
+        $rows = ProjectTerm::whereHas('supervisors', function ($query) use ($teacherId) {
+                $query->where('teacher_id', $teacherId);
+            })
+            ->with([
+                'academy_year',
+                'supervisors' => function ($query) use ($teacherId) {
+                    $query->where('teacher_id', $teacherId)
+                        ->with([
+                            'assignment_supervisors.assignment.student.user'
+                        ]);
+                }
+            ])
+            ->get();
+
+        return view('lecturer-ui.thesis-rounds', compact('rows'));
+    }
+
+
+    public function getDetailProjectTermByTeacherId($termId, $supervisorId)
+    {
+        // $rows = ProjectTerm::with([
+        //     'academy_year',
+        //     'stageTimelines',
+        //     'supervisors.assignment_supervisors'
+        // ])->findOrFail($termId);
+
+        $rows = ProjectTerm::whereHas('supervisors', function ($query) use ($supervisorId) {
+            $query->where('id', $supervisorId);
+        })->with([
+            'academy_year',
+            'stageTimelines',
+            'supervisors' => function ($query) use ($supervisorId) {
+                $query->where('id', $supervisorId)
+                      ->with('assignment_supervisors.assignment.student.user');
+            }
+        ])->findOrFail($termId);
+        return view('lecturer-ui.thesis-round-detail', compact('rows'));
     }
 }

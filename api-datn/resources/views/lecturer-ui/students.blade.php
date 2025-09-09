@@ -28,6 +28,8 @@
       $degree = $user->teacher->degree ?? '';
       $expertise = $user->teacher->supervisor->expertise ?? 'null';
       $data_assignment_supervisors = $user->teacher->supervisor->assignment_supervisors ?? "null";
+      $supervisorId = $user->teacher->supervisor->id ?? null;
+      $teacherId = $user->teacher->id ?? null;
       $avatarUrl = $user->avatar_url
         ?? $user->profile_photo_url
         ?? 'https://ui-avatars.com/api/?name=' . urlencode($userName) . '&background=0ea5e9&color=ffffff';
@@ -57,7 +59,7 @@
              class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('web.teacher.research') ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}">
             <i class="ph ph-flask"></i><span class="sidebar-label">Nghiên cứu</span>
           </a>
-          <a href="{{ route('web.teacher.students', ['supervisorId' => Auth::user()->teacher->supervisor->id]) }}"
+          <a href="{{ route('web.teacher.students', ['supervisorId' => $supervisorId]) }}"
              class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('web.teacher.students') ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}">
             <i class="ph ph-student"></i><span class="sidebar-label">Sinh viên</span>
           </a>
@@ -72,7 +74,7 @@
                class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('web.teacher.thesis_internship') ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}">
               <i class="ph ph-briefcase"></i><span class="sidebar-label">Thực tập tốt nghiệp</span>
             </a>
-            <a href="{{ route('web.teacher.thesis_rounds') }}"
+            <a href="{{ route('web.teacher.thesis_rounds', ['supervisorId' => $supervisorId]) }}"
                class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('web.teacher.thesis_rounds') ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}">
               <i class="ph ph-calendar"></i><span class="sidebar-label">Học phần tốt nghiệp</span>
             </a>
@@ -187,29 +189,45 @@
                 <tbody id="tableBody">
                   @foreach ($assignmentSupervisors as $assignmentSupervisor)
                     @php
-                      $stage    = data_get($assignmentSupervisor, 'assignment.batch_student.project_term.stage', '');
-                      $yearName = data_get($assignmentSupervisor, 'assignment.batch_student.project_term.academy_year.year_name', '');
+                      $stage    = data_get($assignmentSupervisor, 'assignment.project_term.stage', '');
+                      $yearName = data_get($assignmentSupervisor, 'assignment.project_term.academy_year.year_name', '');
                       $statusRaw = $assignmentSupervisor->assignment->status ?? 'pending';
-                      $statusLabel = $statusRaw === 'approved' ? 'Đã duyệt' : 'Chưa duyệt';
-                      $statusClass = $statusRaw === 'approved' ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-100 text-slate-700';
                     @endphp
                     <tr class="hover:bg-slate-50"
                         data-year="{{ $yearName }}"
                         data-term="{{ $stage }}"
                         data-status="{{ strtolower($statusRaw) }}">
-                      <td class="py-3 px-4">{{ $assignmentSupervisor->assignment->batch_student->student->student_code }}</td>
-                      <td class="py-3 px-4">{{ $assignmentSupervisor->assignment->batch_student->student->user->fullname }}</td>
-                      <td class="py-3 px-4">{{ $assignmentSupervisor->assignment->batch_student->student->major }}</td>
+                      <td class="py-3 px-4">{{ $assignmentSupervisor->assignment->student->student_code }}</td>
+                      <td class="py-3 px-4">{{ $assignmentSupervisor->assignment->student->user->fullname }}</td>
+                      <td class="py-3 px-4">{{ $assignmentSupervisor->assignment->student->major }}</td>
                       <td class="py-3 px-4">{{ $assignmentSupervisor->assignment->project->name }}</td>
                       <td class="py-3 px-4">{{ $stage }}</td>
                       <td class="py-3 px-4">{{ $yearName }}</td>
+                      @php
+                        $statusColors = [
+                          'approved' => 'bg-green-100 text-green-800',
+                          'pending' => 'bg-yellow-100 text-yellow-800',
+                          'accepted' => 'bg-green-100 text-green-800',
+                          'rejected' => 'bg-red-100 text-red-800',
+                        ];
+                        $statusLabels = [
+                          'approved' => 'Đã duyệt',
+                          'pending' => 'Chờ duyệt',
+                          'accepted' => 'Đã chấp nhận',
+                          'rejected' => 'Từ chối',
+                        ];
+                        $statusClass = $statusColors[$assignmentSupervisor->assignment->status] ?? 'bg-slate-100 text-slate-800';
+                        $statusLabel = $statusLabels[$assignmentSupervisor->assignment->status] ?? ucfirst($item->status);
+                      @endphp
                       <td class="py-3 px-4">
                         <span class="px-2 py-1 rounded-full text-xs {{ $statusClass }}">{{ $statusLabel }}</span>
                       </td>
-                      <td class="py-3 px-4 text-right space-x-2">
-                        <button class="px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-slate-600"><i class="ph ph-check"></i> Duyệt</button>
-                        <button class="px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-rose-600"><i class="ph ph-x"></i> Từ chối</button>
-                      </td>
+                      @if ($statusRaw === 'pending')
+                        <td class="py-3 px-4 text-right space-x-2">
+                          <button class="px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-slate-600"><i class="ph ph-check"></i> Duyệt</button>
+                          <button class="px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-rose-600"><i class="ph ph-x"></i> Từ chối</button>
+                        </td>
+                      @endif
                     </tr>
                   @endforeach
                 </tbody>

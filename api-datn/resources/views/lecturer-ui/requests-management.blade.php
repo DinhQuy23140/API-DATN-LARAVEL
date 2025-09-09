@@ -17,6 +17,23 @@
   </style>
 </head>
 <body class="bg-slate-50 text-slate-800">
+    @php
+      $user = auth()->user();
+      $userName = $user->fullname ?? $user->name ?? 'Giảng viên';
+      $email = $user->email ?? '';
+      // Tùy mô hình dữ liệu, thay các field bên dưới cho khớp
+      $dept = $user->department_name ?? optional($user->teacher)->department ?? '';
+      $faculty = $user->faculty_name ?? optional($user->teacher)->faculty ?? '';
+      $subtitle = trim(($dept ? "Bộ môn $dept" : '') . (($dept && $faculty) ? ' • ' : '') . ($faculty ? "Khoa $faculty" : ''));
+      $degree = $user->teacher->degree ?? '';
+      $expertise = $user->teacher->supervisor->expertise ?? 'null';
+      $data_assignment_supervisors = $user->teacher->supervisor->assignment_supervisors ?? "null";
+      $supervisorId = $user->teacher->supervisor->id ?? null;
+      $teacherId = $user->teacher->id ?? null;
+      $avatarUrl = $user->avatar_url
+        ?? $user->profile_photo_url
+        ?? 'https://ui-avatars.com/api/?name=' . urlencode($userName) . '&background=0ea5e9&color=ffffff';
+    @endphp
   <div class="flex min-h-screen">
     <aside id="sidebar" class="sidebar fixed inset-y-0 left-0 z-30 bg-white border-r border-slate-200 flex flex-col transition-all">
       <div class="h-16 flex items-center gap-3 px-4 border-b border-slate-200">
@@ -26,14 +43,59 @@
           <div class="text-xs text-slate-500">Bảng điều khiển</div>
         </div>
       </div>
+@php
+        $isThesisOpen = request()->routeIs('web.teacher.thesis_internship') || request()->routeIs('web.teacher.thesis_rounds');
+      @endphp
       <nav class="flex-1 overflow-y-auto p-3">
-        <a href="overview.html" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-gauge"></i><span class="sidebar-label">Tổng quan</span></a>
-        <a href="profile.html" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-user"></i><span class="sidebar-label">Hồ sơ</span></a>
-        <a href="research.html" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-flask"></i><span class="sidebar-label">Nghiên cứu</span></a>
-        <a href="students.html" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-student"></i><span class="sidebar-label">Sinh viên</span></a>
-        <div class="sidebar-label text-xs uppercase text-slate-400 px-3 mt-3">Học phần tốt nghiệp</div>
-        <a href="thesis-internship.html" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100 pl-10"><i class="ph ph-briefcase"></i><span class="sidebar-label">Thực tập tốt nghiệp</span></a>
-        <a href="thesis-rounds.html" class="flex items-center gap-3 px-3 py-2 rounded-lg bg-slate-100 font-semibold pl-10"><i class="ph ph-calendar"></i><span class="sidebar-label">Đồ án tốt nghiệp</span></a>
+        <a href="{{ route('web.teacher.overview') }}"
+          class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('web.teacher.overview') ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}">
+          <i class="ph ph-gauge"></i><span class="sidebar-label">Tổng quan</span>
+        </a>
+
+        <a href="{{ route('web.teacher.profile') }}"
+          class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('web.teacher.profile') ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}">
+          <i class="ph ph-user"></i><span class="sidebar-label">Hồ sơ</span>
+        </a>
+
+        <a href="{{ route('web.teacher.research') }}"
+          class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('web.teacher.research') ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}">
+          <i class="ph ph-flask"></i><span class="sidebar-label">Nghiên cứu</span>
+        </a>
+
+        @if ($user->teacher && $user->teacher->supervisor)
+          <a href="{{ route('web.teacher.students', ['supervisorId' => $user->teacher->supervisor->id]) }}"
+            class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('web.teacher.students') ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}">
+            <i class="ph ph-student"></i><span class="sidebar-label">Sinh viên</span>
+          </a>
+        @else
+          <span class="text-slate-400">Chưa có supervisor</span>
+        @endif
+
+        @php
+          $isThesisOpen = request()->routeIs('web.teacher.thesis_internship') || request()->routeIs('web.teacher.thesis_rounds');
+        @endphp
+        <button type="button" id="toggleThesisMenu" aria-controls="thesisSubmenu"
+          aria-expanded="{{ $isThesisOpen ? 'true' : 'false' }}"
+          class="w-full flex items-center justify-between px-3 py-2 rounded-lg mt-3 {{ $isThesisOpen ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}">
+          <span class="flex items-center gap-3">
+            <i class="ph ph-graduation-cap"></i>
+            <span class="sidebar-label">Học phần tốt nghiệp</span>
+          </span>
+          <i id="thesisCaret" class="ph ph-caret-down transition-transform {{ $isThesisOpen ? 'rotate-180' : '' }}"></i>
+        </button>
+
+        <div id="thesisSubmenu" class="mt-1 pl-3 space-y-1 {{ $isThesisOpen ? '' : 'hidden' }}">
+          <a href="{{ route('web.teacher.thesis_internship') }}"
+            class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('web.teacher.thesis_internship') ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}"
+            @if(request()->routeIs('web.teacher.thesis_internship')) aria-current="page" @endif>
+            <i class="ph ph-briefcase"></i><span class="sidebar-label">Thực tập tốt nghiệp</span>
+          </a>
+          <a href="{{ route('web.teacher.thesis_rounds', ['teacherId' => $teacherId]) }}"
+            class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('web.teacher.thesis_rounds') ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}"
+            @if(request()->routeIs('web.teacher.thesis_rounds')) aria-current="page" @endif>
+            <i class="ph ph-calendar"></i><span class="sidebar-label">Đồ án tốt nghiệp</span>
+          </a>
+        </div>
       </nav>
       <div class="p-3 border-t border-slate-200">
         <button id="toggleSidebar" class="w-full flex items-center justify-center gap-2 px-3 py-2 text-slate-600 hover:bg-slate-100 rounded-lg"><i class="ph ph-sidebar"></i><span class="sidebar-label">Thu gọn</span></button>
@@ -61,10 +123,10 @@
         </div>
         <div class="relative">
           <button id="profileBtn" class="flex items-center gap-3 px-2 py-1.5 rounded-lg hover:bg-slate-100">
-            <img class="h-9 w-9 rounded-full object-cover" src="https://i.pravatar.cc/100?img=20" alt="avatar" />
+            <img class="h-9 w-9 rounded-full object-cover" src="{{ $avatarUrl }}" alt="avatar" />
             <div class="hidden sm:block text-left">
-              <div class="text-sm font-semibold leading-4">TS. Nguyễn Văn A</div>
-              <div class="text-xs text-slate-500">lecturer@uni.edu</div>
+              <div class="text-sm font-semibold leading-4">{{ $userName }}</div>
+              <div class="text-xs text-slate-500">{{ $email }}</div>
             </div>
             <i class="ph ph-caret-down text-slate-500 hidden sm:block"></i>
           </button>
@@ -87,31 +149,37 @@
         <div>
           <div class="text-xs uppercase text-slate-500">Giai đoạn</div>
           <h2 class="text-lg font-semibold">Giai đoạn 01: Tiếp nhận yêu cầu sinh viên</h2>
-          <div class="text-sm text-slate-600">Thời gian: 01/08/2025 – 10/08/2025 • Hạn phản hồi chuẩn: 7 ngày</div>
+          <div class="text-sm text-slate-600">
+              Thời gian: {{ \Carbon\Carbon::parse($timeStage->start_date)->format('d/m/Y') }}
+              – {{ \Carbon\Carbon::parse($timeStage->end_date)->format('d/m/Y') }}
+              • Hạn phản hồi chuẩn: 7 ngày
+          </div>
         </div>
         <div class="text-right">
           <span class="px-2 py-1 rounded-full text-xs bg-blue-50 text-blue-700">Đang diễn ra</span>
         </div>
       </div>
     </section>
-
+    @php
+      $items = $rows->first()->supervisors->first()->assignment_supervisors ?? [];
+    @endphp
     <!-- Quick stats -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
       <div class="bg-blue-50 p-4 rounded-lg flex items-center gap-3">
         <div class="h-10 w-10 rounded-lg bg-blue-600/10 text-blue-600 grid place-items-center"><i class="ph ph-inbox"></i></div>
-        <div><div class="text-2xl font-bold text-blue-600">12</div><div class="text-sm text-blue-800">Tổng yêu cầu</div></div>
+        <div><div class="text-2xl font-bold text-blue-600">{{ $items->count() }}</div><div class="text-sm text-blue-800">Tổng yêu cầu</div></div>
       </div>
       <div class="bg-yellow-50 p-4 rounded-lg flex items-center gap-3">
         <div class="h-10 w-10 rounded-lg bg-yellow-600/10 text-yellow-600 grid place-items-center"><i class="ph ph-hourglass"></i></div>
-        <div><div class="text-2xl font-bold text-yellow-600">6</div><div class="text-sm text-yellow-800">Chờ duyệt</div></div>
+        <div><div class="text-2xl font-bold text-yellow-600">{{ $items->where('status', 'pending')->count() }}</div><div class="text-sm text-yellow-800">Chờ duyệt</div></div>
       </div>
       <div class="bg-green-50 p-4 rounded-lg flex items-center gap-3">
         <div class="h-10 w-10 rounded-lg bg-green-600/10 text-green-600 grid place-items-center"><i class="ph ph-check-circle"></i></div>
-        <div><div class="text-2xl font-bold text-green-600">4</div><div class="text-sm text-green-800">Đã chấp nhận</div></div>
+        <div><div class="text-2xl font-bold text-green-600">{{ $items->where('status', 'accepted')->count() }}</div><div class="text-sm text-green-800">Đã chấp nhận</div></div>
       </div>
       <div class="bg-red-50 p-4 rounded-lg flex items-center gap-3">
         <div class="h-10 w-10 rounded-lg bg-red-600/10 text-red-600 grid place-items-center"><i class="ph ph-x-circle"></i></div>
-        <div><div class="text-2xl font-bold text-red-600">2</div><div class="text-sm text-red-800">Từ chối</div></div>
+        <div><div class="text-2xl font-bold text-red-600">{{ $items->where('status', 'rejected')->count() }}</div><div class="text-sm text-red-800">Từ chối</div></div>
       </div>
     </div>
 
@@ -155,21 +223,45 @@
           </tr>
         </thead>
         <tbody>
-          <tr class="border-b hover:bg-slate-50">
-            <td class="py-3 px-3"><input type="checkbox" /></td>
-            <td class="py-3 px-3">Nguyễn Văn A</td>
-            <td class="py-3 px-3">20210001</td>
-            <td class="py-3 px-3">Hệ thống quản lý thư viện</td>
-            <td class="py-3 px-3">15/07/2025</td>
-            <td class="py-3 px-3">25/07/2025</td>
-            <td class="py-3 px-3"><span class="px-2 py-0.5 rounded-full text-xs bg-yellow-50 text-yellow-700">Chờ duyệt</span></td>
-            <td class="py-3 px-3">
-              <div class="flex gap-1">
-                <button class="px-2 py-1 bg-green-600 text-white rounded text-xs">Chấp nhận</button>
-                <button class="px-2 py-1 bg-red-600 text-white rounded text-xs">Từ chối</button>
-              </div>
-            </td>
-          </tr>
+          @if (count($items) > 0)
+            @foreach ($items as $item)
+              <tr class="border-b hover:bg-slate-50">
+                <td class="py-3 px-3"><input type="checkbox" /></td>
+                <td class="py-3 px-3">{{ $item->assignment->student->user->fullname }}</td>
+                <td class="py-3 px-3">{{ $item->assignment->student->student_code }}</td>
+                <td class="py-3 px-3">{{ "DDef tai" }}</td>
+                <td class="py-3 px-3">{{ $item->created_at->format('d/m/Y') }}</td>
+                <td class="py-3 px-3">{{ $item->created_at->addDays(7)->format('d/m/Y') }}</td>
+                @php
+                  $statusColors = [
+                    'approved' => 'bg-green-100 text-green-800',
+                    'pending' => 'bg-yellow-100 text-yellow-800',
+                    'accepted' => 'bg-green-100 text-green-800',
+                    'rejected' => 'bg-red-100 text-red-800',
+                  ];
+                  $statusLabels = [
+                    'approved' => 'Đã duyệt',
+                    'pending' => 'Chờ duyệt',
+                    'accepted' => 'Đã chấp nhận',
+                    'rejected' => 'Từ chối',
+                  ];
+                  $statusClass = $statusColors[$item->status] ?? 'bg-slate-100 text-slate-800';
+                  $statusLabel = $statusLabels[$item->status] ?? ucfirst($item->status);
+                @endphp
+                <td class="py-3 px-3"><span class="px-2 py-0.5 rounded-full text-xs {{ $statusClass }}">{{ $statusLabel }}</span></td>
+                <td class="py-3 px-3">
+                  @if ($item->status === 'pending')
+                    <button class="px-2 py-1 text-sm bg-green-600 text-white rounded mr-2">Chấp nhận</button>
+                    <button class="px-2 py-1 text-sm bg-red-600 text-white rounded">Từ chối</button>
+                  @endif
+                </td>
+              </tr>
+            @endforeach
+          @else
+              <tr>
+                <td colspan="8" class="py-6 px-3 text-center text-slate-500">Không có yêu cầu nào.</td>
+              </tr>
+          @endif
         </tbody>
       </table>
     </div>
@@ -188,8 +280,8 @@
       const html=document.documentElement, sidebar=document.getElementById('sidebar');
       function setCollapsed(c){
         const h=document.querySelector('header'); const m=document.querySelector('main');
-        if(c){ html.classList.add('sidebar-collapsed'); h.classList.add('md:left-[72px]'); h.classList.remove('md:left-[260px]'); m.classList.add('md:pl-[72px]'); m.classList.remove('md:pl-[260px]'); }
-        else { html.classList.remove('sidebar-collapsed'); h.classList.remove('md:left-[72px]'); h.classList.add('md:left-[260px]'); m.classList.remove('md:pl-[72px]'); m.classList.add('md:pl-[260px]'); }
+        if(c){ html.classList.add('sidebar-collapsed'); h.classList.add('md:left-[72px]'); m.classList.add('md:pl-[72px]');}
+        else { html.classList.remove('sidebar-collapsed'); h.classList.remove('md:left-[72px]'); m.classList.remove('md:pl-[72px]');}
       }
       document.getElementById('toggleSidebar')?.addEventListener('click',()=>{const c=!html.classList.contains('sidebar-collapsed'); setCollapsed(c); localStorage.setItem('lecturer_sidebar',''+(c?1:0));});
       document.getElementById('openSidebar')?.addEventListener('click',()=>sidebar.classList.toggle('-translate-x-full'));
@@ -198,6 +290,17 @@
       const profileBtn=document.getElementById('profileBtn'); const profileMenu=document.getElementById('profileMenu');
       profileBtn?.addEventListener('click', ()=> profileMenu.classList.toggle('hidden'));
       document.addEventListener('click', (e)=>{ if(!profileBtn?.contains(e.target) && !profileMenu?.contains(e.target)) profileMenu?.classList.add('hidden'); });
+
+      // Toggle submenu "Học phần tốt nghiệp"
+      const toggleBtn = document.getElementById('toggleThesisMenu');
+      const thesisMenu = document.getElementById('thesisSubmenu');
+      const thesisCaret = document.getElementById('thesisCaret');
+      toggleBtn?.addEventListener('click', () => {
+        const isHidden = thesisMenu?.classList.toggle('hidden');
+        const expanded = !isHidden;
+        toggleBtn?.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+        thesisCaret?.classList.toggle('rotate-180', expanded);
+      });
     </script>
   </div>
 </body>

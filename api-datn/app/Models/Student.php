@@ -24,8 +24,8 @@ class Student extends Model
         return $this->belongsTo(User::class);
     }
 
-    public function batch_students() {
-        return $this->hasOne(BatchStudent::class);
+    public function assignment() {
+        return $this->hasOne(Assignment::class);
     }
 
 }

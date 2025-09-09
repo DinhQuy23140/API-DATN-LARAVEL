@@ -40,7 +40,9 @@
     $subtitle = trim(($dept ? "Bộ môn $dept" : '') . (($dept && $faculty) ? ' • ' : '') . ($faculty ? "Khoa $faculty" : ''));
     $degree = $user->teacher->degree ?? '';
     $expertise = $user->teacher->supervisor->expertise ?? 'null';
-    $data_assignment_supervisors = $user->teacher->supervisor->assignment_supervisors ?? collect();;
+    $data_assignment_supervisors = $user->teacher->supervisor->assignment_supervisors ?? collect();
+    $supervisorId = $user->teacher->supervisor->id ?? 0;
+    $teacherId = $user->teacher->id ?? 0;
     $avatarUrl = $user->avatar_url
       ?? $user->profile_photo_url
       ?? 'https://ui-avatars.com/api/?name=' . urlencode($userName) . '&background=0ea5e9&color=ffffff';
@@ -76,8 +78,9 @@
         </a>
 
         @if($user->teacher && $user->teacher->supervisor)
-            <a href="{{ route('web.teacher.students', ['supervisorId' => $user->teacher->supervisor->id]) }}">
-                <i class="ph ph-student"></i><span class="sidebar-label">Sinh viên</span>
+            <a href="{{ route('web.teacher.students', ['supervisorId' => $supervisorId]) }}"
+               class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('web.teacher.students') ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}">
+              <i class="ph ph-student"></i><span class="sidebar-label">Sinh viên</span>
             </a>
         @else
             <span class="text-slate-400">Chưa có supervisor</span>
@@ -101,7 +104,7 @@
              class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('web.teacher.thesis_internship') ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}">
             <i class="ph ph-briefcase"></i><span class="sidebar-label">Thực tập tốt nghiệp</span>
           </a>
-          <a href="{{ route('web.teacher.thesis_rounds') }}"
+          <a href="{{ route('web.teacher.thesis_rounds', ['teacherId' => $teacherId]) }}"
              class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('web.teacher.thesis_rounds') ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}">
             <i class="ph ph-calendar"></i><span class="sidebar-label">Học phần tốt nghiệp</span>
           </a>
@@ -240,14 +243,14 @@
                       <tbody id="studentsTbody" class="divide-y divide-slate-100">
                         @forelse ($data_assignment_supervisors as $assignment_supervisor)
                           @php
-                            $student   = optional(optional($assignment_supervisor->assignment)->batch_student)->student;
+                            $student   = optional(optional($assignment_supervisor->assignment))->student;
                             $userStu   = optional($student)->user;
                             $code      = $student->student_code ?? '—';
                             $name      = $userStu->fullname ?? '—';
                             $emailStu  = $userStu->email ?? '—';
 
-                            $stage     = data_get($assignment_supervisor, 'assignment.batch_student.project_term.stage', '');
-                            $yearName  = data_get($assignment_supervisor, 'assignment.batch_student.project_term.academy_year.year_name', '');
+                            $stage     = data_get($assignment_supervisor, 'assignment.project_term.stage', '');
+                            $yearName  = data_get($assignment_supervisor, 'assignment.project_term.academy_year.year_name', '');
                             $topic     = data_get($assignment_supervisor, 'assignment.project.name', '');
                             $status    = data_get($assignment_supervisor, 'assignment.status', '');
 
@@ -261,7 +264,6 @@
                               $statusClass = 'bg-rose-50 text-rose-700';
                             }
                           @endphp
-
                           <tr class="hover:bg-slate-50"
                               data-name="{{ $name }}"
                               data-year="{{ $yearName }}"

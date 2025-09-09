@@ -56,18 +56,17 @@ class ProjectTermsController extends Controller
     }
 
     public function getProjectTermbyStudentId($studentId) {
-        $term = ProjectTerm::with([
-                'academy_year',
-                'batch_students' => function ($query) use ($studentId) {
-                    $query->where('student_id', $studentId);
-                },
-                'batch_students.student'
-            ])
-            ->whereHas('batch_students', function($query) use ($studentId) {
-                $query->where('student_id', $studentId);
-            })
-            ->get();
-
-        return response()->json($term);
+    $terms = ProjectTerm::with([
+            'academy_year',                // load năm học
+            'assignments' => function($q) use ($studentId) {
+                $q->where('student_id', $studentId) // lọc assignment đúng student_id
+                  ->with('student');               // load luôn thông tin student
+            }
+        ])
+        ->whereHas('assignments', function($q) use ($studentId) {
+            $q->where('student_id', $studentId);
+        })
+        ->get();
+        return response()->json($terms);
     }
 }

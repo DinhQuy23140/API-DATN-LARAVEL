@@ -11,41 +11,22 @@ use App\Http\Controllers\Web\BatchStudentController as WebBatchStudentController
 use App\Http\Controllers\Web\SupervisorController as WebSupervisorController;
 use App\Http\Controllers\Web\ProjectTermsController as WebProjectTermsController;
 use App\Http\Controllers\Web\TeacherController as WebTeacherController;
+use App\Http\Controllers\Web\AssignmentController as WebAssignmentController;
+use App\Http\Controllers\Web\AssignmentSupervisorController as AssignmentSupervisorController;
 
 // Guest (login)
 Route::middleware('guest')->group(function () {
     Route::get('/login', [WebUserController::class, 'showLoginForm'])->name('web.auth.login');
     Route::post('/login', [WebUserController::class, 'login'])->name('web.auth.login.post');
-
-    // Forgot password page
     Route::get('/forgot-password', function () {
         return view('login.forgot_pass_ui');
     })->name('web.auth.forgot');
 });
 
-// Authenticated
-Route::middleware('auth')->group(function () {
-    Route::post('/logout', [WebUserController::class, 'logout'])->name('web.auth.logout');
-    // Lecturer UI pages
-    Route::get('/teacher/overview', [WebUserController::class, 'showOverView'])->name('web.teacher.overview'); // trang tổng quan
-    Route::get('/teacher/profile', [WebUserController::class, 'showProfile'])->name('web.teacher.profile');
-    Route::get('/teacher/research', fn () => view('lecturer-ui.research'))->name('web.teacher.research');
-    Route::get('/teacher/students/{supervisorId}', [WebSupervisorController::class, 'getStudentBySupervisor'])->name('web.teacher.students');
-    Route::get('/teacher/thesis-internship', fn () => view('lecturer-ui.thesis-internship'))->name('web.teacher.thesis_internship');
-    Route::get('/teacher/thesis-rounds', fn () => view('lecturer-ui.thesis-rounds'))->name('web.teacher.thesis_rounds');
-    // Optional: /teacher -> overview
-    Route::get('/teacher', fn () => redirect()->route('web.teacher.overview'))->name('web.teacher.home');
-
-
-    //login as admin
-    Route::get('/admin/dashboard', fn () => view('admin-ui.dashboard'))->name('web.admin.overview');
-
-    //login as assistant
-    Route::get('/assistant/dashboard', fn () => view('assistant-ui.dashboard'))->name('web.assistant.overview');
-
-    //login as head
-    Route::get('/head/dashboard', fn () => view('head-ui.overview'))->name('web.head.overview');  
-});
+// Logout (chỉ cho user đã đăng nhập)
+Route::post('/logout', [WebUserController::class, 'logout'])
+    ->middleware('auth')
+    ->name('web.auth.logout');
 
 // Academy Years
 Route::prefix('academy-years')->name('web.academy_years.')->group(function(){
@@ -110,18 +91,12 @@ Route::get('attachments/{attachment}/edit', [WebAttachmentController::class, 'ed
 Route::put('attachments/{attachment}', [WebAttachmentController::class, 'update'])->name('web.attachments.update');
 Route::delete('attachments/{attachment}', [WebAttachmentController::class, 'destroy'])->name('web.attachments.destroy');
 
-// Root redirect theo trạng thái đăng nhập
-Route::get('/', function () {
-    return auth()->check()
-        ? redirect()->route('web.teacher.overview')
-        : redirect()->route('web.auth.login');
-})->name('web.home');
-
-// Map /home về dashboard
-Route::get('/home', fn() => redirect()->route('web.teacher.overview'));
+// Mặc định: vào root hoặc /home đều về trang login
+Route::redirect('/', '/login')->name('web.home');
+Route::redirect('/home', '/login');
 
 // Fallback: URL không khớp
-Route::fallback(fn() => redirect()->route('web.auth.login'));
+Route::fallback(fn() => redirect()->to('/login'));
 
 // Head UI
 Route::middleware('auth')->prefix('head')->name('web.head.')->group(function () {
@@ -149,6 +124,27 @@ Route::middleware('auth')->prefix('assistant')->name('web.assistant.')->group(fu
     Route::get('/staffs/import_supervisors/{termId}', [WebSupervisorController::class, 'getSupervisorNotInProjectTerm'])->name('supervisors_import');
     Route::get('/students_detail/{termId}', [WebBatchStudentController::class, 'getAllBatchStudentsByTerm'])->name('students_detail');
     Route::get('/supervisors_detail/{termId}', [WebSupervisorController::class, 'getAllSupervisorsByTerm'])->name('supervisors_detail');
-    Route::post('/batch-students/bulk', [WebBatchStudentController::class,'storeBulk'])->name('batch_students.bulk_store');
+    Route::post('/batch-students/bulk', [WebAssignmentController::class,'storeBulk'])->name('batch_students.bulk_store');
     Route::post('/supervisors/bulk', [WebSupervisorController::class,'storeBulk'])->name('supervisors.bulk_store');
+});
+
+// Authenticated
+Route::middleware('auth')->group(function () {
+    // Lecturer UI pages
+    Route::get('/teacher/overview', [WebUserController::class, 'showOverView'])->name('web.teacher.overview'); // trang tổng quan
+    Route::get('/teacher/profile', [WebUserController::class, 'showProfile'])->name('web.teacher.profile');
+    Route::get('/teacher/research', fn () => view('lecturer-ui.research'))->name('web.teacher.research');
+    Route::get('/teacher/students/{supervisorId}', [WebSupervisorController::class, 'getStudentBySupervisor'])->name('web.teacher.students');
+    Route::get('/teacher/thesis-internship', fn () => view('lecturer-ui.thesis-internship'))->name('web.teacher.thesis_internship');
+    Route::get('/teacher/thesis-rounds/{teacherId}', [WebProjectTermsController::class, 'getProjectTermByTeacherId'])->name('web.teacher.thesis_rounds');
+    Route::get('/teacher/thesis-round-detail/{termId}/supervisor/{supervisorId}', [WebProjectTermsController::class, 'getDetailProjectTermByTeacherId'])->name('web.teacher.thesis_round_detail');
+
+    //thesis round detail
+    
+    //stage 1 
+    Route::get('/teacher/requests_management/{supervisorId}/term/{termId}', [AssignmentSupervisorController::class, 'getRequestManagementPage'])->name('web.teacher.requests_management');
+    Route::get('/teacher/proposed_topic/{supervisorId}', [AssignmentSupervisorController::class, 'getProposeBySupervisor'])->name('web.teacher.proposed_topic');
+    Route::get('/teacher/student_supervisor_term/{supervisorId}/term/{termId}', [AssignmentSupervisorController::class, 'getStudentBySupervisorAndTermId'])->name('web.teacher.student_supervisor_term');
+    // Optional: /teacher -> overview
+    Route::get('/teacher', fn () => redirect()->route('web.teacher.overview'))->name('web.teacher.home');
 });

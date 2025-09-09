@@ -40,4 +40,5 @@ Route::apiResource('academy-years', AcademyYearController::class);
 Route::apiResource('project-terms', ProjectTermsController::class);
 Route::get('/project-terms/student/{studentId}', [ProjectTermsController::class, 'getProjectTermbyStudentId']);
 Route::apiResource('batch-students', BatchStudentController::class);
+Route::get('/supervisors/project-term/{projectTermId}', [SupervisorController::class, 'getSupervisorsByProjectTerm']);
 

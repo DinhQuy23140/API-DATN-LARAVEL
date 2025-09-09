@@ -15,9 +15,9 @@ class ProjectTerm extends Model
         return $this->belongsTo(AcademyYear::class);
     }
 
-    public function batch_students()
+    public function assignments()
     {
-        return $this->hasMany(BatchStudent::class);
+        return $this->hasMany(Assignment::class);
     }
 
     public function supervisors()

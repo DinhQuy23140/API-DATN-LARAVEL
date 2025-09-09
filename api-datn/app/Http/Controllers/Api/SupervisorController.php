@@ -50,4 +50,11 @@ class SupervisorController extends Controller
         $supervisor->delete();
         return response()->json(['message'=>'Deleted']);
     }
+
+    public function getSupervisorsByProjectTerm($projectTermId) {
+        $supervisors = Supervisor::with(['teacher.user','project_term.academy_year'])
+            ->where('project_term_id', $projectTermId)
+            ->get();
+        return response()->json($supervisors);
+    }
 }

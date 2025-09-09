@@ -28,6 +28,8 @@
       $degree = $user->teacher->degree ?? '';
       $expertise = $user->teacher->supervisor->expertise ?? 'null';
       $data_assignment_supervisors = $user->teacher->supervisor->assignment_supervisors ?? "null";
+      $supervisorId = $user->teacher->supervisor->id ?? null;
+      $teacherId = $user->teacher->id ?? null;
       $avatarUrl = $user->avatar_url
         ?? $user->profile_photo_url
         ?? 'https://ui-avatars.com/api/?name=' . urlencode($userName) . '&background=0ea5e9&color=ffffff';
@@ -57,7 +59,7 @@
              class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('web.teacher.research') ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}">
             <i class="ph ph-flask"></i><span class="sidebar-label">Nghiên cứu</span>
           </a>
-          <a href="{{ route('web.teacher.students', ['supervisorId' => Auth::user()->teacher->supervisor->id]) }}"
+          <a href="{{ route('web.teacher.students', ['supervisorId' => $supervisorId]) }}"
              class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('web.teacher.students') ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}">
             <i class="ph ph-student"></i><span class="sidebar-label">Sinh viên</span>
           </a>
@@ -72,7 +74,7 @@
                class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('web.teacher.thesis_internship') ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}">
               <i class="ph ph-briefcase"></i><span class="sidebar-label">Thực tập tốt nghiệp</span>
             </a>
-            <a href="{{ route('web.teacher.thesis_rounds') }}"
+            <a href="{{ route('web.teacher.thesis_rounds', ['supervisorId' => $supervisorId]) }}"
                class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('web.teacher.thesis_rounds') ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}">
               <i class="ph ph-calendar"></i><span class="sidebar-label">Học phần tốt nghiệp</span>
             </a>

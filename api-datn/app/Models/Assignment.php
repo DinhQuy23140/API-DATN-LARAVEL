@@ -9,23 +9,26 @@ class Assignment extends Model
 {
     use HasFactory;
     protected $fillable = [
-        'batch_student_id',
+        'student_id',
         'project_id',
+        'project_term_id',
         'status',
     ];
 
-    public function batch_student() {
-        return $this->belongsTo(BatchStudent::class);
+    public function student() {
+        return $this->belongsTo(Student::class);
     }
 
     public function project() {
         return $this->belongsTo(Project::class);
     }
 
-    public function supervisors()
+    public function assignment_supervisors()
     {
-        return $this->belongsToMany(Supervisor::class, 'assignment_supervisors')
-            ->withPivot('role')
-            ->withTimestamps();
+        return $this->hasMany(AssignmentSupervisor::class);
+    }
+
+    public function project_term() {
+        return $this->belongsTo(ProjectTerm::class);
     }
 }
