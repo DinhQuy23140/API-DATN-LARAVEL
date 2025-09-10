@@ -326,7 +326,7 @@
           contentBox.innerHTML = `
         <h3 class="text-lg font-semibold mb-3">Giai đoạn 01</h3>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          <a href="{{ route('web.teacher.requests_management', ['supervisorId' => $supervisorId, 'termId' => $rows->id]) }}" class="group rounded-xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md hover:border-blue-300 transition">
+          <a href="{{ route('web.teacher.requests_management', ['supervisorId' => $rows->supervisors->first()->id, 'termId' => $rows->id]) }}" class="group rounded-xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md hover:border-blue-300 transition">
             <div class="flex items-start gap-3">
               <div class="h-10 w-10 rounded-lg grid place-items-center bg-gradient-to-br from-emerald-50 to-emerald-100 text-emerald-600 group-hover:from-emerald-100 group-hover:to-emerald-200">
                 <i class="ph ph-inbox"></i>

@@ -81,7 +81,7 @@ class AssignmentController extends Controller
 
         $termId      = (int) $data['project_term_id'];
         $projectId = $data['project_id'] ?? null;
-        $status      = $data['status'] ?? 'active';
+        $status      = $data['status'] ?? 'inactive';
         $inputs      = collect($data['students'])->filter()->values();
 
         // Chuẩn hoá danh sách sinh viên: chấp nhận id hoặc student_code

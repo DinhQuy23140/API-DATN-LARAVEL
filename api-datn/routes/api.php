@@ -42,3 +42,5 @@ Route::get('/project-terms/student/{studentId}', [ProjectTermsController::class,
 Route::apiResource('batch-students', BatchStudentController::class);
 Route::get('/supervisors/project-term/{projectTermId}', [SupervisorController::class, 'getSupervisorsByProjectTerm']);
 
+Route::get('/assignment-supervisors', [App\Http\Controllers\Api\AssignmentSupervisorController::class, 'index']);
+Route::post('/assignment-supervisors', [App\Http\Controllers\Api\AssignmentSupervisorController::class, 'store']);

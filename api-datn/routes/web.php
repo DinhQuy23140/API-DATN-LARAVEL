@@ -138,7 +138,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/teacher/thesis-internship', fn () => view('lecturer-ui.thesis-internship'))->name('web.teacher.thesis_internship');
     Route::get('/teacher/thesis-rounds/{teacherId}', [WebProjectTermsController::class, 'getProjectTermByTeacherId'])->name('web.teacher.thesis_rounds');
     Route::get('/teacher/thesis-round-detail/{termId}/supervisor/{supervisorId}', [WebProjectTermsController::class, 'getDetailProjectTermByTeacherId'])->name('web.teacher.thesis_round_detail');
-
     //thesis round detail
     
     //stage 1 
@@ -147,4 +146,17 @@ Route::middleware('auth')->group(function () {
     Route::get('/teacher/student_supervisor_term/{supervisorId}/term/{termId}', [AssignmentSupervisorController::class, 'getStudentBySupervisorAndTermId'])->name('web.teacher.student_supervisor_term');
     // Optional: /teacher -> overview
     Route::get('/teacher', fn () => redirect()->route('web.teacher.overview'))->name('web.teacher.home');
+
+    Route::post('/teacher/requests/{assignmentSupervisor}/accept', [AssignmentSupervisorController::class, 'updateStatus'])
+        ->name('web.teacher.requests.accept');
+
+    Route::post('/teacher/requests/{assignmentSupervisor}/reject', [AssignmentSupervisorController::class, 'updateStatus'])
+        ->name('web.teacher.requests.reject');
+});
+
+Route::middleware(['web','auth'])->group(function () {
+    // Trang phân công GVHD cho 1 đợt
+    Route::get('/assistant/rounds/{termId}/assign-supervisors', function ($termId) {
+        return view('assistant-ui.assign-supervisors', compact('termId'));
+    })->name('web.assistant.assign_supervisors');
 });

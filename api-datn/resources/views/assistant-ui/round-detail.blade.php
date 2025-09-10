@@ -559,6 +559,24 @@
                       </div>
                     </div>
                   </a>
+
+                  <!-- Phân công giảng viên hướng dẫn -->
+                  <a href="{{ route('web.assistant.assign_supervisors', [$round_detail->id]) }}" class="group border border-slate-200 hover:border-blue-300 rounded-xl p-4 bg-white hover:shadow-sm transition">
+                    <div class="flex items-start gap-3">
+                      <div class="h-10 w-10 rounded-lg grid place-items-center bg-amber-50 text-amber-600 group-hover:bg-amber-100">
+                        <i class="ph ph-user-switch"></i>
+                      </div>
+                      <div class="flex-1">
+                        <div class="font-medium">Phân công giảng viên hướng dẫn</div>
+                        <div class="text-xs text-slate-500 mt-0.5">Chọn giảng viên và phân công cho sinh viên chưa có GVHD</div>
+                        <div class="mt-3">
+                          <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-amber-600 text-white text-sm">
+                            <i class="ph ph-arrow-right"></i> Mở
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </a>
                 </div>
               </div>
             `;

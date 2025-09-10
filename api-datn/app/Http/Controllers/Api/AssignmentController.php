@@ -73,6 +73,22 @@ class AssignmentController extends Controller
         return response()->json($assignment);
     }
 
+    // public function getAssignmentByStudentIdAndProjectTermId($studentId, $projectTermId)
+    // {
+    //     $assignment = Assignment::with([
+    //             'student.user',
+    //             'assignment_supervisors.supervisor.teacher.user',
+    //             'project.progressLogs.attachments',
+    //         ])
+    //         ->whereHas('student', function ($query) use ($studentId, $projectTermId) {
+    //             $query->where('id', $studentId)
+    //                   ->where('project_term_id', $projectTermId);
+    //         })
+    //         ->first();
+
+    //     return response()->json($assignment);
+    // }
+
     public function getAssignmentByStudentIdAndProjectTermId($studentId, $projectTermId)
     {
         $assignment = Assignment::with([
@@ -80,14 +96,13 @@ class AssignmentController extends Controller
                 'assignment_supervisors.supervisor.teacher.user',
                 'project.progressLogs.attachments',
             ])
-            ->whereHas('student', function ($query) use ($studentId, $projectTermId) {
-                $query->where('id', $studentId)
-                      ->where('project_term_id', $projectTermId);
-            })
+            ->where('student_id', $studentId)
+            ->where('project_term_id', $projectTermId)
             ->first();
 
         return response()->json($assignment);
     }
+
 
     public function show(Assignment $assignment)
     {

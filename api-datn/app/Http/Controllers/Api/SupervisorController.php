@@ -52,7 +52,7 @@ class SupervisorController extends Controller
     }
 
     public function getSupervisorsByProjectTerm($projectTermId) {
-        $supervisors = Supervisor::with(['teacher.user','project_term.academy_year'])
+        $supervisors = Supervisor::with(['teacher.user'])
             ->where('project_term_id', $projectTermId)
             ->get();
         return response()->json($supervisors);

@@ -248,11 +248,27 @@
                   $statusClass = $statusColors[$item->status] ?? 'bg-slate-100 text-slate-800';
                   $statusLabel = $statusLabels[$item->status] ?? ucfirst($item->status);
                 @endphp
-                <td class="py-3 px-3"><span class="px-2 py-0.5 rounded-full text-xs {{ $statusClass }}">{{ $statusLabel }}</span></td>
-                <td class="py-3 px-3">
+                <td class="py-3 px-3" data-col="status">
+                  <span class="status-pill px-2 py-0.5 rounded-full text-xs {{ $statusClass }}">{{ $statusLabel }}</span>
+                </td>
+                <td class="py-3 px-3" data-col="actions">
                   @if ($item->status === 'pending')
-                    <button class="px-2 py-1 text-sm bg-green-600 text-white rounded mr-2">Chấp nhận</button>
-                    <button class="px-2 py-1 text-sm bg-red-600 text-white rounded">Từ chối</button>
+                    <button
+                     type="button"
+                      class="accept-btn px-2 py-1 text-sm bg-green-600 text-white rounded mr-2 hover:bg-green-700"
+                      data-id="{{ $item->id }}"
+                      data-name="{{ $item->assignment->student->user->fullname }}"
+                      data-url="{{ route('web.teacher.requests.accept', $item->id) }}">
+                      Chấp nhận
+                    </button>
+                    <button
+                     type="button"
+                      class="reject-btn px-2 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700"
+                      data-id="{{ $item->id }}"
+                      data-name="{{ $item->assignment->student->user->fullname }}"
+                      data-url="{{ route('web.teacher.requests.reject', $item->id) }}">
+                      Từ chối
+                    </button>
                   @endif
                 </td>
               </tr>
@@ -277,6 +293,7 @@
     </div>
 
     <script>
+      const CSRF = `{{ csrf_token() }}`;
       const html=document.documentElement, sidebar=document.getElementById('sidebar');
       function setCollapsed(c){
         const h=document.querySelector('header'); const m=document.querySelector('main');
@@ -301,7 +318,125 @@
         toggleBtn?.setAttribute('aria-expanded', expanded ? 'true' : 'false');
         thesisCaret?.classList.toggle('rotate-180', expanded);
       });
+
+      // Toast
+      function toast(msg, type='info') {
+        const host = document.getElementById('toastHost') || (() => {
+          const d=document.createElement('div'); d.id='toastHost';
+          d.className='fixed top-4 right-4 z-50 space-y-2'; document.body.appendChild(d); return d;
+        })();
+        const color = type==='success' ? 'bg-emerald-600' : type==='error' ? 'bg-rose-600' : 'bg-slate-800';
+        const el=document.createElement('div');
+        el.className=`px-4 py-2 rounded-lg text-white text-sm shadow ${color}`;
+        el.textContent=msg; host.appendChild(el);
+        setTimeout(()=>{ el.style.opacity='0'; el.style.transform='translateY(-4px)'; el.style.transition='all .25s'; }, 1800);
+        setTimeout(()=> el.remove(), 2100);
+      }
+
+      // Decision Modal
+      function openDecisionModal({type, id, name, onConfirm}) {
+        const isAccept = type === 'accept';
+        const wrap = document.createElement('div');
+        wrap.className='fixed inset-0 z-50 flex items-center justify-center px-4';
+        wrap.innerHTML = `
+          <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" data-close></div>
+          <div class="relative w-full max-w-md bg-white rounded-2xl border border-slate-200 shadow-xl overflow-hidden">
+            <div class="px-5 py-4 border-b bg-gradient-to-r from-white/90 to-white/40 flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <div class="h-9 w-9 grid place-items-center rounded-lg ${isAccept?'bg-emerald-50 text-emerald-600':'bg-rose-50 text-rose-600'}">
+                  <i class="ph ${isAccept?'ph-check-circle':'ph-x-circle'}"></i>
+                </div>
+                <h3 class="font-semibold text-lg">${isAccept?'Chấp nhận yêu cầu':'Từ chối yêu cầu'}</h3>
+              </div>
+              <button class="p-2 rounded-lg hover:bg-slate-100" data-close><i class="ph ph-x"></i></button>
+            </div>
+            <div class="p-5 space-y-4">
+              <p class="text-sm text-slate-600">
+                Sinh viên: <span class="font-medium text-slate-800">${name||'-'}</span>
+              </p>
+              <div>
+                <label class="block text-xs font-medium text-slate-600 mb-1">
+                  Ghi chú ${isAccept?'(tuỳ chọn)':'(bắt buộc)'}
+                </label>
+                <textarea id="decisionNote" rows="4" class="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20" placeholder="${isAccept?'Nhập ghi chú nếu cần...':'Vui lòng nêu lý do từ chối...'}"></textarea>
+                <p id="noteError" class="hidden mt-1 text-xs text-rose-600">Vui lòng nhập lý do từ chối.</p>
+              </div>
+            </div>
+            <div class="px-5 py-4 bg-slate-50 border-t flex items-center justify-end gap-2">
+              <button class="px-4 py-2 rounded-lg border border-slate-300 hover:bg-slate-100 text-sm" data-close>Hủy</button>
+              <button id="confirmDecision" class="px-4 py-2 rounded-lg text-sm text-white ${isAccept?'bg-emerald-600 hover:bg-emerald-700':'bg-rose-600 hover:bg-rose-700'}">
+                ${isAccept?'Chấp nhận':'Từ chối'}
+              </button>
+            </div>
+          </div>
+        `;
+        function close(){ wrap.remove(); document.removeEventListener('keydown', esc); }
+        function esc(e){ if(e.key==='Escape') close(); }
+        wrap.querySelectorAll('[data-close]').forEach(b=> b.addEventListener('click', close));
+        wrap.addEventListener('click', e=> { if(e.target === wrap) close(); });
+        document.addEventListener('keydown', esc);
+        document.body.appendChild(wrap);
+        wrap.querySelector('#confirmDecision')?.addEventListener('click', async ()=>{
+          const note = (wrap.querySelector('#decisionNote')?.value||'').trim();
+          if(!isAccept && !note){
+            wrap.querySelector('#noteError')?.classList.remove('hidden'); return;
+          }
+          wrap.querySelector('#noteError')?.classList.add('hidden');
+          await onConfirm?.({id, note});
+          close();
+        });
+      }
+
+      // Bind sau khi DOM sẵn sàng
+      document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('click', (e) => {
+           const btn = e.target.closest('.accept-btn, .reject-btn');
+           if (!btn) return;
+           e.preventDefault();
+           const isAccept = btn.classList.contains('accept-btn');
+           const tr = btn.closest('tr');
+           const id = btn.getAttribute('data-id');
+           const name = btn.getAttribute('data-name');
+           const url = btn.dataset.url;
+          if (!url) { toast('Thiếu URL xử lý, kiểm tra routes', 'error'); return; }
+           openDecisionModal({
+             type: isAccept ? 'accept' : 'reject',
+             id, name,
+             onConfirm: async ({ id, note }) => {
+               try {
+                 const res = await fetch(url, {
+                   method: 'POST',
+                   headers: {
+                     'Content-Type': 'application/json',
+                     'Accept': 'application/json',
+                     'X-CSRF-TOKEN': CSRF
+                   },
+                   body: JSON.stringify({ status: isAccept ? 'accepted' : 'rejected', note })
+                 });
+                 if (!res.ok) {
+                   if (res.status === 419) { toast('Phiên làm việc hết hạn, vui lòng tải lại trang', 'error'); return; }
+                   toast('Thao tác thất bại', 'error'); return;
+                 }
+               } catch {
+                 toast('Lỗi mạng', 'error'); return;
+               }
+               // Cập nhật UI
+               const statusTd = tr.querySelector('[data-col="status"] .status-pill');
+               const actionsTd = tr.querySelector('[data-col="actions"]');
+               if (isAccept) {
+                 statusTd.textContent = 'Đã chấp nhận';
+                 statusTd.className = 'status-pill px-2 py-0.5 rounded-full text-xs bg-green-100 text-green-800';
+               } else {
+                 statusTd.textContent = 'Từ chối';
+                 statusTd.className = 'status-pill px-2 py-0.5 rounded-full text-xs bg-red-100 text-red-800';
+               }
+               actionsTd.innerHTML = '';
+               toast(isAccept ? 'Đã chấp nhận yêu cầu' : 'Đã từ chối yêu cầu', 'success');
+             }
+           });
+        });
+      });
     </script>
-  </div>
-</body>
+  <!-- Toast host -->
+  <div id="toastHost" class="fixed top-4 right-4 z-50 space-y-2"></div>
 </html>
