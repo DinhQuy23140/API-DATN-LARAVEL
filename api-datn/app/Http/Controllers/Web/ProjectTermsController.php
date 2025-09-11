@@ -158,6 +158,11 @@ class ProjectTermsController extends Controller
         return view('lecturer-ui.thesis-rounds', compact('rows'));
     }
 
+    public function getAllProjectTerms()
+    {
+        $rows = ProjectTerm::with('supervisors.assignment_supervisors', 'academy_year', 'assignments.student.user')->latest('id')->get();
+        return view('head-ui.thesis-rounds', compact('rows'));
+    }
 
     public function getDetailProjectTermByTeacherId($termId, $supervisorId)
     {
@@ -178,5 +183,15 @@ class ProjectTermsController extends Controller
             }
         ])->findOrFail($termId);
         return view('lecturer-ui.thesis-round-detail', compact('rows'));
+    }
+
+    public function assignmentSupervisor($termId) {
+        $projectTerm = ProjectTerm::with('supervisors.assignment_supervisors', 'academy_year', 'assignments.student.user')->findOrFail($termId);
+        return view('head-ui.assign-supervisors', compact('projectTerm'));
+    }
+
+    public function loadHeadRoundDetail($termId) {
+        $projectTerm = ProjectTerm::with('supervisors.assignment_supervisors', 'academy_year', 'assignments.student.user')->findOrFail($termId);
+        return view('head-ui.thesis-round-detail', compact('projectTerm'));
     }
 }

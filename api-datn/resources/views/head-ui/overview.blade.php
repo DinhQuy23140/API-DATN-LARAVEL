@@ -16,6 +16,23 @@
     .sidebar { width:260px; }
   </style>
 </head>
+  @php
+    $user = auth()->user();
+    $userName = $user->fullname ?? $user->name ?? 'Giảng viên';
+    $email = $user->email ?? '';
+    // Tùy mô hình dữ liệu, thay các field bên dưới cho khớp
+    $dept = $user->department_name ?? optional($user->teacher)->department ?? '';
+    $faculty = $user->faculty_name ?? optional($user->teacher)->faculty ?? '';
+    $subtitle = trim(($dept ? "Bộ môn $dept" : '') . (($dept && $faculty) ? ' • ' : '') . ($faculty ? "Khoa $faculty" : ''));
+    $degree = $user->teacher->degree ?? '';
+    $expertise = $user->teacher->supervisor->expertise ?? 'null';
+    $data_assignment_supervisors = $user->teacher->supervisor->assignment_supervisors ?? collect();
+    $supervisorId = $user->teacher->supervisor->id ?? 0;
+    $teacherId = $user->teacher->id ?? 0;
+    $avatarUrl = $user->avatar_url
+      ?? $user->profile_photo_url
+      ?? 'https://ui-avatars.com/api/?name=' . urlencode($userName) . '&background=0ea5e9&color=ffffff';
+  @endphp
 <body class="bg-slate-50 text-slate-800">
   <div class="flex min-h-screen">
     <aside id="sidebar" class="sidebar fixed inset-y-0 left-0 z-30 bg-white border-r border-slate-200 flex flex-col transition-all">
@@ -34,7 +51,7 @@
            class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('web.head.overview') ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}">
           <i class="ph ph-gauge"></i><span class="sidebar-label">Tổng quan</span>
         </a>
-        <a href="{{ route('web.head.profile') }}"
+        <a href="{{ route('web.head.profile', ['teacherId' => $teacherId]) }}"
            class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('web.head.profile') ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}">
           <i class="ph ph-user"></i><span class="sidebar-label">Hồ sơ</span>
         </a>
@@ -88,10 +105,10 @@
         </div>
         <div class="relative">
           <button id="profileBtn" class="flex items-center gap-3 px-2 py-1.5 rounded-lg hover:bg-slate-100">
-            <img class="h-9 w-9 rounded-full object-cover" src="https://i.pravatar.cc/100?img=10" alt="avatar" />
+            <img class="h-9 w-9 rounded-full object-cover" src="{{$avatarUrl}}" alt="avatar" />
             <div class="hidden sm:block text-left">
-              <div class="text-sm font-semibold leading-4">ThS. Nguyễn Văn H</div>
-              <div class="text-xs text-slate-500">head@uni.edu</div>
+              <div class="text-sm font-semibold leading-4">{{ $userName }}</div>
+              <div class="text-xs text-slate-500">{{ $email }}</div>
             </div>
             <i class="ph ph-caret-down text-slate-500 hidden sm:block"></i>
           </button>

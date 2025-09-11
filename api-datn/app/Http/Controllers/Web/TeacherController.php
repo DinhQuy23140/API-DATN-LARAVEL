@@ -51,4 +51,9 @@ class TeacherController extends Controller
         $teachers = Teacher::with('user')->latest('created_at')->paginate(7);
         return view('assistant-ui.dashboard', compact('countTeachers', 'teachers'));
     }
+
+    public function loadProfile($teacherId){
+        $teacher = Teacher::with('user')->findOrFail($teacherId);
+        return view('head-ui.profile', compact('teacher'));
+    }
 }

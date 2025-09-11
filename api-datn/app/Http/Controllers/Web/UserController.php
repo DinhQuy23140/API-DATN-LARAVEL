@@ -76,8 +76,8 @@ class UserController extends Controller
                 ->with('status', 'Đăng nhập thành công');
         }
         // Mặc định
-        return redirect()->intended(route('web.users.index'))
-            ->with('status', 'Đăng nhập thành công');
+        // return redirect()->intended(route('web.users.index'))
+        //     ->with('status', 'Đăng nhập thành công');
     }
 
     public function showOverView()

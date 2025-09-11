@@ -17,6 +17,23 @@
 </style>
 </head>
 <body class="bg-slate-50 text-slate-800">
+    @php
+    $user = auth()->user();
+    $userName = $user->fullname ?? $user->name ?? 'Giảng viên';
+    $email = $user->email ?? '';
+    // Tùy mô hình dữ liệu, thay các field bên dưới cho khớp
+    $dept = $user->department_name ?? optional($user->teacher)->department ?? '';
+    $faculty = $user->faculty_name ?? optional($user->teacher)->faculty ?? '';
+    $subtitle = trim(($dept ? "Bộ môn $dept" : '') . (($dept && $faculty) ? ' • ' : '') . ($faculty ? "Khoa $faculty" : ''));
+    $degree = $user->teacher->degree ?? '';
+    $expertise = $user->teacher->supervisor->expertise ?? 'null';
+    $data_assignment_supervisors = $user->teacher->supervisor->assignment_supervisors ?? collect();
+    $supervisorId = $user->teacher->supervisor->id ?? 0;
+    $teacherId = $user->teacher->id ?? 0;
+    $avatarUrl = $user->avatar_url
+      ?? $user->profile_photo_url
+      ?? 'https://ui-avatars.com/api/?name=' . urlencode($userName) . '&background=0ea5e9&color=ffffff';
+  @endphp
 <div class="flex min-h-screen">
   <aside id="sidebar" class="sidebar fixed inset-y-0 left-0 z-30 bg-white border-r border-slate-200 flex flex-col transition-all">
     <div class="h-16 flex items-center gap-3 px-4 border-b border-slate-200">
@@ -26,14 +43,47 @@
         <div class="text-xs text-slate-500">Bảng điều khiển</div>
       </div>
     </div>
+    @php
+      $isThesisOpen = request()->routeIs('web.head.thesis_internship')
+        || request()->routeIs('web.head.thesis_rounds')
+        || request()->routeIs('web.head.thesis_round_detail');
+    @endphp
     <nav class="flex-1 overflow-y-auto p-3">
-      <a href="overview.html" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-gauge"></i><span class="sidebar-label">Tổng quan</span></a>
-      <a href="profile.html" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-user"></i><span class="sidebar-label">Hồ sơ</span></a>
-      <a href="research.html" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-flask"></i><span class="sidebar-label">Nghiên cứu</span></a>
-      <a href="students.html" class="flex items-center gap-3 px-3 py-2 rounded-lg bg-slate-100 font-semibold"><i class="ph ph-student"></i><span class="sidebar-label">Sinh viên</span></a>
-      <div class="sidebar-label text-xs uppercase text-slate-400 px-3 mt-3">Học phần tốt nghiệp</div>
-      <a href="thesis-internship.html" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100 pl-10"><i class="ph ph-briefcase"></i><span class="sidebar-label">Thực tập tốt nghiệp</span></a>
-      <a href="thesis-rounds.html" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100 pl-10"><i class="ph ph-calendar"></i><span class="sidebar-label">Đồ án tốt nghiệp</span></a>
+      <a href="{{ route('web.head.overview') }}"
+         class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('web.head.overview') ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}">
+        <i class="ph ph-gauge"></i><span class="sidebar-label">Tổng quan</span>
+      </a>
+      <a href="{{ route('web.head.profile', ['teacherId' => $teacherId]) }}"
+         class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('web.head.profile') ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}">
+        <i class="ph ph-user"></i><span class="sidebar-label">Hồ sơ</span>
+      </a>
+      <a href="{{ route('web.head.research') }}"
+         class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('web.head.research') ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}">
+        <i class="ph ph-flask"></i><span class="sidebar-label">Nghiên cứu</span>
+      </a>
+      <a href="{{ route('web.head.students') }}"
+         class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('web.head.students') ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}">
+        <i class="ph ph-student"></i><span class="sidebar-label">Sinh viên</span>
+      </a>
+
+      <button type="button" id="toggleThesisMenu"
+              class="w-full flex items-center justify-between px-3 py-2 rounded-lg mt-3 {{ $isThesisOpen ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}">
+        <span class="flex items-center gap-3">
+          <i class="ph ph-graduation-cap"></i>
+          <span class="sidebar-label">Học phần tốt nghiệp</span>
+        </span>
+        <i id="thesisCaret" class="ph ph-caret-down transition-transform {{ $isThesisOpen ? 'rotate-180' : '' }}"></i>
+      </button>
+      <div id="thesisSubmenu" class="mt-1 pl-3 space-y-1 {{ $isThesisOpen ? '' : 'hidden' }}">
+        <a href="{{ route('web.head.thesis_internship') }}"
+           class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('web.head.thesis_internship') ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}">
+          <i class="ph ph-briefcase"></i><span class="sidebar-label">Thực tập tốt nghiệp</span>
+        </a>
+        <a href="{{ route('web.head.thesis_rounds') }}"
+           class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('web.head.thesis_rounds') || request()->routeIs('web.head.thesis_round_detail') ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}">
+          <i class="ph ph-calendar"></i><span class="sidebar-label">Đồ án tốt nghiệp</span>
+        </a>
+      </div>
     </nav>
     <div class="p-3 border-t border-slate-200">
       <button id="toggleSidebar" class="w-full flex items-center justify-center gap-2 px-3 py-2 text-slate-600 hover:bg-slate-100 rounded-lg"><i class="ph ph-sidebar"></i><span class="sidebar-label">Thu gọn</span></button>
@@ -47,7 +97,7 @@
         <div>
           <h1 class="text-lg md:text-xl font-semibold">Sinh viên</h1>
           <nav class="text-xs text-slate-500 mt-0.5">
-            <a href="overview.html" class="hover:underline text-slate-600">Trang chủ</a>
+            <a href="{{ route('web.head.overview') }}" class="hover:underline text-slate-600">Trang chủ</a>
             <span class="mx-1">/</span>
             <span class="text-slate-500">Sinh viên</span>
           </nav>
@@ -55,16 +105,17 @@
       </div>
       <div class="relative">
         <button id="profileBtn" class="flex items-center gap-3 px-2 py-1.5 rounded-lg hover:bg-slate-100">
-          <img class="h-9 w-9 rounded-full object-cover" src="https://i.pravatar.cc/100?img=10" alt="avatar" />
+          <img class="h-9 w-9 rounded-full object-cover" src="{{ $avatarUrl }}" alt="avatar" />
           <div class="hidden sm:block text-left">
-            <div class="text-sm font-semibold leading-4">ThS. Nguyễn Văn H</div>
-            <div class="text-xs text-slate-500">head@uni.edu</div>
+            <div class="text-sm font-semibold leading-4">{{ $userName }}</div>
+            <div class="text-xs text-slate-500">{{ $email }}</div>
           </div>
           <i class="ph ph-caret-down text-slate-500 hidden sm:block"></i>
         </button>
         <div id="profileMenu" class="hidden absolute right-0 mt-2 w-44 bg-white border border-slate-200 rounded-lg shadow-lg py-1 text-sm">
           <a href="#" class="flex items-center gap-2 px-3 py-2 hover:bg-slate-50"><i class="ph ph-user"></i>Hồ sơ</a>
-          <a href="#" class="flex items-center gap-2 px-3 py-2 hover:bg-slate-50 text-rose-600"><i class="ph ph-sign-out"></i>Đăng xuất</a>
+          <a href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();" class="flex items-center gap-2 px-3 py-2 hover:bg-slate-50 text-rose-600"><i class="ph ph-sign-out"></i>Đăng xuất</a>
+          <form action="{{ route('web.auth.logout') }}" method="POST" class="hidden" id="logout-form">@csrf</form>
         </div>
       </div>
     </header>
@@ -78,11 +129,15 @@
                 <i class="ph ph-magnifying-glass absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
                 <input id="searchInput" class="pl-8 pr-3 py-2 border border-slate-200 rounded text-sm w-72" placeholder="Tìm theo tên/MSSV/email" />
               </div>
-              <select id="filterStatus" class="border border-slate-200 rounded px-2 py-2 text-sm">
-                <option value="">Trạng thái</option>
-                <option value="Đang làm DA">Đang làm DA</option>
-                <option value="Hoàn thành">Hoàn thành</option>
-                <option value="Bảo lưu">Bảo lưu</option>
+              <select id="filterYear" class="border border-slate-200 rounded px-2 py-2 text-sm">
+                <option value="">Năm học</option>
+                <option value="2023-2024">2023-2024</option>
+                <option value="2024-2025">2024-2025</option>
+              </select>
+              <select id="filterRound" class="border border-slate-200 rounded px-2 py-2 text-sm">
+                <option value="">Đợt</option>
+                <option value="Đợt 1">Đợt 1</option>
+                <option value="Đợt 2">Đợt 2</option>
               </select>
             </div>
             <button id="importBtn" class="px-3 py-2 bg-indigo-600 text-white rounded text-sm flex items-center gap-1"><i class="ph ph-upload"></i> Import</button>
@@ -123,20 +178,36 @@
   const profileBtn=document.getElementById('profileBtn'); const profileMenu=document.getElementById('profileMenu');
   profileBtn?.addEventListener('click', ()=> profileMenu.classList.toggle('hidden'));
   document.addEventListener('click', (e)=>{ if(!profileBtn?.contains(e.target) && !profileMenu?.contains(e.target)) profileMenu?.classList.add('hidden'); });
+  // Toggle submenu "Học phần tốt nghiệp"
+  (function () {
+    const btn = document.getElementById('toggleThesisMenu');
+    const menu = document.getElementById('thesisSubmenu');
+    const caret = document.getElementById('thesisCaret');
+    btn?.addEventListener('click', () => {
+      menu?.classList.toggle('hidden');
+      caret?.classList.toggle('rotate-180');
+      btn?.classList.toggle('bg-slate-100');
+      btn?.classList.toggle('font-semibold');
+    });
+  })();
 })();
 
 // Mock students
 let students=[
-  { id:'20210001', name:'Nguyễn Văn A', email:'20210001@sv.uni.edu', class:'CNTT01', status:'Đang làm DA', advisor:'TS. Trần Văn B' },
-  { id:'20210002', name:'Trần Thị B', email:'20210002@sv.uni.edu', class:'CNTT01', status:'Đang làm DA', advisor:'TS. Lê Thị C' },
-  { id:'20210003', name:'Lê Văn C', email:'20210003@sv.uni.edu', class:'CNTT02', status:'Hoàn thành', advisor:'TS. Phạm Văn D' }
+  { id:'20210001', name:'Nguyễn Văn A', email:'20210001@sv.uni.edu', class:'CNTT01', status:'Đang làm DA', advisor:'TS. Trần Văn B', year:'2024-2025', round:'Đợt 1' },
+  { id:'20210002', name:'Trần Thị B', email:'20210002@sv.uni.edu', class:'CNTT01', status:'Đang làm DA', advisor:'TS. Lê Thị C', year:'2024-2025', round:'Đợt 2' },
+  { id:'20210003', name:'Lê Văn C', email:'20210003@sv.uni.edu', class:'CNTT02', status:'Hoàn thành', advisor:'TS. Phạm Văn D', year:'2023-2024', round:'Đợt 1' }
 ];
-
 function render(){
   const q=(document.getElementById('searchInput').value||'').toLowerCase();
-  const fs=document.getElementById('filterStatus').value;
+  const fy=document.getElementById('filterYear').value;
+  const fr=document.getElementById('filterRound').value;
   const rows=document.getElementById('stuRows');
-  const list=students.filter(s=> (s.name.toLowerCase().includes(q)||s.id.includes(q)||s.email.toLowerCase().includes(q)) && (!fs||s.status===fs));
+  const list=students.filter(s=>
+    (s.name.toLowerCase().includes(q)||s.id.includes(q)||s.email.toLowerCase().includes(q)) &&
+    (!fy || s.year===fy) &&
+    (!fr || s.round===fr)
+  );
   if(!list.length){ rows.innerHTML="<tr><td colspan='7' class='py-4 px-3 text-slate-500'>Không có dữ liệu.</td></tr>"; return; }
   rows.innerHTML=list.map(s=>`<tr class='border-b hover:bg-slate-50'>
     <td class='py-3 px-3 font-medium'>${s.id}</td>
@@ -190,7 +261,8 @@ function openModal(st){
 
 document.getElementById('searchInput').addEventListener('input', render);
 
-document.getElementById('filterStatus').addEventListener('change', render);
+document.getElementById('filterYear').addEventListener('change', render);
+document.getElementById('filterRound').addEventListener('change', render);
 
 render();
 </script>

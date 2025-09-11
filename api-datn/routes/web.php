@@ -101,11 +101,15 @@ Route::fallback(fn() => redirect()->to('/login'));
 // Head UI
 Route::middleware('auth')->prefix('head')->name('web.head.')->group(function () {
     Route::view('/overview', 'head-ui.overview')->name('overview');
-    Route::view('/profile', 'head-ui.profile')->name('profile');
+    Route::get('/profile/{teacherId}', [WebTeacherController::class, 'loadProfile'])->name('profile');
     Route::view('/research', 'head-ui.research')->name('research');
     Route::view('/students', 'head-ui.students')->name('students');
     Route::view('/thesis/internship', 'head-ui.thesis-internship')->name('thesis_internship');
-    Route::view('/thesis/rounds', 'head-ui.thesis-rounds')->name('thesis_rounds');
+    Route::get('/thesis/rounds', [WebProjectTermsController::class, 'getAllProjectTerms'])->name('thesis_rounds');
+    Route::get('/thesis/round-detail/{termId}', [WebProjectTermsController::class, 'loadHeadRoundDetail'])->name('thesis_round_detail');
+    Route::get ('head/assign-students/{termId}', [WebProjectTermsController::class, 'assignmentSupervisor'])->name('thesis_round_supervision');
+    Route::post('head/assign-supervisors/bulk', [AssignmentSupervisorController::class, 'storeBulk'])
+    ->name('assign_supervisors.bulk');
 });
 
 Route::middleware('auth')->prefix('assistant')->name('web.assistant.')->group(function () {

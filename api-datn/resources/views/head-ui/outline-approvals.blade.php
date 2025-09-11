@@ -33,14 +33,45 @@
         <div class="text-xs text-slate-500">Bảng điều khiển</div>
       </div>
     </div>
+    @php
+      $isThesisOpen = true; // mở sẵn menu Học phần tốt nghiệp
+    @endphp
     <nav class="flex-1 overflow-y-auto p-3">
-      <a href="overview.html" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-gauge"></i><span class="sidebar-label">Tổng quan</span></a>
-      <a href="profile.html" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-user"></i><span class="sidebar-label">Hồ sơ</span></a>
-      <a href="research.html" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-flask"></i><span class="sidebar-label">Nghiên cứu</span></a>
-      <a href="students.html" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-student"></i><span class="sidebar-label">Sinh viên</span></a>
-      <div class="sidebar-label text-xs uppercase text-slate-400 px-3 mt-3">Học phần tốt nghiệp</div>
-      <a href="thesis-internship.html" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100 pl-10"><i class="ph ph-briefcase"></i><span class="sidebar-label">Thực tập tốt nghiệp</span></a>
-      <a href="thesis-rounds.html" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100 pl-10"><i class="ph ph-calendar"></i><span class="sidebar-label">Đồ án tốt nghiệp</span></a>
+      <a href="{{ route('web.head.overview') }}"
+         class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('web.head.overview') ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}">
+        <i class="ph ph-gauge"></i><span class="sidebar-label">Tổng quan</span>
+      </a>
+      <a href="{{ route('web.head.profile') }}"
+         class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('web.head.profile') ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}">
+        <i class="ph ph-user"></i><span class="sidebar-label">Hồ sơ</span>
+      </a>
+      <a href="{{ route('web.head.research') }}"
+         class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('web.head.research') ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}">
+        <i class="ph ph-flask"></i><span class="sidebar-label">Nghiên cứu</span>
+      </a>
+      <a href="{{ route('web.head.students') }}"
+         class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('web.head.students') ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}">
+        <i class="ph ph-student"></i><span class="sidebar-label">Sinh viên</span>
+      </a>
+
+      <button type="button" id="toggleThesisMenu"
+              class="w-full flex items-center justify-between px-3 py-2 rounded-lg mt-3 bg-slate-100 font-semibold">
+        <span class="flex items-center gap-3">
+          <i class="ph ph-graduation-cap"></i>
+          <span class="sidebar-label">Học phần tốt nghiệp</span>
+        </span>
+        <i id="thesisCaret" class="ph ph-caret-down transition-transform rotate-180"></i>
+      </button>
+      <div id="thesisSubmenu" class="mt-1 pl-3 space-y-1">
+        <a href="{{ route('web.head.thesis_internship') }}"
+           class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('web.head.thesis_internship') ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}">
+          <i class="ph ph-briefcase"></i><span class="sidebar-label">Thực tập tốt nghiệp</span>
+        </a>
+        <a href="{{ route('web.head.thesis_rounds') }}"
+           class="flex items-center gap-3 px-3 py-2 rounded-lg bg-slate-100 font-semibold" aria-current="page">
+          <i class="ph ph-calendar"></i><span class="sidebar-label">Đồ án tốt nghiệp</span>
+        </a>
+      </div>
     </nav>
     <div class="p-3 border-t border-slate-200">
       <button id="toggleSidebar" class="w-full flex items-center justify-center gap-2 px-3 py-2 text-slate-600 hover:bg-slate-100 rounded-lg"><i class="ph ph-sidebar"></i><span class="sidebar-label">Thu gọn</span></button>
@@ -53,9 +84,9 @@
         <div>
           <h1 class="text-lg md:text-xl font-semibold">Duyệt đề cương sinh viên</h1>
           <nav class="text-xs text-slate-500 mt-0.5">
-            <a href="overview.html" class="hover:underline text-slate-600">Trang chủ</a>
+            <a href="{{ route('web.head.overview') }}" class="hover:underline text-slate-600">Trang chủ</a>
             <span class="mx-1">/</span>
-            <a href="thesis-rounds.html" class="hover:underline text-slate-600">Đợt đồ án</a>
+            <a href="{{ route('web.head.thesis_rounds') }}" class="hover:underline text-slate-600">Đợt đồ án</a>
             <span class="mx-1">/</span>
             <span class="text-slate-500">Duyệt đề cương</span>
           </nav>
@@ -237,6 +268,20 @@ document.getElementById('chkAll').addEventListener('change',e=>{
 
 rebuildAdvisorFilter();
 render();
+
+// Toggle submenu "Học phần tốt nghiệp"
+(function () {
+  const btn = document.getElementById('toggleThesisMenu');
+  const menu = document.getElementById('thesisSubmenu');
+  const caret = document.getElementById('thesisCaret');
+  btn?.addEventListener('click', () => {
+    menu?.classList.toggle('hidden');
+    const open = !menu.classList.contains('hidden');
+    caret?.classList.toggle('rotate-180', open);
+    btn.classList.toggle('bg-slate-100', open);
+    btn.classList.toggle('font-semibold', open);
+  });
+})();
 </script>
 </body>
 </html>

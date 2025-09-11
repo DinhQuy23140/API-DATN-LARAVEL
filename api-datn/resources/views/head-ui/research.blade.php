@@ -17,6 +17,23 @@
     </style>
   </head>
   <body class="bg-slate-50 text-slate-800">
+      @php
+    $user = auth()->user();
+    $userName = $user->fullname ?? $user->name ?? 'Giảng viên';
+    $email = $user->email ?? '';
+    // Tùy mô hình dữ liệu, thay các field bên dưới cho khớp
+    $dept = $user->department_name ?? optional($user->teacher)->department ?? '';
+    $faculty = $user->faculty_name ?? optional($user->teacher)->faculty ?? '';
+    $subtitle = trim(($dept ? "Bộ môn $dept" : '') . (($dept && $faculty) ? ' • ' : '') . ($faculty ? "Khoa $faculty" : ''));
+    $degree = $user->teacher->degree ?? '';
+    $expertise = $user->teacher->supervisor->expertise ?? 'null';
+    $data_assignment_supervisors = $user->teacher->supervisor->assignment_supervisors ?? collect();
+    $supervisorId = $user->teacher->supervisor->id ?? 0;
+    $teacherId = $user->teacher->id ?? 0;
+    $avatarUrl = $user->avatar_url
+      ?? $user->profile_photo_url
+      ?? 'https://ui-avatars.com/api/?name=' . urlencode($userName) . '&background=0ea5e9&color=ffffff';
+  @endphp
     <div class="flex min-h-screen">
       <aside id="sidebar" class="sidebar fixed inset-y-0 left-0 z-30 bg-white border-r border-slate-200 flex flex-col transition-all">
         <div class="h-16 flex items-center gap-3 px-4 border-b border-slate-200">
@@ -26,10 +43,47 @@
             <div class="text-xs text-slate-500">Bảng điều khiển</div>
           </div>
         </div>
+        @php
+          $isThesisOpen = request()->routeIs('web.head.thesis_internship')
+            || request()->routeIs('web.head.thesis_rounds')
+            || request()->routeIs('web.head.thesis_round_detail');
+        @endphp
         <nav class="flex-1 overflow-y-auto p-3">
-          <a href="overview.html" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-gauge"></i><span class="sidebar-label">Tổng quan</span></a>
-          <a href="profile.html" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-user"></i><span class="sidebar-label">Hồ sơ</span></a>
-          <a href="research.html" class="flex items-center gap-3 px-3 py-2 rounded-lg bg-slate-100 font-semibold"><i class="ph ph-flask"></i><span class="sidebar-label">Nghiên cứu</span></a>
+          <a href="{{ route('web.head.overview') }}"
+             class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('web.head.overview') ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}">
+            <i class="ph ph-gauge"></i><span class="sidebar-label">Tổng quan</span>
+          </a>
+          <a href="{{ route('web.head.profile', ['teacherId' => $teacherId]) }}"
+             class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('web.head.profile') ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}">
+            <i class="ph ph-user"></i><span class="sidebar-label">Hồ sơ</span>
+          </a>
+          <a href="{{ route('web.head.research') }}"
+             class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('web.head.research') ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}">
+            <i class="ph ph-flask"></i><span class="sidebar-label">Nghiên cứu</span>
+          </a>
+          <a href="{{ route('web.head.students') }}"
+             class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('web.head.students') ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}">
+            <i class="ph ph-student"></i><span class="sidebar-label">Sinh viên</span>
+          </a>
+
+          <button type="button" id="toggleThesisMenu"
+                  class="w-full flex items-center justify-between px-3 py-2 rounded-lg mt-3 {{ $isThesisOpen ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}">
+            <span class="flex items-center gap-3">
+              <i class="ph ph-graduation-cap"></i>
+              <span class="sidebar-label">Học phần tốt nghiệp</span>
+            </span>
+            <i id="thesisCaret" class="ph ph-caret-down transition-transform {{ $isThesisOpen ? 'rotate-180' : '' }}"></i>
+          </button>
+          <div id="thesisSubmenu" class="mt-1 pl-3 space-y-1 {{ $isThesisOpen ? '' : 'hidden' }}">
+            <a href="{{ route('web.head.thesis_internship') }}"
+               class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('web.head.thesis_internship') ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}">
+              <i class="ph ph-briefcase"></i><span class="sidebar-label">Thực tập tốt nghiệp</span>
+            </a>
+            <a href="{{ route('web.head.thesis_rounds') }}"
+               class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('web.head.thesis_rounds') || request()->routeIs('web.head.thesis_round_detail') ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}">
+              <i class="ph ph-calendar"></i><span class="sidebar-label">Đồ án tốt nghiệp</span>
+            </a>
+          </div>
         </nav>
         <div class="p-3 border-t border-slate-200">
           <button id="toggleSidebar" class="w-full flex items-center justify-center gap-2 px-3 py-2 text-slate-600 hover:bg-slate-100 rounded-lg"><i class="ph ph-sidebar"></i><span class="sidebar-label">Thu gọn</span></button>
@@ -47,13 +101,19 @@
           </div>
           <div class="relative">
             <button id="profileBtn" class="flex items-center gap-3 px-2 py-1.5 rounded-lg hover:bg-slate-100">
-              <img class="h-9 w-9 rounded-full object-cover" src="https://i.pravatar.cc/100?img=10" alt="avatar" />
-              <span class="hidden sm:block text-sm">head@uni.edu</span>
+              <img class="h-9 w-9 rounded-full object-cover" src="{{ $avatarUrl }}" alt="avatar" />
+              <div class="hidden sm:block text-left">
+                <div class="text-sm font-semibold leading-4">{{ $userName }}</div>
+                <div class="text-xs text-slate-500">{{ $email }}</div>
+              </div>
               <i class="ph ph-caret-down text-slate-500 hidden sm:block"></i>
             </button>
             <div id="profileMenu" class="hidden absolute right-0 mt-2 w-44 bg-white border border-slate-200 rounded-lg shadow-lg py-1 text-sm">
               <a href="#" class="flex items-center gap-2 px-3 py-2 hover:bg-slate-50"><i class="ph ph-user"></i>Xem thông tin</a>
-              <a href="#" class="flex items-center gap-2 px-3 py-2 hover:bg-slate-50 text-rose-600"><i class="ph ph-sign-out"></i>Đăng xuất</a>
+              <a href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();" class="flex items-center gap-2 px-3 py-2 hover:bg-slate-50 text-rose-600"><i class="ph ph-sign-out"></i>Đăng xuất</a>
+              <form action="{{ route('web.auth.logout') }}" method="POST" class="hidden" id="logout-form">
+                @csrf
+              </form>
             </div>
           </div>
         </header>
@@ -138,7 +198,18 @@
       document.getElementById('openSidebar')?.addEventListener('click',()=>sidebar.classList.toggle('-translate-x-full'));
       if(localStorage.getItem('head_sidebar')==='1') setCollapsed(true);
       sidebar.classList.add('md:translate-x-0','-translate-x-full','md:static');
-
+      // Toggle submenu "Học phần tốt nghiệp"
+      (function () {
+        const btn = document.getElementById('toggleThesisMenu');
+        const menu = document.getElementById('thesisSubmenu');
+        const caret = document.getElementById('thesisCaret');
+        btn?.addEventListener('click', () => {
+          menu?.classList.toggle('hidden');
+          caret?.classList.toggle('rotate-180');
+          btn?.classList.toggle('bg-slate-100');
+          btn?.classList.toggle('font-semibold');
+        });
+      })();
       // profile dropdown
       const profileBtn=document.getElementById('profileBtn');
       const profileMenu=document.getElementById('profileMenu');

@@ -8,6 +8,8 @@ use App\Models\AssignmentSupervisor;
 use App\Models\ProjectTerm;
 use App\Models\stage_timeline;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class AssignmentSupervisorController extends Controller
 {
@@ -78,5 +80,118 @@ class AssignmentSupervisorController extends Controller
             ]);
         }
         return back()->with('status', 'Cập nhật trạng thái thành công');
+    }
+
+    /**
+     * Bulk tạo danh sách AssignmentSupervisor
+     * Body JSON:
+     * {
+     *   "supervisor_id": 12,
+     *   "project_term_id": 5,
+     *   "assignment_ids": [101,102,103],
+     *   "status": "pending" // optional
+     * }
+     */
+    public function storeBulk(Request $request)
+    {
+        $data = $request->validate([
+            'supervisor_id'    => ['required','integer','exists:supervisors,id'],
+            'project_term_id'  => ['required','integer','exists:project_terms,id'],
+            'assignment_ids'   => ['required','array','min:1'],
+            'assignment_ids.*' => ['integer','distinct','exists:assignments,id'],
+            'status'           => ['nullable', Rule::in(['pending','accepted','rejected'])]
+        ]);
+
+        $status        = $data['status'] ?? 'accepted';
+        $supervisorId  = $data['supervisor_id'];
+        $termId        = $data['project_term_id'];
+        $assignmentIds = $data['assignment_ids'];
+
+        // Đếm số đã được gán trong term qua quan hệ assignment
+        $supervisor = \App\Models\Supervisor::withCount([
+            'assignment_supervisors as current_assigned' => function($q) use ($termId){
+                $q->whereHas('assignment', function($aq) use ($termId){
+                    $aq->where('project_term_id', $termId);
+                });
+            }
+        ])->findOrFail($supervisorId);
+
+        $max = (int)($supervisor->max_students ?? 0);
+        $cur = (int)($supervisor->current_assigned ?? 0);
+
+        // Lấy assignment hợp lệ thuộc term
+        $validAssignments = Assignment::whereIn('id', $assignmentIds)
+            ->where('project_term_id', $termId)
+            ->pluck('id')
+            ->all();
+
+        $invalidCount = count($assignmentIds) - count($validAssignments);
+        if ($invalidCount > 0) {
+            return response()->json([
+                'message' => 'Một số assignment không thuộc đợt / không tồn tại',
+                'invalid_count' => $invalidCount
+            ], 422);
+        }
+
+        // Những assignment đã gán cho supervisor này (lọc qua assignment.project_term_id)
+        $already = AssignmentSupervisor::where('supervisor_id', $supervisorId)
+            ->whereIn('assignment_id', $validAssignments)
+            ->whereHas('assignment', function($q) use ($termId){
+                $q->where('project_term_id', $termId);
+            })
+            ->pluck('assignment_id')
+            ->all();
+
+        $toInsert = array_values(array_diff($validAssignments, $already));
+        if (empty($toInsert)) {
+            return response()->json([
+                'message' => 'Tất cả assignments đã được gán trước đó cho supervisor này',
+                'inserted' => 0,
+                'skipped_existing' => count($already)
+            ], 200);
+        }
+
+        // Kiểm tra chỉ tiêu
+        if ($max > 0 && ($cur + count($toInsert)) > $max) {
+            return response()->json([
+                'message' => 'Vượt quá chỉ tiêu của giảng viên',
+                'current' => $cur,
+                'max'     => $max,
+                'requested_new' => count($toInsert),
+                'available_slots' => max(0, $max - $cur)
+            ], 422);
+        }
+
+        $created = [];
+        DB::transaction(function() use ($toInsert, $supervisorId, $status, &$created) {
+
+            $now = now();
+            $rows = [];
+            foreach ($toInsert as $aid) {
+                $rows[] = [
+                    'assignment_id' => $aid,
+                    'supervisor_id' => $supervisorId,
+                    'status'        => $status,
+                    'created_at'    => $now,
+                    'updated_at'    => $now
+                ];
+            }
+            AssignmentSupervisor::insert($rows);
+            $created = $rows;
+
+            // Cập nhật status cho các Assignment vừa gán
+            Assignment::whereIn('id', $toInsert)
+                ->update([
+                    'status' => 'active',
+                    'updated_at' => $now
+                ]);
+        });
+
+        return response()->json([
+            'message'          => 'Tạo phân công thành công',
+            'inserted'         => count($created),
+            'skipped_existing' => count($already),
+            'data'             => $created
+        ], 201);
     }
 }
