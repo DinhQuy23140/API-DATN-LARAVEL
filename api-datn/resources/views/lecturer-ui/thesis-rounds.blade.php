@@ -180,7 +180,6 @@
 
           <!-- Rounds List -->  
           <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
           @foreach ($rows as $row)
                       <!-- Round 1 -->
             <div class="bg-white rounded-xl border border-slate-200 p-6 hover:shadow-md transition-shadow">
@@ -195,7 +194,7 @@
 
               <div class="grid grid-cols-2 gap-4 mb-4">
                 <div class="text-center p-3 bg-slate-50 rounded-lg">
-                  <div class="text-lg font-semibold text-blue-600">{{ $row->supervisors[0]->assignment_supervisors->where('status', 'apperoved')->count() }}</div>
+                  <div class="text-lg font-semibold text-blue-600">{{ $row->supervisors[0]->assignment_supervisors->where('status', 'accepted')->count() }}</div>
                   <div class="text-xs text-slate-600">SV hướng dẫn</div>
                 </div>
                 <div class="text-center p-3 bg-slate-50 rounded-lg">

@@ -102,13 +102,26 @@
           </tr>
         </thead>
         <tbody>
+          @foreach ($items as $item)
+            @php
+              $student = $item->assignment->student;
+              $user = $student->user;
+              $name = $user->fullname;
+              $mssv = $student->student_code;
+              $class = $student->class_code;
+              $topic = $item->assignment->project_id ? $item->assignment->project_id : 'Chưa có đề tài';
+              $startDate = $item->assignment->created_at ? date('d/m/Y', strtotime($item->assignment->start_date)) : 'Chưa xác định';
+              $status = $item->assignment->status ? $item->assignment->status : 'Chưa xác định';
+
+            @endphp
           <tr class="border-b hover:bg-slate-50">
-            <td class="py-3 px-3"><a class="text-blue-600 hover:underline" href="supervised-student-detail.html?id=20210001&name=Nguy%E1%BB%85n%20V%C4%83n%20A">Nguyễn Văn A</a></td>
-            <td class="py-3 px-3">20210001</td>
-            <td class="py-3 px-3">KTPM2021</td>
-            <td class="py-3 px-3">Hệ thống quản lý thư viện</td>
-            <td class="py-3 px-3">01/08/2025</td>
-            <td class="py-3 px-3"><span class="px-2 py-0.5 rounded-full text-xs bg-green-50 text-green-600">Tốt</span></td>
+            <tr class="border-b hover:bg-slate-50">
+            <td class="py-3 px-3"><a class="text-blue-600 hover:underline" href="supervised-student-detail.html?id=20210001&name=Nguy%E1%BB%85n%20V%C4%83n%20A">{{ $name }}</a></td>
+            <td class="py-3 px-3">{{ $mssv }}</td>
+            <td class="py-3 px-3">{{ $class }}</td>
+            <td class="py-3 px-3">{{ $topic }}</td>
+            <td class="py-3 px-3">{{ $startDate }}</td>
+            <td class="py-3 px-3"><span class="px-2 py-0.5 rounded-full text-xs bg-green-50 text-green-600">{{ $status }}</span></td>
             <td class="py-3 px-3">
               <div class="flex items-center gap-1">
                 <a class="px-2 py-1 border border-slate-200 rounded text-xs hover:bg-slate-50" href="supervised-student-detail.html?id=20210001&name=Nguy%E1%BB%85n%20V%C4%83n%20A">Xem chi tiết</a>
@@ -116,6 +129,7 @@
               </div>
             </td>
           </tr>
+          @endforeach
         </tbody>
       </table>
           </div>

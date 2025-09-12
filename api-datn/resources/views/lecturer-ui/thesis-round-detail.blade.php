@@ -60,6 +60,7 @@
     $avatarUrl = $user->avatar_url
       ?? $user->profile_photo_url
       ?? 'https://ui-avatars.com/api/?name=' . urlencode($userName) . '&background=0ea5e9&color=ffffff';
+    $assignmentSupervisors = $rows->supervisors->first()->assignment_supervisors;
   @endphp
   <div class="flex min-h-screen">
     <aside class="sidebar fixed inset-y-0 left-0 z-30 bg-white border-r border-slate-200 flex flex-col transition-all"
@@ -342,7 +343,7 @@
               </div>
             </div>
           </a>
-          <a href="{{ route('web.teacher.proposed_topic', ['supervisorId' => $supervisorId]) }}" class="group rounded-xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md hover:border-blue-300 transition">
+          <a href="{{ route('web.teacher.proposed_topic', ['supervisorId' => $rows->supervisors->first()->id, 'termId' => $rows->id]) }}" class="group rounded-xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md hover:border-blue-300 transition">
             <div class="flex items-start gap-3">
               <div class="h-10 w-10 rounded-lg grid place-items-center bg-gradient-to-br from-indigo-50 to-indigo-100 text-indigo-600 group-hover:from-indigo-100 group-hover:to-indigo-200">
                 <i class="ph ph-notebook"></i>
@@ -358,7 +359,7 @@
               </div>
             </div>
           </a>
-          <a href="{{ route('web.teacher.student_supervisor_term', ['supervisorId' => $supervisorId, 'termId' => $rows->id]) }}" class="group rounded-xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md hover:border-blue-300 transition">
+          <a href="{{ route('web.teacher.student_supervisor_term', ['supervisorId' => $rows->supervisors->first()->id, 'termId' => $rows->id]) }}" class="group rounded-xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md hover:border-blue-300 transition">
             <div class="flex items-start gap-3">
               <div class="h-10 w-10 rounded-lg grid place-items-center bg-gradient-to-br from-blue-50 to-blue-100 text-blue-600 group-hover:from-blue-100 group-hover:to-blue-200">
                 <i class="ph ph-users-three"></i>
@@ -441,43 +442,26 @@
                 </tr>
               </thead>
               <tbody>
-        <tr class="border-b hover:bg-slate-50">
-                  <td class="py-3 px-3"><a class="text-blue-600 hover:underline" href="supervised-student-detail.html?id=20210001&name=Nguy%E1%BB%85n%20V%C4%83n%20A">Nguyễn Văn A</a></td>
-                  <td class="py-3 px-3">20210001</td>
-                  <td class="py-3 px-3">Hệ thống quản lý thư viện</td>
+              @foreach ($assignmentSupervisors as $assignmentSupervisor)
+              @php
+                $student = $assignmentSupervisor->assignment->student;
+                $fullname = $student->user->fullname;
+                $student_code = $student->student_code;
+                $topic = $assignmentSupervisor->assignment->project_id ?? 'Chưa có đề tài';
+              @endphp
+                <tr class="border-b hover:bg-slate-50">
+                  <td class="py-3 px-3"><a class="text-blue-600 hover:underline" href="supervised-student-detail.html?id={{ $student_code }}&name={{ urlencode($fullname) }}">{{ $fullname }}</a></td>
+                  <td class="py-3 px-3">{{ $student_code }}</td>
+                  <td class="py-3 px-3">{{ $topic }}</td>
                   <td class="py-3 px-3"><span class="px-2 py-0.5 rounded-full text-xs bg-emerald-50 text-emerald-700">Đã duyệt</span></td>
                   <td class="py-3 px-3">02/08/2025</td>
                   <td class="py-3 px-3">
                     <div class="flex items-center gap-1">
-          <a class="px-2 py-1 border border-slate-200 rounded text-xs hover:bg-slate-50" href="supervised-student-detail.html?id=20210001&name=Nguy%E1%BB%85n%20V%C4%83n%20A">Xem</a>
+                      <a class="px-2 py-1 border border-slate-200 rounded text-xs hover:bg-slate-50" href="supervised-student-detail.html?id={{ $student_code }}&name={{ urlencode($fullname) }}">Xem</a>
                     </div>
                   </td>
                 </tr>
-                <tr class="border-b hover:bg-slate-50">
-                  <td class="py-3 px-3"><a class="text-blue-600 hover:underline" href="supervised-student-detail.html?id=20210002&name=Tr%E1%BA%A7n%20Th%E1%BB%8B%20B">Trần Thị B</a></td>
-                  <td class="py-3 px-3">20210002</td>
-                  <td class="py-3 px-3">Ứng dụng quản lý công việc</td>
-                  <td class="py-3 px-3"><span class="px-2 py-0.5 rounded-full text-xs bg-amber-50 text-amber-700">Đã nộp</span></td>
-                  <td class="py-3 px-3">03/08/2025</td>
-                  <td class="py-3 px-3">
-                    <div class="flex items-center gap-1">
-          <a class="px-2 py-1 border border-slate-200 rounded text-xs hover:bg-slate-50" href="supervised-student-detail.html?id=20210002&name=Tr%E1%BA%A7n%20Th%E1%BB%8B%20B">Xem</a>
-          <button class="px-2 py-1 border border-slate-200 rounded text-xs">Duyệt</button>
-                    </div>
-                  </td>
-                </tr>
-                <tr class="hover:bg-slate-50">
-                  <td class="py-3 px-3"><a class="text-blue-600 hover:underline" href="supervised-student-detail.html?id=20210003&name=L%C3%AA%20V%C4%83n%20C">Lê Văn C</a></td>
-                  <td class="py-3 px-3">20210003</td>
-                  <td class="py-3 px-3">Hệ thống đặt lịch khám</td>
-                  <td class="py-3 px-3"><span class="px-2 py-0.5 rounded-full text-xs bg-slate-100 text-slate-700">Chưa nộp</span></td>
-                  <td class="py-3 px-3">-</td>
-                  <td class="py-3 px-3">
-                    <div class="flex items-center gap-1">
-          <a class="px-2 py-1 border border-slate-200 rounded text-xs hover:bg-slate-50" href="supervised-student-detail.html?id=20210003&name=L%C3%AA%20V%C4%83n%20C">Xem</a>
-                    </div>
-                  </td>
-                </tr>
+              @endforeach
               </tbody>
             </table>
           </div>
@@ -512,9 +496,15 @@
                 </tr>
               </thead>
               <tbody>
+              @foreach ($assignmentSupervisors as $assignmentSupervisor)
+              @php
+                $student = $assignmentSupervisor->assignment->student;
+                $fullname = $student->user->fullname;
+                $student_code = $student->student_code;
+              @endphp
                 <tr class="border-b hover:bg-slate-50">
-                  <td class="py-3 px-3"><a class="text-blue-600 hover:underline" href="supervised-student-detail.html?id=20210001&name=Nguy%E1%BB%85n%20V%C4%83n%20A">Nguyễn Văn A</a></td>
-                  <td class="py-3 px-3">20210001</td>
+                  <td class="py-3 px-3"><a class="text-blue-600 hover:underline" href="supervised-student-detail.html?id=20210001&name=Nguy%E1%BB%85n%20V%C4%83n%20A">{{ $fullname }}</a></td>
+                  <td class="py-3 px-3">{{ $student_code }}</td>
                   <td class="py-3 px-3">Tuần 1</td>
                   <td class="py-3 px-3"><span class="px-2 py-0.5 rounded-full text-xs bg-emerald-50 text-emerald-700">Đã chấm</span></td>
                   <td class="py-3 px-3">02/08/2025</td>
@@ -524,31 +514,7 @@
                     </div>
                   </td>
                 </tr>
-                <tr class="border-b hover:bg-slate-50">
-                  <td class="py-3 px-3"><a class="text-blue-600 hover:underline" href="supervised-student-detail.html?id=20210002&name=Tr%E1%BA%A7n%20Th%E1%BB%8B%20B">Trần Thị B</a></td>
-                  <td class="py-3 px-3">20210002</td>
-                  <td class="py-3 px-3">Tuần 1</td>
-                  <td class="py-3 px-3"><span class="px-2 py-0.5 rounded-full text-xs bg-amber-50 text-amber-700">Đã nộp</span></td>
-                  <td class="py-3 px-3">03/08/2025</td>
-                  <td class="py-3 px-3">
-                    <div class="flex items-center gap-1">
-                      <a class="px-2 py-1 border border-slate-200 rounded text-xs hover:bg-slate-50" href="supervised-student-detail.html?id=20210002&name=Tr%E1%BA%A7n%20Th%E1%BB%8B%20B">Xem</a>
-                      <a class="px-2 py-1 border border-slate-200 rounded text-xs hover:bg-slate-50" href="weekly-log-detail.html?studentId=20210002&name=Tr%E1%BA%A7n%20Th%E1%BB%8B%20B&week=1">Chấm điểm</a>
-                    </div>
-                  </td>
-                </tr>
-                <tr class="hover:bg-slate-50">
-                  <td class="py-3 px-3"><a class="text-blue-600 hover:underline" href="supervised-student-detail.html?id=20210003&name=L%C3%AA%20V%C4%83n%20C">Lê Văn C</a></td>
-                  <td class="py-3 px-3">20210003</td>
-                  <td class="py-3 px-3">Tuần 1</td>
-                  <td class="py-3 px-3"><span class="px-2 py-0.5 rounded-full text-xs bg-slate-100 text-slate-700">Chưa nộp</span></td>
-                  <td class="py-3 px-3">-</td>
-                  <td class="py-3 px-3">
-                    <div class="flex items-center gap-1">
-                      <a class="px-2 py-1 border border-slate-200 rounded text-xs hover:bg-slate-50" href="supervised-student-detail.html?id=20210003&name=L%C3%AA%20V%C4%83n%20C">Xem</a>
-                    </div>
-                  </td>
-                </tr>
+              @endforeach
               </tbody>
             </table>
           </div>
@@ -581,10 +547,17 @@
                 </tr>
               </thead>
               <tbody>
+              @foreach ($assignmentSupervisors as $assignmentSupervisor) )
+                @php
+                  $student = $assignmentSupervisor->assignment->student;
+                  $fullname = $student->user->fullname;
+                  $student_code = $student->student_code;
+                  $topic = $assignmentSupervisor->assignment->project_id ?? 'Chưa có đề tài';
+                @endphp
                 <tr class="border-b hover:bg-slate-50">
-                  <td class="py-3 px-3"><a class="text-blue-600 hover:underline" href="supervised-student-detail.html?id=20210001&name=Nguy%E1%BB%85n%20V%C4%83n%20A">Nguyễn Văn A</a></td>
-                  <td class="py-3 px-3">20210001</td>
-                  <td class="py-3 px-3">Hệ thống quản lý thư viện</td>
+                  <td class="py-3 px-3"><a class="text-blue-600 hover:underline" href="supervised-student-detail.html?id=20210001&name=Nguy%E1%BB%85n%20V%C4%83n%20A">{{ $fullname }}</a></td>
+                  <td class="py-3 px-3">{{ $student_code }}</td>
+                  <td class="py-3 px-3">{{ $topic }}</td>
                   <td class="py-3 px-3"><span class="px-2 py-0.5 rounded-full text-xs bg-amber-50 text-amber-700">Đã nộp</span></td>
                   <td class="py-3 px-3">12/08/2025</td>
                   <td class="py-3 px-3">
@@ -594,32 +567,7 @@
                     </div>
                   </td>
                 </tr>
-                <tr class="border-b hover:bg-slate-50">
-                  <td class="py-3 px-3"><a class="text-blue-600 hover:underline" href="supervised-student-detail.html?id=20210002&name=Tr%E1%BA%A7n%20Th%E1%BB%8B%20B">Trần Thị B</a></td>
-                  <td class="py-3 px-3">20210002</td>
-                  <td class="py-3 px-3">Ứng dụng quản lý công việc</td>
-                  <td class="py-3 px-3"><span class="px-2 py-0.5 rounded-full text-xs bg-slate-100 text-slate-700">Chưa nộp</span></td>
-                  <td class="py-3 px-3">-</td>
-                  <td class="py-3 px-3">
-                    <div class="flex items-center gap-1">
-                      <a class="px-2 py-1 border border-slate-200 rounded text-xs hover:bg-slate-50" href="supervised-student-detail.html?id=20210002&name=Tr%E1%BA%A7n%20Th%E1%BB%8B%20B">Xem chi tiết</a>
-                      <button class="px-2 py-1 border border-slate-200 rounded text-xs" onclick="alert('Đã gửi nhắc nộp báo cáo đến sinh viên.')">Nhắc nộp</button>
-                    </div>
-                  </td>
-                </tr>
-                <tr class="hover:bg-slate-50">
-                  <td class="py-3 px-3"><a class="text-blue-600 hover:underline" href="supervised-student-detail.html?id=20210003&name=L%C3%AA%20V%C4%83n%20C">Lê Văn C</a></td>
-                  <td class="py-3 px-3">20210003</td>
-                  <td class="py-3 px-3">Hệ thống đặt lịch khám</td>
-                  <td class="py-3 px-3"><span class="px-2 py-0.5 rounded-full text-xs bg-amber-50 text-amber-700">Đã nộp</span></td>
-                  <td class="py-3 px-3">13/08/2025</td>
-                  <td class="py-3 px-3">
-                    <div class="flex items-center gap-1">
-                      <a class="px-2 py-1 border border-slate-200 rounded text-xs hover:bg-slate-50" href="supervised-student-detail.html?id=20210003&name=L%C3%AA%20V%C4%83n%20C">Xem chi tiết</a>
-                      <a class="px-2 py-1 border border-slate-200 rounded text-xs hover:bg-slate-50" href="#">Tải báo cáo</a>
-                    </div>
-                  </td>
-                </tr>
+              @endforeach
               </tbody>
             </table>
           </div>
@@ -677,63 +625,62 @@
                 <tr class="text-left text-slate-500 border-b">
                   <th class="py-3 px-3">Sinh viên</th>
                   <th class="py-3 px-3">MSSV</th>
+                  <th class="py-3 px-3">Đề tài</th>
                   <th class="py-3 px-3">Hội đồng</th>
                   <th class="py-3 px-3">Lịch bảo vệ</th>
                   <th class="py-3 px-3">Phòng</th>
-                  <th class="py-3 px-3">Thành viên</th>
                   <th class="py-3 px-3">Hành động</th>
                 </tr>
               </thead>
               <tbody>
-                <tr class="border-b hover:bg-slate-50">
-                  <td class="py-3 px-3"><a class="text-blue-600 hover:underline" href="supervised-student-detail.html?id=20210001&name=Nguy%E1%BB%85n%20V%C4%83n%20A">Nguyễn Văn A</a></td>
-                  <td class="py-3 px-3">20210001</td>
-                  <td class="py-3 px-3">CNTT-01</td>
-                  <td class="py-3 px-3">20/08/2025 • 08:00</td>
-                  <td class="py-3 px-3">P.A203</td>
-                  <td class="py-3 px-3">
-                    <div class="text-slate-600">Chủ tịch: PGS.TS. Trần Văn B; Ủy viên: TS. Lê Thị C, TS. Phạm Văn D; Thư ký: ThS. Nguyễn Văn G; Phản biện: TS. Nguyễn Thị E</div>
-                  </td>
-                  <td class="py-3 px-3">
-                    <div class="flex items-center gap-1">
-                      <a class="px-2 py-1 border border-slate-200 rounded text-xs hover:bg-slate-50" href="supervised-student-detail.html?id=20210001&name=Nguy%E1%BB%85n%20V%C4%83n%20A">Xem SV</a>
-                      <a class="px-2 py-1 border border-slate-200 rounded text-xs hover:bg-slate-50" href="committee-detail.html?id=CNTT-01">Xem hội đồng</a>
-                    </div>
-                  </td>
-                </tr>
-                <tr class="border-b hover:bg-slate-50">
-                  <td class="py-3 px-3"><a class="text-blue-600 hover:underline" href="supervised-student-detail.html?id=20210002&name=Tr%E1%BA%A7n%20Th%E1%BB%8B%20B">Trần Thị B</a></td>
-                  <td class="py-3 px-3">20210002</td>
-                  <td class="py-3 px-3">CNTT-02</td>
-                  <td class="py-3 px-3">20/08/2025 • 09:30</td>
-                  <td class="py-3 px-3">P.A204</td>
-                  <td class="py-3 px-3">
-                    <div class="text-slate-600">Chủ tịch: TS. Phạm Văn D; Ủy viên: TS. Lê Thị C, ThS. Trần Thị F; Thư ký: ThS. Nguyễn Văn G; Phản biện: TS. Nguyễn Thị E</div>
-                  </td>
-                  <td class="py-3 px-3">
-                    <div class="flex items-center gap-1">
-                      <a class="px-2 py-1 border border-slate-200 rounded text-xs hover:bg-slate-50" href="supervised-student-detail.html?id=20210002&name=Tr%E1%BA%A7n%20Th%E1%BB%8B%20B">Xem SV</a>
-                      <a class="px-2 py-1 border border-slate-200 rounded text-xs hover:bg-slate-50" href="committee-detail.html?id=CNTT-02">Xem hội đồng</a>
-                    </div>
-                  </td>
-                </tr>
-                <tr class="hover:bg-slate-50">
-                  <td class="py-3 px-3"><a class="text-blue-600 hover:underline" href="supervised-student-detail.html?id=20210003&name=L%C3%AA%20V%C4%83n%20C">Lê Văn C</a></td>
-                  <td class="py-3 px-3">20210003</td>
-                  <td class="py-3 px-3">CNTT-01</td>
-                  <td class="py-3 px-3">20/08/2025 • 08:00</td>
-                  <td class="py-3 px-3">P.A203</td>
-                  <td class="py-3 px-3">
-                    <div class="text-slate-600">Chủ tịch: PGS.TS. Trần Văn B; Ủy viên: TS. Lê Thị C, TS. Phạm Văn D; Thư ký: ThS. Nguyễn Văn G; Phản biện: TS. Nguyễn Thị E</div>
-                  </td>
-                  <td class="py-3 px-3">
-                    <div class="flex items-center gap-1">
-                      <a class="px-2 py-1 border border-slate-200 rounded text-xs hover:bg-slate-50" href="supervised-student-detail.html?id=20210003&name=L%C3%AA%20V%C4%83n%20C">Xem SV</a>
-                      <a class="px-2 py-1 border border-slate-200 rounded text-xs hover:bg-slate-50" href="committee-detail.html?id=CNTT-01">Xem hội đồng</a>
-                    </div>
-                  </td>
-                </tr>
+                @foreach ($assignmentSupervisors as $assignmentSupervisor)
+                  @php
+                    $student = $assignmentSupervisor->assignment->student;
+                    $fullname = $student->user->fullname;
+                    $student_code = $student->student_code;
+                    $topic = $assignmentSupervisor->assignment->project->title ?? 'Chưa có đề tài';
+                  @endphp
+                  <tr class="border-b hover:bg-slate-50">
+                    <!-- Họ tên -->
+                    <td class="py-3 px-3">
+                      <a class="text-blue-600 hover:underline" 
+                        href="supervised-student-detail.html?id={{ $student_code }}&name={{ urlencode($fullname) }}">
+                        {{ $fullname }}
+                      </a>
+                    </td>
+
+                    <!-- MSSV -->
+                    <td class="py-3 px-3">{{ $student_code }}</td>
+
+                    <!-- Đề tài -->
+                    <td class="py-3 px-3">{{ $topic }}</td>
+
+                    <!-- Lớp -->
+                    <td class="py-3 px-3">CNTT-01</td>
+
+                    <!-- Ngày giờ -->
+                    <td class="py-3 px-3">20/08/2025 • 08:00</td>
+
+                    <!-- Phòng -->
+                    <td class="py-3 px-3">P.A203</td>
+
+                    <!-- Hành động -->
+                    <td class="py-3 px-3">
+                      <div class="flex items-center gap-1">
+                        <a class="px-2 py-1 border border-slate-200 rounded text-xs hover:bg-slate-50" 
+                          href="supervised-student-detail.html?id={{ $student_code }}&name={{ urlencode($fullname) }}">
+                          Xem SV
+                        </a>
+                        <a class="px-2 py-1 border border-slate-200 rounded text-xs hover:bg-slate-50" 
+                          href="committee-detail.html?id=CNTT-01">
+                          Xem hội đồng
+                        </a>
+                      </div>
+                    </td>
+                  </tr>
+                @endforeach
               </tbody>
+
             </table>
           </div>
         </div>`;
@@ -798,9 +745,16 @@
                 </tr>
               </thead>
               <tbody>
+              @foreach ($assignmentSupervisors as $assignmentSupervisor)
+                @php
+                  $student = $assignmentSupervisor->assignment->student;
+                  $fullname = $student->user->fullname;
+                  $student_code = $student->student_code;
+                  $topic = $assignmentSupervisor->assignment->project->title ?? 'Chưa có đề tài';
+                @endphp
                 <tr class="border-b hover:bg-slate-50">
-                  <td class="py-3 px-3"><a class="text-blue-600 hover:underline" href="supervised-student-detail.html?id=20210001&name=Nguy%E1%BB%85n%20V%C4%83n%20A">Nguyễn Văn A</a></td>
-                  <td class="py-3 px-3">20210001</td>
+                  <td class="py-3 px-3"><a class="text-blue-600 hover:underline" href="supervised-student-detail.html?id={{ $student_code }}&name={{ urlencode($fullname) }}">{{ $fullname }}</a></td>
+                  <td class="py-3 px-3">{{ $student_code }}</td>
                   <td class="py-3 px-3">CNTT-01</td>
                   <td class="py-3 px-3">TS. Nguyễn Thị E</td>
                   <td class="py-3 px-3">Phản biện</td>
@@ -813,36 +767,7 @@
                     </div>
                   </td>
                 </tr>
-                <tr class="border-b hover:bg-slate-50">
-                  <td class="py-3 px-3"><a class="text-blue-600 hover:underline" href="supervised-student-detail.html?id=20210002&name=Tr%E1%BA%A7n%20Th%E1%BB%8B%20B">Trần Thị B</a></td>
-                  <td class="py-3 px-3">20210002</td>
-                  <td class="py-3 px-3">CNTT-02</td>
-                  <td class="py-3 px-3">TS. Nguyễn Thị E</td>
-                  <td class="py-3 px-3">Phản biện</td>
-                  <td class="py-3 px-3">01</td>
-                  <td class="py-3 px-3">20/08/2025 • 09:30</td>
-                  <td class="py-3 px-3">
-                    <div class="flex items-center gap-1">
-                      <a class="px-2 py-1 border border-slate-200 rounded text-xs hover:bg-slate-50" href="supervised-student-detail.html?id=20210002&name=Tr%E1%BA%A7n%20Th%E1%BB%8B%20B">Xem SV</a>
-                      <a class="px-2 py-1 border border-slate-200 rounded text-xs hover:bg-slate-50" href="committee-detail.html?id=CNTT-02">Xem hội đồng</a>
-                    </div>
-                  </td>
-                </tr>
-                <tr class="hover:bg-slate-50">
-                  <td class="py-3 px-3"><a class="text-blue-600 hover:underline" href="supervised-student-detail.html?id=20210003&name=L%C3%AA%20V%C4%83n%20C">Lê Văn C</a></td>
-                  <td class="py-3 px-3">20210003</td>
-                  <td class="py-3 px-3">CNTT-01</td>
-                  <td class="py-3 px-3">TS. Nguyễn Thị E</td>
-                  <td class="py-3 px-3">Phản biện</td>
-                  <td class="py-3 px-3">02</td>
-                  <td class="py-3 px-3">20/08/2025 • 08:45</td>
-                  <td class="py-3 px-3">
-                    <div class="flex items-center gap-1">
-                      <a class="px-2 py-1 border border-slate-200 rounded text-xs hover:bg-slate-50" href="supervised-student-detail.html?id=20210003&name=L%C3%AA%20V%C4%83n%20C">Xem SV</a>
-                      <a class="px-2 py-1 border border-slate-200 rounded text-xs hover:bg-slate-50" href="committee-detail.html?id=CNTT-01">Xem hội đồng</a>
-                    </div>
-                  </td>
-                </tr>
+              @endforeach
               </tbody>
             </table>
           </div>
@@ -877,9 +802,16 @@
                 </tr>
               </thead>
               <tbody>
+              @foreach ($assignmentSupervisors as $assignmentSupervisor)
+                @php
+                  $student = $assignmentSupervisor->assignment->student;
+                  $fullname = $student->user->fullname;
+                  $student_code = $student->student_code;
+                  $topic = $assignmentSupervisor->assignment->project->title ?? 'Chưa có đề tài';
+                @endphp
                 <tr class="border-b hover:bg-slate-50">
-                  <td class="py-3 px-3"><a class="text-blue-600 hover:underline" href="supervised-student-detail.html?id=20210001&name=Nguy%E1%BB%85n%20V%C4%83n%20A">Nguyễn Văn A</a></td>
-                  <td class="py-3 px-3">20210001</td>
+                  <td class="py-3 px-3"><a class="text-blue-600 hover:underline" href="supervised-student-detail.html?id={{ $student_code }}&name={{ urlencode($fullname) }}">{{ $fullname }}</a></td>
+                  <td class="py-3 px-3">{{$student_code}}</td>
                   <td class="py-3 px-3">CNTT-01</td>
                   <td class="py-3 px-3"><span class="px-2 py-0.5 rounded-full text-xs bg-emerald-50 text-emerald-700">Đạt</span></td>
                   <td class="py-3 px-3">01</td>
@@ -891,34 +823,7 @@
                     </div>
                   </td>
                 </tr>
-                <tr class="border-b hover:bg-slate-50">
-                  <td class="py-3 px-3"><a class="text-blue-600 hover:underline" href="supervised-student-detail.html?id=20210002&name=Tr%E1%BA%A7n%20Th%E1%BB%8B%20B">Trần Thị B</a></td>
-                  <td class="py-3 px-3">20210002</td>
-                  <td class="py-3 px-3">CNTT-02</td>
-                  <td class="py-3 px-3"><span class="px-2 py-0.5 rounded-full text-xs bg-amber-50 text-amber-700">Cần bổ sung</span></td>
-                  <td class="py-3 px-3">02</td>
-                  <td class="py-3 px-3">20/08/2025 • 09:45</td>
-                  <td class="py-3 px-3">
-                    <div class="flex items-center gap-1">
-                      <a class="px-2 py-1 border border-slate-200 rounded text-xs hover:bg-slate-50" href="supervised-student-detail.html?id=20210002&name=Tr%E1%BA%A7n%20Th%E1%BB%8B%20B">Xem SV</a>
-                      <a class="px-2 py-1 border border-slate-200 rounded text-xs hover:bg-slate-50" href="committee-detail.html?id=CNTT-02">Xem hội đồng</a>
-                    </div>
-                  </td>
-                </tr>
-                <tr class="hover:bg-slate-50">
-                  <td class="py-3 px-3"><a class="text-blue-600 hover:underline" href="supervised-student-detail.html?id=20210003&name=L%C3%AA%20V%C4%83n%20C">Lê Văn C</a></td>
-                  <td class="py-3 px-3">20210003</td>
-                  <td class="py-3 px-3">CNTT-01</td>
-                  <td class="py-3 px-3"><span class="px-2 py-0.5 rounded-full text-xs bg-emerald-50 text-emerald-700">Đạt</span></td>
-                  <td class="py-3 px-3">03</td>
-                  <td class="py-3 px-3">20/08/2025 • 10:00</td>
-                  <td class="py-3 px-3">
-                    <div class="flex items-center gap-1">
-                      <a class="px-2 py-1 border border-slate-200 rounded text-xs hover:bg-slate-50" href="supervised-student-detail.html?id=20210003&name=L%C3%AA%20V%C4%83n%20C">Xem SV</a>
-                      <a class="px-2 py-1 border border-slate-200 rounded text-xs hover:bg-slate-50" href="committee-detail.html?id=CNTT-01">Xem hội đồng</a>
-                    </div>
-                  </td>
-                </tr>
+              @endforeach
               </tbody>
             </table>
           </div>
@@ -988,9 +893,16 @@
                 </tr>
               </thead>
               <tbody>
+              @foreach ($assignmentSupervisors as $assignmentSupervisor)
+                @php
+                  $student = $assignmentSupervisor->assignment->student;
+                  $fullname = $student->user->fullname;
+                  $student_code = $student->student_code;
+                  $topic = $assignmentSupervisor->assignment->project->title ?? 'Chưa có đề tài';
+                @endphp
                 <tr class="border-b hover:bg-slate-50">
-                  <td class="py-3 px-3"><a class="text-blue-600 hover:underline" href="supervised-student-detail.html?id=20210001&name=Nguy%E1%BB%85n%20V%C4%83n%20A">Nguyễn Văn A</a></td>
-                  <td class="py-3 px-3">20210001</td>
+                  <td class="py-3 px-3"><a class="text-blue-600 hover:underline" href="supervised-student-detail.html?id={{ $student_code }}&name={{ urlencode($fullname) }}">{{ $fullname }}</a></td>
+                  <td class="py-3 px-3">{{ $student_code }}</td>
                   <td class="py-3 px-3">CNTT-01</td>
                   <td class="py-3 px-3">8.5</td>
                   <td class="py-3 px-3"><span class="px-2 py-0.5 rounded-full text-xs bg-emerald-50 text-emerald-700">Đạt</span></td>
@@ -1002,34 +914,7 @@
                     </div>
                   </td>
                 </tr>
-                <tr class="border-b hover:bg-slate-50">
-                  <td class="py-3 px-3"><a class="text-blue-600 hover:underline" href="supervised-student-detail.html?id=20210002&name=Tr%E1%BA%A7n%20Th%E1%BB%8B%20B">Trần Thị B</a></td>
-                  <td class="py-3 px-3">20210002</td>
-                  <td class="py-3 px-3">CNTT-02</td>
-                  <td class="py-3 px-3">6.8</td>
-                  <td class="py-3 px-3"><span class="px-2 py-0.5 rounded-full text-xs bg-amber-50 text-amber-700">Cần bổ sung</span></td>
-                  <td class="py-3 px-3">Bổ sung và làm rõ chương 3 trong 7 ngày.</td>
-                  <td class="py-3 px-3">
-                    <div class="flex items-center gap-1">
-                      <a class="px-2 py-1 border border-slate-200 rounded text-xs hover:bg-slate-50" href="supervised-student-detail.html?id=20210002&name=Tr%E1%BA%A7n%20Th%E1%BB%8B%20B">Xem SV</a>
-                      <a class="px-2 py-1 border border-slate-200 rounded text-xs hover:bg-slate-50" href="committee-detail.html?id=CNTT-02">Xem hội đồng</a>
-                    </div>
-                  </td>
-                </tr>
-                <tr class="hover:bg-slate-50">
-                  <td class="py-3 px-3"><a class="text-blue-600 hover:underline" href="supervised-student-detail.html?id=20210003&name=L%C3%AA%20V%C4%83n%20C">Lê Văn C</a></td>
-                  <td class="py-3 px-3">20210003</td>
-                  <td class="py-3 px-3">CNTT-01</td>
-                  <td class="py-3 px-3">8.0</td>
-                  <td class="py-3 px-3"><span class="px-2 py-0.5 rounded-full text-xs bg-emerald-50 text-emerald-700">Đạt</span></td>
-                  <td class="py-3 px-3">Hoàn thành tốt yêu cầu của hội đồng.</td>
-                  <td class="py-3 px-3">
-                    <div class="flex items-center gap-1">
-                      <a class="px-2 py-1 border border-slate-200 rounded text-xs hover:bg-slate-50" href="supervised-student-detail.html?id=20210003&name=L%C3%AA%20V%C4%83n%20C">Xem SV</a>
-                      <a class="px-2 py-1 border border-slate-200 rounded text-xs hover:bg-slate-50" href="committee-detail.html?id=CNTT-01">Xem hội đồng</a>
-                    </div>
-                  </td>
-                </tr>
+              @endforeach
               </tbody>
             </table>
           </div>

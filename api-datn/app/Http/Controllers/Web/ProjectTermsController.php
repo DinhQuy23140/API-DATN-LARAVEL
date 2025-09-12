@@ -166,12 +166,6 @@ class ProjectTermsController extends Controller
 
     public function getDetailProjectTermByTeacherId($termId, $supervisorId)
     {
-        // $rows = ProjectTerm::with([
-        //     'academy_year',
-        //     'stageTimelines',
-        //     'supervisors.assignment_supervisors'
-        // ])->findOrFail($termId);
-
         $rows = ProjectTerm::whereHas('supervisors', function ($query) use ($supervisorId) {
             $query->where('id', $supervisorId);
         })->with([

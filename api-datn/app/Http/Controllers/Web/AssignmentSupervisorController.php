@@ -47,11 +47,8 @@ class AssignmentSupervisorController extends Controller
     }
 
     public function getStudentBySupervisorAndTermId($supervisorId, $termId){
-        $items = Assignment::with('student.user', 'assignment_supervisors')
-            ->whereHas('assignment_supervisors', function($query) use ($supervisorId, $termId) {
-                $query->where('supervisor_id', $supervisorId)
-                      ->where('project_term_id', $termId);
-            })
+        $items = AssignmentSupervisor ::with('assignment.student.user', 'supervisor.teacher.user')
+            ->where('supervisor_id', $supervisorId)
             ->get();
         return view('lecturer-ui.supervised-students', compact('items'));
     }
