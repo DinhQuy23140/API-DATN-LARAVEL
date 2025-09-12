@@ -17,9 +17,6 @@ class FacultiesFactory extends Factory
     public function definition()
     {
         return [
-            'code' => 'CNTT',
-            'name' => 'Khoa Công nghệ thông tin',
-            'description' => 'Khoa đào tạo ngành Công nghệ thông tin',
         ];
     }
 }

@@ -15,7 +15,10 @@ class FacultiesSeeder extends Seeder
      */
     public function run()
     {
-        //
-        Faculties::factory(1)->create();
+        Faculties::factory()->create([
+            'code' => 'CNTT',
+            'name' => 'Khoa Công nghệ thông tin',
+            'description' => 'Khoa đào tạo ngành Công nghệ thông tin',
+        ]);
     }
 }

@@ -8,12 +8,13 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
   <style>
-    /* Thống nhất với round-detail */
-    body { font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; }
+    body { font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial; }
+    html,body { height:100%; }
+    body.lock-scroll { overflow:hidden; }
     .sidebar-collapsed .sidebar-label { display:none; }
     .sidebar-collapsed .sidebar { width:72px; }
     .sidebar { width:260px; }
-    .table-wrap { overflow: auto; }
+    .table-wrap { overflow:auto; }
   </style>
 </head>
 <body class="bg-slate-50 text-slate-800">
@@ -32,7 +33,7 @@
   ];
 @endphp
 
-<div class="flex min-h-screen">
+<div id="layoutRoot" class="flex h-screen">
     @php
     $user = auth()->user();
     $userName = $user->fullname ?? $user->name ?? 'Giảng viên';
@@ -51,7 +52,7 @@
       ?? 'https://ui-avatars.com/api/?name=' . urlencode($userName) . '&background=0ea5e9&color=ffffff';
   @endphp
   <!-- Sidebar (đồng nhất với round-detail) -->
-  <aside id="sidebar" class="sidebar fixed inset-y-0 left-0 z-30 bg-white border-r border-slate-200 flex flex-col transition-all">
+  <aside id="sidebar" class="sidebar fixed inset-y-0 left-0 z-30 bg-white border-r border-slate-200 flex flex-col transition-all overflow-hidden">
     <div class="h-16 flex items-center gap-3 px-4 border-b border-slate-200">
       <div class="h-9 w-9 grid place-items-center rounded-lg bg-blue-600 text-white"><i class="ph ph-buildings"></i></div>
       <div class="sidebar-label">
@@ -59,7 +60,7 @@
         <div class="text-xs text-slate-500">Quản trị khoa</div>
       </div>
     </div>
-    <nav class="flex-1 overflow-y-auto p-3">
+    <nav class="flex-1 p-3">
       <a href="{{ route('web.assistant.dashboard') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-gauge"></i><span class="sidebar-label">Bảng điều khiển</span></a>
       <a href="{{ route('web.assistant.manage_departments') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-buildings"></i><span class="sidebar-label">Bộ môn</span></a>
       <a href="{{ route('web.assistant.manage_majors') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-book-open-text"></i><span class="sidebar-label">Ngành</span></a>
@@ -88,8 +89,8 @@
   </aside>
 
   <!-- Main -->
-  <div class="flex-1 h-screen overflow-hidden flex flex-col">
-    <!-- Header (đồng nhất với round-detail) -->
+  <div class="flex-1 min-h-screen flex flex-col">
+    <!-- Header cố định -->
     @php
       $user = auth()->user();
       $userName = $user->fullname ?? $user->name ?? 'Assistant';
@@ -98,7 +99,7 @@
         ?? $user->profile_photo_url
         ?? 'https://ui-avatars.com/api/?name=' . urlencode($userName) . '&background=0ea5e9&color=ffffff';
     @endphp
-    <header class="h-16 bg-white border-b border-slate-200 flex items-center px-4 md:px-6 flex-shrink-0">
+    <header class="fixed top-0 left-0 md:left-[260px] right-0 h-16 bg-white border-b border-slate-200 flex items-center px-4 md:px-6 z-40">
       <div class="flex items-center gap-3 flex-1">
         <button id="openSidebar" class="md:hidden p-2 rounded-lg hover:bg-slate-100"><i class="ph ph-list"></i></button>
         <div>
@@ -123,8 +124,8 @@
       </div>
     </header>
 
-    <!-- Content -->
-    <main class="max-w-7xl mx-auto px-4 md:px-6 py-6 space-y-6">
+    <!-- Content scroll -->
+    <main id="mainScroll" class="flex-1 pt-20 h-full overflow-y-auto px-4 md:px-6 pb-10 space-y-6 max-w-7xl mx-auto">
       @php
         $lecturerCount   = is_countable($supervisors ?? []) ? count($supervisors) : 0;
         $unassignedCount = is_countable($students ?? []) ? count($students) : 0;
@@ -347,6 +348,11 @@
       caret?.classList.toggle('rotate-180', expanded);
     });
   });
+
+  document.body.classList.add('lock-scroll'); // khóa body scroll
+  // đảm bảo main luôn có scrollbar riêng (tránh layout shift)
+  const mainEl = document.getElementById('mainScroll');
+  mainEl.classList.add('overflow-y-scroll');
 
   const CSRF='{{ csrf_token() }}';
 

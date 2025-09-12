@@ -18,11 +18,12 @@ return new class extends Migration
             $table->unsignedBigInteger('user_id');
             $table->string('student_code')->unique();
             $table->string('class_code');
-            $table->string('major_id');
-            $table->string('department_id');
+            $table->unsignedBigInteger('marjor_id');
+            // $table->string('department_id');
             $table->string('course_year');
             $table->timestamps();
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
+            $table->foreign('marjor_id')->references('id')->on('marjors')->onDelete('cascade');
         });
     }
 

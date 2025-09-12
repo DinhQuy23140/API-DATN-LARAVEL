@@ -10,12 +10,19 @@ class Student extends Model
 {
     use HasFactory;
 
-    protected $fillable = [
+    // protected $fillable = [
+    //     'user_id',
+    //     'student_code',
+    //     'class_code',
+    //     'major_id',
+    //     'department_id',
+    //     'course_year',
+    // ];
+        protected $fillable = [
         'user_id',
         'student_code',
         'class_code',
         'major_id',
-        'department_id',
         'course_year',
     ];
 
@@ -26,6 +33,10 @@ class Student extends Model
 
     public function assignment() {
         return $this->hasOne(Assignment::class);
+    }
+
+    public function marjor() {
+        return $this->belongsTo(Marjor::class);
     }
 
 }

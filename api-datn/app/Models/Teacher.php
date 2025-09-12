@@ -15,7 +15,6 @@ class Teacher extends Model
         'degree',
         'department_id',
         'position',
-        'faculties_id',
     ];
 
     public function user()
@@ -26,5 +25,10 @@ class Teacher extends Model
     public function supervisor()
     {
         return $this->hasOne(Supervisor::class);
+    }
+
+    public function department()
+    {
+        return $this->belongsTo(Department::class);
     }
 }

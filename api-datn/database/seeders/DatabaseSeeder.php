@@ -19,6 +19,18 @@ class DatabaseSeeder extends Seeder
         //     UsersSeeder::class,
         // ]);
         $this->call([
+            FacultiesSeeder::class,
+        ]);
+
+        $this->call([
+            MarjorSeeder::class,
+        ]);
+
+        $this->call([
+            DepartmentSeeder::class,
+        ]);
+        
+        $this->call([
             TeacherSeeder::class,
         ]);
 
@@ -60,6 +72,14 @@ class DatabaseSeeder extends Seeder
 
         $this->call([
             StageTimelineSeeder::class,
+        ]);
+
+        $this->call([
+            CohortSeeder::class,
+        ]);
+
+        $this->call([
+            ClassRoomSeeder::class,
         ]);
     }
 }

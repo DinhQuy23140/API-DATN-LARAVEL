@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\Department;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use App\Models\User;
 
@@ -30,8 +31,7 @@ class TeacherFactory extends Factory
             ]),
 
             // Giả định department_id, faculties_id là số nguyên
-            'department_id' => $this->faker->numberBetween(1, 10),
-            'faculties_id' => $this->faker->numberBetween(1, 5),
+            'department_id' => Department::inRandomOrder()->first()->id ?? Department::factory()->create()->id,
 
             // Chọn chức vụ
             'position' => $this->faker->randomElement([

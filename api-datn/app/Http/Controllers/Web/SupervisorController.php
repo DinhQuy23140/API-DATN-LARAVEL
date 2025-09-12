@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Models\AcademyYear;
+use App\Models\AssignmentSupervisor;
 use App\Models\ProjectTerm;
 use App\Models\Supervisor;
 use App\Models\Teacher;
@@ -47,12 +48,18 @@ class SupervisorController extends Controller
     {
         $idUser = Auth::id();
         $user = User::with('teacher.supervisor')
-        ->with('teacher.supervisor.assignment_supervisors.assignment')
+        ->with('teacher.supervisor.assignment_supervisors.assignment.student.marjor')
         ->findOrFail(Auth::id());
         $years = AcademyYear::orderBy('year_name', 'desc')->get();
 
         $terms = ProjectTerm::select('stage')->distinct()->pluck('stage');
-        return view('lecturer-ui.students', compact( 'user', 'years', 'terms'));
+
+        $assignmentSupervisors = AssignmentSupervisor::with(['assignment.student.marjor', 'assignment.project', 'assignment.project_term'])
+            ->whereHas('assignment', function($query) use ($supervisorId) {
+                $query->where('supervisor_id', $supervisorId);
+            })
+            ->get();
+        return view('lecturer-ui.students', compact( 'user', 'years', 'terms', 'assignmentSupervisors'));
     }
 
     public function getAllSupervisorsByTerm($termId){

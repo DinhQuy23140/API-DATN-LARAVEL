@@ -74,7 +74,7 @@
                class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('web.teacher.thesis_internship') ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}">
               <i class="ph ph-briefcase"></i><span class="sidebar-label">Thực tập tốt nghiệp</span>
             </a>
-            <a href="{{ route('web.teacher.thesis_rounds', ['supervisorId' => $supervisorId]) }}"
+            <a href="{{ route('web.teacher.thesis_rounds', ['teacherId' => $teacherId]) }}"
                class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('web.teacher.thesis_rounds') ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}">
               <i class="ph ph-calendar"></i><span class="sidebar-label">Học phần tốt nghiệp</span>
             </a>
@@ -123,9 +123,10 @@
           <div class="max-w-6xl mx-auto space-y-6">
           <section class="bg-white rounded-xl border border-slate-200 p-5">
             <div class="flex items-center justify-between">
+              <pre>{{dd($assignmentSupervisors)}}</pre>
               @php
                 $user = Auth::user();
-                $assignmentSupervisors = $user->teacher->supervisor->assignment_supervisors;
+                //$assignmentSupervisors = $user->teacher->supervisor->assignment_supervisors;
                 //$years = collect($assignmentSupervisors)
                 //  ->map(fn($as) => data_get($as, 'assignment.batch_student.project_term.academy_year.year_name'))
                 //  ->filter()->unique()->values();
@@ -199,7 +200,7 @@
                         data-status="{{ strtolower($statusRaw) }}">
                       <td class="py-3 px-4">{{ $assignmentSupervisor->assignment->student->student_code }}</td>
                       <td class="py-3 px-4">{{ $assignmentSupervisor->assignment->student->user->fullname }}</td>
-                      <td class="py-3 px-4">{{ $assignmentSupervisor->assignment->student->major }}</td>
+                      <td class="py-3 px-4">{{ $assignmentSupervisor->assignment->student->marjor->name }}</td>
                       <td class="py-3 px-4">{{ $assignmentSupervisor->assignment->project->name }}</td>
                       <td class="py-3 px-4">{{ $stage }}</td>
                       <td class="py-3 px-4">{{ $yearName }}</td>
@@ -217,7 +218,7 @@
                           'rejected' => 'Từ chối',
                         ];
                         $statusClass = $statusColors[$assignmentSupervisor->assignment->status] ?? 'bg-slate-100 text-slate-800';
-                        $statusLabel = $statusLabels[$assignmentSupervisor->assignment->status] ?? ucfirst($item->status);
+                        $statusLabel = $statusLabels[$assignmentSupervisor->assignment->status] ?? ucfirst($assignmentSupervisor->status);
                       @endphp
                       <td class="py-3 px-4">
                         <span class="px-2 py-1 rounded-full text-xs {{ $statusClass }}">{{ $statusLabel }}</span>

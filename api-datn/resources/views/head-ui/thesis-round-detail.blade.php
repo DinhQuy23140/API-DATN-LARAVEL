@@ -11,6 +11,8 @@
 <script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
 <style>
   body { font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; }
+  html, body { height:100%; }
+  body { overflow:hidden; } /* Khóa cuộn toàn trang, chỉ main cuộn */
   .sidebar-collapsed .sidebar-label { display:none; }
   .sidebar-collapsed .sidebar { width:72px; }
   .sidebar { width:260px; }
@@ -36,8 +38,8 @@
       ?? $user->profile_photo_url
       ?? 'https://ui-avatars.com/api/?name=' . urlencode($userName) . '&background=0ea5e9&color=ffffff';
   @endphp
-  <div class="flex min-h-screen">
-    <aside id="sidebar" class="sidebar fixed inset-y-0 left-0 z-30 bg-white border-r border-slate-200 flex flex-col transition-all">
+  <div class="flex h-screen">
+    <aside id="sidebar" class="sidebar fixed inset-y-0 left-0 z-30 bg-white border-r border-slate-200 flex flex-col transition-all overflow-hidden">
       <div class="h-16 flex items-center gap-3 px-4 border-b border-slate-200">
         <div class="h-9 w-9 grid place-items-center rounded-lg bg-indigo-600 text-white"><i class="ph ph-chalkboard-teacher"></i></div>
         <div class="sidebar-label">
@@ -50,7 +52,7 @@
           || request()->routeIs('web.head.thesis_rounds')
           || request()->routeIs('web.head.thesis_round_detail');
       @endphp
-      <nav class="flex-1 overflow-y-auto p-3">
+      <nav class="flex-1 p-3">
         <a href="{{ route('web.head.overview') }}"
            class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('web.head.overview') ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}">
           <i class="ph ph-gauge"></i><span class="sidebar-label">Tổng quan</span>
@@ -95,7 +97,7 @@
       </div>
     </aside>
 
-    <div class="flex-1 min-h-screen flex flex-col">
+    <div class="flex-1 h-screen flex flex-col">
       <!-- Header + Main giữ nguyên -->
       <header class="fixed left-0 md:left-[260px] right-0 top-0 h-16 bg-white border-b border-slate-200 flex items-center px-4 md:px-6 z-20">
         <div class="flex items-center gap-3 flex-1">
@@ -127,7 +129,7 @@
           </div>
         </div>
       </header>
-      <main class="flex-1 pt-20 px-4 md:px-6 pb-10 space-y-6">
+      <main class="flex-1 pt-20 px-4 md:px-6 pb-10 space-y-6 overflow-y-auto">
         <div class="max-w-6xl mx-auto space-y-6">
           <!-- Round Info -->
           <section class="bg-white rounded-xl border border-slate-200 p-5">

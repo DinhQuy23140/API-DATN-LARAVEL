@@ -15,7 +15,6 @@ class DepartmentSeeder extends Seeder
      */
     public function run()
     {
-        //
         $departments = [
             ['code' => 'BM001', 'name' => 'Khoa học máy tính', 'description' => 'Bộ môn Khoa học máy tính'],
             ['code' => 'BM002', 'name' => 'Kỹ thuật phần mềm', 'description' => 'Bộ môn Kỹ thuật phần mềm'],
@@ -25,7 +24,12 @@ class DepartmentSeeder extends Seeder
         ];
 
         foreach ($departments as $dept) {
-            Department::create($dept);
+            Department::create([
+                'code'        => $dept['code'],
+                'name'        => $dept['name'],
+                'description' => $dept['description'],
+                'faculty_id'  => 1, // gán cố định khoa CNTT
+            ]);
         }
     }
 }

@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\Marjor;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -17,8 +18,10 @@ class CohortFactory extends Factory
     public function definition()
     {
         return [
-            //
-            
+            'number_course' => $this->faker->numberBetween(60, 67), // số khóa học
+            'year_of_admission' => $this->faker->year(), // năm nhập học
+            'number_students' => $this->faker->numberBetween(400, 600), // số lượng sinh viên
+            'marjor_id' => Marjor::inRandomOrder()->first()->id ?? Marjor::factory(), 
         ];
     }
 }

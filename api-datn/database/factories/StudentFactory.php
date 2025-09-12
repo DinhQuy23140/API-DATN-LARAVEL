@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Models\Marjor;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use App\Models\User;
 
@@ -30,8 +31,8 @@ class StudentFactory extends Factory
             'class_code' => strtoupper($this->faker->bothify('CSE###')),
 
             // Major & Department chưa có thì random trong khoảng (ví dụ: 1-5)
-            'major_id' => $this->faker->numberBetween(1, 5),
-            'department_id' => $this->faker->numberBetween(1, 5),
+            'major_id' => Marjor::inRandomOrder()->first()->id ?? Marjor::factory()->create()->id,
+            // 'department_id' => $this->faker->numberBetween(1, 5),
 
             // Năm khóa học
             'course_year' => $this->faker->numberBetween(2018, 2025),

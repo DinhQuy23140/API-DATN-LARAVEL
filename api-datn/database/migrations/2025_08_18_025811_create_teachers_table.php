@@ -20,7 +20,7 @@ return new class extends Migration
             $table->string('degree')->nullable();
             $table->string('department_id')->nullable();
             $table->string('position')->nullable();
-            $table->string('faculties_id');
+            // $table->string('faculties_id');
             $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
             $table->timestamps();
         });
