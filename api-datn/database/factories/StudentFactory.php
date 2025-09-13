@@ -31,7 +31,7 @@ class StudentFactory extends Factory
             'class_code' => strtoupper($this->faker->bothify('CSE###')),
 
             // Major & Department chưa có thì random trong khoảng (ví dụ: 1-5)
-            'major_id' => Marjor::inRandomOrder()->first()->id ?? Marjor::factory()->create()->id,
+            'marjor_id' => Marjor::inRandomOrder()->first()->id ?? Marjor::factory()->create()->id,
             // 'department_id' => $this->faker->numberBetween(1, 5),
 
             // Năm khóa học

@@ -218,7 +218,16 @@
                 @foreach ($supervisors as $t)
                   @php
                     $pct = min(100, round(($t->assignment_supervisors->count() / max(1,$t->max_students))*100));
-                    $color = $pct>=100 ? 'bg-rose-600' : ($pct>=75 ? 'bg-yellow-600' : 'bg-emerald-600');
+                    // màu thanh tiến độ (gradient)
+                    $barClass = $pct>=100
+                      ? 'bg-gradient-to-r from-rose-500 to-rose-600'
+                      : ($pct>=75
+                        ? 'bg-gradient-to-r from-amber-500 to-amber-600'
+                        : 'bg-gradient-to-r from-emerald-500 to-emerald-600');
+                    // màu badge phần trăm
+                    $pctBadge = $pct>=100
+                      ? 'bg-rose-50 text-rose-700'
+                      : ($pct>=75 ? 'bg-amber-50 text-amber-700' : 'bg-emerald-50 text-emerald-700');
                   @endphp
                   <tr class="border-b hover:bg-slate-50"
                       data-id="{{ $t->id }}"
@@ -234,13 +243,15 @@
                     </td>
                     <td class="py-2 px-3">{{ $t->expertise }}</td>
                     <td class="py-2 px-3">
-                      <div class="flex items-center justify-between text-xs text-slate-600">
-                        <span><span class="cur">{{ $t->assignment_supervisors->count() }}</span>/<span class="max">{{ $t->max_students }}</span></span>
-                        <span>{{ $pct }}%</span>
+                      <div class="flex items-center justify-start gap-4 text-xs text-slate-600">
+                        <span class="inline-flex items-center gap-1">
+                          <span class="cur font-medium">{{ $t->assignment_supervisors->count() }}</span>/<span class="max">{{ $t->max_students }}</span>
+                        </span>
+                        <span class="pct inline-flex items-center px-1.5 py-0.5 rounded-md text-[11px] font-medium {{ $pctBadge }}">{{ $pct }}%</span>
                       </div>
-                      <div class="w-full bg-slate-200 rounded-full h-2 mt-1">
-                        <div class="{{ $color }} h-2 rounded-full" style="width: {{ $pct }}%"></div>
-                      </div>
+                       <div class="w-full bg-slate-200 rounded-full h-2 mt-1">
+                        <div class="h-2 rounded-full {{ $barClass }}" style="width: {{ $pct }}%"></div>
+                       </div>
                     </td>
                   </tr>
                 @endforeach
@@ -415,6 +426,34 @@
     setTimeout(()=> el.remove(), 2100);
   }
 
+  function updateTeacherCapacityRow(teacherRow, delta=0){
+    if(!teacherRow) return;
+    const curEl = teacherRow.querySelector('.cur');
+    const maxEl = teacherRow.querySelector('.max');
+    const pctEl = teacherRow.querySelector('.pct');
+    const bar   = teacherRow.querySelector('.h-2.rounded-full');
+    let cur = parseInt(curEl?.textContent || teacherRow.dataset.current || '0', 10) + (delta||0);
+    const max = parseInt(maxEl?.textContent || teacherRow.dataset.max || '0', 10) || 0;
+    cur = Math.max(0, cur);
+    teacherRow.dataset.current = cur;
+    if(curEl) curEl.textContent = cur;
+    const pct = max > 0 ? Math.min(100, Math.round((cur / max) * 100)) : 0;
+    if(pctEl){
+      pctEl.textContent = pct + '%';
+      const badgeClass = pct>=100
+        ? 'bg-rose-50 text-rose-700'
+        : (pct>=75 ? 'bg-amber-50 text-amber-700' : 'bg-emerald-50 text-emerald-700');
+      pctEl.className = `pct inline-flex items-center px-1.5 py-0.5 rounded-md text-[11px] font-medium ${badgeClass}`;
+    }
+    if(bar){
+      bar.style.width = pct + '%';
+      const grad = pct>=100
+        ? 'bg-gradient-to-r from-rose-500 to-rose-600'
+        : (pct>=75 ? 'bg-gradient-to-r from-amber-500 to-amber-600' : 'bg-gradient-to-r from-emerald-500 to-emerald-600');
+      bar.className = `h-2 rounded-full ${grad}`;
+    }
+  }
+
   async function doAssign(){
      const teacherRow = document.querySelector('#tbTeachers input[type="radio"]:checked')?.closest('tr');
      if(!teacherRow) { toast('Vui lòng chọn giảng viên', 'error'); return; }
@@ -459,20 +498,12 @@
            return;
          }
 
-         // Cập nhật UI demo
-         const curEl = teacherRow.querySelector('.cur');
-         const maxEl = teacherRow.querySelector('.max');
-         const newCur = parseInt(curEl.textContent||'0',10) + selectedStudents.length;
-         teacherRow.dataset.current = newCur;
-         curEl.textContent = newCur;
-         const pct = Math.min(100, Math.round((newCur/Math.max(1, parseInt(maxEl.textContent||'0',10)))*100));
-         const bar = teacherRow.querySelector('.h-2.rounded-full');
-         bar.style.width = pct + '%';
-         bar.className = `h-2 rounded-full ${pct>=100?'bg-rose-600':(pct>=75?'bg-yellow-600':'bg-emerald-600')}`;
+         // Cập nhật UI: số SV + % + thanh tiến độ trong hàng giảng viên
+         updateTeacherCapacityRow(teacherRow, selectedStudents.length);
 
-         selectedStudents.forEach(tr => tr.remove());
-         document.getElementById('chkAll')?.checked && (document.getElementById('chkAll').checked = false);
-         toast('Phân công thành công');
+          selectedStudents.forEach(tr => tr.remove());
+          document.getElementById('chkAll')?.checked && (document.getElementById('chkAll').checked = false);
+          toast('Phân công thành công');
        }
      });
   }

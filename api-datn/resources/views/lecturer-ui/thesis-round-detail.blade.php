@@ -74,7 +74,13 @@
         </div>
       </div>
       @php
-        $isThesisOpen = request()->routeIs('web.teacher.thesis_internship') || request()->routeIs('web.teacher.thesis_rounds');
+        // Mở nhóm "Học phần tốt nghiệp" nếu vào các trang liên quan (kể cả trang chi tiết)
+        $isThesisOpen = request()->routeIs('web.teacher.thesis_internship')
+          || request()->routeIs('web.teacher.thesis_rounds')
+          || request()->routeIs('web.teacher.thesis_round_detail'); // thêm route detail nếu có
+        // Active item "Đồ án tốt nghiệp" trong submenu cho cả list + detail
+        $isThesisRoundsActive = request()->routeIs('web.teacher.thesis_rounds')
+          || request()->routeIs('web.teacher.thesis_round_detail');
       @endphp
       <nav class="flex-1 overflow-y-auto p-3">
         <a href="{{ route('web.teacher.overview') }}"
@@ -93,10 +99,12 @@
         </a>
 
         @if ($user->teacher && $user->teacher->supervisor)
-          <a href="{{ route('web.teacher.students', ['supervisorId' => $user->teacher->supervisor->id]) }}"
-            class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('web.teacher.students') ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}">
-            <i class="ph ph-student"></i><span class="sidebar-label">Sinh viên</span>
-          </a>
+          <a id="menuStudents"
+            href="{{ route('web.teacher.students', ['supervisorId' => $user->teacher->supervisor->id]) }}"
+            class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"
+            data-skip-active="1">
+             <i class="ph ph-student"></i><span class="sidebar-label">Sinh viên</span>
+           </a>
         @else
           <span class="text-slate-400">Chưa có supervisor</span>
         @endif
@@ -121,8 +129,8 @@
             <i class="ph ph-briefcase"></i><span class="sidebar-label">Thực tập tốt nghiệp</span>
           </a>
           <a href="{{ route('web.teacher.thesis_rounds', ['teacherId' => $teacherId]) }}"
-            class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('web.teacher.thesis_rounds') ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}"
-            @if(request()->routeIs('web.teacher.thesis_rounds')) aria-current="page" @endif>
+            class="flex items-center gap-3 px-3 py-2 rounded-lg {{ $isThesisRoundsActive ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}"
+            @if($isThesisRoundsActive) aria-current="page" @endif>
             <i class="ph ph-calendar"></i><span class="sidebar-label">Đồ án tốt nghiệp</span>
           </a>
         </div>
@@ -547,7 +555,7 @@
                 </tr>
               </thead>
               <tbody>
-              @foreach ($assignmentSupervisors as $assignmentSupervisor) )
+              @foreach ($assignmentSupervisors as $assignmentSupervisor)
                 @php
                   $student = $assignmentSupervisor->assignment->student;
                   $fullname = $student->user->fullname;
@@ -951,6 +959,17 @@
     // Show Stage 1 by default when the page loads
     window.addEventListener('DOMContentLoaded', function () {
       try { showStageDetails(1); } catch (e) { console.error('Init stage load failed:', e); }
+     // Mở cứng submenu "Học phần tốt nghiệp" nếu đang ở trang chi tiết
+     const submenu = document.getElementById('thesisSubmenu');
+     const toggleBtn = document.getElementById('toggleThesisMenu');
+     const caret = document.getElementById('thesisCaret');
+     if (submenu && toggleBtn && caret) {
+       submenu.classList.remove('hidden');
+       toggleBtn.setAttribute('aria-expanded','true');
+       caret.classList.add('rotate-180');
+       // Tô đậm nhóm
+       toggleBtn.classList.add('bg-slate-100','font-semibold');
+     }
     });
 
     // Profile dropdown
@@ -972,15 +991,15 @@
 
     // Auto active nav highlight (bỏ qua link đã có aria-current)
     (function () {
-      const current = location.pathname.split('/').pop();
-      document.querySelectorAll('aside nav a').forEach(a => {
-        if (a.hasAttribute('aria-current')) return;
-        const href = a.getAttribute('href') || '';
-        const active = href.endsWith(current);
-        a.classList.toggle('bg-slate-100', active);
-        a.classList.toggle('font-semibold', active);
-      });
-    })();
+       const current = location.pathname.split('/').pop();
+       document.querySelectorAll('aside nav a').forEach(a => {
+        if (a.hasAttribute('aria-current') || a.dataset.skipActive != null) return;
+         const href = a.getAttribute('href') || '';
+         const active = href.endsWith(current);
+         a.classList.toggle('bg-slate-100', active);
+         a.classList.toggle('font-semibold', active);
+       });
+     })();
   </script>
 </body>
 

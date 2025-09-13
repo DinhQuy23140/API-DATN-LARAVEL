@@ -47,10 +47,6 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $this->call([
-            BatchStudentSeeder::class,
-        ]);
-
-        $this->call([
             SupervisorSeeder::class,
         ]);
 
