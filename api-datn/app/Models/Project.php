@@ -23,4 +23,9 @@ class Project extends Model
         return $this->hasMany(ProgressLog::class);
     }
 
+    public function reportFiles()
+    {
+        return $this->hasMany(ReportFiles::class);
+    }
+
 }

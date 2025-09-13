@@ -77,5 +77,9 @@ class DatabaseSeeder extends Seeder
         $this->call([
             ClassRoomSeeder::class,
         ]);
+
+        $this->call([
+            ReportFilesSeeder::class,
+        ]);
     }
 }

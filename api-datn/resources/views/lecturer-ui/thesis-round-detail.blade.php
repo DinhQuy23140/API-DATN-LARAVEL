@@ -428,7 +428,7 @@
           <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-3">
             <div class="relative">
               <i class="ph ph-magnifying-glass absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
-              <input class="pl-8 pr-3 py-2 border border-slate-200 rounded text-sm w-64" placeholder="Tìm theo tên/MSSV/đề tài" />
+              <input id="searchStage2" class="pl-8 pr-3 py-2 border border-slate-200 rounded text-sm w-64" placeholder="Tìm theo tên/MSSV/đề tài" />
             </div>
             <div class="flex items-center gap-2 text-xs">
               <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100 text-slate-700"><span class="h-2 w-2 rounded-full bg-slate-400"></span> Chưa nộp</span>
@@ -438,7 +438,7 @@
             </div>
           </div>
           <div class="overflow-x-auto">
-            <table class="w-full text-sm">
+            <table id="tableStage2" class="w-full text-sm">
               <thead>
                 <tr class="text-left text-slate-500 border-b">
                   <th class="py-3 px-3">Sinh viên</th>
@@ -455,7 +455,7 @@
                 $student = $assignmentSupervisor->assignment->student;
                 $fullname = $student->user->fullname;
                 $student_code = $student->student_code;
-                $topic = $assignmentSupervisor->assignment->project_id ?? 'Chưa có đề tài';
+                $topic = $assignmentSupervisor->assignment->project->name ?? 'Chưa có đề tài';
               @endphp
                 <tr class="border-b hover:bg-slate-50">
                   <td class="py-3 px-3"><a class="text-blue-600 hover:underline" href="supervised-student-detail.html?id={{ $student_code }}&name={{ urlencode($fullname) }}">{{ $fullname }}</a></td>
@@ -482,7 +482,7 @@
           <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-3">
             <div class="relative">
               <i class="ph ph-magnifying-glass absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
-              <input class="pl-8 pr-3 py-2 border border-slate-200 rounded text-sm w-64" placeholder="Tìm theo tên/MSSV/tuần" />
+              <input id="searchStage3" class="pl-8 pr-3 py-2 border border-slate-200 rounded text-sm w-64" placeholder="Tìm theo tên/MSSV/tuần" />
             </div>
             <div class="flex items-center gap-2 text-xs">
               <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100 text-slate-700"><span class="h-2 w-2 rounded-full bg-slate-400"></span> Chưa nộp</span>
@@ -492,7 +492,7 @@
             </div>
           </div>
           <div class="overflow-x-auto">
-            <table class="w-full text-sm">
+            <table id="tableStage3" class="w-full text-sm">
               <thead>
                 <tr class="text-left text-slate-500 border-b">
                   <th class="py-3 px-3">Sinh viên</th>
@@ -535,7 +535,7 @@
           <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-3">
             <div class="relative">
               <i class="ph ph-magnifying-glass absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
-              <input class="pl-8 pr-3 py-2 border border-slate-200 rounded text-sm w-64" placeholder="Tìm theo tên/MSSV/đề tài" />
+              <input id="searchStage4" class="pl-8 pr-3 py-2 border border-slate-200 rounded text-sm w-64" placeholder="Tìm theo tên/MSSV/đề tài" />
             </div>
             <div class="flex items-center gap-2 text-xs">
               <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100 text-slate-700"><span class="h-2 w-2 rounded-full bg-slate-400"></span> Chưa nộp</span>
@@ -543,7 +543,7 @@
             </div>
           </div>
           <div class="overflow-x-auto">
-            <table class="w-full text-sm">
+            <table id="tableStage4" class="w-full text-sm">
               <thead>
                 <tr class="text-left text-slate-500 border-b">
                   <th class="py-3 px-3">Sinh viên</th>
@@ -623,12 +623,12 @@
           <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-3">
             <div class="relative">
               <i class="ph ph-magnifying-glass absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
-              <input class="pl-8 pr-3 py-2 border border-slate-200 rounded text-sm w-64" placeholder="Tìm theo tên/MSSV/hội đồng" />
+              <input id="searchStage5" class="pl-8 pr-3 py-2 border border-slate-200 rounded text-sm w-64" placeholder="Tìm theo tên/MSSV/hội đồng" />
             </div>
             <div class="flex items-center gap-2"></div>
           </div>
           <div class="overflow-x-auto">
-            <table class="w-full text-sm">
+            <table id="tableStage5" class="w-full text-sm">
               <thead>
                 <tr class="text-left text-slate-500 border-b">
                   <th class="py-3 px-3">Sinh viên</th>
@@ -688,7 +688,6 @@
                   </tr>
                 @endforeach
               </tbody>
-
             </table>
           </div>
         </div>`;
@@ -735,49 +734,56 @@
           <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-3">
             <div class="relative">
               <i class="ph ph-magnifying-glass absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
-              <input class="pl-8 pr-3 py-2 border border-slate-200 rounded text-sm w-64" placeholder="Tìm theo tên/MSSV/hội đồng" />
+              <input id="searchStage6" class="pl-8 pr-3 py-2 border border-slate-200 rounded text-sm w-64" placeholder="Tìm theo tên/MSSV/hội đồng" />
             </div>
           </div>
           <div class="overflow-x-auto">
-            <table class="w-full text-sm">
-              <thead>
-                <tr class="text-left text-slate-500 border-b">
-                  <th class="py-3 px-3">Sinh viên</th>
-                  <th class="py-3 px-3">MSSV</th>
-                  <th class="py-3 px-3">Hội đồng</th>
-                  <th class="py-3 px-3">GV phản biện</th>
-                  <th class="py-3 px-3">Chức vụ</th>
-                  <th class="py-3 px-3">Số thứ tự PB</th>
-                  <th class="py-3 px-3">Thời gian</th>
-                  <th class="py-3 px-3">Hành động</th>
-                </tr>
-              </thead>
-              <tbody>
-              @foreach ($assignmentSupervisors as $assignmentSupervisor)
-                @php
-                  $student = $assignmentSupervisor->assignment->student;
-                  $fullname = $student->user->fullname;
-                  $student_code = $student->student_code;
-                  $topic = $assignmentSupervisor->assignment->project->title ?? 'Chưa có đề tài';
-                @endphp
-                <tr class="border-b hover:bg-slate-50">
-                  <td class="py-3 px-3"><a class="text-blue-600 hover:underline" href="supervised-student-detail.html?id={{ $student_code }}&name={{ urlencode($fullname) }}">{{ $fullname }}</a></td>
-                  <td class="py-3 px-3">{{ $student_code }}</td>
-                  <td class="py-3 px-3">CNTT-01</td>
-                  <td class="py-3 px-3">TS. Nguyễn Thị E</td>
-                  <td class="py-3 px-3">Phản biện</td>
-                  <td class="py-3 px-3">01</td>
-                  <td class="py-3 px-3">20/08/2025 • 08:00</td>
-                  <td class="py-3 px-3">
-                    <div class="flex items-center gap-1">
-                      <a class="px-2 py-1 border border-slate-200 rounded text-xs hover:bg-slate-50" href="supervised-student-detail.html?id=20210001&name=Nguy%E1%BB%85n%20V%C4%83n%20A">Xem SV</a>
-                      <a class="px-2 py-1 border border-slate-200 rounded text-xs hover:bg-slate-50" href="committee-detail.html?id=CNTT-01">Xem hội đồng</a>
-                    </div>
-                  </td>
-                </tr>
-              @endforeach
-              </tbody>
-            </table>
+            <table id="tableStage6" class="w-full text-sm border-collapse">
+                <thead>
+                  <tr class="bg-slate-100 text-slate-600 text-xs uppercase">
+                    <th class="px-4 py-3 text-center">Sinh viên</th>
+                    <th class="px-4 py-3 text-center">MSSV</th>
+                    <th class="px-4 py-3 text-center">Hội đồng</th>
+                    <th class="px-4 py-3 text-center">GV phản biện</th>
+                    <th class="px-4 py-3 text-center">Chức vụ</th>
+                    <th class="px-4 py-3 text-center">Số thứ tự PB</th>
+                    <th class="px-4 py-3 text-center">Thời gian</th>
+                    <th class="px-4 py-3 text-center">Hành động</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200 text-center">
+                  @foreach ($assignmentSupervisors as $assignmentSupervisor)
+                    @php
+                      $student = $assignmentSupervisor->assignment->student;
+                      $fullname = $student->user->fullname;
+                      $student_code = $student->student_code;
+                      $topic = $assignmentSupervisor->assignment->project->title ?? 'Chưa có đề tài';
+                    @endphp
+                    <tr class="hover:bg-slate-50 transition">
+                      <td class="px-4 py-3">
+                        <a class="text-blue-600 font-medium hover:underline" 
+                          href="supervised-student-detail.html?id={{ $student_code }}&name={{ urlencode($fullname) }}">
+                          {{ $fullname }}
+                        </a>
+                      </td>
+                      <td class="px-4 py-3 font-mono text-slate-700">{{ $student_code }}</td>
+                      <td class="px-4 py-3">CNTT-01</td>
+                      <td class="px-4 py-3">TS. Nguyễn Thị E</td>
+                      <td class="px-4 py-3 text-slate-600">Phản biện</td>
+                      <td class="px-4 py-3">01</td>
+                      <td class="px-4 py-3 text-slate-500">20/08/2025 • 08:00</td>
+                      <td class="px-4 py-3">
+                        <div class="flex justify-center gap-2">
+                          <a class="px-3 py-1 text-xs rounded-lg border border-slate-300 text-slate-600 hover:bg-slate-100 transition" 
+                            href="supervised-student-detail.html?id=20210001&name=Nguy%E1%BB%85n%20V%C4%83n%20A">Xem SV</a>
+                          <a class="px-3 py-1 text-xs rounded-lg border border-slate-300 text-slate-600 hover:bg-slate-100 transition" 
+                            href="committee-detail.html?id=CNTT-01">Xem hội đồng</a>
+                        </div>
+                      </td>
+                    </tr>
+                  @endforeach
+                </tbody>
+              </table>
           </div>
         </div>`;
           break;
@@ -788,7 +794,7 @@
           <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-3">
             <div class="relative">
               <i class="ph ph-magnifying-glass absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
-              <input class="pl-8 pr-3 py-2 border border-slate-200 rounded text-sm w-64" placeholder="Tìm theo tên/MSSV/hội đồng" />
+              <input id="searchStage7" class="pl-8 pr-3 py-2 border border-slate-200 rounded text-sm w-64" placeholder="Tìm theo tên/MSSV/hội đồng" />
             </div>
             <div class="flex items-center gap-2 text-xs">
               <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700"><span class="h-2 w-2 rounded-full bg-emerald-500"></span> Đạt</span>
@@ -797,7 +803,7 @@
             </div>
           </div>
           <div class="overflow-x-auto">
-            <table class="w-full text-sm">
+            <table id="tableStage7" class="w-full text-sm">
               <thead>
                 <tr class="text-left text-slate-500 border-b">
                   <th class="py-3 px-3">Sinh viên</th>
@@ -879,7 +885,7 @@
           <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-3">
             <div class="relative">
               <i class="ph ph-magnifying-glass absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
-              <input class="pl-8 pr-3 py-2 border border-slate-200 rounded text-sm w-64" placeholder="Tìm theo tên/MSSV/hội đồng" />
+              <input id="searchStage8" class="pl-8 pr-3 py-2 border border-slate-200 rounded text-sm w-64" placeholder="Tìm theo tên/MSSV/hội đồng" />
             </div>
             <div class="flex items-center gap-2 text-xs">
               <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700"><span class="h-2 w-2 rounded-full bg-emerald-500"></span> Đạt</span>
@@ -888,7 +894,7 @@
             </div>
           </div>
           <div class="overflow-x-auto">
-            <table class="w-full text-sm">
+            <table id="tableStage8" class="w-full text-sm">
               <thead>
                 <tr class="text-left text-slate-500 border-b">
                   <th class="py-3 px-3">Sinh viên</th>
@@ -935,6 +941,9 @@
       document.querySelectorAll('.timeline-stage').forEach(el => el.classList.remove('active'));
       const activeStage = document.querySelector(`.timeline-stage[data-stage="${stageNum}"]`);
       if (activeStage) activeStage.classList.add('active');
+
+     // Gắn search cho bảng của stage (nếu có)
+     attachSearchByIds(`searchStage${stageNum}`, `tableStage${stageNum}`);
     }
 
     const html = document.documentElement, sidebar = document.getElementById('sidebar');
@@ -1000,6 +1009,30 @@
          a.classList.toggle('font-semibold', active);
        });
      })();
+
+  // Helper: chuẩn hóa chuỗi để search (bỏ dấu + lowercase)
+  function textNorm(s){
+    return (s || '').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+  }
+  // Gắn sự kiện search cho input/table theo id
+  function attachSearchByIds(inputId, tableId){
+    const inp = document.getElementById(inputId);
+    const table = document.getElementById(tableId);
+    if(!inp || !table) return;
+    const rows = Array.from(table.querySelectorAll('tbody tr'));
+    const doFilter = ()=>{
+      const q = textNorm(inp.value.trim());
+      if(!q){
+        rows.forEach(tr => tr.classList.remove('hidden'));
+        return;
+      }
+      rows.forEach(tr=>{
+        const txt = textNorm(tr.innerText);
+        tr.classList.toggle('hidden', !txt.includes(q));
+      });
+    };
+    inp.addEventListener('input', doFilter);
+  }
   </script>
 </body>
 
