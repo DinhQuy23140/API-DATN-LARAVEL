@@ -22,6 +22,7 @@ return new class extends Migration
             $table->string('status')->nullable();
             $table->timestamps();
             $table->foreign('teacher_id')->references('id')->on('teachers')->onDelete('cascade');
+            $table->foreign('project_term_id')->references('id')->on('project_terms')->onDelete('cascade');
         });
     }
 

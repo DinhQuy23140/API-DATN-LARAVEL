@@ -39,7 +39,6 @@ return new class extends Migration
             // Unique constraint
             $table->unique(['project_term_id', 'number_of_rounds']);
         });
-
     }
 
     /**
