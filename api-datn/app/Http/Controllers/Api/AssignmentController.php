@@ -95,6 +95,7 @@ class AssignmentController extends Controller
                 'student.user',
                 'assignment_supervisors.supervisor.teacher.user',
                 'project.progressLogs.attachments',
+                'project'
             ])
             ->where('student_id', $studentId)
             ->where('project_term_id', $projectTermId)
@@ -139,6 +140,12 @@ class AssignmentController extends Controller
                 'project.progressLogs.attachments',
             ])
         );
+    }
+
+    public function updateProjectIdAssignmentByAssIdAndProId($assignmentId, $projectId) {
+        $assignment = Assignment::findOrFail($assignmentId);
+        $assignment->update(['project_id' => $projectId]);
+        return response()->json($assignment);
     }
 
     public function destroy(Assignment $assignment)

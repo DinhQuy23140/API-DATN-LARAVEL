@@ -17,6 +17,15 @@ class AttachmentController extends Controller
         return AttachmentResource::collection($progressLog->attachments);
     }
 
+    public function getAttacahmentByProgressLogId($progressLogId) {
+        $attachments = Attachment::where('progress_log_id', $progressLogId)->get();
+        return AttachmentResource::collection($attachments);
+    }
+
+    public function crateListAssignmentByProgressId($progressLogId, $request) {
+        
+    }
+
     public function getAllAttachment(Request $request) {
         return AttachmentResource::collection(Attachment::all());
     }
