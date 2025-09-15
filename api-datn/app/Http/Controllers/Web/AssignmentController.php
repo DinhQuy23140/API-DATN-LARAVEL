@@ -57,7 +57,7 @@ class AssignmentController extends Controller
     }
     public function destroy(Assignment $assignment){$assignment->delete(); return redirect()->route('web.assignments.index')->with('status','Đã xóa');}
 
-        public function getStudentNotInProjectTerm($termId)
+    public function getStudentNotInProjectTerm($termId)
     {
         $projectTerm = ProjectTerm::with('academy_year')->find($termId);
         $items = Student::with('user')
@@ -142,5 +142,17 @@ class AssignmentController extends Controller
 
         return back()->with('status', "Đã tạo {$added} phân công. Bỏ qua {$skipped} (đã tồn tại).")
                      ->with('not_found', $notFound);
+    }
+
+    public function getAssignmentByStudentIdAndTermId($studentId, $termId)
+    {
+        $assignment = Assignment::with(['student.user','assignment_supervisors.supervisor.teacher.user','project.progressLogs.attachments','project.reportFiles'])
+                        ->where('student_id', $studentId)
+                        ->where('project_term_id', $termId)
+                        ->first();
+        // if (!$assignment) {
+        //     return redirect()->back()->with('error', 'Không tìm thấy phân công phù hợp.');
+        // }
+        return view('lecturer-ui.supervised-student-detail', compact('assignment'));
     }
 }

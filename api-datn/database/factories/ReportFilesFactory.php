@@ -23,6 +23,7 @@ class ReportFilesFactory extends Factory
             'file_url' => $this->faker->url,
             'file_type' => $this->faker->randomElement(['pdf', 'docx', 'xlsx']),
             'type_report' => $this->faker->randomElement(['outline', 'report']),
+            'status' => $this->faker->randomElement(['pending', 'approved', 'rejected']),
         ];
     }   
 }

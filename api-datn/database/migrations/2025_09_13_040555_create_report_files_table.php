@@ -20,6 +20,7 @@ return new class extends Migration
             $table->string('file_url');
             $table->string('file_type')->nullable();
             $table->string('type_report');
+            $table->string('status')->default('pending');
             $table->foreign('project_id')->references('id')->on('projects')->onDelete('cascade');
             $table->timestamps();
         });

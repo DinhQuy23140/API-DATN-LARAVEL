@@ -173,10 +173,25 @@ class ProjectTermsController extends Controller
             'stageTimelines',
             'supervisors' => function ($query) use ($supervisorId) {
                 $query->where('id', $supervisorId)
-                      ->with('assignment_supervisors.assignment.student.user');
+                      ->with('assignment_supervisors.assignment.student.user', 'assignment_supervisors.assignment.project.progressLogs.attachments', 'assignment_supervisors.assignment.project.reportFiles');
             }
         ])->findOrFail($termId);
         return view('lecturer-ui.thesis-round-detail', compact('rows'));
+    }
+
+    public function getDetailProjectTermBySupervisorId($supervisorId, $termId)
+    {
+        $rows = ProjectTerm::whereHas('supervisors', function ($query) use ($supervisorId) {
+            $query->where('id', $supervisorId);
+        })->with([
+            'academy_year',
+            'stageTimelines',
+            'supervisors' => function ($query) use ($supervisorId) {
+                $query->where('id', $supervisorId)
+                      ->with('assignment_supervisors.assignment.student.user', 'assignment_supervisors.assignment.project.progressLogs.attachments', 'assignment_supervisors.assignment.project.reportFiles');
+            }
+        ])->findOrFail($termId);
+         return view('lecturer-ui.supervised-outline-reports', compact('rows'));
     }
 
     public function assignmentSupervisor($termId) {

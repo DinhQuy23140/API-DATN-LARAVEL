@@ -109,8 +109,8 @@
               $name = $user->fullname;
               $mssv = $student->student_code;
               $class = $student->class_code;
-              $topic = $item->assignment->project_id ? $item->assignment->project_id : 'Chưa có đề tài';
-              $startDate = $item->assignment->created_at ? date('d/m/Y', strtotime($item->assignment->start_date)) : 'Chưa xác định';
+              $topic = $item->assignment->project_id ? $item->assignment->project->name : 'Chưa có đề tài';
+              $startDate = $item->assignment->created_at->format('H:i:s d/m/Y');
               $status = $item->assignment->status ? $item->assignment->status : 'Chưa xác định';
 
             @endphp

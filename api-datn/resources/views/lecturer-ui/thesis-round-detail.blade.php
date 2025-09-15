@@ -390,7 +390,7 @@
           contentBox.innerHTML = `
         <h3 class="text-lg font-semibold mb-3">Giai đoạn 02: Đề cương sinh viên</h3>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-          <a href="supervised-outline-reports.html" class="group rounded-xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md hover:border-blue-300 transition">
+          <a href="{{ route('web.teacher.supervised_outline_reports', ['supervisorId' => $supervisorId, 'termId' => $rows->id]) }}" class="group rounded-xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md hover:border-blue-300 transition">
             <div class="flex items-start gap-3">
               <div class="h-10 w-10 rounded-lg grid place-items-center bg-gradient-to-br from-indigo-50 to-indigo-100 text-indigo-600 group-hover:from-indigo-100 group-hover:to-indigo-200">
                 <i class="ph ph-files"></i>
@@ -406,7 +406,7 @@
               </div>
             </div>
           </a>
-          <a href="outline-review-assignments.html" class="group rounded-xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md hover:border-blue-300 transition">
+          <a href="{{ route('web.teacher.outline_review_assignments', ['supervisorId' => 1, 'termId' => $rows->id]) }}" class="group rounded-xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md hover:border-blue-300 transition">
             <div class="flex items-start gap-3">
               <div class="h-10 w-10 rounded-lg grid place-items-center bg-gradient-to-br from-amber-50 to-amber-100 text-amber-600 group-hover:from-amber-100 group-hover:to-amber-200">
                 <i class="ph ph-pencil-line"></i>
@@ -455,17 +455,50 @@
                 $student = $assignmentSupervisor->assignment->student;
                 $fullname = $student->user->fullname;
                 $student_code = $student->student_code;
+                $studentId = $student->id;
                 $topic = $assignmentSupervisor->assignment->project->name ?? 'Chưa có đề tài';
+
+                // Lấy trạng thái gốc từ reportFile gần nhất
+                $statusRaw = $assignmentSupervisor->assignment
+                  ->project?->reportFiles()
+                  ->latest('created_at')
+                  ->first()?->status ?? 'pending';
+
+                // Mapping sang text hiển thị
+                $listStatus = [
+                  'pending' => 'Chưa nộp',
+                  'submitted' => 'Đã nộp',
+                  'approved' => 'Đã duyệt',
+                  'rejected' => 'Bị từ chối',
+                ];
+                $status = $listStatus[$statusRaw] ?? 'Chưa nộp';
+
+                // Mapping sang màu hiển thị
+                $listStatusColor = [
+                  'pending' => 'bg-slate-50 text-slate-700',
+                  'submitted' => 'bg-amber-50 text-amber-700',
+                  'approved' => 'bg-emerald-50 text-emerald-700',
+                  'rejected' => 'bg-rose-50 text-rose-700',
+                ];
+                $statusColor = $listStatusColor[$statusRaw] ?? 'bg-slate-50 text-slate-700';
+
+                // Thời gian cập nhật gần nhất
+                $updateLast = $assignmentSupervisor
+                  ->assignment
+                  ->project?->reportFiles()
+                  ->latest('created_at')
+                  ->first()?->created_at?->format('H:i:s d/m/Y')
+                  ?? 'Chưa nộp báo cáo';
               @endphp
                 <tr class="border-b hover:bg-slate-50">
-                  <td class="py-3 px-3"><a class="text-blue-600 hover:underline" href="supervised-student-detail.html?id={{ $student_code }}&name={{ urlencode($fullname) }}">{{ $fullname }}</a></td>
+                  <td class="py-3 px-3"><a class="text-blue-600 hover:underline" href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $rows->id]) }}">{{ $fullname }}</a></td>
                   <td class="py-3 px-3">{{ $student_code }}</td>
                   <td class="py-3 px-3">{{ $topic }}</td>
-                  <td class="py-3 px-3"><span class="px-2 py-0.5 rounded-full text-xs bg-emerald-50 text-emerald-700">Đã duyệt</span></td>
-                  <td class="py-3 px-3">02/08/2025</td>
+                  <td class="py-3 px-3"><span class="px-2 py-0.5 rounded-full text-xs {{ $statusColor }}">{{ $status }}</span></td>
+                  <td class="py-3 px-3">{{ $updateLast }}</td>
                   <td class="py-3 px-3">
                     <div class="flex items-center gap-1">
-                      <a class="px-2 py-1 border border-slate-200 rounded text-xs hover:bg-slate-50" href="supervised-student-detail.html?id={{ $student_code }}&name={{ urlencode($fullname) }}">Xem</a>
+                      <a class="px-2 py-1 border border-slate-200 rounded text-xs hover:bg-slate-50" href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $rows->id]) }}">Xem</a>
                     </div>
                   </td>
                 </tr>
@@ -509,16 +542,17 @@
                 $student = $assignmentSupervisor->assignment->student;
                 $fullname = $student->user->fullname;
                 $student_code = $student->student_code;
+                $studentId = $student->id;
               @endphp
                 <tr class="border-b hover:bg-slate-50">
-                  <td class="py-3 px-3"><a class="text-blue-600 hover:underline" href="supervised-student-detail.html?id=20210001&name=Nguy%E1%BB%85n%20V%C4%83n%20A">{{ $fullname }}</a></td>
+                  <td class="py-3 px-3"><a class="text-blue-600 hover:underline" href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $rows->id]) }}">{{ $fullname }}</a></td>
                   <td class="py-3 px-3">{{ $student_code }}</td>
                   <td class="py-3 px-3">Tuần 1</td>
                   <td class="py-3 px-3"><span class="px-2 py-0.5 rounded-full text-xs bg-emerald-50 text-emerald-700">Đã chấm</span></td>
                   <td class="py-3 px-3">02/08/2025</td>
                   <td class="py-3 px-3">
                     <div class="flex items-center gap-1">
-                      <a class="px-2 py-1 border border-slate-200 rounded text-xs hover:bg-slate-50" href="supervised-student-detail.html?id=20210001&name=Nguy%E1%BB%85n%20V%C4%83n%20A">Xem</a>
+                      <a class="px-2 py-1 border border-slate-200 rounded text-xs hover:bg-slate-50" href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $rows->id]) }}">Xem</a>
                     </div>
                   </td>
                 </tr>
@@ -560,17 +594,18 @@
                   $student = $assignmentSupervisor->assignment->student;
                   $fullname = $student->user->fullname;
                   $student_code = $student->student_code;
+                  $studentId = $student->id;
                   $topic = $assignmentSupervisor->assignment->project_id ?? 'Chưa có đề tài';
                 @endphp
                 <tr class="border-b hover:bg-slate-50">
-                  <td class="py-3 px-3"><a class="text-blue-600 hover:underline" href="supervised-student-detail.html?id=20210001&name=Nguy%E1%BB%85n%20V%C4%83n%20A">{{ $fullname }}</a></td>
+                  <td class="py-3 px-3"><a class="text-blue-600 hover:underline" href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $rows->id]) }}">{{ $fullname }}</a></td>
                   <td class="py-3 px-3">{{ $student_code }}</td>
                   <td class="py-3 px-3">{{ $topic }}</td>
                   <td class="py-3 px-3"><span class="px-2 py-0.5 rounded-full text-xs bg-amber-50 text-amber-700">Đã nộp</span></td>
                   <td class="py-3 px-3">12/08/2025</td>
                   <td class="py-3 px-3">
                     <div class="flex items-center gap-1">
-                      <a class="px-2 py-1 border border-slate-200 rounded text-xs hover:bg-slate-50" href="supervised-student-detail.html?id=20210001&name=Nguy%E1%BB%85n%20V%C4%83n%20A">Xem chi tiết</a>
+                      <a class="px-2 py-1 border border-slate-200 rounded text-xs hover:bg-slate-50" href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $rows->id]) }}">Xem chi tiết</a>
                       <a class="px-2 py-1 border border-slate-200 rounded text-xs hover:bg-slate-50" href="#">Tải báo cáo</a>
                     </div>
                   </td>
@@ -646,13 +681,14 @@
                     $student = $assignmentSupervisor->assignment->student;
                     $fullname = $student->user->fullname;
                     $student_code = $student->student_code;
+                    $studentId = $student->id;
                     $topic = $assignmentSupervisor->assignment->project->title ?? 'Chưa có đề tài';
                   @endphp
                   <tr class="border-b hover:bg-slate-50">
                     <!-- Họ tên -->
                     <td class="py-3 px-3">
                       <a class="text-blue-600 hover:underline" 
-                        href="supervised-student-detail.html?id={{ $student_code }}&name={{ urlencode($fullname) }}">
+                        href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $rows->id]) }}">
                         {{ $fullname }}
                       </a>
                     </td>
@@ -676,7 +712,7 @@
                     <td class="py-3 px-3">
                       <div class="flex items-center gap-1">
                         <a class="px-2 py-1 border border-slate-200 rounded text-xs hover:bg-slate-50" 
-                          href="supervised-student-detail.html?id={{ $student_code }}&name={{ urlencode($fullname) }}">
+                          href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $rows->id]) }}">
                           Xem SV
                         </a>
                         <a class="px-2 py-1 border border-slate-200 rounded text-xs hover:bg-slate-50" 
@@ -757,12 +793,13 @@
                       $student = $assignmentSupervisor->assignment->student;
                       $fullname = $student->user->fullname;
                       $student_code = $student->student_code;
+                      $studentId = $student->id;
                       $topic = $assignmentSupervisor->assignment->project->title ?? 'Chưa có đề tài';
                     @endphp
                     <tr class="hover:bg-slate-50 transition">
                       <td class="px-4 py-3">
                         <a class="text-blue-600 font-medium hover:underline" 
-                          href="supervised-student-detail.html?id={{ $student_code }}&name={{ urlencode($fullname) }}">
+                          href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $rows->id]) }}">
                           {{ $fullname }}
                         </a>
                       </td>
@@ -775,7 +812,7 @@
                       <td class="px-4 py-3">
                         <div class="flex justify-center gap-2">
                           <a class="px-3 py-1 text-xs rounded-lg border border-slate-300 text-slate-600 hover:bg-slate-100 transition" 
-                            href="supervised-student-detail.html?id=20210001&name=Nguy%E1%BB%85n%20V%C4%83n%20A">Xem SV</a>
+                            href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $rows->id]) }}">Xem SV</a>
                           <a class="px-3 py-1 text-xs rounded-lg border border-slate-300 text-slate-600 hover:bg-slate-100 transition" 
                             href="committee-detail.html?id=CNTT-01">Xem hội đồng</a>
                         </div>
@@ -821,10 +858,11 @@
                   $student = $assignmentSupervisor->assignment->student;
                   $fullname = $student->user->fullname;
                   $student_code = $student->student_code;
+                  $studentId = $student->id;
                   $topic = $assignmentSupervisor->assignment->project->title ?? 'Chưa có đề tài';
                 @endphp
                 <tr class="border-b hover:bg-slate-50">
-                  <td class="py-3 px-3"><a class="text-blue-600 hover:underline" href="supervised-student-detail.html?id={{ $student_code }}&name={{ urlencode($fullname) }}">{{ $fullname }}</a></td>
+                  <td class="py-3 px-3"><a class="text-blue-600 hover:underline" href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $rows->id]) }}">{{ $fullname }}</a></td>
                   <td class="py-3 px-3">{{$student_code}}</td>
                   <td class="py-3 px-3">CNTT-01</td>
                   <td class="py-3 px-3"><span class="px-2 py-0.5 rounded-full text-xs bg-emerald-50 text-emerald-700">Đạt</span></td>
@@ -832,7 +870,7 @@
                   <td class="py-3 px-3">20/08/2025 • 08:00</td>
                   <td class="py-3 px-3">
                     <div class="flex items-center gap-1">
-                      <a class="px-2 py-1 border border-slate-200 rounded text-xs hover:bg-slate-50" href="supervised-student-detail.html?id=20210001&name=Nguy%E1%BB%85n%20V%C4%83n%20A">Xem SV</a>
+                            <a class="px-2 py-1 border border-slate-200 rounded text-xs hover:bg-slate-50" href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $rows->id]) }}">Xem SV</a>
                       <a class="px-2 py-1 border border-slate-200 rounded text-xs hover:bg-slate-50" href="committee-detail.html?id=CNTT-01">Xem hội đồng</a>
                     </div>
                   </td>
@@ -912,10 +950,11 @@
                   $student = $assignmentSupervisor->assignment->student;
                   $fullname = $student->user->fullname;
                   $student_code = $student->student_code;
+                  $studentId = $student->id;
                   $topic = $assignmentSupervisor->assignment->project->title ?? 'Chưa có đề tài';
                 @endphp
                 <tr class="border-b hover:bg-slate-50">
-                  <td class="py-3 px-3"><a class="text-blue-600 hover:underline" href="supervised-student-detail.html?id={{ $student_code }}&name={{ urlencode($fullname) }}">{{ $fullname }}</a></td>
+                  <td class="py-3 px-3"><a class="text-blue-600 hover:underline" href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $rows->id]) }}">{{ $fullname }}</a></td>
                   <td class="py-3 px-3">{{ $student_code }}</td>
                   <td class="py-3 px-3">CNTT-01</td>
                   <td class="py-3 px-3">8.5</td>
@@ -923,7 +962,7 @@
                   <td class="py-3 px-3">Trình bày tốt, trả lời câu hỏi rõ ràng.</td>
                   <td class="py-3 px-3">
                     <div class="flex items-center gap-1">
-                      <a class="px-2 py-1 border border-slate-200 rounded text-xs hover:bg-slate-50" href="supervised-student-detail.html?id=20210001&name=Nguy%E1%BB%85n%20V%C4%83n%20A">Xem SV</a>
+                      <a class="px-2 py-1 border border-slate-200 rounded text-xs hover:bg-slate-50" href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $rows->id]) }}">Xem SV</a>
                       <a class="px-2 py-1 border border-slate-200 rounded text-xs hover:bg-slate-50" href="committee-detail.html?id=CNTT-01">Xem hội đồng</a>
                     </div>
                   </td>

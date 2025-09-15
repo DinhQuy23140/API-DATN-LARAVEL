@@ -156,6 +156,11 @@ Route::middleware('auth')->group(function () {
 
     Route::post('/teacher/requests/{assignmentSupervisor}/reject', [AssignmentSupervisorController::class, 'updateStatus'])
         ->name('web.teacher.requests.reject');
+
+    //stage 2
+    Route::get('/teacher/supervised-outline-reports/{supervisorId}/term/{termId}', [WebProjectTermsController::class, 'getDetailProjectTermBySupervisorId'])->name('web.teacher.supervised_outline_reports');
+    Route::view('/teacher/outline-review-assignments/{supervisorId}/term/{termId}', 'lecturer-ui.outline-review-assignments')->name('web.teacher.outline_review_assignments');
+    Route::get('/teacher/supervised-student-detail/{studentId}/term/{termId}', [WebAssignmentController::class, 'getAssignmentByStudentIdAndTermId'])->name('web.teacher.supervised_student_detail');
 });
 
 Route::middleware(['web','auth'])->group(function () {
@@ -163,4 +168,10 @@ Route::middleware(['web','auth'])->group(function () {
     Route::get('/assistant/rounds/{termId}/assign-supervisors', function ($termId) {
         return view('assistant-ui.assign-supervisors', compact('termId'));
     })->name('web.assistant.assign_supervisors');
+});
+
+
+//weekly log 
+Route::middleware('auth')->group(function () {
+    Route::get('/teacher/weekly-log-detail/{id}/student/{studentId}', [WebProgressLogController::class, 'getProgressLogByIdAndStudentId'])->name('web.teacher.weekly_log_detail');
 });

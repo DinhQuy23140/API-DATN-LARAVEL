@@ -92,21 +92,69 @@
               <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700"><span class="h-2 w-2 rounded-full bg-emerald-500"></span> Đã duyệt</span>
               <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-50 text-rose-700"><span class="h-2 w-2 rounded-full bg-rose-500"></span> Bị từ chối</span>
             </div>
-            <div class="overflow-x-auto">
+            <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
+              @php
+                $assignment_supervisors = $rows->supervisors->first()->assignment_supervisors;
+                $listStatus = [
+                  'none' => 'Chưa có',
+                  'submitted' => 'Đã nộp',
+                  'approved' => 'Đã duyệt',
+                  'rejected' => 'Bị từ chối',
+                ];
+                $listColorStatus = [
+                  'none' => 'bg-slate-100 text-slate-600',
+                  'submitted' => 'bg-amber-100 text-amber-700',
+                  'approved' => 'bg-emerald-100 text-emerald-700',
+                  'rejected' => 'bg-rose-100 text-rose-700',
+                ];
+              @endphp
+
               <table class="w-full text-sm">
-                <thead>
-                  <tr class="text-left text-slate-500 border-b">
-                    <th class="py-3 px-3">Sinh viên</th>
-                    <th class="py-3 px-3">MSSV</th>
-                    <th class="py-3 px-3">Đề tài</th>
-                    <th class="py-3 px-3">Trạng thái</th>
-                    <th class="py-3 px-3">Lần nộp cuối</th>
-                    <th class="py-3 px-3">Hành động</th>
+                <thead class="bg-slate-50">
+                  <tr class="text-left text-slate-600">
+                    <th class="py-3 px-4 font-semibold">Sinh viên</th>
+                    <th class="py-3 px-4 font-semibold">MSSV</th>
+                    <th class="py-3 px-4 font-semibold">Đề tài</th>
+                    <th class="py-3 px-4 font-semibold text-center">Trạng thái</th>
+                    <th class="py-3 px-4 font-semibold">Lần nộp cuối</th>
+                    <th class="py-3 px-4 font-semibold text-center">Hành động</th>
                   </tr>
                 </thead>
-                <tbody id="rows"></tbody>
+                <tbody id="rows" class="divide-y divide-slate-200">
+                  @foreach ($assignment_supervisors as $assignment_supervisor)
+                    @php
+                      $lastOutline = $assignment_supervisor->assignment->project?->reportFiles?->sortByDesc('created_at')->first();
+                      $status = $lastOutline->status ?? "none";
+                    @endphp
+                    <tr class="odd:bg-white even:bg-slate-50/50 hover:bg-slate-100 transition-colors">
+                      <td class="py-3 px-4">
+                        <a class="text-blue-600 hover:underline font-medium"
+                          href="supervised-student-detail.html?id={{ $assignment_supervisor->assignment->student->id }}&name={{ urlencode($assignment_supervisor->assignment->student->user->name) }}">
+                          {{ $assignment_supervisor->assignment->student->user->fullname }}
+                        </a>
+                      </td>
+                      <td class="py-3 px-4 text-slate-700">{{ $assignment_supervisor->assignment->student->student_code }}</td>
+                      <td class="py-3 px-4 text-slate-700">{{ $assignment_supervisor->assignment->project->name ?? "Chưa có đề tài" }}</td>
+                      <td class="py-3 px-4 text-center">
+                        <span class="px-2 py-1 text-xs rounded-full {{ $listColorStatus[$status] }}">
+                          {{ $listStatus[$status] }}
+                        </span>
+                      </td>
+                      <td class="py-3 px-4 text-slate-600">
+                        {{ $lastOutline ? $lastOutline->created_at->format('H:i:s d/m/Y') : "Chưa có" }}
+                      </td>
+                      <td class="py-3 px-4 text-center">
+                        <a class="inline-block px-3 py-1 border border-slate-200 rounded-lg text-xs font-medium text-slate-700 hover:bg-slate-50 transition"
+                          href="supervised-student-detail.html?id={{ $assignment_supervisor->assignment->student->id }}&name={{ urlencode($assignment_supervisor->assignment->student->user->name) }}">
+                          Xem
+                        </a>
+                      </td>
+                    </tr>
+                  @endforeach
+                </tbody>
               </table>
             </div>
+
           </div>
         </div>
       </main>
@@ -131,44 +179,24 @@
       document.addEventListener('click', (e)=>{ if(!profileBtn?.contains(e.target) && !profileMenu?.contains(e.target)) profileMenu?.classList.add('hidden'); });
     })();
 
-    // Mock data - could be replaced by localStorage integration
-    const students = [
-      { id:'20210001', name:'Nguyễn Văn A', topic:'Hệ thống quản lý thư viện', status:'approved', last:'02/08/2025' },
-      { id:'20210002', name:'Trần Thị B', topic:'Ứng dụng quản lý công việc', status:'submitted', last:'03/08/2025' },
-      { id:'20210003', name:'Lê Văn C', topic:'Hệ thống đặt lịch khám', status:'none', last:'-' }
-    ];
-
-    function statusPill(s){
-      if(s==='approved') return '<span class="px-2 py-0.5 rounded-full text-xs bg-emerald-50 text-emerald-700">Đã duyệt</span>';
-      if(s==='submitted') return '<span class="px-2 py-0.5 rounded-full text-xs bg-amber-50 text-amber-700">Đã nộp</span>';
-      if(s==='rejected') return '<span class="px-2 py-0.5 rounded-full text-xs bg-rose-50 text-rose-700">Bị từ chối</span>';
-      return '<span class="px-2 py-0.5 rounded-full text-xs bg-slate-100 text-slate-700">Chưa nộp</span>';
-    }
-
-    function render(){
-      const q=(document.getElementById('search').value||'').toLowerCase();
-      const rows=document.getElementById('rows');
-      const list = students.filter(s=>
-        s.name.toLowerCase().includes(q) || s.id.includes(q) || s.topic.toLowerCase().includes(q)
-      );
-      rows.innerHTML = list.map(s=>`
-        <tr class="border-b hover:bg-slate-50">
-          <td class="py-3 px-3"><a class="text-blue-600 hover:underline" href="supervised-student-detail.html?id=${s.id}&name=${encodeURIComponent(s.name)}">${s.name}</a></td>
-          <td class="py-3 px-3">${s.id}</td>
-          <td class="py-3 px-3">${s.topic}</td>
-          <td class="py-3 px-3">${statusPill(s.status)}</td>
-          <td class="py-3 px-3">${s.last}</td>
-          <td class="py-3 px-3">
-            <div class="flex items-center gap-1">
-              <a class="px-2 py-1 border border-slate-200 rounded text-xs hover:bg-slate-50" href="supervised-student-detail.html?id=${s.id}&name=${encodeURIComponent(s.name)}">Xem</a>
-            </div>
-          </td>
-        </tr>
-      `).join('');
-    }
-
-    document.getElementById('search').addEventListener('input', render);
-    render();
+    // Search filter for current table rows (client-side)
+    (function(){
+      const search = document.getElementById('search');
+      const tbody  = document.getElementById('rows');
+      if(!search || !tbody) return;
+      const rows = Array.from(tbody.querySelectorAll('tr'));
+      const norm = (s)=> (s||'').toString().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'')
+      const doFilter = ()=>{
+        const q = norm(search.value.trim());
+        if(!q){ rows.forEach(tr=>tr.classList.remove('hidden')); return; }
+        rows.forEach(tr=>{
+          const txt = norm(tr.innerText);
+          tr.classList.toggle('hidden', !txt.includes(q));
+        });
+      };
+      search.addEventListener('input', doFilter);
+      search.addEventListener('keydown', (e)=>{ if(e.key==='Escape'){ search.value=''; doFilter(); } });
+    })();
   </script>
 </body>
 </html>

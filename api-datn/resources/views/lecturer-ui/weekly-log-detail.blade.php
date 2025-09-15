@@ -40,7 +40,7 @@
       </div>
     </aside>
 
-    <div class="flex-1 md:pl-[260px] h-screen overflow-hidden flex flex-col">
+    <div class="flex-1 h-screen overflow-hidden flex flex-col">
       <header class="h-16 bg-white border-b border-slate-200 flex items-center px-4 md:px-6 flex-shrink-0">
         <div class="flex items-center gap-3 flex-1">
           <button id="openSidebar" class="md:hidden p-2 rounded-lg hover:bg-slate-100"><i class="ph ph-list"></i></button>
@@ -84,29 +84,42 @@
             <a id="backLink" class="text-sm text-blue-600 hover:underline" href="#"><i class="ph ph-caret-left"></i> Quay lại chi tiết sinh viên</a>
           </div>
 
-    <div id="header" class="bg-white border rounded-xl p-4 mb-4"></div>
+      <div id="header" class="bg-white border rounded-xl p-4 mb-4">
+        <div class="flex items-center justify-between">
+          <div>
+            <div class="text-sm text-slate-500">MSSV: <span class="font-medium text-slate-700">20210001</span></div>
+            <h2 class="font-semibold text-lg mt-1">Nguyễn Văn A</h2>
+          </div>
+          <div class="text-right">
+            <div class="text-sm text-slate-500">Tuần</div>
+            <div class="font-medium text-blue-600">#1</div>
+          </div>
+        </div>
+      </div>
 
     <section class="bg-white border rounded-xl p-4 mb-4">
       <h2 class="font-semibold mb-3">Tổng quan tuần</h2>
       <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
         <div class="md:col-span-2">
           <div class="text-slate-500">Tiêu đề</div>
-          <div id="weekTitle" class="font-medium">-</div>
+          <div id="weekTitle" class="font-medium">Công việc tuần 1</div>
           <div class="text-slate-500 mt-2">Mô tả</div>
-          <div id="weekDesc" class="text-slate-700"></div>
+          <div id="weekDesc" class="text-slate-700">
+            - Khảo sát yêu cầu- Phân tích use case- Thiết kế ERD
+          </div>
         </div>
         <div class="space-y-2">
           <div>
             <div class="text-slate-500">Thời gian bắt đầu</div>
-            <div id="weekStart" class="font-medium">-</div>
+            <div id="weekStart" class="font-medium">28/07</div>
           </div>
           <div>
             <div class="text-slate-500">Thời gian kết thúc</div>
-            <div id="weekEnd" class="font-medium">-</div>
+            <div id="weekEnd" class="font-medium">03/08</div>
           </div>
           <div>
             <div class="text-slate-500">Tệp đính kèm</div>
-            <div id="overviewFiles" class="text-slate-700">Không có tệp đính kèm.</div>
+            <div id="overviewFiles" class="text-slate-700"><a class="text-blue-600 hover:underline" href="#">bao-cao-tuan-1.pdf</a></div>
           </div>
         </div>
       </div>
@@ -114,12 +127,18 @@
 
     <section class="bg-white border rounded-xl p-4">
       <h2 class="font-semibold mb-3">Công việc trong tuần</h2>
-      <ul id="taskList" class="text-sm list-disc pl-5 space-y-1"></ul>
+      <ul id="taskList" class="text-sm list-disc pl-5 space-y-1"><li>✅ Khảo sát yêu cầu</li><li>✅ Phân tích use case</li><li>⬜ Thiết kế ERD</li></ul>
     </section>
 
     <section class="bg-white border rounded-xl p-4 mt-4">
       <h2 class="font-semibold mb-3">Các báo cáo trong tuần</h2>
-      <div id="reportsWrap" class="text-sm text-slate-700 space-y-3"></div>
+      <div id="reportsWrap" class="text-sm text-slate-700 space-y-3">
+        <div class="border rounded-lg p-3 bg-slate-50">
+          <div class="text-xs text-slate-500 mb-1">—</div>
+          <div>Hoàn thành khảo sát nghiệp vụ và phác thảo ERD sơ bộ.</div>
+          <div class="mt-1">Tệp đính kèm: <a class="text-blue-600 hover:underline" href="#">bao-cao-tuan-1.pdf</a></div>
+        </div>
+      </div>
     </section>
 
     <section class="bg-white border rounded-xl p-4 mt-4">
@@ -168,91 +187,91 @@
     const weekNo = parseInt(qs('week'));
     const LS_KEY = `lecturer:student:${studentId}`;
 
-    function loadData(){ try { const raw = localStorage.getItem(LS_KEY); return raw ? JSON.parse(raw) : null; } catch { return null; } }
-    function saveData(data){ localStorage.setItem(LS_KEY, JSON.stringify(data)); }
+  //   function loadData(){ try { const raw = localStorage.getItem(LS_KEY); return raw ? JSON.parse(raw) : null; } catch { return null; } }
+  //   function saveData(data){ localStorage.setItem(LS_KEY, JSON.stringify(data)); }
 
-    const data = loadData();
-    if(!data){
-      document.body.innerHTML = '<div class="p-6 text-center text-slate-600">Không tìm thấy dữ liệu sinh viên.</div>';
-    } else {
-      const week = (data.weeks || []).find(w=>w.week===weekNo);
-      const backHref = `supervised-student-detail.html?id=${encodeURIComponent(studentId)}&name=${encodeURIComponent(name)}`;
-      document.getElementById('backLink').setAttribute('href', backHref);
-      document.getElementById('header').innerHTML = `
-        <div class="flex items-center justify-between">
-          <div>
-            <div class="text-sm text-slate-500">MSSV: <span class="font-medium text-slate-700">${data.id}</span></div>
-            <h2 class="font-semibold text-lg mt-1">${data.name}</h2>
-          </div>
-          <div class="text-right">
-            <div class="text-sm text-slate-500">Tuần</div>
-            <div class="font-medium text-blue-600">#${week?.week ?? '-'}</div>
-          </div>
-        </div>`;
+  //   const data = loadData();
+  //   if(!data){
+  //     document.body.innerHTML = '<div class="p-6 text-center text-slate-600">Không tìm thấy dữ liệu sinh viên.</div>';
+  //   } else {
+  //     const week = (data.weeks || []).find(w=>w.week===weekNo);
+  //     const backHref = `supervised-student-detail.html?id=${encodeURIComponent(studentId)}&name=${encodeURIComponent(name)}`;
+  //     document.getElementById('backLink').setAttribute('href', backHref);
+  //     document.getElementById('header').innerHTML = `
+  //       <div class="flex items-center justify-between">
+  //         <div>
+  //           <div class="text-sm text-slate-500">MSSV: <span class="font-medium text-slate-700">${data.id}</span></div>
+  //           <h2 class="font-semibold text-lg mt-1">${data.name}</h2>
+  //         </div>
+  //         <div class="text-right">
+  //           <div class="text-sm text-slate-500">Tuần</div>
+  //           <div class="font-medium text-blue-600">#${week?.week ?? '-'}</div>
+  //         </div>
+  //       </div>`;
 
-      document.getElementById('weekRange').textContent = week?.range || '-';
+  //     document.getElementById('weekRange').textContent = week?.range || '-';
 
-      // Overview
-      const title = week?.title || `Công việc tuần ${week?.week ?? ''}`.trim();
-      const desc = week?.description || (week?.tasks?.length
-        ? ('- ' + week.tasks.map(t=>t.name).join('\n- '))
-        : 'Chưa có mô tả.');
-      document.getElementById('weekTitle').textContent = title;
-      document.getElementById('weekDesc').textContent = desc;
-      const [start, end] = (week?.range || '').split('-').map(s=>s?.trim());
-      document.getElementById('weekStart').textContent = week?.start || start || '-';
-      document.getElementById('weekEnd').textContent = week?.end || end || '-';
-      const ovFiles = Array.isArray(week?.overviewFiles) ? week.overviewFiles : (Array.isArray(week?.files) ? week.files : []);
-      document.getElementById('overviewFiles').innerHTML = ovFiles.length
-        ? ovFiles.map(f=>`<a class="text-blue-600 hover:underline" href="#">${f}</a>`).join(', ')
-        : 'Không có tệp đính kèm.';
+  //     // Overview
+  //     const title = week?.title || `Công việc tuần ${week?.week ?? ''}`.trim();
+  //     const desc = week?.description || (week?.tasks?.length
+  //       ? ('- ' + week.tasks.map(t=>t.name).join('\n- '))
+  //       : 'Chưa có mô tả.');
+  //     document.getElementById('weekTitle').textContent = title;
+  //     document.getElementById('weekDesc').textContent = desc;
+  //     const [start, end] = (week?.range || '').split('-').map(s=>s?.trim());
+  //     document.getElementById('weekStart').textContent = week?.start || start || '-';
+  //     document.getElementById('weekEnd').textContent = week?.end || end || '-';
+  //     const ovFiles = Array.isArray(week?.overviewFiles) ? week.overviewFiles : (Array.isArray(week?.files) ? week.files : []);
+  //     document.getElementById('overviewFiles').innerHTML = ovFiles.length
+  //       ? ovFiles.map(f=>`<a class="text-blue-600 hover:underline" href="#">${f}</a>`).join(', ')
+  //       : 'Không có tệp đính kèm.';
 
-      const tasks = week?.tasks?.length ? week.tasks : [{ name: 'Chưa có công việc', done: false }];
-      document.getElementById('taskList').innerHTML = tasks.map(t=>`<li>${t.done? '✅' : '⬜'} ${t.name}</li>`).join('');
+  //     const tasks = week?.tasks?.length ? week.tasks : [{ name: 'Chưa có công việc', done: false }];
+  //     document.getElementById('taskList').innerHTML = tasks.map(t=>`<li>${t.done? '✅' : '⬜'} ${t.name}</li>`).join('');
 
-      // Reports
-  const reports = Array.isArray(week?.reports) && week.reports.length
-        ? week.reports
-        : (week?.report || week?.files?.length) ? [{ time: '', content: week.report || '', files: (week.files||[]) }] : [];
-      const reportsWrap = document.getElementById('reportsWrap');
-      reportsWrap.innerHTML = reports.length ? reports.map(r=>`
-        <div class="border rounded-lg p-3 bg-slate-50">
-          <div class="text-xs text-slate-500 mb-1">${r.time || '—'}</div>
-          <div>${r.content || 'Không có nội dung.'}</div>
-          ${r.files && r.files.length ? `<div class=\"mt-1\">Tệp đính kèm: ${r.files.map(f=>`<a class=\"text-blue-600 hover:underline\" href=\"#\">${f}</a>`).join(', ')}</div>` : ''}
-        </div>
-      `).join('') : '<div class="text-slate-500">Chưa có báo cáo.</div>';
+  //     // Reports
+  // const reports = Array.isArray(week?.reports) && week.reports.length
+  //       ? week.reports
+  //       : (week?.report || week?.files?.length) ? [{ time: '', content: week.report || '', files: (week.files||[]) }] : [];
+  //     const reportsWrap = document.getElementById('reportsWrap');
+  //     reportsWrap.innerHTML = reports.length ? reports.map(r=>`
+  //       <div class="border rounded-lg p-3 bg-slate-50">
+  //         <div class="text-xs text-slate-500 mb-1">${r.time || '—'}</div>
+  //         <div>${r.content || 'Không có nội dung.'}</div>
+  //         ${r.files && r.files.length ? `<div class=\"mt-1\">Tệp đính kèm: ${r.files.map(f=>`<a class=\"text-blue-600 hover:underline\" href=\"#\">${f}</a>`).join(', ')}</div>` : ''}
+  //       </div>
+  //     `).join('') : '<div class="text-slate-500">Chưa có báo cáo.</div>';
 
-      document.getElementById('currentScore').textContent = week?.score ?? '-';
-      const scoreInput = document.getElementById('inpScore');
-      if(typeof week?.score === 'number') scoreInput.value = week.score;
-      document.getElementById('btnSave').addEventListener('click', ()=>{
-        const val = parseFloat(scoreInput.value);
-        if(!isNaN(val)){
-          const idx = data.weeks.findIndex(w=>w.week===weekNo);
-          if(idx>=0){ data.weeks[idx].score = val; saveData(data); document.getElementById('currentScore').textContent = val; }
-        }
-      });
+  //     document.getElementById('currentScore').textContent = week?.score ?? '-';
+  //     const scoreInput = document.getElementById('inpScore');
+  //     if(typeof week?.score === 'number') scoreInput.value = week.score;
+  //     document.getElementById('btnSave').addEventListener('click', ()=>{
+  //       const val = parseFloat(scoreInput.value);
+  //       if(!isNaN(val)){
+  //         const idx = data.weeks.findIndex(w=>w.week===weekNo);
+  //         if(idx>=0){ data.weeks[idx].score = val; saveData(data); document.getElementById('currentScore').textContent = val; }
+  //       }
+  //     });
 
-      // Comment to student
-      const commentStatus = document.getElementById('commentStatus');
-      function renderCommentStatus(){
-        const c = week?.commentToStudent;
-        commentStatus.textContent = c?.text ? `Đã gửi lúc ${c.sentAt}` : 'Chưa có nhận xét.';
-      }
-      renderCommentStatus();
-      document.getElementById('btnSendComment').addEventListener('click', ()=>{
-        const txt = (document.getElementById('commentText').value || '').trim();
-        if(!txt) return;
-        const idx = data.weeks.findIndex(w=>w.week===weekNo);
-        if(idx>=0){
-          data.weeks[idx].commentToStudent = { text: txt, sentAt: new Date().toLocaleString('vi-VN') };
-          saveData(data);
-          document.getElementById('commentText').value = '';
-          renderCommentStatus();
-        }
-      });
-    }
+  //     // Comment to student
+  //     const commentStatus = document.getElementById('commentStatus');
+  //     function renderCommentStatus(){
+  //       const c = week?.commentToStudent;
+  //       commentStatus.textContent = c?.text ? `Đã gửi lúc ${c.sentAt}` : 'Chưa có nhận xét.';
+  //     }
+  //     renderCommentStatus();
+  //     document.getElementById('btnSendComment').addEventListener('click', ()=>{
+  //       const txt = (document.getElementById('commentText').value || '').trim();
+  //       if(!txt) return;
+  //       const idx = data.weeks.findIndex(w=>w.week===weekNo);
+  //       if(idx>=0){
+  //         data.weeks[idx].commentToStudent = { text: txt, sentAt: new Date().toLocaleString('vi-VN') };
+  //         saveData(data);
+  //         document.getElementById('commentText').value = '';
+  //         renderCommentStatus();
+  //       }
+  //     });
+  //   }
   </script>
 </body>
 </html>

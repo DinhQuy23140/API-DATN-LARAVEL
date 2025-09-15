@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Models\ProgressLog;
+use App\Models\Student;
 use Illuminate\Http\Request;
 
 class ProgressLogController extends Controller
@@ -69,5 +70,12 @@ class ProgressLogController extends Controller
     {
         $progress_log->delete();
         return redirect()->route('web.progress_logs.index')->with('status','Đã xóa');
+    }
+
+    public function getProgressLogByIdAndStudentId($id, $studentId)
+    {
+        $progress_log = ProgressLog::with('attachments')->find($id);
+        $student = Student::with('user')->find($studentId);
+        return view('lecturer-ui.weekly-log-detail', compact('progress_log', 'student'));
     }
 }

@@ -13,7 +13,8 @@ class ReportFiles extends Model
         'file_name',
         'file_url',
         'file_type',
-        'type_report'
+        'type_report',
+        'status',
     ];
 
     public function project()

@@ -229,7 +229,7 @@
                 <td class="py-3 px-3"><input type="checkbox" /></td>
                 <td class="py-3 px-3">{{ $item->assignment->student->user->fullname }}</td>
                 <td class="py-3 px-3">{{ $item->assignment->student->student_code }}</td>
-                <td class="py-3 px-3">{{ $item->assignment->project_id ? $item->assignment->project_id : 'Chưa có đề tài' }}</td>
+                <td class="py-3 px-3">{{ $item->assignment->project_id ? $item->assignment->project->name : 'Chưa có đề tài' }}</td>
                 <td class="py-3 px-3">{{ $item->created_at->format('d/m/Y') }}</td>
                 <td class="py-3 px-3">{{ $item->created_at->addDays(7)->format('d/m/Y') }}</td>
                 @php
