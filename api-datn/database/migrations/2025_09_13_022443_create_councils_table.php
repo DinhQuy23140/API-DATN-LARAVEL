@@ -16,13 +16,16 @@ return new class extends Migration
         Schema::create('councils', function (Blueprint $table) {
             $table->id();
             $table->string('name');
-            $table->unsignedBigInteger('project_term_id');
+            $table->string('code');
             $table->string('description')->nullable();
+            $table->unsignedBigInteger('project_term_id');
+            $table->unsignedBigInteger('department_id');
+            $table->text('address')->nullable();
             $table->string('date')->nullable();
-            $table->text('address');
             $table->text('status');
             $table->timestamps();
             $table->foreign('project_term_id')->references('id')->on('project_terms')->onDelete('cascade');
+            $table->foreign('department_id')->references('id')->on('departments')->onDelete('cascade');
         });
     }
 

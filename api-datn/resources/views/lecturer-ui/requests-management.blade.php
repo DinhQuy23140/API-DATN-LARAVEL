@@ -161,8 +161,9 @@
       </div>
     </section>
     @php
-      $items = $rows->first()->supervisors->first()->assignment_supervisors ?? [];
+      $items = $rows->assignments ?? collect();
     @endphp
+
     <!-- Quick stats -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
       <div class="bg-blue-50 p-4 rounded-lg flex items-center gap-3">
@@ -171,15 +172,15 @@
       </div>
       <div class="bg-yellow-50 p-4 rounded-lg flex items-center gap-3">
         <div class="h-10 w-10 rounded-lg bg-yellow-600/10 text-yellow-600 grid place-items-center"><i class="ph ph-hourglass"></i></div>
-        <div><div class="text-2xl font-bold text-yellow-600">{{ $items->where('status', 'pending')->count() }}</div><div class="text-sm text-yellow-800">Chờ duyệt</div></div>
+        <div><div class="text-2xl font-bold text-yellow-600">{{ $items->filter(function ($item) {return optional($item->assignment_supervisors->first())->status === 'pending';})->count() }}</div><div class="text-sm text-yellow-800">Chờ duyệt</div></div>
       </div>
       <div class="bg-green-50 p-4 rounded-lg flex items-center gap-3">
         <div class="h-10 w-10 rounded-lg bg-green-600/10 text-green-600 grid place-items-center"><i class="ph ph-check-circle"></i></div>
-        <div><div class="text-2xl font-bold text-green-600">{{ $items->where('status', 'accepted')->count() }}</div><div class="text-sm text-green-800">Đã chấp nhận</div></div>
+        <div><div class="text-2xl font-bold text-green-600">{{ $items->filter(function ($item) {return optional($item->assignment_supervisors->first())->status === 'accepted';})->count() }}</div><div class="text-sm text-green-800">Đã chấp nhận</div></div>
       </div>
       <div class="bg-red-50 p-4 rounded-lg flex items-center gap-3">
         <div class="h-10 w-10 rounded-lg bg-red-600/10 text-red-600 grid place-items-center"><i class="ph ph-x-circle"></i></div>
-        <div><div class="text-2xl font-bold text-red-600">{{ $items->where('status', 'rejected')->count() }}</div><div class="text-sm text-red-800">Từ chối</div></div>
+        <div><div class="text-2xl font-bold text-red-600">{{ $items->filter(function ($item) {return optional($item->assignment_supervisors->first())->status === 'rejected';})->count() }}</div><div class="text-sm text-red-800">Từ chối</div></div>
       </div>
     </div>
 
@@ -227,9 +228,9 @@
             @foreach ($items as $item)
               <tr class="border-b hover:bg-slate-50">
                 <td class="py-3 px-3"><input type="checkbox" /></td>
-                <td class="py-3 px-3">{{ $item->assignment->student->user->fullname }}</td>
-                <td class="py-3 px-3">{{ $item->assignment->student->student_code }}</td>
-                <td class="py-3 px-3">{{ $item->assignment->project_id ? $item->assignment->project->name : 'Chưa có đề tài' }}</td>
+                <td class="py-3 px-3">{{ $item->student->user->fullname }}</td>
+                <td class="py-3 px-3">{{ $item->student->student_code }}</td>
+                <td class="py-3 px-3">{{ $item->project_id ? $item->project->name : 'Chưa có đề tài' }}</td>
                 <td class="py-3 px-3">{{ $item->created_at->format('d/m/Y') }}</td>
                 <td class="py-3 px-3">{{ $item->created_at->addDays(7)->format('d/m/Y') }}</td>
                 @php
@@ -245,8 +246,8 @@
                     'accepted' => 'Đã chấp nhận',
                     'rejected' => 'Từ chối',
                   ];
-                  $statusClass = $statusColors[$item->status] ?? 'bg-slate-100 text-slate-800';
-                  $statusLabel = $statusLabels[$item->status] ?? ucfirst($item->status);
+                  $statusClass = $statusColors[$item->assignment_supervisors->first()->status] ?? 'bg-slate-100 text-slate-800';
+                  $statusLabel = $statusLabels[$item->assignment_supervisors->first()->status] ?? ucfirst($item->assignment_supervisors->first()->status);
                 @endphp
                 <td class="py-3 px-3" data-col="status">
                   <span class="status-pill px-2 py-0.5 rounded-full text-xs {{ $statusClass }}">{{ $statusLabel }}</span>

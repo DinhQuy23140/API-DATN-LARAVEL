@@ -13,6 +13,9 @@ use App\Http\Controllers\Web\ProjectTermsController as WebProjectTermsController
 use App\Http\Controllers\Web\TeacherController as WebTeacherController;
 use App\Http\Controllers\Web\AssignmentController as WebAssignmentController;
 use App\Http\Controllers\Web\AssignmentSupervisorController as AssignmentSupervisorController;
+use App\Http\Controllers\Web\Head\BlindReviewController;
+use App\Http\Controllers\Web\ReportFilesController;
+use App\Http\Controllers\Web\CouncilController;
 
 // Guest (login)
 Route::middleware('guest')->group(function () {
@@ -110,6 +113,8 @@ Route::middleware('auth')->prefix('head')->name('web.head.')->group(function () 
     Route::get ('head/assign-students/{termId}', [WebProjectTermsController::class, 'assignmentSupervisor'])->name('thesis_round_supervision');
     Route::post('head/assign-supervisors/bulk', [AssignmentSupervisorController::class, 'storeBulk'])
     ->name('assign_supervisors.bulk');
+    Route::get('bind-review-lecturers/{termId}', [WebProjectTermsController::class, 'getProjectTermBtId'])->name('blind_review_lecturers');
+    Route::post('/blind-review/assign', [WebAssignmentController::class, 'assign'])->name('blind_review.assign');
 });
 
 Route::middleware('auth')->prefix('assistant')->name('web.assistant.')->group(function () {
@@ -130,6 +135,9 @@ Route::middleware('auth')->prefix('assistant')->name('web.assistant.')->group(fu
     Route::get('/supervisors_detail/{termId}', [WebSupervisorController::class, 'getAllSupervisorsByTerm'])->name('supervisors_detail');
     Route::post('/batch-students/bulk', [WebAssignmentController::class,'storeBulk'])->name('batch_students.bulk_store');
     Route::post('/supervisors/bulk', [WebSupervisorController::class,'storeBulk'])->name('supervisors.bulk_store');
+    Route::post('/councils', [CouncilController::class, 'store'])->name('councils.store');
+    Route::post('/councils/{council}/roles', [CouncilController::class, 'updateRoles'])->name('councils.update_roles');
+    Route::view('/terms/{term}/councils/roles', 'assistant-ui.council-roles')->name('councils.roles');
 });
 
 // Authenticated
@@ -142,6 +150,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/teacher/thesis-internship', fn () => view('lecturer-ui.thesis-internship'))->name('web.teacher.thesis_internship');
     Route::get('/teacher/thesis-rounds/{teacherId}', [WebProjectTermsController::class, 'getProjectTermByTeacherId'])->name('web.teacher.thesis_rounds');
     Route::get('/teacher/thesis-round-detail/{termId}/supervisor/{supervisorId}', [WebProjectTermsController::class, 'getDetailProjectTermByTeacherId'])->name('web.teacher.thesis_round_detail');
+    Route::get('/teacher/weekly-log-detail/{progressLogId}', [WebProgressLogController::class, 'getProgressLogById'])->name('web.teacher.weekly_log_detail');
     //thesis round detail
     
     //stage 1 
@@ -159,8 +168,16 @@ Route::middleware('auth')->group(function () {
 
     //stage 2
     Route::get('/teacher/supervised-outline-reports/{supervisorId}/term/{termId}', [WebProjectTermsController::class, 'getDetailProjectTermBySupervisorId'])->name('web.teacher.supervised_outline_reports');
-    Route::view('/teacher/outline-review-assignments/{supervisorId}/term/{termId}', 'lecturer-ui.outline-review-assignments')->name('web.teacher.outline_review_assignments');
+    Route::get('/teacher/outline-review-assignments/term/{termId}/supervisor/{supervisorId}', [WebAssignmentController::class, 'outlineReviewAssignments'])->name('web.teacher.outline_review_assignments');
     Route::get('/teacher/supervised-student-detail/{studentId}/term/{termId}', [WebAssignmentController::class, 'getAssignmentByStudentIdAndTermId'])->name('web.teacher.supervised_student_detail');
+
+    //stage 5
+
+    Route::view('/teacher/my-committees', 'lecturer-ui.my-committees')->name('web.teacher.my_committees');
+    Route::view('/teacher/student-committee/supervisor/{supervisorId}/term/{termId}', 'lecturer-ui.student-committees')->name('web.teacher.student_committee');
+
+    //stage 6
+    Route::view('/teacher/review-assignments', 'lecturer-ui.review-assignments')->name('web.teacher.review_assignments');
 });
 
 Route::middleware(['web','auth'])->group(function () {
@@ -170,8 +187,10 @@ Route::middleware(['web','auth'])->group(function () {
     })->name('web.assistant.assign_supervisors');
 });
 
-
-//weekly log 
-Route::middleware('auth')->group(function () {
-    Route::get('/teacher/weekly-log-detail/{id}/student/{studentId}', [WebProgressLogController::class, 'getProgressLogByIdAndStudentId'])->name('web.teacher.weekly_log_detail');
+Route::middleware(['web','auth'])->prefix('teacher')->name('web.teacher.')->group(function () {
+    // Cập nhật trạng thái phản biện (duyệt/từ chối/...)
+    Route::post('/assignments/{assignment}/counter-status', [WebAssignmentController::class, 'setCounterStatus'])
+        ->name('assignments.counter_status');
+    Route::post('/report-files/{reportFile}/status', [ReportFilesController::class, 'setStatus'])
+        ->name('report_files.set_status');
 });

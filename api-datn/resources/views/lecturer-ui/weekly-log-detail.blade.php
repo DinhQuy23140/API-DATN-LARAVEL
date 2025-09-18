@@ -77,90 +77,123 @@
         </div>
       </header>
 
-      <main class="flex-1 overflow-y-auto px-4 md:px-6 py-6">
-        <div class="max-w-4xl mx-auto">
-          <div class="flex items-center justify-between mb-4">
-            <div></div>
-            <a id="backLink" class="text-sm text-blue-600 hover:underline" href="#"><i class="ph ph-caret-left"></i> Quay lại chi tiết sinh viên</a>
-          </div>
+      <main class="flex-1 overflow-y-auto px-4 md:px-6 py-6 bg-slate-50">
+        <div class="max-w-5xl mx-auto space-y-6">
 
-      <div id="header" class="bg-white border rounded-xl p-4 mb-4">
-        <div class="flex items-center justify-between">
-          <div>
-            <div class="text-sm text-slate-500">MSSV: <span class="font-medium text-slate-700">20210001</span></div>
-            <h2 class="font-semibold text-lg mt-1">Nguyễn Văn A</h2>
+          <!-- Header sinh viên & tuần -->
+          <div class="flex flex-col md:flex-row md:items-center md:justify-between bg-white shadow rounded-xl p-4">
+            <div>
+              @php
+                $student = $progress_log->project->assignment->student;
+                $mssv = $student->student_code ?? 'N/A';
+                $fullname = $student->user->fullname ?? 'Sinh viên';
+              @endphp
+              <div class="text-sm text-slate-500">MSSV: <span class="font-medium text-slate-700">{{ $mssv }}</span></div>
+              <h2 class="font-semibold text-xl mt-1">{{ $fullname }}</h2>
+            </div>
+            <div class="mt-3 md:mt-0 text-right">
+              <div class="text-sm text-slate-500">Tuần</div>
+              <div class="font-semibold text-blue-600 text-lg">#1</div>
+            </div>
           </div>
-          <div class="text-right">
-            <div class="text-sm text-slate-500">Tuần</div>
-            <div class="font-medium text-blue-600">#1</div>
-          </div>
+          <!-- Tổng quan tuần -->
+           @php
+            $titleProgress = $progress_log->title ?? 'Chưa có tiêu đề';
+            $description = $progress_log->description ?? 'Chưa có mô tả';
+            $start_date = $progress_log->start_date_time ? date('d/m/Y', strtotime($progress_log->start_date)) : 'N/A';
+            $end_date = $progress_log->end_date_time ? date('d/m/Y', strtotime($progress_log->end_date)) : 'N/A';
+           @endphp
+          <section class="bg-white shadow rounded-xl p-5">
+            <h3 class="font-semibold text-lg mb-4">Tổng quan tuần</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div class="md:col-span-2 space-y-2">
+                <div class="text-slate-500 text-sm">Tiêu đề</div>
+                <div class="font-medium text-slate-800 text-base">{{ $titleProgress }}</div>
+
+                <div class="text-slate-500 text-sm mt-2">Mô tả</div>
+                <div class="text-slate-700 text-sm">
+                  {{ $description }}
+                </div>
+              </div>
+
+              <div class="space-y-3">
+                <div>
+                  <div class="text-slate-500 text-sm">Thời gian bắt đầu</div>
+                  <div class="font-medium text-slate-800">{{ $start_date }}</div>
+                </div>
+                <div>
+                  <div class="text-slate-500 text-sm">Thời gian kết thúc</div>
+                  <div class="font-medium text-slate-800">{{ $end_date }}</div>
+                </div>
+                <div>
+                  <div class="text-slate-500 text-sm">Tệp đính kèm</div>
+                  @php
+                    $attachments = $progress_log->attachments ?? [];
+                    if(count($attachments) > 0) {
+                      foreach($attachments as $file) {
+                        echo '<div class="text-blue-600 hover:underline"><a href="#">' . htmlspecialchars($file) . '</a></div>';
+                      }
+                    } else {
+                      echo '<div class="text-slate-500">Chưa có tệp đính kèm.</div>';
+                    }
+                  @endphp
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Công việc trong tuần -->
+          <section class="bg-white shadow rounded-xl p-5">
+            <h3 class="font-semibold text-lg mb-3">Công việc trong tuần</h3>
+            <ul class="list-disc pl-5 space-y-1 text-sm text-slate-700">
+              <li class="flex items-center gap-2"><span class="text-green-600">✅</span> Khảo sát yêu cầu</li>
+              <li class="flex items-center gap-2"><span class="text-green-600">✅</span> Phân tích use case</li>
+              <li class="flex items-center gap-2"><span class="text-gray-400">⬜</span> Thiết kế ERD</li>
+            </ul>
+          </section>
+
+          <!-- Báo cáo tuần -->
+          <section class="bg-white shadow rounded-xl p-5">
+            <h3 class="font-semibold text-lg mb-3">Các báo cáo trong tuần</h3>
+            <div class="space-y-3 text-sm text-slate-700">
+              <div class="border border-slate-200 rounded-lg p-3 bg-slate-50 shadow-sm">
+                <div class="text-xs text-slate-500 mb-1">—</div>
+                <div>Hoàn thành khảo sát nghiệp vụ và phác thảo ERD sơ bộ.</div>
+                <div class="mt-1 text-blue-600 hover:underline">
+                  Tệp đính kèm: <a href="#">bao-cao-tuan-1.pdf</a>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- Nhận xét gửi sinh viên -->
+          <section class="bg-white shadow rounded-xl p-5">
+            <h3 class="font-semibold text-lg mb-3">Nhận xét gửi sinh viên</h3>
+            <textarea id="commentText" rows="3" class="w-full px-4 py-2 border border-slate-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Viết nhận xét..."></textarea>
+            <div class="mt-3 flex items-center justify-between">
+              <div id="commentStatus" class="text-sm text-slate-500">Chưa có nhận xét.</div>
+              <button id="btnSendComment" class="flex items-center gap-2 px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm hover:bg-emerald-500 transition">
+                <i class="ph ph-paper-plane-tilt"></i> Gửi nhận xét
+              </button>
+            </div>
+          </section>
+
+          <!-- Chấm điểm tuần -->
+          <section class="bg-white shadow rounded-xl p-5">
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-3">
+              <h3 class="font-semibold text-lg">Chấm điểm tuần</h3>
+              <div class="text-sm text-slate-600 mt-2 md:mt-0">Khoảng thời gian: <span id="weekRange">-</span></div>
+            </div>
+            <div class="flex flex-col sm:flex-row sm:items-center gap-3">
+              <input id="inpScore" type="number" min="0" max="10" step="0.1" class="px-4 py-2 border border-slate-200 rounded-lg w-32 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Điểm" />
+              <button id="btnSave" class="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-500 transition text-sm"><i class="ph ph-check"></i> Lưu điểm</button>
+            </div>
+            <div class="mt-2 text-sm text-slate-500">Điểm hiện tại: <span id="currentScore">-</span></div>
+          </section>
+
         </div>
-      </div>
-
-    <section class="bg-white border rounded-xl p-4 mb-4">
-      <h2 class="font-semibold mb-3">Tổng quan tuần</h2>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-sm">
-        <div class="md:col-span-2">
-          <div class="text-slate-500">Tiêu đề</div>
-          <div id="weekTitle" class="font-medium">Công việc tuần 1</div>
-          <div class="text-slate-500 mt-2">Mô tả</div>
-          <div id="weekDesc" class="text-slate-700">
-            - Khảo sát yêu cầu- Phân tích use case- Thiết kế ERD
-          </div>
-        </div>
-        <div class="space-y-2">
-          <div>
-            <div class="text-slate-500">Thời gian bắt đầu</div>
-            <div id="weekStart" class="font-medium">28/07</div>
-          </div>
-          <div>
-            <div class="text-slate-500">Thời gian kết thúc</div>
-            <div id="weekEnd" class="font-medium">03/08</div>
-          </div>
-          <div>
-            <div class="text-slate-500">Tệp đính kèm</div>
-            <div id="overviewFiles" class="text-slate-700"><a class="text-blue-600 hover:underline" href="#">bao-cao-tuan-1.pdf</a></div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="bg-white border rounded-xl p-4">
-      <h2 class="font-semibold mb-3">Công việc trong tuần</h2>
-      <ul id="taskList" class="text-sm list-disc pl-5 space-y-1"><li>✅ Khảo sát yêu cầu</li><li>✅ Phân tích use case</li><li>⬜ Thiết kế ERD</li></ul>
-    </section>
-
-    <section class="bg-white border rounded-xl p-4 mt-4">
-      <h2 class="font-semibold mb-3">Các báo cáo trong tuần</h2>
-      <div id="reportsWrap" class="text-sm text-slate-700 space-y-3">
-        <div class="border rounded-lg p-3 bg-slate-50">
-          <div class="text-xs text-slate-500 mb-1">—</div>
-          <div>Hoàn thành khảo sát nghiệp vụ và phác thảo ERD sơ bộ.</div>
-          <div class="mt-1">Tệp đính kèm: <a class="text-blue-600 hover:underline" href="#">bao-cao-tuan-1.pdf</a></div>
-        </div>
-      </div>
-    </section>
-
-    <section class="bg-white border rounded-xl p-4 mt-4">
-      <h2 class="font-semibold mb-3">Nhận xét gửi sinh viên</h2>
-      <textarea id="commentText" rows="3" class="w-full px-3 py-2 border border-slate-200 rounded text-sm" placeholder="Viết nhận xét..."></textarea>
-      <div class="mt-2 flex items-center justify-between">
-        <div id="commentStatus" class="text-sm text-slate-500">Chưa có nhận xét.</div>
-        <button id="btnSendComment" class="px-3 py-2 bg-emerald-600 text-white rounded text-sm"><i class="ph ph-paper-plane-tilt"></i> Gửi nhận xét</button>
-      </div>
-    </section>
-
-    <section class="bg-white border rounded-xl p-4 mt-4">
-      <div class="flex items-center justify-between mb-3">
-        <h2 class="font-semibold">Chấm điểm tuần</h2>
-        <div class="text-sm text-slate-600">Khoảng thời gian: <span id="weekRange">-</span></div>
-      </div>
-      <div class="flex items-center gap-2">
-        <input id="inpScore" type="number" min="0" max="10" step="0.1" class="px-3 py-2 border border-slate-200 rounded w-32" placeholder="Điểm" />
-        <button id="btnSave" class="px-3 py-2 bg-blue-600 text-white rounded text-sm"><i class="ph ph-check"></i> Lưu điểm</button>
-      </div>
-      <div class="mt-2 text-sm text-slate-500">Điểm hiện tại: <span id="currentScore">-</span></div>
-    </section>
+      </main>
+    </div>
   </div>
 
   <script>
@@ -186,92 +219,6 @@
     const name = decodeURIComponent(qs('name')) || 'Sinh viên';
     const weekNo = parseInt(qs('week'));
     const LS_KEY = `lecturer:student:${studentId}`;
-
-  //   function loadData(){ try { const raw = localStorage.getItem(LS_KEY); return raw ? JSON.parse(raw) : null; } catch { return null; } }
-  //   function saveData(data){ localStorage.setItem(LS_KEY, JSON.stringify(data)); }
-
-  //   const data = loadData();
-  //   if(!data){
-  //     document.body.innerHTML = '<div class="p-6 text-center text-slate-600">Không tìm thấy dữ liệu sinh viên.</div>';
-  //   } else {
-  //     const week = (data.weeks || []).find(w=>w.week===weekNo);
-  //     const backHref = `supervised-student-detail.html?id=${encodeURIComponent(studentId)}&name=${encodeURIComponent(name)}`;
-  //     document.getElementById('backLink').setAttribute('href', backHref);
-  //     document.getElementById('header').innerHTML = `
-  //       <div class="flex items-center justify-between">
-  //         <div>
-  //           <div class="text-sm text-slate-500">MSSV: <span class="font-medium text-slate-700">${data.id}</span></div>
-  //           <h2 class="font-semibold text-lg mt-1">${data.name}</h2>
-  //         </div>
-  //         <div class="text-right">
-  //           <div class="text-sm text-slate-500">Tuần</div>
-  //           <div class="font-medium text-blue-600">#${week?.week ?? '-'}</div>
-  //         </div>
-  //       </div>`;
-
-  //     document.getElementById('weekRange').textContent = week?.range || '-';
-
-  //     // Overview
-  //     const title = week?.title || `Công việc tuần ${week?.week ?? ''}`.trim();
-  //     const desc = week?.description || (week?.tasks?.length
-  //       ? ('- ' + week.tasks.map(t=>t.name).join('\n- '))
-  //       : 'Chưa có mô tả.');
-  //     document.getElementById('weekTitle').textContent = title;
-  //     document.getElementById('weekDesc').textContent = desc;
-  //     const [start, end] = (week?.range || '').split('-').map(s=>s?.trim());
-  //     document.getElementById('weekStart').textContent = week?.start || start || '-';
-  //     document.getElementById('weekEnd').textContent = week?.end || end || '-';
-  //     const ovFiles = Array.isArray(week?.overviewFiles) ? week.overviewFiles : (Array.isArray(week?.files) ? week.files : []);
-  //     document.getElementById('overviewFiles').innerHTML = ovFiles.length
-  //       ? ovFiles.map(f=>`<a class="text-blue-600 hover:underline" href="#">${f}</a>`).join(', ')
-  //       : 'Không có tệp đính kèm.';
-
-  //     const tasks = week?.tasks?.length ? week.tasks : [{ name: 'Chưa có công việc', done: false }];
-  //     document.getElementById('taskList').innerHTML = tasks.map(t=>`<li>${t.done? '✅' : '⬜'} ${t.name}</li>`).join('');
-
-  //     // Reports
-  // const reports = Array.isArray(week?.reports) && week.reports.length
-  //       ? week.reports
-  //       : (week?.report || week?.files?.length) ? [{ time: '', content: week.report || '', files: (week.files||[]) }] : [];
-  //     const reportsWrap = document.getElementById('reportsWrap');
-  //     reportsWrap.innerHTML = reports.length ? reports.map(r=>`
-  //       <div class="border rounded-lg p-3 bg-slate-50">
-  //         <div class="text-xs text-slate-500 mb-1">${r.time || '—'}</div>
-  //         <div>${r.content || 'Không có nội dung.'}</div>
-  //         ${r.files && r.files.length ? `<div class=\"mt-1\">Tệp đính kèm: ${r.files.map(f=>`<a class=\"text-blue-600 hover:underline\" href=\"#\">${f}</a>`).join(', ')}</div>` : ''}
-  //       </div>
-  //     `).join('') : '<div class="text-slate-500">Chưa có báo cáo.</div>';
-
-  //     document.getElementById('currentScore').textContent = week?.score ?? '-';
-  //     const scoreInput = document.getElementById('inpScore');
-  //     if(typeof week?.score === 'number') scoreInput.value = week.score;
-  //     document.getElementById('btnSave').addEventListener('click', ()=>{
-  //       const val = parseFloat(scoreInput.value);
-  //       if(!isNaN(val)){
-  //         const idx = data.weeks.findIndex(w=>w.week===weekNo);
-  //         if(idx>=0){ data.weeks[idx].score = val; saveData(data); document.getElementById('currentScore').textContent = val; }
-  //       }
-  //     });
-
-  //     // Comment to student
-  //     const commentStatus = document.getElementById('commentStatus');
-  //     function renderCommentStatus(){
-  //       const c = week?.commentToStudent;
-  //       commentStatus.textContent = c?.text ? `Đã gửi lúc ${c.sentAt}` : 'Chưa có nhận xét.';
-  //     }
-  //     renderCommentStatus();
-  //     document.getElementById('btnSendComment').addEventListener('click', ()=>{
-  //       const txt = (document.getElementById('commentText').value || '').trim();
-  //       if(!txt) return;
-  //       const idx = data.weeks.findIndex(w=>w.week===weekNo);
-  //       if(idx>=0){
-  //         data.weeks[idx].commentToStudent = { text: txt, sentAt: new Date().toLocaleString('vi-VN') };
-  //         saveData(data);
-  //         document.getElementById('commentText').value = '';
-  //         renderCommentStatus();
-  //       }
-  //     });
-  //   }
   </script>
 </body>
 </html>

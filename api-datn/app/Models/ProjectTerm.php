@@ -29,4 +29,9 @@ class ProjectTerm extends Model
     {
         return $this->hasMany(stage_timeline::class);
     }
+
+    public function councils()
+    {
+        return $this->hasMany(Council::class);
+    }
 }

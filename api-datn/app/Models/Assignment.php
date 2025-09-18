@@ -13,6 +13,9 @@ class Assignment extends Model
         'project_id',
         'project_term_id',
         'status',
+        'counter_argument_id', // id giảng viên phản biện
+        'counter_argument_status', // trạng thái chấm đề cương phản biện
+        'council_id'
     ];
 
     public function student() {
@@ -30,5 +33,10 @@ class Assignment extends Model
 
     public function project_term() {
         return $this->belongsTo(ProjectTerm::class);
+    }
+
+    public function council_project_defences()
+    {
+        return $this->hasOne(CouncilProjectDefences::class);
     }
 }

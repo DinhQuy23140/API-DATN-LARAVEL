@@ -42,7 +42,7 @@
 
         // Các tập dữ liệu (đổi theo quan hệ thật của bạn)
         $outlineSubmissions = collect($assignment->project->progressLogs ?? []); // [] nếu không có
-        $weeklyLogs = collect($assignment->project->progressLogs?? []); // [] nếu không có
+        $weeklyLogs = collect($assignment?->project?->progressLogs->sortBy('created_at') ?? []); // [] nếu không có
         $finalReport = $assignment->final_report ?? null;
         $finalOutline = $assignment->reportFiles[0] ?? null;
         $committee = $assignment->committee ?? null;
@@ -146,14 +146,31 @@
                             <div class="bg-blue-50 p-3 rounded">
                                 <div class="text-sm text-blue-800">Ngày bắt đầu</div>
                                 <div class="text-2xl font-bold text-blue-600">
-                                    {{ optional($assignment->created_at)->format('d/m/Y') ?? '-' }}
+                                    {{ optional($assignment?->created_at)->format('d/m/Y') ?? '-' }}
                                 </div>
                             </div>
                             <div class="bg-slate-50 p-3 rounded">
                                 <div class="text-sm text-slate-700">Trạng thái</div>
-                                <div class="text-2xl font-bold text-slate-800">
-                                    {{ $assignment->status ?? '-' }}
-                                </div>
+                                @php
+                                    $status = $assignment->status ?? null;
+                                    $statusClass = match($status){
+                                        'pending' => 'bg-amber-50 text-amber-700',
+                                        'submitted' => 'bg-amber-50 text-amber-700',
+                                        'active' => 'bg-emerald-50 text-emerald-700',
+                                        'approved' => 'bg-emerald-50 text-emerald-700',
+                                        'rejected' => 'bg-rose-50 text-rose-700',
+                                        default => 'bg-slate-100 text-slate-700'
+                                    };
+                                    $statusText = [
+                                        'pending' => 'Chờ duyệt',
+                                        'submitted' => 'Đã nộp',
+                                        'active' => 'Đã duyệt',
+                                        'approved' => 'Đã duyệt',
+                                        'rejected' => 'Bị từ chối'
+                                    ];
+                                    $status = $statusText[$status] ?? null;
+                                @endphp
+                                 <span class="px-2 py-0.5 rounded-full text-xs {{ $statusClass }}">{{ $status ?? 'Chưa nộp' }}</span>
                             </div>
                         </div>
 <!-- de cuong -->
@@ -175,13 +192,14 @@
                                     ->latest('created_at')
                                     ->first();
 
-                                    $listOutline = $assignment->project?->reportFiles ?? [];
+                                    $listOutline = $assignment->project?->reportFiles->sortByDesc('created_at') ?? collect();
                                     $countOutline = $assignment->project?->reportFiles()->count() ?? 0;
 
                                    $statusOutline = $finalOutline->status ?? null;
                                     $listStatus = [
-                                    'pending' => 'Chưa nộp',
+                                    'pending' => 'Đã nộp',
                                     'submitted' => 'Đã nộp',
+                                    'active' => 'Đang thực hiện',
                                     'approved' => 'Đã duyệt',
                                     'rejected' => 'Bị từ chối',
                                     ];
@@ -189,8 +207,9 @@
                                     $status = $listStatus[$statusOutline] ?? 'Chưa nộp';
 
                                     $listStatusColor = [
-                                    'pending' => 'bg-slate-50 text-slate-700',
+                                    'pending' => 'bg-amber-50 text-amber-700',
                                     'submitted' => 'bg-amber-50 text-amber-700',
+                                    'active' => 'bg-amber-50 text-amber-700',
                                     'approved' => 'bg-emerald-50 text-emerald-700',
                                     'rejected' => 'bg-rose-50 text-rose-700',
                                     ];
@@ -246,14 +265,14 @@
                                                        </div>
                                                        @php
                                                            $pill = match($outline->status ?? null){
-                                                               'pending' => 'bg-slate-50 text-slate-700',
+                                                               'pending' => 'bg-amber-50 text-amber-700',
                                                                'submitted' => 'bg-amber-50 text-amber-700',
                                                                'approved' => 'bg-emerald-50 text-emerald-700',
                                                                'rejected' => 'bg-rose-50 text-rose-700',
                                                                default => 'bg-slate-100 text-slate-700'
                                                            };
                                                            $listStatus = [
-                                                               'pending' => 'Chưa nộp',
+                                                               'pending' => 'Đã nộp',
                                                                'submitted' => 'Đã nộp',
                                                                'approved' => 'Đã duyệt',
                                                                'rejected' => 'Bị từ chối',
@@ -307,6 +326,7 @@
                                            <th class="py-2 px-3">Hành động</th>
                                        </tr>
                                    </thead>
+                                   
                                    <tbody>
                                        @foreach($weeklyLogs as $w)
                                            @php
@@ -335,7 +355,7 @@
                                                <td class="py-2 px-3">{{ $w->created_at->format('H:i:s d/m/Y') ?? '-' }}</td>
                                                <td class="py-2 px-3"><span class="px-2 py-0.5 rounded-full text-xs {{ $listColor[$w->instructor_status] }}">{{ $listStatus[$w->instructor_status] ?? 'Chưa nộp' }}</span></td>
                                                <td class="py-2 px-3">{{ $w->score ?? '-' }}</td>
-                                               <td class="py-2 px-3"><a class="text-blue-600 hover:underline" href="{{ route('web.teacher.weekly_log_detail', ['id' => $w->id, 'studentId' => $studentId]) }}">Xem chi tiết</a></td>
+                                               <td class="py-2 px-3"><a class="text-blue-600 hover:underline" href="{{ route('web.teacher.weekly_log_detail', ['progressLogId' => $w->id]) }}">Xem chi tiết</a></td>
                                            </tr>
                                        @endforeach
                                    </tbody>

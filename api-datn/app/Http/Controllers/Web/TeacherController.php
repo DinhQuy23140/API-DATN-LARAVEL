@@ -14,7 +14,7 @@ class TeacherController extends Controller
         return view('teachers.index', compact('teachers'));
     }
     public function loadTeachers(){
-        $teachers = Teacher::with('user')->latest('id')->paginate(15);
+        $teachers = Teacher::with('user')->latest('id')->paginate(10);
         return view('assistant-ui.manage-staff', compact('teachers'));
     }
     public function create(){return view('teachers.create',['teacher'=>new Teacher(),'users'=>User::all()]);}

@@ -78,4 +78,18 @@ class ProgressLogController extends Controller
         $student = Student::with('user')->find($studentId);
         return view('lecturer-ui.weekly-log-detail', compact('progress_log', 'student'));
     }
+
+    public function getProgressLogById($progressLogId) {
+        $progress_log = ProgressLog::with([
+            'attachments',
+            'project.assignment' => function ($query) {
+                $query->with([
+                    'project_term.academy_year',
+                    'student.user',
+                    'assignment_supervisors.supervisor.teacher.user'
+                ]);
+            }
+        ])->findOrFail($progressLogId);
+        return view('lecturer-ui.weekly-log-detail', compact('progress_log'));
+    }
 }

@@ -9,6 +9,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <style>
       body { font-family: 'Inter', system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; }
       .sidebar-collapsed .sidebar-label { display:none; }
@@ -402,8 +403,8 @@
             title: 'Thành lập hội đồng chấm',
             description: 'Tạo hội đồng, phân công vai trò và phân sinh viên vào hội đồng',
             actions: [
-              { label: 'Tạo hội đồng', href: '#' },
-              { label: 'Phân công vai trò', href: '#' },
+              { label: 'Tạo hội đồng', href: '#', action: 'createCouncil' },
+              { label: 'Phân công vai trò', href: "{{ route('web.assistant.councils.roles', [$round_detail->id]) }}" },
               { label: 'Phân sinh viên', href: '#' }
             ]
           },
@@ -417,7 +418,7 @@
           },
           7: {
             title: 'Công bố kết quả',
-            description: 'Công bố kết quả đồ án tốt nghiệp',
+            description: 'Công bố kết quả phản biện đồ án tốt nghiệp',
             actions: [
               { label: 'Xem kết quả', href: '#' },
               { label: 'Cập nhật kết quả', href: '#' }
@@ -437,6 +438,7 @@
         function actionCard(action) {
           const label = action.label || 'Mở';
           const href = action.href || '#';
+          const dataAction = action.action ? `data-action="${action.action}"` : '';
           // Gợi ý icon/màu theo nhãn
           let icon = 'ph ph-rocket', color = 'bg-slate-50 text-slate-600', colorHover = 'group-hover:bg-slate-100';
           const l = label.toLowerCase();
@@ -449,7 +451,7 @@
           else if (l.includes('lịch') || l.includes('schedule')) { icon = 'ph ph-calendar-check'; color = 'bg-cyan-50 text-cyan-600'; colorHover = 'group-hover:bg-cyan-100'; }
 
           return `
-            <a href="${href}" class="group border border-slate-200 hover:border-blue-300 rounded-xl p-4 bg-white hover:shadow-sm transition">
+            <a href="${href}" ${dataAction} class="group border border-slate-200 hover:border-blue-300 rounded-xl p-4 bg-white hover:shadow-sm transition">
               <div class="flex items-start gap-3">
                 <div class="h-10 w-10 rounded-lg grid place-items-center ${color} ${colorHover}">
                   <i class="${icon}"></i>
@@ -560,23 +562,6 @@
                     </div>
                   </a>
 
-                  <!-- Phân công giảng viên hướng dẫn -->
-                  <a href="{{ route('web.assistant.assign_supervisors', [$round_detail->id]) }}" class="group border border-slate-200 hover:border-blue-300 rounded-xl p-4 bg-white hover:shadow-sm transition">
-                    <div class="flex items-start gap-3">
-                      <div class="h-10 w-10 rounded-lg grid place-items-center bg-amber-50 text-amber-600 group-hover:bg-amber-100">
-                        <i class="ph ph-user-switch"></i>
-                      </div>
-                      <div class="flex-1">
-                        <div class="font-medium">Phân công giảng viên hướng dẫn</div>
-                        <div class="text-xs text-slate-500 mt-0.5">Chọn giảng viên và phân công cho sinh viên chưa có GVHD</div>
-                        <div class="mt-3">
-                          <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-amber-600 text-white text-sm">
-                            <i class="ph ph-arrow-right"></i> Mở
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </a>
                 </div>
               </div>
             `;
@@ -1062,125 +1047,202 @@
       // Create Committee modal
       document.getElementById('btnCreateCommittee')?.addEventListener('click', ()=>{
         const content = `
-          <form id="createCommitteeForm" class="space-y-5">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <label class="text-sm text-slate-600">Mã hội đồng</label>
-                <input name="code" class="mt-1 w-full border rounded-lg px-3 py-2 text-sm" placeholder="HĐ-CNTT-02" />
-              </div>
-              <div>
-                <label class="text-sm text-slate-600">Bộ môn</label>
-                <input name="dept" class="mt-1 w-full border rounded-lg px-3 py-2 text-sm" placeholder="CNTT" />
-              </div>
-              <div>
-                <label class="text-sm text-slate-600">Phòng bảo vệ</label>
-                <input name="room" class="mt-1 w-full border rounded-lg px-3 py-2 text-sm" placeholder="B203" />
-              </div>
-            </div>
+<form id="createCommitteeForm" class="space-y-6">
+  <!-- Thông tin chung -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div>
+      <label class="block text-sm font-medium text-slate-700">Mã hội đồng</label>
+      <input name="code" 
+             class="mt-2 w-full border border-slate-300 rounded-xl px-3 py-2 text-sm shadow-sm 
+                    focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+             placeholder="HĐ-CNTT-02" />
+    </div>
+    <div>
+      <label class="block text-sm font-medium text-slate-700">Tên hội đồng</label>
+      <input name="name" 
+             class="mt-2 w-full border border-slate-300 rounded-xl px-3 py-2 text-sm shadow-sm 
+                    focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+             placeholder="Hội đồng bảo vệ khóa luận CNTT" />
+    </div>
+    <div>
+      <label class="block text-sm font-medium text-slate-700">Bộ môn</label>
+      <input name="dept" 
+             class="mt-2 w-full border border-slate-300 rounded-xl px-3 py-2 text-sm shadow-sm 
+                    focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+             placeholder="CNTT" />
+    </div>
+  </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label class="text-sm text-slate-600">Ngày bảo vệ</label>
-                <input type="date" name="date" class="mt-1 w-full border rounded-lg px-3 py-2 text-sm" />
-              </div>
-              <div>
-                <label class="text-sm text-slate-600">Giờ bắt đầu</label>
-                <input type="time" name="time" class="mt-1 w-full border rounded-lg px-3 py-2 text-sm" />
-              </div>
-            </div>
+  <!-- Ngày & phòng -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div>
+      <label class="block text-sm font-medium text-slate-700">Ngày bảo vệ</label>
+      <input type="date" name="date" 
+             class="mt-2 w-full border border-slate-300 rounded-xl px-3 py-2 text-sm shadow-sm 
+                    focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+    </div>
+    <div>
+      <label class="block text-sm font-medium text-slate-700">Phòng bảo vệ</label>
+      <input name="room" 
+             class="mt-2 w-full border border-slate-300 rounded-xl px-3 py-2 text-sm shadow-sm 
+                    focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+             placeholder="B203" />
+    </div>
+  </div>
 
-            <div class="border rounded-lg p-4">
-              <div class="font-semibold mb-3">Thành viên hội đồng</div>
-              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div>
-                  <label class="text-sm text-slate-600">Chủ tịch</label>
-                  <select name="chutich" class="mt-1 w-full border rounded-lg px-3 py-2 text-sm">
-                    <option value="">-- Chọn --</option>
-                    <option>TS. Đặng Hữu T</option>
-                    <option>ThS. Lưu Lan</option>
-                    <option>TS. Nguyễn Văn A</option>
-                    <option>TS. Trần Thị B</option>
-                  </select>
-                </div>
-                <div>
-                  <label class="text-sm text-slate-600">Thư kí</label>
-                  <select name="thuki" class="mt-1 w-full border rounded-lg px-3 py-2 text-sm">
-                    <option value="">-- Chọn --</option>
-                    <option>TS. Đặng Hữu T</option>
-                    <option>ThS. Lưu Lan</option>
-                    <option>TS. Nguyễn Văn A</option>
-                    <option>TS. Trần Thị B</option>
-                  </select>
-                </div>
-                <div>
-                  <label class="text-sm text-slate-600">Ủy viên 1</label>
-                  <select name="uyvien1" class="mt-1 w-full border rounded-lg px-3 py-2 text-sm">
-                    <option value="">-- Chọn --</option>
-                    <option>TS. Đặng Hữu T</option>
-                    <option>ThS. Lưu Lan</option>
-                    <option>TS. Nguyễn Văn A</option>
-                    <option>TS. Trần Thị B</option>
-                  </select>
-                </div>
-                <div>
-                  <label class="text-sm text-slate-600">Ủy viên 2</label>
-                  <select name="uyvien2" class="mt-1 w-full border rounded-lg px-3 py-2 text-sm">
-                    <option value="">-- Chọn --</option>
-                    <option>TS. Đặng Hữu T</option>
-                    <option>ThS. Lưu Lan</option>
-                    <option>TS. Nguyễn Văn A</option>
-                    <option>TS. Trần Thị B</option>
-                  </select>
-                </div>
-                <div>
-                  <label class="text-sm text-slate-600">Ủy viên 3</label>
-                  <select name="uyvien3" class="mt-1 w-full border rounded-lg px-3 py-2 text-sm">
-                    <option value="">-- Chọn --</option>
-                    <option>TS. Đặng Hữu T</option>
-                    <option>ThS. Lưu Lan</option>
-                    <option>TS. Nguyễn Văn A</option>
-                    <option>TS. Trần Thị B</option>
-                  </select>
-                </div>
-              </div>
-              <p class="mt-3 text-xs text-slate-500">Thành phần: 1 Chủ tịch, 1 Thư kí, 3 Ủy viên.</p>
-            </div>
+  <!-- Mô tả -->
+  <div>
+    <label class="block text-sm font-medium text-slate-700">Mô tả</label>
+    <textarea name="description" rows="3"
+              class="mt-2 w-full border border-slate-300 rounded-xl px-3 py-2 text-sm shadow-sm 
+                     focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+              placeholder="Nhập mô tả chi tiết về hội đồng..."></textarea>
+  </div>
 
-            <div class="flex items-center justify-end gap-2">
-              <button type="button" class="px-3 py-2 rounded-lg border hover:bg-slate-50 text-sm" onclick="this.closest('.fixed').remove()">Hủy</button>
-              <button id="confirmCreateCommittee" type="submit" class="px-3 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 text-sm">Tạo</button>
-            </div>
-          </form>`;
+  <!-- Thành viên hội đồng -->
+  <div class="border rounded-xl p-5 shadow-sm bg-slate-50">
+    <div class="font-semibold text-slate-800 mb-4">Thành viên hội đồng</div>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      
+      <!-- Chủ tịch -->
+      <div>
+        <label class="block text-sm font-medium text-slate-700">Chủ tịch</label>
+        <select name="chutich" 
+                class="mt-2 w-full border border-slate-300 rounded-xl px-3 py-2 text-sm shadow-sm 
+                       focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none 
+                       max-h-32 overflow-y-auto">
+          <option value="">-- Chọn --</option>
+          @foreach ($round_detail->supervisors as $supervisor)
+            <option value="{{ $supervisor->id }}">{{ $supervisor->teacher->user->fullname }}</option>
+          @endforeach
+        </select>
+      </div>
+
+      <!-- Thư ký -->
+      <div>
+        <label class="block text-sm font-medium text-slate-700">Thư kí</label>
+        <select name="thuki" 
+                class="mt-2 w-full border border-slate-300 rounded-xl px-3 py-2 text-sm shadow-sm 
+                       focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none 
+                       max-h-32 overflow-y-auto">
+          <option value="">-- Chọn --</option>
+          @foreach ($round_detail->supervisors as $supervisor)
+            <option value="{{ $supervisor->id }}">{{ $supervisor->teacher->user->fullname }}</option>
+          @endforeach
+        </select>
+      </div>
+
+      <!-- Ủy viên 1 -->
+      <div>
+        <label class="block text-sm font-medium text-slate-700">Ủy viên 1</label>
+        <select name="uyvien1" 
+                class="mt-2 w-full border border-slate-300 rounded-xl px-3 py-2 text-sm shadow-sm 
+                       focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none 
+                       max-h-32 overflow-y-auto">
+          <option value="">-- Chọn --</option>
+          @foreach ($round_detail->supervisors as $supervisor)
+            <option value="{{ $supervisor->id }}">{{ $supervisor->teacher->user->fullname }}</option>
+          @endforeach
+        </select>
+      </div>
+
+      <!-- Ủy viên 2 -->
+      <div>
+        <label class="block text-sm font-medium text-slate-700">Ủy viên 2</label>
+        <select name="uyvien2" 
+                class="mt-2 w-full border border-slate-300 rounded-xl px-3 py-2 text-sm shadow-sm 
+                       focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none 
+                       max-h-32 overflow-y-auto">
+          <option value="">-- Chọn --</option>
+          @foreach ($round_detail->supervisors as $supervisor)
+            <option value="{{ $supervisor->id }}">{{ $supervisor->teacher->user->fullname }}</option>
+          @endforeach
+        </select>
+      </div>
+
+      <!-- Ủy viên 3 -->
+      <div>
+        <label class="block text-sm font-medium text-slate-700">Ủy viên 3</label>
+        <select name="uyvien3" 
+                class="mt-2 w-full border border-slate-300 rounded-xl px-3 py-2 text-sm shadow-sm 
+                       focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none 
+                       max-h-32 overflow-y-auto">
+          <option value="">-- Chọn --</option>
+          @foreach ($round_detail->supervisors as $supervisor)
+            <option value="{{ $supervisor->id }}">{{ $supervisor->teacher->user->fullname }}</option>
+          @endforeach
+        </select>
+      </div>
+
+    </div>
+    <p class="mt-4 text-xs text-slate-500">Thành phần: 1 Chủ tịch, 1 Thư kí, 3 Ủy viên.</p>
+  </div>
+
+  <!-- Buttons -->
+  <div class="flex items-center justify-end gap-3">
+    <button type="button" 
+            class="px-4 py-2 rounded-xl border text-sm text-slate-600 hover:bg-slate-100 transition" 
+            onclick="this.closest('.fixed').remove()">Hủy</button>
+    <button id="confirmCreateCommittee" type="submit" 
+            class="px-4 py-2 rounded-xl bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 shadow-sm transition">Tạo</button>
+  </div>
+</form>
+
+        `;
         const modal = createModal('Tạo hội đồng', content);
         document.body.appendChild(modal);
 
-        const form = modal.querySelector('#createCommitteeForm');
-        form.addEventListener('submit', (e)=>{
-          e.preventDefault();
-          const fd = new FormData(form);
-          const code = (fd.get('code')||'').toString().trim() || 'HĐ-MỚI';
-          const dept = (fd.get('dept')||'').toString().trim() || 'CNTT';
-          const room = (fd.get('room')||'').toString().trim() || 'B203';
-          const date = (fd.get('date')||'').toString().trim();
-          const time = (fd.get('time')||'').toString().trim();
-          const members = [fd.get('chutich'), fd.get('thuki'), fd.get('uyvien1'), fd.get('uyvien2'), fd.get('uyvien3')]
-            .map(x=> (x||'').toString().trim()).filter(Boolean);
-          if(members.length<3){ alert('Vui lòng chọn đủ thành viên (ít nhất 3).'); return; }
+        // Đồng bộ các select vai trò: không cho chọn trùng giảng viên
+        const roleSelects = Array.from(
+          modal.querySelectorAll('select[name="chutich"], select[name="thuki"], select[name="uyvien1"], select[name="uyvien2"], select[name="uyvien3"]')
+        );
+        function syncRoleSelects(){
+          const chosen = new Set(roleSelects.map(s => s.value).filter(Boolean));
+          roleSelects.forEach(sel => {
+            Array.from(sel.options).forEach(opt => {
+              if (!opt.value) return; // bỏ qua option rỗng "-- Chọn --"
+              const duplicate = chosen.has(opt.value) && sel.value !== opt.value;
+              opt.disabled = duplicate;
+              opt.hidden = duplicate; // ẩn khỏi dropdown
+            });
+          });
+        }
+        roleSelects.forEach(sel => sel.addEventListener('change', syncRoleSelects));
+        // Gọi lần đầu để áp dụng trạng thái (nếu có preset)
+        syncRoleSelects();
 
-          // add a new row to table with a simple render
-          const tbody = document.getElementById('tableBody');
-          const row = document.createElement('tr');
-          row.className = 'hover:bg-slate-50';
-          row.innerHTML = `
-            <td class="py-3 px-4"><a href="committee-detail.html" class="text-blue-600 hover:underline">${code}</a><div class="text-xs text-slate-500">${dept} • ${room}${date?` • ${date} ${time}`:''}</div></td>
-            <td class="py-3 px-4">${members.length}</td>
-            <td class="py-3 px-4"><div class="flex flex-wrap gap-1">${members.slice(0,3).map(n=>`<span class='px-2 py-1 rounded-full text-xs bg-slate-100 text-slate-700'>${n}</span>`).join('')}${members.length>3?`<span class='px-2 py-1 rounded-full text-xs bg-slate-100 text-slate-700'>...</span>`:''}</div></td>
-            <td class="py-3 px-4 text-right space-x-2">
-              <button class="px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-slate-600"><i class="ph ph-pencil"></i></button>
-              <button class="px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-rose-600"><i class="ph ph-trash"></i></button>
-            </td>`;
-          tbody.prepend(row);
-          modal.remove();
+        const form = modal.querySelector('#createCommitteeForm');
+        form.addEventListener('submit', async (e)=>{
+          e.preventDefault();
+          // Validate: không được trùng giảng viên giữa các vai trò
+          const picked = roleSelects.map(s => s.value).filter(Boolean);
+          const hasDup = new Set(picked).size !== picked.length;
+          if (hasDup) { alert('Các vai trò không được trùng giảng viên. Vui lòng kiểm tra lại.'); return; }
+
+          const fd = new FormData(form);
+          const payload = {
+            term_id: {{ $round_detail->id }},
+            code: (fd.get('code')||'').toString().trim(),
+            name: (fd.get('name')||'').toString().trim(),
+            dept: (fd.get('dept')||'').toString().trim(),
+            room: (fd.get('room')||'').toString().trim(),
+            date: (fd.get('date')||'').toString().trim(),
+            description: (fd.get('description')||'').toString().trim(),
+            chutich: fd.get('chutich') || null,
+            thuki: fd.get('thuki') || null,
+            uyvien1: fd.get('uyvien1') || null,
+            uyvien2: fd.get('uyvien2') || null,
+            uyvien3: fd.get('uyvien3') || null,
+          };
+          const token = document.querySelector('meta[name="csrf-token"]')?.content || '';
+          const res = await fetch(`{{ route('web.assistant.councils.store') }}`, {
+            method: 'POST',
+            headers: { 'Content-Type':'application/json', 'X-CSRF-TOKEN': token, 'Accept':'application/json' },
+            body: JSON.stringify(payload)
+          });
+          if(!res.ok){ alert('Tạo hội đồng thất bại'); return; }
+          // TODO: cập nhật bảng danh sách bằng data trả về
+          e.target.closest('.fixed')?.remove();
         })
       });
 

@@ -18,7 +18,7 @@ class AcademyYearSeeder extends Seeder
     public function run()
     {
         foreach(range(2010, 2025) as $year) {
-            AcademyYear::create(['year_name' => $year]);
+            AcademyYear::create(['year_name' => $year . '-' . ($year + 1)]);
         }
     }
 }

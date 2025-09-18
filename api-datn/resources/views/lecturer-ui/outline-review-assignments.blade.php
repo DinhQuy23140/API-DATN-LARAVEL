@@ -15,28 +15,103 @@
     .sidebar-collapsed .sidebar { width:72px; }
     .sidebar { width:260px; }
   </style>
+  <meta name="csrf-token" content="{{ csrf_token() }}">
 </head>
+  @php
+    $user = auth()->user();
+    $userName = $user->fullname ?? $user->name ?? 'Giảng viên';
+    $email = $user->email ?? '';
+    // Tùy mô hình dữ liệu, thay các field bên dưới cho khớp
+    $dept = $user->department_name ?? optional($user->teacher)->department ?? '';
+    $faculty = $user->faculty_name ?? optional($user->teacher)->faculty ?? '';
+    $subtitle = trim(($dept ? "Bộ môn $dept" : '') . (($dept && $faculty) ? ' • ' : '') . ($faculty ? "Khoa $faculty" : ''));
+    $degree = $user->teacher->degree ?? '';
+    $expertise = $user->teacher->supervisor->expertise ?? 'null';
+    $data_assignment_supervisors = $user->teacher->supervisor->assignment_supervisors ?? collect();
+    $supervisorId = $user->teacher->supervisor->id ?? 0;
+    $teacherId = $user->teacher->id ?? 0;
+    $avatarUrl = $user->avatar_url
+      ?? $user->profile_photo_url
+      ?? 'https://ui-avatars.com/api/?name=' . urlencode($userName) . '&background=0ea5e9&color=ffffff';
+  @endphp
 <body class="bg-slate-50 text-slate-800">
   <div class="flex min-h-screen">
-    <aside id="sidebar" class="sidebar fixed inset-y-0 left-0 z-30 bg-white border-r border-slate-200 flex flex-col transition-all">
+    <aside class="sidebar fixed inset-y-0 left-0 z-30 bg-white border-r border-slate-200 flex flex-col transition-all"
+      id="sidebar">
       <div class="h-16 flex items-center gap-3 px-4 border-b border-slate-200">
-        <div class="h-9 w-9 grid place-items-center rounded-lg bg-blue-600 text-white"><i class="ph ph-chalkboard-teacher"></i></div>
+        <div class="h-9 w-9 grid place-items-center rounded-lg bg-blue-600 text-white"><i
+            class="ph ph-chalkboard-teacher"></i></div>
         <div class="sidebar-label">
           <div class="font-semibold">Lecturer</div>
           <div class="text-xs text-slate-500">Bảng điều khiển</div>
         </div>
       </div>
+      @php
+        // Mở nhóm "Học phần tốt nghiệp" nếu vào các trang liên quan (kể cả trang chi tiết)
+        $isThesisOpen = request()->routeIs('web.teacher.thesis_internship')
+          || request()->routeIs('web.teacher.thesis_rounds')
+          || request()->routeIs('web.teacher.thesis_round_detail'); // thêm route detail nếu có
+        // Active item "Đồ án tốt nghiệp" trong submenu cho cả list + detail
+        $isThesisRoundsActive = request()->routeIs('web.teacher.thesis_rounds')
+          || request()->routeIs('web.teacher.thesis_round_detail');
+      @endphp
       <nav class="flex-1 overflow-y-auto p-3">
-        <a href="overview.html" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-gauge"></i><span class="sidebar-label">Tổng quan</span></a>
-        <a href="profile.html" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-user"></i><span class="sidebar-label">Hồ sơ</span></a>
-        <a href="research.html" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-flask"></i><span class="sidebar-label">Nghiên cứu</span></a>
-        <a href="students.html" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-student"></i><span class="sidebar-label">Sinh viên</span></a>
-        <div class="sidebar-label text-xs uppercase text-slate-400 px-3 mt-3">Học phần tốt nghiệp</div>
-        <a href="thesis-internship.html" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100 pl-10"><i class="ph ph-briefcase"></i><span class="sidebar-label">Thực tập tốt nghiệp</span></a>
-        <a href="thesis-rounds.html" class="flex items-center gap-3 px-3 py-2 rounded-lg bg-slate-100 font-semibold pl-10"><i class="ph ph-calendar"></i><span class="sidebar-label">Đồ án tốt nghiệp</span></a>
+        <a href="{{ route('web.teacher.overview') }}"
+          class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('web.teacher.overview') ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}">
+          <i class="ph ph-gauge"></i><span class="sidebar-label">Tổng quan</span>
+        </a>
+
+        <a href="{{ route('web.teacher.profile') }}"
+          class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('web.teacher.profile') ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}">
+          <i class="ph ph-user"></i><span class="sidebar-label">Hồ sơ</span>
+        </a>
+
+        <a href="{{ route('web.teacher.research') }}"
+          class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('web.teacher.research') ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}">
+          <i class="ph ph-flask"></i><span class="sidebar-label">Nghiên cứu</span>
+        </a>
+
+        @if ($user->teacher && $user->teacher->supervisor)
+          <a id="menuStudents"
+            href="{{ route('web.teacher.students', ['supervisorId' => $user->teacher->supervisor->id]) }}"
+            class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"
+            data-skip-active="1">
+             <i class="ph ph-student"></i><span class="sidebar-label">Sinh viên</span>
+           </a>
+        @else
+          <span class="text-slate-400">Chưa có supervisor</span>
+        @endif
+
+        @php
+          $isThesisOpen = request()->routeIs('web.teacher.thesis_internship') || request()->routeIs('web.teacher.thesis_rounds');
+        @endphp
+        <button type="button" id="toggleThesisMenu" aria-controls="thesisSubmenu"
+          aria-expanded="{{ $isThesisOpen ? 'true' : 'false' }}"
+          class="w-full flex items-center justify-between px-3 py-2 rounded-lg mt-3 {{ $isThesisOpen ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}">
+          <span class="flex items-center gap-3">
+            <i class="ph ph-graduation-cap"></i>
+            <span class="sidebar-label">Học phần tốt nghiệp</span>
+          </span>
+          <i id="thesisCaret" class="ph ph-caret-down transition-transform {{ $isThesisOpen ? 'rotate-180' : '' }}"></i>
+        </button>
+
+        <div id="thesisSubmenu" class="mt-1 pl-3 space-y-1 {{ $isThesisOpen ? '' : 'hidden' }}">
+          <a href="{{ route('web.teacher.thesis_internship') }}"
+            class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('web.teacher.thesis_internship') ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}"
+            @if(request()->routeIs('web.teacher.thesis_internship')) aria-current="page" @endif>
+            <i class="ph ph-briefcase"></i><span class="sidebar-label">Thực tập tốt nghiệp</span>
+          </a>
+          <a href="{{ route('web.teacher.thesis_rounds', ['teacherId' => $teacherId]) }}"
+            class="flex items-center gap-3 px-3 py-2 rounded-lg bg-slate-100 font-semibold {{ $isThesisRoundsActive ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}"
+            @if($isThesisRoundsActive) aria-current="page" @endif>
+            <i class="ph ph-calendar"></i><span class="sidebar-label">Đồ án tốt nghiệp</span>
+          </a>
+        </div>
       </nav>
       <div class="p-3 border-t border-slate-200">
-        <button id="toggleSidebar" class="w-full flex items-center justify-center gap-2 px-3 py-2 text-slate-600 hover:bg-slate-100 rounded-lg"><i class="ph ph-sidebar"></i><span class="sidebar-label">Thu gọn</span></button>
+        <button
+          class="w-full flex items-center justify-center gap-2 px-3 py-2 text-slate-600 hover:bg-slate-100 rounded-lg"
+          id="toggleSidebar"><i class="ph ph-sidebar"></i><span class="sidebar-label">Thu gọn</span></button>
       </div>
     </aside>
 
@@ -61,16 +136,19 @@
         </div>
         <div class="relative">
           <button id="profileBtn" class="flex items-center gap-3 px-2 py-1.5 rounded-lg hover:bg-slate-100">
-            <img class="h-9 w-9 rounded-full object-cover" src="https://i.pravatar.cc/100?img=20" alt="avatar" />
+            <img class="h-9 w-9 rounded-full object-cover" src="{{ $avatarUrl }}" alt="avatar" />
             <div class="hidden sm:block text-left">
-              <div class="text-sm font-semibold leading-4">TS. Nguyễn Văn A</div>
-              <div class="text-xs text-slate-500">lecturer@uni.edu</div>
+              <div class="text-sm font-semibold leading-4">{{ $userName }}</div>
+              <div class="text-xs text-slate-500">{{ $email }}</div>
             </div>
             <i class="ph ph-caret-down text-slate-500 hidden sm:block"></i>
           </button>
           <div id="profileMenu" class="hidden absolute right-0 mt-2 w-44 bg-white border border-slate-200 rounded-lg shadow-lg py-1 text-sm">
             <a href="#" class="flex items-center gap-2 px-3 py-2 hover:bg-slate-50"><i class="ph ph-user"></i>Xem thông tin</a>
-            <a href="#" class="flex items-center gap-2 px-3 py-2 hover:bg-slate-50 text-rose-600"><i class="ph ph-sign-out"></i>Đăng xuất</a>
+            <a href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();" class="flex items-center gap-2 px-3 py-2 hover:bg-slate-50 text-rose-600"><i class="ph ph-sign-out"></i>Đăng xuất</a>
+            <form id="logout-form" action="{{ route('web.auth.logout') }}" method="POST" class="hidden">
+              @csrf
+            </form>
           </div>
         </div>
       </header>
@@ -82,7 +160,7 @@
               <i class="ph ph-magnifying-glass absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
               <input id="search" class="pl-8 pr-3 py-2 border border-slate-200 rounded text-sm w-80" placeholder="Tìm theo tên/MSSV/đề tài" />
             </div>
-            <a href="thesis-round-detail.html" class="text-sm text-blue-600 hover:underline"><i class="ph ph-caret-left"></i> Quay lại chi tiết đợt</a>
+            <a href="{{ route('web.teacher.thesis_round_detail', ['termId' => $termId, 'supervisorId' => $supervisorId]) }}" class="text-sm text-blue-600 hover:underline"><i class="ph ph-caret-left"></i> Quay lại chi tiết đợt</a>
           </div>
 
           <div class="bg-white border rounded-xl p-4">
@@ -91,21 +169,75 @@
               <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 text-amber-700"><span class="h-2 w-2 rounded-full bg-amber-400"></span> Đang chấm</span>
               <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700"><span class="h-2 w-2 rounded-full bg-emerald-500"></span> Đã chấm</span>
             </div>
-            <div class="overflow-x-auto">
-              <table class="w-full text-sm">
-                <thead>
-                  <tr class="text-left text-slate-500 border-b">
-                    <th class="py-3 px-3">Sinh viên</th>
-                    <th class="py-3 px-3">MSSV</th>
-                    <th class="py-3 px-3">Đề tài</th>
-                    <th class="py-3 px-3">Trạng thái chấm</th>
-                    <th class="py-3 px-3">Lần nộp</th>
-                    <th class="py-3 px-3">Hành động</th>
-                  </tr>
-                </thead>
-                <tbody id="rows"></tbody>
-              </table>
+<div class="overflow-x-auto">
+  <table class="w-full text-sm border border-slate-200 rounded-xl shadow-sm overflow-hidden">
+    <thead class="bg-slate-100">
+      <tr class="text-slate-600">
+        <th class="py-3 px-3 text-left">Sinh viên</th>
+        <th class="py-3 px-3 text-left">MSSV</th>
+        <th class="py-3 px-3 text-left">Đề tài</th>
+        <th class="py-3 px-3 text-center">Trạng thái chấm</th>
+        <th class="py-3 px-3 text-center">Thời gian nộp</th>
+        <th class="py-3 px-3 text-center">Hành động</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-slate-200">
+      @foreach ($rows as $row)
+        @php
+          $fullname = $row->student->user->fullname;
+          $student_code = $row->student->student_code;
+          $topic = $row->project->name ?? 'Chưa có đề tài';
+          $status = $row->counter_argument_status ?? 'pending';
+          $lastOutline = $row->project?->reportFiles()->latest('created_at')->first();
+          $lastOutlineDate = $lastOutline ? $lastOutline->created_at->format('H:i:s d/m/Y') : 'Chưa nộp báo cáo';
+          $fileUrl = $lastOutline ? $lastOutline->file_url : '#';
+
+          $statusLabels = [
+            'approved' => ['label' => 'Đã duyệt',   'color' => 'bg-emerald-100 text-emerald-700'],
+            'rejected' => ['label' => 'Từ chối',    'color' => 'bg-rose-100 text-rose-700'],
+            'pending'  => ['label' => 'Chưa duyệt',  'color' => 'bg-slate-100 text-slate-600'],
+            'todo'     => ['label' => 'Cần chấm',   'color' => 'bg-amber-100 text-amber-700'],
+            'progress' => ['label' => 'Đang chấm',  'color' => 'bg-blue-100 text-blue-700'],
+            'done'     => ['label' => 'Hoàn tất',   'color' => 'bg-emerald-100 text-emerald-700'],
+          ];
+          $st = $statusLabels[$status] ?? $statusLabels['pending'];
+        @endphp
+        <tr class="hover:bg-slate-50" data-assignment-id="{{ $row->id }}">
+          <td class="py-3 px-3 text-left">{{ $fullname }}</td>
+          <td class="py-3 px-3 text-left">{{ $student_code }}</td>
+          <td class="py-3 px-3 text-left max-w-xs break-words">{{ $topic }}</td>
+          <td class="py-3 px-3 text-center">
+            <span class="px-2 py-1 rounded-full text-xs font-medium {{ $st['color'] }}" data-status-pill>
+              {{ $st['label'] }}
+            </span>
+          </td>
+          <td class="py-3 px-3 text-center">{{ $lastOutlineDate }}</td>
+          <td class="py-3 px-3 text-left">
+            <div class="flex flex-col gap-2 items-center" data-actions>
+              <a class="px-3 py-1 border border-slate-200 rounded text-xs hover:bg-slate-100 transition"
+                 href="{{ $fileUrl }}">
+                Tải đề cương
+              </a>
+              @if ($status === 'pending')
+                <div class="flex gap-2">
+                  <button class="px-3 py-1 bg-emerald-600 text-white rounded text-xs hover:bg-emerald-700 transition"
+                          onclick="approveOutline('{{ $row->id }}', this)">
+                    Phê duyệt
+                  </button>
+                  <button class="px-3 py-1 bg-rose-600 text-white rounded text-xs hover:bg-rose-700 transition"
+                          onclick="rejectOutline('{{ $row->id }}', this)">
+                    Từ chối
+                  </button>
+                </div>
+              @endif
             </div>
+          </td>
+        </tr>
+      @endforeach
+    </tbody>
+  </table>
+</div>
+
           </div>
         </div>
       </main>
@@ -163,21 +295,6 @@
       const q=(document.getElementById('search').value||'').toLowerCase();
       const rows=document.getElementById('rows');
       const list = assignments.filter(s=> s.name.toLowerCase().includes(q) || s.id.includes(q) || s.topic.toLowerCase().includes(q));
-      rows.innerHTML = list.map(s=>`
-        <tr class="border-b hover:bg-slate-50">
-          <td class="py-3 px-3">${s.name}</td>
-          <td class="py-3 px-3">${s.id}</td>
-          <td class="py-3 px-3">${s.topic}</td>
-          <td class="py-3 px-3">${statusPill(s.status)}</td>
-          <td class="py-3 px-3">${s.last}</td>
-          <td class="py-3 px-3">
-            <div class="flex items-center gap-1">
-              <a class="px-2 py-1 border border-slate-200 rounded text-xs hover:bg-slate-50" href="${s.file}">Tải đề cương</a>
-              <button class="px-2 py-1 border border-slate-200 rounded text-xs" data-id="${s.id}" onclick="openGrade('${s.id}')">Chấm</button>
-            </div>
-          </td>
-        </tr>
-      `).join('');
     }
 
     document.getElementById('search').addEventListener('input', render);
@@ -233,6 +350,117 @@
     const saved = localStorage.getItem('outline_review_assignments');
     if(saved){ try{ assignments = JSON.parse(saved);}catch(e){} }
     render();
+
+        // Show Stage 1 by default when the page loads
+    window.addEventListener('DOMContentLoaded', function () {
+      try { showStageDetails(1); } catch (e) { console.error('Init stage load failed:', e); }
+      
+     // Mở cứng submenu "Học phần tốt nghiệp" nếu đang ở trang chi tiết
+     const submenu = document.getElementById('thesisSubmenu');
+     const toggleBtn = document.getElementById('toggleThesisMenu');
+     const caret = document.getElementById('thesisCaret');
+     if (submenu && toggleBtn && caret) {
+       submenu.classList.remove('hidden');
+       toggleBtn.setAttribute('aria-expanded','true');
+       caret.classList.add('rotate-180');
+       // Tô đậm nhóm
+       toggleBtn.classList.add('bg-slate-100','font-semibold');
+     }
+    });
+
+    // Profile dropdown
+    const profileBtn = document.getElementById('profileBtn');
+    const profileMenu = document.getElementById('profileMenu');
+    profileBtn?.addEventListener('click', () => profileMenu.classList.toggle('hidden'));
+    document.addEventListener('click', (e) => { if (!profileBtn?.contains(e.target) && !profileMenu?.contains(e.target)) profileMenu?.classList.add('hidden'); });
+
+    // Toggle submenu "Học phần tốt nghiệp"
+    const toggleBtn = document.getElementById('toggleThesisMenu');
+    const thesisMenu = document.getElementById('thesisSubmenu');
+    const thesisCaret = document.getElementById('thesisCaret');
+    toggleBtn?.addEventListener('click', () => {
+      const isHidden = thesisMenu?.classList.toggle('hidden');
+      const expanded = !isHidden;
+      toggleBtn?.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+      thesisCaret?.classList.toggle('rotate-180', expanded);
+    });
+
+    // Helper: đổi pill theo status
+    function applyStatusPill(pillEl, status, labelClass){
+      if(!pillEl) return;
+      pillEl.className = 'px-2 py-1 rounded-full text-xs font-medium ' + (labelClass || '');
+      const labelMap = {
+        approved: 'Đã duyệt',
+        rejected: 'Từ chối',
+        pending: 'Chưa chấm',
+        todo: 'Cần chấm',
+        progress: 'Đang chấm',
+        done: 'Hoàn tất',
+      };
+      pillEl.textContent = labelMap[status] || 'Chưa chấm';
+    }
+
+    // Cập nhật khu vực hành động sau khi duyệt/từ chối
+    function updateRowAfterStatus(tr, status){
+      if(!tr) return;
+      tr.setAttribute('data-status', status);
+      const actions = tr.querySelector('[data-actions]');
+      if(actions){
+        const msg = status === 'approved' ? 'Đã duyệt' : (status === 'rejected' ? 'Đã từ chối' : 'Đã cập nhật');
+        actions.innerHTML = `
+          <div class="text-xs text-slate-500">${msg}</div>
+          <a class="px-3 py-1 border border-slate-200 rounded text-xs hover:bg-slate-100 transition"
+             href="#">
+            Tải đề cương</a>
+        `;
+      }
+    }
+
+    async function sendCounterStatus(id, status){
+      const token = document.querySelector('meta[name="csrf-token"]')?.content || '';
+      const url = `{{ url('/teacher/assignments') }}/${id}/counter-status`;
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': token,
+          'Accept': 'application/json'
+        },
+        body: JSON.stringify({ status })
+      });
+      if(!res.ok) throw new Error('Request failed');
+      return res.json();
+    }
+
+    window.approveOutline = async function(id, btn){
+      try{
+        btn?.setAttribute('disabled','true');
+        const data = await sendCounterStatus(id, 'approved');
+        const tr = document.querySelector(`tr[data-assignment-id="${id}"]`);
+        const pill = tr?.querySelector('[data-status-pill]');
+        applyStatusPill(pill, data.status, data.class);
+        updateRowAfterStatus(tr, data.status);
+      }catch(e){
+        alert('Không thể cập nhật: ' + (e.message || 'Lỗi không xác định'));
+      }finally{
+        btn?.removeAttribute('disabled');
+      }
+    };
+
+    window.rejectOutline = async function(id, btn){
+      try{
+        btn?.setAttribute('disabled','true');
+        const data = await sendCounterStatus(id, 'rejected');
+        const tr = document.querySelector(`tr[data-assignment-id="${id}"]`);
+        const pill = tr?.querySelector('[data-status-pill]');
+        applyStatusPill(pill, data.status, data.class);
+        updateRowAfterStatus(tr, data.status);
+      }catch(e){
+        alert('Không thể cập nhật: ' + (e.message || 'Lỗi không xác định'));
+      }finally{
+        btn?.removeAttribute('disabled');
+      }
+    };
   </script>
 </body>
 </html>

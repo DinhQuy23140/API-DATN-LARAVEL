@@ -160,7 +160,8 @@
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
           <div class="rounded-lg border border-slate-200 p-3">
             <div class="text-xs text-slate-500">Giảng viên</div>
-            <div class="mt-1 text-lg font-semibold">{{ $lecturerCount }}</div>
+            <!-- <div class="mt-1 text-lg font-semibold">{{ $lecturerCount }}</div> -->
+            <div class="mt-1 text-lg font-semibold">7</div>
           </div>
           <div class="rounded-lg border border-slate-200 p-3">
             <div class="text-xs text-slate-500">SV chưa có GVHD</div>
@@ -291,7 +292,7 @@
                 @php
                   $assignments = $projectTerm->assignments ?? collect();
                 @endphp
-                @foreach ($assignments as $s)
+                @foreach ($unassignedAssignments as $s)
                   @if ($s->status !== 'active') 
                     <tr class="border-b hover:bg-slate-50" data-id="{{ $s->id }}">
                       <td class="py-2 px-3 align-top">

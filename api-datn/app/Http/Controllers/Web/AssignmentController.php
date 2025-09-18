@@ -155,4 +155,74 @@ class AssignmentController extends Controller
         // }
         return view('lecturer-ui.supervised-student-detail', compact('assignment'));
     }
+
+    public function assign(Request $request)
+    {
+        $data = $request->validate([
+            'termId'        => 'required|integer|exists:project_terms,id',
+            'supervisorId'  => 'required|integer|exists:supervisors,id',
+            'assignments'   => 'required|array|min:1',
+            'assignments.*' => 'required|integer|exists:assignments,id',
+        ]);
+
+        $termId = (int) $data['termId'];
+        $supervisorId = (int) $data['supervisorId'];
+        $ids = collect($data['assignments'])->map(fn($v)=>(int)$v)->values();
+
+        // Chỉ cập nhật các assignment thuộc đúng đợt và chưa có phản biện
+        $updated = Assignment::query()
+            ->where('project_term_id', $termId)
+            ->whereIn('id', $ids)
+            ->whereNull('counter_argument_id')
+            ->update([
+                'counter_argument_id' => $supervisorId,
+                'updated_at' => now(),
+            ]);
+
+        $skipped = $ids->count() - $updated;
+
+        return response()->json([
+            'updated' => $updated,
+            'skipped' => $skipped,
+            'message' => "Đã phân công {$updated} đề cương, bỏ qua {$skipped}.",
+        ]);
+    }
+
+    public function outlineReviewAssignments($termId, $supervisorId)
+    {
+        $rows = Assignment::with(['student.user','project.reportFiles'])
+            ->where('project_term_id', $termId)
+            ->where('counter_argument_id', $supervisorId)
+            ->get();
+
+        return view('lecturer-ui.outline-review-assignments', compact('rows', 'termId', 'supervisorId'));
+    }
+
+    public function setCounterStatus(Request $request, Assignment $assignment)
+    {
+        $payload = $request->validate([
+            'status' => 'required|string|in:approved,rejected,pending,todo,progress,done',
+        ]);
+
+        $assignment->counter_argument_status = $payload['status'];
+        $assignment->save();
+
+        $map = [
+            'approved' => ['label' => 'Đã duyệt',  'class' => 'bg-emerald-100 text-emerald-700'],
+            'rejected' => ['label' => 'Từ chối',   'class' => 'bg-rose-100 text-rose-700'],
+            'pending'  => ['label' => 'Chưa chấm', 'class' => 'bg-slate-100 text-slate-600'],
+            'todo'     => ['label' => 'Cần chấm',  'class' => 'bg-amber-100 text-amber-700'],
+            'progress' => ['label' => 'Đang chấm', 'class' => 'bg-blue-100 text-blue-700'],
+            'done'     => ['label' => 'Hoàn tất',  'class' => 'bg-emerald-100 text-emerald-700'],
+        ];
+        $ui = $map[$assignment->counter_argument_status] ?? $map['pending'];
+
+        return response()->json([
+            'id'     => $assignment->id,
+            'status' => $assignment->counter_argument_status,
+            'label'  => $ui['label'],
+            'class'  => $ui['class'],
+            'ok'     => true,
+        ]);
+    }
 }

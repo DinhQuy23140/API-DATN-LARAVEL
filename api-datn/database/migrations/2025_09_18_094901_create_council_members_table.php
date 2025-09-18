@@ -13,16 +13,16 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('assignment_supervisors', function (Blueprint $table) {
+        Schema::create('council_members', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('assignment_id');
+            $table->unsignedBigInteger('council_id');
             $table->unsignedBigInteger('supervisor_id');
-            $table->string('role')->nullable(); // e.g., 'main' or 'co'
-            $table->string('status')->default('pending'); // e.g., 'approved', 'pending', 'rejected'
-            $table->timestamps();
-
-            $table->foreign('assignment_id')->references('id')->on('assignments')->onDelete('cascade');
+            $table->string('role')->default('member');
+            $table->string('order')->default('0');
+            $table->string('number_student')->default('10');
+            $table->foreign('council_id')->references('id')->on('councils')->onDelete('cascade');
             $table->foreign('supervisor_id')->references('id')->on('supervisors')->onDelete('cascade');
+            $table->timestamps();
         });
     }
 
@@ -33,6 +33,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('assignment_supervisors');
+        Schema::dropIfExists('council_members');
     }
 };

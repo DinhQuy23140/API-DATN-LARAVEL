@@ -9,6 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
+<meta name="csrf-token" content="{{ csrf_token() }}">
 <style>
  body{font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial;}
  .sidebar-collapsed .sidebar-label{display:none;}
@@ -16,30 +17,85 @@
  .sidebar{width:260px;}
 </style>
 </head>
+  @php
+    $user = auth()->user();
+    $userName = $user->fullname ?? $user->name ?? 'Giảng viên';
+    $email = $user->email ?? '';
+    // Tùy mô hình dữ liệu, thay các field bên dưới cho khớp
+    $dept = $user->department_name ?? optional($user->teacher)->department ?? '';
+    $faculty = $user->faculty_name ?? optional($user->teacher)->faculty ?? '';
+    $subtitle = trim(($dept ? "Bộ môn $dept" : '') . (($dept && $faculty) ? ' • ' : '') . ($faculty ? "Khoa $faculty" : ''));
+    $degree = $user->teacher->degree ?? '';
+    $expertise = $user->teacher->supervisor->expertise ?? 'null';
+    $data_assignment_supervisors = $user->teacher->supervisor->assignment_supervisors ?? collect();
+    $supervisorId = $user->teacher->supervisor->id ?? 0;
+    $teacherId = $user->teacher->id ?? 0;
+    $avatarUrl = $user->avatar_url
+      ?? $user->profile_photo_url
+      ?? 'https://ui-avatars.com/api/?name=' . urlencode($userName) . '&background=0ea5e9&color=ffffff';
+  @endphp
 <body class="bg-slate-50 text-slate-800">
 <div class="flex min-h-screen">
-  <aside id="sidebar" class="sidebar fixed inset-y-0 left-0 z-30 bg-white border-r border-slate-200 flex flex-col transition-all">
-    <div class="h-16 flex items-center gap-3 px-4 border-b border-slate-200">
-      <div class="h-9 w-9 grid place-items-center rounded-lg bg-indigo-600 text-white"><i class="ph ph-chalkboard-teacher"></i></div>
-      <div class="sidebar-label">
-        <div class="font-semibold">Head</div>
-        <div class="text-xs text-slate-500">Bảng điều khiển</div>
+  <!-- Sidebar -->
+    <aside id="sidebar" class="sidebar fixed inset-y-0 left-0 z-30 bg-white border-r border-slate-200 flex flex-col transition-all overflow-hidden">
+      <div class="h-16 flex items-center gap-3 px-4 border-b border-slate-200">
+        <div class="h-9 w-9 grid place-items-center rounded-lg bg-indigo-600 text-white"><i class="ph ph-chalkboard-teacher"></i></div>
+        <div class="sidebar-label">
+          <div class="font-semibold">Head</div>
+          <div class="text-xs text-slate-500">Bảng điều khiển</div>
+        </div>
       </div>
-    </div>
-    <nav class="flex-1 overflow-y-auto p-3">
-      <a href="overview.html" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-gauge"></i><span class="sidebar-label">Tổng quan</span></a>
-      <a href="profile.html" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-user"></i><span class="sidebar-label">Hồ sơ</span></a>
-      <a href="research.html" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-flask"></i><span class="sidebar-label">Nghiên cứu</span></a>
-      <a href="students.html" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-student"></i><span class="sidebar-label">Sinh viên</span></a>
-      <div class="sidebar-label text-xs uppercase text-slate-400 px-3 mt-3">Học phần tốt nghiệp</div>
-      <a href="thesis-internship.html" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100 pl-10"><i class="ph ph-briefcase"></i><span class="sidebar-label">Thực tập tốt nghiệp</span></a>
-      <a href="thesis-rounds.html" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100 pl-10"><i class="ph ph-calendar"></i><span class="sidebar-label">Đồ án tốt nghiệp</span></a>
-    </nav>
-    <div class="p-3 border-t border-slate-200">
-      <button id="toggleSidebar" class="w-full flex items-center justify-center gap-2 px-3 py-2 text-slate-600 hover:bg-slate-100 rounded-lg"><i class="ph ph-sidebar"></i><span class="sidebar-label">Thu gọn</span></button>
-    </div>
-  </aside>
-  <div class="flex-1 h-screen overflow-hidden flex flex-col">
+      @php
+        $isThesisOpen = true;
+      @endphp
+      <nav class="flex-1 p-3">
+        <a href="{{ route('web.head.overview') }}"
+           class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('web.head.overview') ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}">
+          <i class="ph ph-gauge"></i><span class="sidebar-label">Tổng quan</span>
+        </a>
+        <a href="{{ route('web.head.profile', ['teacherId' => $teacherId]) }}"
+           class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('web.head.profile') ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}">
+          <i class="ph ph-user"></i><span class="sidebar-label">Hồ sơ</span>
+        </a>
+        <a href="{{ route('web.head.research') }}"
+           class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('web.head.research') ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}">
+          <i class="ph ph-flask"></i><span class="sidebar-label">Nghiên cứu</span>
+        </a>
+        <a href="{{ route('web.head.students') }}"
+           class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('web.head.students') ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}">
+          <i class="ph ph-student"></i><span class="sidebar-label">Sinh viên</span>
+        </a>
+
+        <button type="button" id="toggleThesisMenu"
+                class="w-full flex items-center justify-between px-3 py-2 rounded-lg mt-3
+                       {{ $isThesisOpen ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}">
+          <span class="flex items-center gap-3">
+            <i class="ph ph-graduation-cap"></i>
+            <span class="sidebar-label">Học phần tốt nghiệp</span>
+          </span>
+          <i id="thesisCaret" class="ph ph-caret-down transition-transform {{ $isThesisOpen ? 'rotate-180' : '' }}"></i>
+        </button>
+        <div id="thesisSubmenu" class="mt-1 pl-3 space-y-1 {{ $isThesisOpen ? '' : 'hidden' }}">
+          <a href="{{ route('web.head.thesis_internship') }}"
+             class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('web.head.thesis_internship') ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}">
+            <i class="ph ph-briefcase"></i><span class="sidebar-label">Thực tập tốt nghiệp</span>
+          </a>
+          <a href="{{ route('web.head.thesis_rounds') }}"
+             class="flex items-center gap-3 px-3 py-2 rounded-lg bg-slate-100 font-semibold {{ request()->routeIs('web.head.thesis_rounds') || request()->routeIs('web.head.thesis_round_detail') ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}">
+            <i class="ph ph-calendar"></i><span class="sidebar-label">Đồ án tốt nghiệp</span>
+          </a>
+        </div>
+      </nav>
+      <div class="p-3 border-t border-slate-200">
+        <button id="toggleSidebar" class="w-full flex items-center justify-center gap-2 px-3 py-2 text-slate-600 hover:bg-slate-100 rounded-lg">
+          <i class="ph ph-sidebar"></i><span class="sidebar-label">Thu gọn</span>
+        </button>
+      </div>
+    </aside>
+
+  <!-- Main -->
+  <div class="flex-1 h-screen flex flex-col">
+    <!-- Header -->
     <header class="h-16 bg-white border-b border-slate-200 flex items-center px-4 md:px-6 flex-shrink-0">
       <div class="flex items-center gap-3 flex-1">
         <button id="openSidebar" class="md:hidden p-2 rounded-lg hover:bg-slate-100"><i class="ph ph-list"></i></button>
@@ -50,16 +106,16 @@
             <span class="mx-1">/</span>
             <a href="blind-review-assignments.html" class="hover:underline text-slate-600">Phản biện kín</a>
             <span class="mx-1">/</span>
-            <span class="text-slate-500" id="breadcrumbLect">...</span>
+            <span class="text-slate-500" id="breadcrumbLect">GV001</span>
           </nav>
         </div>
       </div>
       <div class="relative">
         <button id="profileBtn" class="flex items-center gap-3 px-2 py-1.5 rounded-lg hover:bg-slate-100">
-          <img class="h-9 w-9 rounded-full object-cover" src="https://i.pravatar.cc/100?img=10" alt="avatar" />
+          <img class="h-9 w-9 rounded-full object-cover" src="{{ $avatarUrl }}" alt="avatar" />
           <div class="hidden sm:block text-left">
-            <div class="text-sm font-semibold leading-4">ThS. Nguyễn Văn H</div>
-            <div class="text-xs text-slate-500">head@uni.edu</div>
+            <div class="text-sm font-semibold leading-4">{{ $userName }}</div>
+            <div class="text-xs text-slate-500">{{ $email }}</div>
           </div>
           <i class="ph ph-caret-down text-slate-500 hidden sm:block"></i>
         </button>
@@ -69,191 +125,297 @@
         </div>
       </div>
     </header>
-    <main class="flex-1 overflow-y-auto px-4 md:px-6 py-6 space-y-6">
-      <div class="max-w-7xl mx-auto space-y-6" id="contentWrap">
-        <section class="bg-white border rounded-xl p-5" id="lectInfo">
-          <h2 class="font-semibold mb-4">Thông tin giảng viên</h2>
-          <div class="grid sm:grid-cols-2 gap-4 text-sm" id="lectMeta"></div>
-        </section>
-        <section class="bg-white border rounded-xl p-5">
-          <div class="flex items-center justify-between mb-4 gap-3 flex-wrap">
-            <h2 class="font-semibold flex items-center gap-2"><i class="ph ph-file-text"></i> Đề cương sinh viên phản biện kín</h2>
-            <div class="flex items-center gap-2 flex-wrap">
-              <div class="relative">
-                <i class="ph ph-magnifying-glass absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                <input id="stuSearch" class="pl-8 pr-3 py-2 border border-slate-200 rounded text-sm w-60" placeholder="Tìm theo tên/MSSV/mã đề cương" />
-              </div>
-              <button id="addStuBtn" class="px-3 py-2 bg-indigo-600 text-white rounded text-sm flex items-center gap-1"><i class="ph ph-plus"></i> Thêm</button>
-              <button id="importStuBtn" class="px-3 py-2 border border-slate-200 rounded text-sm flex items-center gap-1"><i class="ph ph-upload"></i> Import</button>
+
+    <!-- Content -->
+    <main class="flex-1 overflow-y-auto max-w-7xl mx-auto px-4 md:px-6 py-6 space-y-6">
+      <!-- Thông tin đợt đồ án -->
+      <section class="bg-white border border-slate-200 rounded-xl p-4 md:p-5">
+        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+          <div>
+            <div class="text-sm text-slate-500">Đợt đồ án</div>
+            <div class="text-base md:text-lg font-semibold">Đợt {{ $rows->stage }} - Năm học {{ $rows->academy_year->year_name }}</div>
+            <div class="mt-1 text-sm text-slate-600 flex items-center gap-2">
+              <i class="ph ph-calendar-dots text-slate-500"></i>
+              <span>Thời gian: {{ \Carbon\Carbon::parse($rows->start_date)->format('d/m/Y') }} - {{ \Carbon\Carbon::parse($rows->end_date)->format('d/m/Y') }}</span>
             </div>
           </div>
-          <div class="overflow-x-auto">
+          <div>
+            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs bg-emerald-100 text-emerald-700">
+              @php
+                $listStatus = ['inactive' => 'Sắp diễn ra', 'active' => 'Đang diễn ra', 'ended' => 'Đã kết thúc'];
+                $status = $listStatus[$rows->status] ?? 'inactive';
+              @endphp
+              <i class="ph ph-circle"></i> {{ $status }}
+            </span>
+          </div>
+        </div>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
+          <div class="rounded-lg border border-slate-200 p-3">
+            <div class="text-xs text-slate-500">Giảng viên</div>
+            <div class="mt-1 text-lg font-semibold">12</div>
+          </div>
+          <div class="rounded-lg border border-slate-200 p-3">
+            <div class="text-xs text-slate-500">SV chưa có GVHD</div>
+            <div class="mt-1 text-lg font-semibold">5</div>
+          </div>
+          <div class="rounded-lg border border-slate-200 p-3 col-span-2">
+            <div class="flex items-center justify-between text-xs text-slate-500">
+              <span>Chỉ tiêu sử dụng</span>
+              <span>45/60</span>
+            </div>
+            <div class="w-full bg-slate-200 rounded-full h-2 mt-1.5">
+              <div class="h-2 rounded-full bg-emerald-600" style="width: 75%"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+              
+
+      <!-- Thanh hành động chính -->
+      <div class="flex items-center justify-between bg-white border border-slate-200 rounded-xl px-4 py-3">
+        <div class="text-sm text-slate-600">
+          Chọn 1 giảng viên và các sinh viên cần phân công, sau đó bấm nút.
+        </div>
+        <button id="btnAssignMain" class="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 text-sm">
+          <i class="ph ph-user-switch"></i>
+          Phân công sinh viên
+        </button>
+      </div>
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Bảng giảng viên -->
+        <section class="bg-white rounded-xl border border-slate-200">
+          <div class="p-4 border-b flex items-center justify-between">
+            <div>
+              <div class="font-semibold">Giảng viên</div>
+              <div class="text-xs text-slate-500">Chọn 1 giảng viên để phân công</div>
+            </div>
+            <div class="relative">
+              <input class="pl-9 pr-3 py-2 rounded-lg border border-slate-200 text-sm" placeholder="Tìm theo tên, email">
+              <i class="ph ph-magnifying-glass absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+            </div>
+          </div>
+          <div class="table-wrap">
             <table class="w-full text-sm">
               <thead>
                 <tr class="text-left text-slate-500 border-b">
-                  <th class="py-3 px-3">MSSV</th>
-                  <th class="py-3 px-3">Tên SV</th>
-                  <th class="py-3 px-3">Mã đề cương</th>
-                  <th class="py-3 px-3">Ngày giao</th>
-                  <th class="py-3 px-3">Trạng thái</th>
-                  <th class="py-3 px-3 text-right">Hành động</th>
+                  <th class="py-2 px-3 w-10">Chọn</th>
+                  <th class="py-2 px-3">Giảng viên</th>
+                  <th class="py-2 px-3">Chuyên môn</th>
                 </tr>
               </thead>
-              <tbody id="lectStuRows"></tbody>
+              <tbody>
+                @php
+                  $listSupervisors = $rows->supervisors ?? collect();
+                @endphp
+                @foreach ($listSupervisors as $supervisor)
+                <tr class="border-b hover:bg-slate-50" data-supervisor-id="{{ $supervisor->id }}">
+                  <td class="py-2 px-3"><input type="radio" name="teacher" class="teacher-radio"></td>
+                  <td class="py-2 px-3">
+                    <div class="font-medium">{{ $supervisor->teacher->user->fullname }}</div>
+                    <div class="text-xs text-slate-500">{{ $supervisor->teacher->user->email }} • {{ $supervisor->teacher->position }}</div>
+                  </td>
+                  <td class="py-2 px-3">{{ $supervisor->teacher->degree }}</td>
+                </tr>
+                @endforeach
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Bảng sinh viên chưa có GVHD -->
+        <section class="bg-white rounded-xl border border-slate-200">
+          <div class="p-4 border-b flex items-center justify-between">
+            <div>
+              <div class="font-semibold">Đề cương sinh viên chưa phân phản biện</div>
+              <div class="text-xs text-slate-500">Chọn 1 hoặc nhiều đề cương</div>
+            </div>
+            <div class="relative">
+              <input class="pl-9 pr-3 py-2 rounded-lg border border-slate-200 text-sm" placeholder="Tìm theo tên, mã SV">
+              <i class="ph ph-magnifying-glass absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+            </div>
+          </div>
+          <div class="overflow-x-auto rounded-lg border border-slate-200">
+            <table class="w-full text-sm border-collapse">
+              <thead>
+                <tr class="bg-slate-100 text-slate-600">
+                  <th class="py-3 px-3 w-10 text-center">
+                    <input type="checkbox" class="rounded border-slate-300">
+                  </th>
+                  <th class="py-3 px-3 text-left">Sinh viên</th>
+                  <th class="py-3 px-3 text-left">Email</th>
+                  <th class="py-3 px-3 text-left">Đề tài</th>
+                </tr>
+              </thead>
+              @php
+                $listAssignments = $rows->assignments ?? collect();
+              @endphp
+              <tbody class="divide-y divide-slate-200">
+                @foreach ($listAssignments as $assignment)
+                  @if ($assignment->counter_argument_id == null)
+                    @php
+                      $fullname = $assignment->student->user->fullname ?? '';
+                      $studentCode = $assignment->student->student_code ?? '';
+                      $email = $assignment->student->user->email ?? '';
+                      $topic = $assignment->project->project_name ?? 'Chưa có đề tài';
+                    @endphp
+                    <tr class="hover:bg-blue-50 odd:bg-white even:bg-slate-50 transition-colors" data-assignment-id="{{ $assignment->id }}">
+                      <td class="py-2 px-3 text-center">
+                        <input type="checkbox" class="rounded border-slate-300 stuChk">
+                      </td>
+                      <td class="py-2 px-3">
+                        <div class="font-medium text-slate-800">{{ $fullname }}</div>
+                        <div class="text-xs text-slate-500">{{ $studentCode }}</div>
+                      </td>
+                      <td class="py-2 px-3 text-slate-700">{{ $email }}</td>
+                      <td class="py-2 px-3 text-right">
+                        <span class="inline-block max-w-xs truncate" title="{{ $topic }}">
+                          {{ $topic }}
+                        </span>
+                      </td>
+                    </tr>
+                  @endif
+                @endforeach
+              </tbody>
             </table>
           </div>
         </section>
       </div>
     </main>
-  </div>
+     <!-- Modal xác nhận -->
+     <div id="assignModal" class="fixed inset-0 z-[60] hidden">
+       <div class="absolute inset-0 bg-black/40"></div>
+       <div class="relative mx-auto mt-28 w-[92%] max-w-md bg-white border border-slate-200 rounded-xl shadow-xl">
+         <div class="p-4 border-b">
+           <div class="font-semibold">Xác nhận phân công phản biện</div>
+         </div>
+         <div class="p-4 text-sm text-slate-700">
+           <p>Giảng viên: <span id="mdlTeacher" class="font-medium">—</span></p>
+           <p class="mt-1">Số đề cương sẽ phân công: <span id="mdlCount" class="font-medium">0</span></p>
+           <p class="mt-2 text-slate-500">Bạn có chắc chắn muốn phân công các đề cương đã chọn cho giảng viên này?</p>
+         </div>
+         <div class="p-3 border-t flex items-center justify-end gap-2">
+           <button id="btnCancelAssign" class="px-3 py-1.5 rounded-lg border border-slate-200">Hủy</button>
+           <button id="btnConfirmAssign" class="px-3 py-1.5 rounded-lg bg-blue-600 text-white">Xác nhận</button>
+         </div>
+       </div>
+     </div>
 </div>
+
 <script>
-(function(){
-  const html=document.documentElement, sidebar=document.getElementById('sidebar');
-  function setCollapsed(c){const h=document.querySelector('header'); const m=document.querySelector('main'); if(c){html.classList.add('sidebar-collapsed'); h.classList.add('md:left-[72px]'); h.classList.remove('md:left-[260px]'); m.classList.add('md:pl-[72px]'); m.classList.remove('md:pl-[260px]'); } else { html.classList.remove('sidebar-collapsed'); h.classList.remove('md:left-[72px]'); h.classList.add('md:left-[260px]'); m.classList.remove('md:pl-[72px]'); m.classList.add('md:pl-[260px]'); }}
-  document.getElementById('toggleSidebar')?.addEventListener('click',()=>{const c=!html.classList.contains('sidebar-collapsed'); setCollapsed(c); localStorage.setItem('head_sidebar',''+(c?1:0));});
-  document.getElementById('openSidebar')?.addEventListener('click',()=>sidebar.classList.toggle('-translate-x-full'));
-  if(localStorage.getItem('head_sidebar')==='1') setCollapsed(true);
-  sidebar.classList.add('md:translate-x-0','-translate-x-full','md:static');
-  const profileBtn=document.getElementById('profileBtn'); const profileMenu=document.getElementById('profileMenu');
-  profileBtn?.addEventListener('click', ()=> profileMenu.classList.toggle('hidden'));
-  document.addEventListener('click', (e)=>{ if(!profileBtn?.contains(e.target) && !profileMenu?.contains(e.target)) profileMenu?.classList.add('hidden'); });
-})();
+      (function sidebarInit(){
+      const html=document.documentElement, sidebar=document.getElementById('sidebar');
+      function setCollapsed(c){
+        const h=document.querySelector('header'); const m=document.querySelector('main');
+        if(c){
+          html.classList.add('sidebar-collapsed');
+          h?.classList.add('md:left-[72px]');
+          m?.classList.add('md:pl-[72px]');
+        } else {
+          html.classList.remove('sidebar-collapsed');
+            h?.classList.remove('md:left-[72px]');
+            m?.classList.remove('md:pl-[72px]');
+        }
+      }
+      document.getElementById('toggleSidebar')?.addEventListener('click',()=>{
+        const c=!html.classList.contains('sidebar-collapsed');
+        setCollapsed(c);
+        localStorage.setItem('head_sidebar', c?1:0);
+      });
+      document.getElementById('openSidebar')?.addEventListener('click',()=>sidebar.classList.toggle('-translate-x-full'));
+      if(localStorage.getItem('head_sidebar')==='1') setCollapsed(true);
+      sidebar.classList.add('md:translate-x-0','-translate-x-full','md:static');
 
-const LECT_KEY='head_blind_review_lecturers';
-const ASSIGN_KEY='head_blind_review_assignments';
-const PER_LECT_KEY='head_blind_review_per_lecturer'; // map lecturerCode -> student assignments (masked)
+      // Profile dropdown
+      const profileBtn=document.getElementById('profileBtn');
+      const profileMenu=document.getElementById('profileMenu');
+      profileBtn?.addEventListener('click', ()=> profileMenu.classList.toggle('hidden'));
+      document.addEventListener('click', e=>{
+        if(!profileBtn?.contains(e.target) && !profileMenu?.contains(e.target)) profileMenu?.classList.add('hidden');
+      });
 
-function load(k){ try{ const d=localStorage.getItem(k); return d?JSON.parse(d): (k===PER_LECT_KEY?{}:[]);}catch{return k===PER_LECT_KEY?{}:[];} }
-function save(k,v){ localStorage.setItem(k, JSON.stringify(v)); }
+      // Toggle submenu thesis
+      const btn = document.getElementById('toggleThesisMenu');
+      const menu = document.getElementById('thesisSubmenu');
+      const caret= document.getElementById('thesisCaret');
+      btn?.addEventListener('click', ()=>{
+        menu?.classList.toggle('hidden');
+        const open = !menu?.classList.contains('hidden');
+        caret?.classList.toggle('rotate-180', open);
+        btn.classList.toggle('bg-slate-100', open);
+        btn.classList.toggle('font-semibold', open);
+      });
+    })();
 
-let lecturers=load(LECT_KEY);
-let baseAssign=load(ASSIGN_KEY); // global assignments (for counts)
-let perLect=load(PER_LECT_KEY);
+    // Assign events
+    (function assignEvents(){
+      const btn = document.getElementById('btnAssignMain');
+      const modal = document.getElementById('assignModal');
+      const btnCancel = document.getElementById('btnCancelAssign');
+      const btnOk = document.getElementById('btnConfirmAssign');
+      const mdlTeacher = document.getElementById('mdlTeacher');
+      const mdlCount = document.getElementById('mdlCount');
+      const csrf = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+      const termId = {{ $rows->id }};
 
-const params=new URLSearchParams(location.search);
-const code=params.get('code');
+      function getSelectedTeacher(){
+        const r = document.querySelector('.teacher-radio:checked');
+        if(!r) return null;
+        const tr = r.closest('tr');
+        const id = tr?.dataset?.supervisorId ? parseInt(tr.dataset.supervisorId,10) : null;
+        const name = tr?.querySelector('.font-medium')?.textContent?.trim() || '';
+        return id ? { id, name } : null;
+      }
+      function getSelectedAssignments(){
+        return Array.from(document.querySelectorAll('.stuChk:checked'))
+          .map(chk => chk.closest('tr')?.dataset?.assignmentId)
+          .filter(Boolean)
+          .map(v => parseInt(v,10));
+      }
+      function openModal(teacher, count){
+        mdlTeacher.textContent = teacher?.name || '—';
+        mdlCount.textContent = String(count || 0);
+        modal.classList.remove('hidden');
+      }
+      function closeModal(){ modal.classList.add('hidden'); }
 
-function init(){
-  if(!code){ document.getElementById('contentWrap').innerHTML='<div class="bg-white border rounded-xl p-8 text-center text-slate-600">Thiếu mã giảng viên.</div>'; return; }
-  const lect=lecturers.find(l=>l.code===code);
-  if(!lect){ document.getElementById('contentWrap').innerHTML='<div class="bg-white border rounded-xl p-8 text-center text-slate-600">Không tìm thấy giảng viên.</div>'; return; }
-  document.getElementById('breadcrumbLect').textContent=lect.code;
-  document.getElementById('lectMeta').innerHTML=`
-    <div><span class='text-slate-500'>Mã giảng viên</span><div class='font-medium mt-0.5'>${lect.code}</div></div>
-    <div><span class='text-slate-500'>Họ tên</span><div class='font-medium mt-0.5'>${lect.name}</div></div>
-    <div><span class='text-slate-500'>Email</span><div class='font-medium mt-0.5'>${lect.email||'-'}</div></div>
-    <div><span class='text-slate-500'>Chuyên môn</span><div class='font-medium mt-0.5'>${lect.expertise||'-'}</div></div>
-    <div><span class='text-slate-500'>Tổng đề cương đã được phân</span><div class='font-medium mt-0.5'>${baseAssign.filter(a=>a.lecturerCode===lect.code).length}</div></div>
-  `;
-  if(!perLect[code]) perLect[code]=[];
-  renderStudents();
-}
+      btn?.addEventListener('click', ()=>{
+        const teacher = getSelectedTeacher();
+        const ids = getSelectedAssignments();
+        if(!teacher){ alert('Vui lòng chọn giảng viên phản biện.'); return; }
+        if(ids.length===0){ alert('Vui lòng chọn ít nhất 1 đề cương của sinh viên.'); return; }
+        openModal(teacher, ids.length);
+      });
 
-function renderStudents(){
-  const q=(document.getElementById('stuSearch')?.value||'').toLowerCase();
-  const rows=document.getElementById('lectStuRows');
-  const list=(perLect[code]||[]).filter(it=> it.studentName.toLowerCase().includes(q)||it.studentId.includes(q)||(it.outlineCode||'').toLowerCase().includes(q));
-  if(!list.length){ rows.innerHTML="<tr><td colspan='6' class='py-4 px-3 text-slate-500'>Không có dữ liệu.</td></tr>"; return; }
-  rows.innerHTML=list.map(it=>`<tr class='border-b hover:bg-slate-50'>
-    <td class='py-3 px-3 font-medium'>${it.studentId}</td>
-    <td class='py-3 px-3'>${it.studentName}</td>
-    <td class='py-3 px-3'>${it.outlineCode||'-'}</td>
-    <td class='py-3 px-3'>${it.assignedDate||'-'}</td>
-    <td class='py-3 px-3'>${it.status||'Chưa phản biện'}</td>
-    <td class='py-3 px-3 text-right'>
-      <button data-edit='${it.studentId}' class='px-2 py-1 border border-slate-200 rounded text-xs'>Sửa</button>
-      <button data-del='${it.studentId}' class='px-2 py-1 border border-slate-200 rounded text-xs text-rose-600'>Xóa</button>
-    </td>
-  </tr>`).join('');
-  rows.querySelectorAll('[data-edit]').forEach(b=>b.addEventListener('click',()=>openStuModal((perLect[code]||[]).find(x=>x.studentId===b.getAttribute('data-edit')))));
-  rows.querySelectorAll('[data-del]').forEach(b=>b.addEventListener('click',()=>{ if(confirm('Xóa sinh viên?')){ perLect[code]=perLect[code].filter(x=>x.studentId!==b.getAttribute('data-del')); save(PER_LECT_KEY, perLect); renderStudents(); }}));
-}
+      btnCancel?.addEventListener('click', closeModal);
 
-function openStuModal(data){
-  data=data||{studentId:'', studentName:'', outlineCode:'', assignedDate:'', status:'Chưa phản biện'};
-  const isNew=!data.studentId;
-  const wrap=document.createElement('div');
-  wrap.className='fixed inset-0 z-50 flex items-end sm:items-center justify-center';
-  wrap.innerHTML=`<div class='absolute inset-0 bg-black/40' data-close></div>
-  <div class='bg-white w-full sm:max-w-lg rounded-t-2xl sm:rounded-2xl shadow-lg p-5 relative'>
-    <h3 class='font-semibold mb-3'>${isNew?'Thêm sinh viên':'Cập nhật sinh viên'}</h3>
-    <div class='grid grid-cols-1 md:grid-cols-2 gap-3 text-sm'>
-      <div><label class='text-xs text-slate-500'>MSSV</label><input id='sId' class='mt-1 w-full border border-slate-200 rounded px-2 py-1.5' value='${data.studentId}' ${isNew?'':'readonly'} /></div>
-      <div><label class='text-xs text-slate-500'>Họ tên</label><input id='sName' class='mt-1 w-full border border-slate-200 rounded px-2 py-1.5' value='${data.studentName}' /></div>
-      <div class='md:col-span-2'><label class='text-xs text-slate-500'>Mã đề cương (ẩn)</label><input id='sOutline' class='mt-1 w-full border border-slate-200 rounded px-2 py-1.5' value='${data.outlineCode}' placeholder='VD: O-045'/></div>
-      <div><label class='text-xs text-slate-500'>Ngày giao</label><input id='sDate' type='date' class='mt-1 w-full border border-slate-200 rounded px-2 py-1.5' value='${data.assignedDate}' /></div>
-      <div><label class='text-xs text-slate-500'>Trạng thái</label><select id='sStatus' class='mt-1 w-full border border-slate-200 rounded px-2 py-1.5'><option ${data.status==='Chưa phản biện'?'selected':''}>Chưa phản biện</option><option ${data.status==='Đang phản biện'?'selected':''}>Đang phản biện</option><option ${data.status==='Hoàn thành'?'selected':''}>Hoàn thành</option></select></div>
-    </div>
-    <div class='mt-5 flex justify-end gap-2'>
-      <button class='px-3 py-2 text-slate-600 hover:bg-slate-100 rounded text-sm' data-close>Hủy</button>
-      <button id='saveStu' class='px-3 py-2 bg-indigo-600 text-white rounded text-sm'>Lưu</button>
-    </div>
-  </div>`;
-  document.body.appendChild(wrap);
-  wrap.addEventListener('click', e=>{ if(e.target.matches('[data-close]')) wrap.remove(); });
-  document.getElementById('saveStu').addEventListener('click',()=>{
-    const item={
-      studentId:document.getElementById('sId').value.trim(),
-      studentName:document.getElementById('sName').value.trim(),
-      outlineCode:document.getElementById('sOutline').value.trim(),
-      assignedDate:document.getElementById('sDate').value||'',
-      status:document.getElementById('sStatus').value
-    };
-    if(!item.studentId||!item.studentName){ alert('Nhập MSSV & họ tên'); return; }
-    if(isNew){ if(perLect[code].some(x=>x.studentId===item.studentId)){ alert('SV đã tồn tại'); return;} perLect[code].push(item);} else { const idx=perLect[code].findIndex(x=>x.studentId===item.studentId); perLect[code][idx]=item; }
-    save(PER_LECT_KEY, perLect); wrap.remove(); renderStudents();
-  });
-}
-
-function openImport(){
-  const wrap=document.createElement('div');
-  wrap.className='fixed inset-0 z-50 flex items-end sm:items-center justify-center';
-  wrap.innerHTML=`<div class='absolute inset-0 bg-black/40' data-close></div>
-  <div class='bg-white w-full sm:max-w-lg rounded-t-2xl sm:rounded-2xl shadow-lg p-5 relative'>
-    <h3 class='font-semibold mb-3'>Import sinh viên</h3>
-    <div class='space-y-3 text-sm'>
-      <p class='text-slate-600'>Chọn file CSV (UTF-8). Định dạng: <span class='font-mono text-xs bg-slate-100 px-1 py-0.5 rounded'>studentId,studentName,outlineCode,assignedDate(YYYY-MM-DD),status</span></p>
-      <input id='csvFile' type='file' accept='.csv,text/csv' class='block w-full text-sm border border-slate-200 rounded p-2 file:mr-3 file:py-2 file:px-3 file:rounded file:border-0 file:bg-indigo-50 file:text-indigo-700 file:text-xs hover:file:bg-indigo-100' />
-      <div id='impStatus' class='text-xs text-slate-500'></div>
-    </div>
-    <div class='mt-5 flex justify-end gap-2'>
-      <button class='px-3 py-2 text-slate-600 hover:bg-slate-100 rounded text-sm' data-close>Đóng</button>
-      <button id='doImport' disabled class='px-3 py-2 bg-indigo-400 cursor-not-allowed text-white rounded text-sm'>Import</button>
-    </div>
-  </div>`;
-  document.body.appendChild(wrap);
-  const close=()=>wrap.remove();
-  wrap.addEventListener('click', e=>{ if(e.target.matches('[data-close]')) close(); });
-  const fileInput=wrap.querySelector('#csvFile');
-  const statusEl=wrap.querySelector('#impStatus');
-  const doBtn=wrap.querySelector('#doImport');
-  let parsed=[];
-  function parseCSV(text){
-    const lines=text.replace(/\r/g,'').split(/\n+/).filter(l=>l.trim());
-    const out=[]; for(let i=0;i<lines.length;i++){ const cols=lines[i].split(',').map(c=>c.trim()); if(cols.length<2) continue; if(i===0 && cols[0].toLowerCase()==='studentid') continue; out.push({studentId:cols[0], studentName:cols[1]||'', outlineCode:cols[2]||'', assignedDate:cols[3]||'', status:cols[4]||'Chưa phản biện'}); }
-    return out;
-  }
-  fileInput.addEventListener('change',()=>{
-    parsed=[]; statusEl.textContent=''; doBtn.disabled=true; doBtn.classList.add('bg-indigo-400','cursor-not-allowed'); doBtn.classList.remove('bg-indigo-600');
-    const f=fileInput.files && fileInput.files[0]; if(!f) return;
-    if(f.size>2*1024*1024){ statusEl.textContent='File quá lớn (>2MB)'; return; }
-    const reader=new FileReader();
-    reader.onload=e=>{ try{ parsed=parseCSV(e.target.result||''); }catch(err){ statusEl.textContent='Lỗi đọc CSV'; return; } if(!parsed.length){ statusEl.textContent='Không tìm thấy dòng hợp lệ.'; return; } statusEl.textContent=`Đã đọc ${parsed.length} dòng. Sẵn sàng import.`; doBtn.disabled=false; doBtn.classList.remove('bg-indigo-400','cursor-not-allowed'); doBtn.classList.add('bg-indigo-600'); };
-    reader.onerror=()=>{ statusEl.textContent='Không thể đọc file.'; };
-    reader.readAsText(f,'UTF-8');
-  });
-  doBtn.addEventListener('click',()=>{
-    if(!parsed.length) return; let added=0; parsed.forEach(it=>{ if(it.studentId && !perLect[code].some(x=>x.studentId===it.studentId)){ perLect[code].push(it); added++; } });
-    save(PER_LECT_KEY, perLect); renderStudents(); alert('Import xong: thêm '+added+' mục mới.'); close();
-  });
-}
-
-document.getElementById('stuSearch').addEventListener('input', renderStudents);
-document.getElementById('addStuBtn').addEventListener('click', ()=>openStuModal());
-document.getElementById('importStuBtn').addEventListener('click', openImport);
-
-init();
+      btnOk?.addEventListener('click', async ()=>{
+        const teacher = getSelectedTeacher();
+        const ids = getSelectedAssignments();
+        if(!teacher || ids.length===0){ closeModal(); return; }
+        btnOk.disabled = true; btnOk.textContent = 'Đang phân công...';
+        try{
+          const res = await fetch(`{{ route('web.head.blind_review.assign') }}`, {
+            method: 'POST',
+            headers: { 'Content-Type':'application/json', 'X-CSRF-TOKEN': csrf, 'Accept':'application/json' },
+            body: JSON.stringify({ termId: termId, supervisorId: teacher.id, assignments: ids })
+          });
+          if(!res.ok){ throw new Error('Request failed'); }
+          const data = await res.json();
+          // Cập nhật UI tối thiểu: xóa các hàng đã phân công khỏi bảng sinh viên
+          ids.forEach(id=>{
+            const tr = document.querySelector(`tr[data-assignment-id="${id}"]`);
+            tr?.parentElement?.removeChild(tr);
+          });
+          alert(data.message || 'Phân công thành công');
+        } catch(e){
+          alert('Có lỗi xảy ra khi phân công. Vui lòng thử lại.');
+        } finally{
+          btnOk.disabled = false; btnOk.textContent = 'Xác nhận';
+          closeModal();
+        }
+      });
+    })();
 </script>
+
 </body>
 </html>

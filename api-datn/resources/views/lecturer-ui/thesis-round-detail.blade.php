@@ -55,12 +55,16 @@
     $degree = $user->teacher->degree ?? '';
     $expertise = $user->teacher->supervisor->expertise ?? 'null';
     $data_assignment_supervisors = $user->teacher->supervisor->assignment_supervisors ?? "null";
-    $supervisorId = $user->teacher->supervisor->id ?? 0;
     $teacherId = $user->teacher->id ?? 0;
     $avatarUrl = $user->avatar_url
       ?? $user->profile_photo_url
       ?? 'https://ui-avatars.com/api/?name=' . urlencode($userName) . '&background=0ea5e9&color=ffffff';
-    $assignmentSupervisors = $rows->supervisors->first()->assignment_supervisors;
+    $assignments = $rows->assignments;
+  @endphp
+
+  @php
+    $listProgressLog = $assignments[0]->project->progressLogs ?? [];
+    $latestLog = collect($listProgressLog)->sortByDesc('created_at')->first() ?? null;
   @endphp
   <div class="flex min-h-screen">
     <aside class="sidebar fixed inset-y-0 left-0 z-30 bg-white border-r border-slate-200 flex flex-col transition-all"
@@ -335,7 +339,7 @@
           contentBox.innerHTML = `
         <h3 class="text-lg font-semibold mb-3">Giai đoạn 01</h3>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          <a href="{{ route('web.teacher.requests_management', ['supervisorId' => $rows->supervisors->first()->id, 'termId' => $rows->id]) }}" class="group rounded-xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md hover:border-blue-300 transition">
+          <a href="{{ route('web.teacher.requests_management', ['supervisorId' => $supervisorId, 'termId' => $rows->id]) }}" class="group rounded-xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md hover:border-blue-300 transition">
             <div class="flex items-start gap-3">
               <div class="h-10 w-10 rounded-lg grid place-items-center bg-gradient-to-br from-emerald-50 to-emerald-100 text-emerald-600 group-hover:from-emerald-100 group-hover:to-emerald-200">
                 <i class="ph ph-inbox"></i>
@@ -351,7 +355,7 @@
               </div>
             </div>
           </a>
-          <a href="{{ route('web.teacher.proposed_topic', ['supervisorId' => $rows->supervisors->first()->id, 'termId' => $rows->id]) }}" class="group rounded-xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md hover:border-blue-300 transition">
+          <a href="{{ route('web.teacher.proposed_topic', ['supervisorId' => $supervisorId, 'termId' => $rows->id]) }}" class="group rounded-xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md hover:border-blue-300 transition">
             <div class="flex items-start gap-3">
               <div class="h-10 w-10 rounded-lg grid place-items-center bg-gradient-to-br from-indigo-50 to-indigo-100 text-indigo-600 group-hover:from-indigo-100 group-hover:to-indigo-200">
                 <i class="ph ph-notebook"></i>
@@ -367,8 +371,8 @@
               </div>
             </div>
           </a>
-          <a href="{{ route('web.teacher.student_supervisor_term', ['supervisorId' => $rows->supervisors->first()->id, 'termId' => $rows->id]) }}" class="group rounded-xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md hover:border-blue-300 transition">
-            <div class="flex items-start gap-3">
+            <a href="{{ route('web.teacher.student_supervisor_term', ['supervisorId' => $supervisorId, 'termId' => $rows->id]) }}" class="group rounded-xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md hover:border-blue-300 transition">
+              <div class="flex items-start gap-3">
               <div class="h-10 w-10 rounded-lg grid place-items-center bg-gradient-to-br from-blue-50 to-blue-100 text-blue-600 group-hover:from-blue-100 group-hover:to-blue-200">
                 <i class="ph ph-users-three"></i>
               </div>
@@ -406,7 +410,7 @@
               </div>
             </div>
           </a>
-          <a href="{{ route('web.teacher.outline_review_assignments', ['supervisorId' => 1, 'termId' => $rows->id]) }}" class="group rounded-xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md hover:border-blue-300 transition">
+          <a href="{{ route('web.teacher.outline_review_assignments', ['termId' => $rows->id, 'supervisorId' => $supervisorId]) }}" class="group rounded-xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md hover:border-blue-300 transition">
             <div class="flex items-start gap-3">
               <div class="h-10 w-10 rounded-lg grid place-items-center bg-gradient-to-br from-amber-50 to-amber-100 text-amber-600 group-hover:from-amber-100 group-hover:to-amber-200">
                 <i class="ph ph-pencil-line"></i>
@@ -437,75 +441,84 @@
               <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-50 text-rose-700"><span class="h-2 w-2 rounded-full bg-rose-500"></span> Bị từ chối</span>
             </div>
           </div>
-          <div class="overflow-x-auto">
-            <table id="tableStage2" class="w-full text-sm">
-              <thead>
-                <tr class="text-left text-slate-500 border-b">
-                  <th class="py-3 px-3">Sinh viên</th>
-                  <th class="py-3 px-3">MSSV</th>
-                  <th class="py-3 px-3">Đề tài</th>
-                  <th class="py-3 px-3">Trạng thái đề cương</th>
-                  <th class="py-3 px-3">Lần nộp cuối</th>
-                  <th class="py-3 px-3">Hành động</th>
-                </tr>
-              </thead>
-              <tbody>
-              @foreach ($assignmentSupervisors as $assignmentSupervisor)
-              @php
-                $student = $assignmentSupervisor->assignment->student;
-                $fullname = $student->user->fullname;
-                $student_code = $student->student_code;
-                $studentId = $student->id;
-                $topic = $assignmentSupervisor->assignment->project->name ?? 'Chưa có đề tài';
+<div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-md">
+  <table id="tableStage2" class="w-full text-sm">
+    <!-- Header -->
+    <thead class="bg-gradient-to-r from-slate-50 to-slate-100 border-b border-slate-200">
+      <tr class="text-slate-700">
+        <th class="py-3 px-4 font-semibold text-left">Sinh viên</th>
+        <th class="py-3 px-4 font-semibold text-center">MSSV</th>
+        <th class="py-3 px-4 font-semibold">Đề tài</th>
+        <th class="py-3 px-4 font-semibold text-center">Trạng thái đề cương</th>
+        <th class="py-3 px-4 font-semibold">Lần nộp cuối</th>
+        <th class="py-3 px-4 font-semibold text-center">Hành động</th>
+      </tr>
+    </thead>
 
-                // Lấy trạng thái gốc từ reportFile gần nhất
-                $statusRaw = $assignmentSupervisor->assignment
-                  ->project?->reportFiles()
-                  ->latest('created_at')
-                  ->first()?->status ?? 'pending';
+    <!-- Body -->
+    <tbody class="divide-y divide-slate-100">
+      @foreach ($assignments as $assignment)
+        @php
+          $student = $assignment->student;
+          $fullname = $student->user->fullname;
+          $student_code = $student->student_code;
+          $studentId = $student->id;
+          $topic = $assignment->project->name ?? 'Chưa có đề tài';
 
-                // Mapping sang text hiển thị
-                $listStatus = [
-                  'pending' => 'Chưa nộp',
-                  'submitted' => 'Đã nộp',
-                  'approved' => 'Đã duyệt',
-                  'rejected' => 'Bị từ chối',
-                ];
-                $status = $listStatus[$statusRaw] ?? 'Chưa nộp';
+          $latestReport = $assignment->project?->reportFiles()->latest('created_at')->first();
+          $statusRaw = $latestReport?->status ?? 'none';
 
-                // Mapping sang màu hiển thị
-                $listStatusColor = [
-                  'pending' => 'bg-slate-50 text-slate-700',
-                  'submitted' => 'bg-amber-50 text-amber-700',
-                  'approved' => 'bg-emerald-50 text-emerald-700',
-                  'rejected' => 'bg-rose-50 text-rose-700',
-                ];
-                $statusColor = $listStatusColor[$statusRaw] ?? 'bg-slate-50 text-slate-700';
+          $listStatus = [
+            'none' => ['label' => 'Chưa nộp', 'class' => 'bg-slate-100 text-slate-600', 'icon' => 'ph-clock'],
+            'pending' => ['label' => 'Đã nộp', 'class' => 'bg-amber-100 text-amber-700', 'icon' => 'ph-hourglass'],
+            'submitted' => ['label' => 'Đã nộp', 'class' => 'bg-amber-100 text-amber-700', 'icon' => 'ph-hourglass'],
+            'approved' => ['label' => 'Đã duyệt', 'class' => 'bg-emerald-100 text-emerald-700', 'icon' => 'ph-check-circle'],
+            'rejected' => ['label' => 'Bị từ chối', 'class' => 'bg-rose-100 text-rose-700', 'icon' => 'ph-x-circle'],
+          ];
+          $statusConfig = $listStatus[$statusRaw] ?? $listStatus['none'];
 
-                // Thời gian cập nhật gần nhất
-                $updateLast = $assignmentSupervisor
-                  ->assignment
-                  ->project?->reportFiles()
-                  ->latest('created_at')
-                  ->first()?->created_at?->format('H:i:s d/m/Y')
-                  ?? 'Chưa nộp báo cáo';
-              @endphp
-                <tr class="border-b hover:bg-slate-50">
-                  <td class="py-3 px-3"><a class="text-blue-600 hover:underline" href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $rows->id]) }}">{{ $fullname }}</a></td>
-                  <td class="py-3 px-3">{{ $student_code }}</td>
-                  <td class="py-3 px-3">{{ $topic }}</td>
-                  <td class="py-3 px-3"><span class="px-2 py-0.5 rounded-full text-xs {{ $statusColor }}">{{ $status }}</span></td>
-                  <td class="py-3 px-3">{{ $updateLast }}</td>
-                  <td class="py-3 px-3">
-                    <div class="flex items-center gap-1">
-                      <a class="px-2 py-1 border border-slate-200 rounded text-xs hover:bg-slate-50" href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $rows->id]) }}">Xem</a>
-                    </div>
-                  </td>
-                </tr>
-              @endforeach
-              </tbody>
-            </table>
-          </div>
+          $updateLast = $latestReport?->created_at?->format('H:i:s d/m/Y') ?? 'Chưa nộp báo cáo';
+        @endphp
+
+        <tr class="hover:bg-slate-50 transition-colors">
+          <!-- Sinh viên -->
+          <td class="py-3 px-4">
+            <a href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $rows->id]) }}"
+               class="text-blue-600 hover:underline font-medium">
+              {{ $fullname }}
+            </a>
+          </td>
+
+          <!-- MSSV -->
+          <td class="py-3 px-4 text-center font-mono text-slate-700">{{ $student_code }}</td>
+
+          <!-- Đề tài -->
+          <td class="py-3 px-4 text-slate-700">{{ $topic }}</td>
+
+          <!-- Trạng thái -->
+          <td class="py-3 px-4 text-center">
+            <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium {{ $statusConfig['class'] }}">
+              <i class="ph {{ $statusConfig['icon'] }} text-sm"></i>
+              {{ $statusConfig['label'] }}
+            </span>
+          </td>
+
+          <!-- Lần nộp cuối -->
+          <td class="py-3 px-4 text-slate-600">{{ $updateLast }}</td>
+
+          <!-- Hành động -->
+          <td class="py-3 px-4 text-center">
+            <a href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $rows->id]) }}"
+               class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-slate-600 hover:bg-slate-100 transition">
+              <i class="ph ph-eye"></i> Xem
+            </a>
+          </td>
+        </tr>
+      @endforeach
+    </tbody>
+  </table>
+</div>
+
         </div>`;
           break;
         case 3:
@@ -524,42 +537,88 @@
               <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-50 text-rose-700"><span class="h-2 w-2 rounded-full bg-rose-500"></span> Cần bổ sung</span>
             </div>
           </div>
-          <div class="overflow-x-auto">
-            <table id="tableStage3" class="w-full text-sm">
-              <thead>
-                <tr class="text-left text-slate-500 border-b">
-                  <th class="py-3 px-3">Sinh viên</th>
-                  <th class="py-3 px-3">MSSV</th>
-                  <th class="py-3 px-3">Tuần gần nhất</th>
-                  <th class="py-3 px-3">Trạng thái nhật ký</th>
-                  <th class="py-3 px-3">Lần cập nhật</th>
-                  <th class="py-3 px-3">Hành động</th>
-                </tr>
-              </thead>
-              <tbody>
-              @foreach ($assignmentSupervisors as $assignmentSupervisor)
-              @php
-                $student = $assignmentSupervisor->assignment->student;
-                $fullname = $student->user->fullname;
-                $student_code = $student->student_code;
-                $studentId = $student->id;
-              @endphp
-                <tr class="border-b hover:bg-slate-50">
-                  <td class="py-3 px-3"><a class="text-blue-600 hover:underline" href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $rows->id]) }}">{{ $fullname }}</a></td>
-                  <td class="py-3 px-3">{{ $student_code }}</td>
-                  <td class="py-3 px-3">Tuần 1</td>
-                  <td class="py-3 px-3"><span class="px-2 py-0.5 rounded-full text-xs bg-emerald-50 text-emerald-700">Đã chấm</span></td>
-                  <td class="py-3 px-3">02/08/2025</td>
-                  <td class="py-3 px-3">
-                    <div class="flex items-center gap-1">
-                      <a class="px-2 py-1 border border-slate-200 rounded text-xs hover:bg-slate-50" href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $rows->id]) }}">Xem</a>
-                    </div>
-                  </td>
-                </tr>
-              @endforeach
-              </tbody>
-            </table>
-          </div>
+<div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-md">
+  <table id="tableStage3" class="w-full text-sm">
+    <!-- Header -->
+    <thead class="bg-gradient-to-r from-slate-50 to-slate-100 border-b border-slate-200">
+      <tr class="text-slate-700">
+        <th class="py-3 px-4 font-semibold text-left">Sinh viên</th>
+        <th class="py-3 px-4 font-semibold text-center">MSSV</th>
+        <th class="py-3 px-4 font-semibold">Tuần gần nhất</th>
+        <th class="py-3 px-4 font-semibold text-center">Trạng thái</th>
+        <th class="py-3 px-4 font-semibold">Lần cập nhật</th>
+        <th class="py-3 px-4 font-semibold text-center">Hành động</th>
+      </tr>
+    </thead>
+
+    <!-- Body -->
+    <tbody class="divide-y divide-slate-100">
+      @foreach ($assignments as $assignment)
+        @php
+          $student = $assignment->student;
+          $fullname = $student->user->fullname;
+          $student_code = $student->student_code;
+          $studentId = $student->id;
+
+          $listProgressLog = $assignment->project->progressLogs ?? [];
+          $latestLog = collect($listProgressLog)->sortByDesc('created_at')->first() ?? null;
+
+          $lastestTitle = $latestLog->title ?? 'Chưa nộp';
+          $lastestStatusRaw = $latestLog->student_status ?? 'none';
+
+          $listStatus = [
+            'none' => ['label' => 'Chưa nộp', 'class' => 'bg-slate-100 text-slate-600', 'icon' => 'ph-clock'],
+            'chua_bat_dau' => ['label' => 'Chưa bắt đầu', 'class' => 'bg-slate-100 text-slate-600', 'icon' => 'ph-clock'],
+            'dang_thuc_hien' => ['label' => 'Đang thực hiện', 'class' => 'bg-amber-100 text-amber-700', 'icon' => 'ph-hourglass'],
+            'da_hoan_thanh' => ['label' => 'Đã hoàn thành', 'class' => 'bg-emerald-100 text-emerald-700', 'icon' => 'ph-check-circle'],
+            'approved' => ['label' => 'Đã chấm', 'class' => 'bg-blue-100 text-blue-700', 'icon' => 'ph-seal-check'],
+            'needs_revision' => ['label' => 'Cần bổ sung', 'class' => 'bg-rose-100 text-rose-700', 'icon' => 'ph-warning'],
+          ];
+
+          $lastestTime = $latestLog?->created_at?->format('H:i:s d/m/Y') ?? 'Chưa có';
+          $statusConfig = $listStatus[$lastestStatusRaw] ?? $listStatus['none'];
+        @endphp
+
+        <tr class="hover:bg-slate-50 transition-colors">
+          <!-- Sinh viên -->
+          <td class="py-3 px-4">
+            <a href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $rows->id]) }}"
+               class="text-blue-600 hover:underline font-medium">
+              {{ $fullname }}
+            </a>
+          </td>
+
+          <!-- MSSV -->
+          <td class="py-3 px-4 text-center font-mono text-slate-700">{{ $student_code }}</td>
+
+          <!-- Tuần gần nhất -->
+          <td class="py-3 px-4 text-slate-700">{{ $lastestTitle }}</td>
+
+          <!-- Trạng thái -->
+          <td class="py-3 px-4 text-center">
+            <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium {{ $statusConfig['class'] }}">
+              <i class="ph {{ $statusConfig['icon'] }} text-sm"></i>
+              {{ $statusConfig['label'] }}
+            </span>
+          </td>
+
+          <!-- Thời gian -->
+          <td class="py-3 px-4 text-slate-600">{{ $lastestTime }}</td>
+
+          <!-- Hành động -->
+          <td class="py-3 px-4 text-center">
+            <a href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $rows->id]) }}"
+               class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-slate-600 hover:bg-slate-100 transition">
+              <i class="ph ph-eye"></i> Xem
+            </a>
+          </td>
+        </tr>
+      @endforeach
+    </tbody>
+  </table>
+</div>
+
+
         </div>`;
           break;
         case 4:
@@ -576,41 +635,86 @@
               <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 text-amber-700"><span class="h-2 w-2 rounded-full bg-amber-400"></span> Đã nộp</span>
             </div>
           </div>
-          <div class="overflow-x-auto">
+          <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-md">
             <table id="tableStage4" class="w-full text-sm">
-              <thead>
-                <tr class="text-left text-slate-500 border-b">
-                  <th class="py-3 px-3">Sinh viên</th>
-                  <th class="py-3 px-3">MSSV</th>
-                  <th class="py-3 px-3">Đề tài</th>
-                  <th class="py-3 px-3">Trạng thái báo cáo</th>
-                  <th class="py-3 px-3">Lần nộp</th>
-                  <th class="py-3 px-3">Hành động</th>
+              <!-- Header -->
+              <thead class="bg-gradient-to-r from-slate-50 to-slate-100 border-b border-slate-200">
+                <tr class="text-slate-700">
+                  <th class="py-3 px-4 font-semibold">Sinh viên</th>
+                  <th class="py-3 px-4 font-semibold text-center">MSSV</th>
+                  <th class="py-3 px-4 font-semibold">Đề tài</th>
+                  <th class="py-3 px-4 font-semibold text-center">Trạng thái báo cáo</th>
+                  <th class="py-3 px-4 font-semibold">Lần nộp</th>
+                  <th class="py-3 px-4 font-semibold text-center">Hành động</th>
                 </tr>
               </thead>
-              <tbody>
-              @foreach ($assignmentSupervisors as $assignmentSupervisor)
-                @php
-                  $student = $assignmentSupervisor->assignment->student;
-                  $fullname = $student->user->fullname;
-                  $student_code = $student->student_code;
-                  $studentId = $student->id;
-                  $topic = $assignmentSupervisor->assignment->project_id ?? 'Chưa có đề tài';
-                @endphp
-                <tr class="border-b hover:bg-slate-50">
-                  <td class="py-3 px-3"><a class="text-blue-600 hover:underline" href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $rows->id]) }}">{{ $fullname }}</a></td>
-                  <td class="py-3 px-3">{{ $student_code }}</td>
-                  <td class="py-3 px-3">{{ $topic }}</td>
-                  <td class="py-3 px-3"><span class="px-2 py-0.5 rounded-full text-xs bg-amber-50 text-amber-700">Đã nộp</span></td>
-                  <td class="py-3 px-3">12/08/2025</td>
-                  <td class="py-3 px-3">
-                    <div class="flex items-center gap-1">
-                      <a class="px-2 py-1 border border-slate-200 rounded text-xs hover:bg-slate-50" href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $rows->id]) }}">Xem chi tiết</a>
-                      <a class="px-2 py-1 border border-slate-200 rounded text-xs hover:bg-slate-50" href="#">Tải báo cáo</a>
-                    </div>
-                  </td>
-                </tr>
-              @endforeach
+
+              <!-- Body -->
+              <tbody class="divide-y divide-slate-100">
+                @foreach ($assignments as $assignment)
+                  @php
+                    $student = $assignment->student;
+                    $fullname = $student->user->fullname;
+                    $student_code = $student->student_code;
+                    $studentId = $student->id;
+                    $topic = $assignment->project->name ?? 'Chưa có đề tài';
+
+                    // Lấy report cuối cùng
+                    $latestReport = $assignment->project?->reportFiles()->latest('created_at')->first();
+                    $statusRaw = $latestReport?->status ?? 'none';
+
+                    $listStatus = [
+                      'none' => ['label' => 'Chưa nộp', 'class' => 'bg-slate-100 text-slate-600', 'icon' => 'ph-clock'],
+                      'submitted' => ['label' => 'Đã nộp', 'class' => 'bg-amber-100 text-amber-700', 'icon' => 'ph-upload-simple'],
+                      'approved' => ['label' => 'Đã duyệt', 'class' => 'bg-emerald-100 text-emerald-700', 'icon' => 'ph-check-circle'],
+                      'rejected' => ['label' => 'Bị từ chối', 'class' => 'bg-rose-100 text-rose-700', 'icon' => 'ph-x-circle'],
+                    ];
+                    $statusConfig = $listStatus[$statusRaw] ?? $listStatus['none'];
+
+                    $lastSubmit = $latestReport?->created_at?->format('d/m/Y') ?? 'Chưa có';
+                  @endphp
+
+                  <tr class="hover:bg-slate-50 transition-colors">
+                    <!-- Sinh viên -->
+                    <td class="py-3 px-4">
+                      <a href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $rows->id]) }}"
+                        class="text-blue-600 hover:underline font-medium">
+                        {{ $fullname }}
+                      </a>
+                    </td>
+
+                    <!-- MSSV -->
+                    <td class="py-3 px-4 text-center font-mono text-slate-700">{{ $student_code }}</td>
+
+                    <!-- Đề tài -->
+                    <td class="py-3 px-4 text-slate-700">{{ $topic }}</td>
+
+                    <!-- Trạng thái -->
+                    <td class="py-3 px-4 text-center">
+                      <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium {{ $statusConfig['class'] }}">
+                        <i class="ph {{ $statusConfig['icon'] }} text-sm"></i>
+                        {{ $statusConfig['label'] }}
+                      </span>
+                    </td>
+
+                    <!-- Lần nộp -->
+                    <td class="py-3 px-4 text-slate-600">{{ $lastSubmit }}</td>
+
+                    <!-- Hành động -->
+                    <td class="py-3 px-4 text-center">
+                      <div class="flex justify-center gap-2">
+                        <a href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $rows->id]) }}"
+                          class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-slate-600 hover:bg-slate-100 transition">
+                          <i class="ph ph-eye"></i> Xem
+                        </a>
+                        <a href="{{ $latestReport?->file_url ?? '#' }}"
+                          class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-blue-600 hover:bg-blue-50 transition">
+                          <i class="ph ph-download-simple"></i> Tải
+                        </a>
+                      </div>
+                    </td>
+                  </tr>
+                @endforeach
               </tbody>
             </table>
           </div>
@@ -620,7 +724,7 @@
           contentBox.innerHTML = `
         <h3 class="text-lg font-semibold mb-3">Giai đoạn 05: Hội đồng</h3>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-          <a href="student-committees.html" class="group rounded-xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md hover:border-blue-300 transition">
+          <a href="{{ route('web.teacher.student_committee', ['supervisorId' => $supervisorId, 'termId' => $rows->id]) }}" class="group rounded-xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md hover:border-blue-300 transition">
             <div class="flex items-start gap-3">
               <div class="h-10 w-10 rounded-lg grid place-items-center bg-gradient-to-br from-fuchsia-50 to-fuchsia-100 text-fuchsia-600 group-hover:from-fuchsia-100 group-hover:to-fuchsia-200">
                 <i class="ph ph-student"></i>
@@ -636,7 +740,7 @@
               </div>
             </div>
           </a>
-          <a href="my-committees.html" class="group rounded-xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md hover:border-blue-300 transition">
+          <a href="{{ route('web.teacher.my_committees' )}}" class="group rounded-xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md hover:border-blue-300 transition">
             <div class="flex items-start gap-3">
               <div class="h-10 w-10 rounded-lg grid place-items-center bg-gradient-to-br from-sky-50 to-sky-100 text-sky-600 group-hover:from-sky-100 group-hover:to-sky-200">
                 <i class="ph ph-users-three"></i>
@@ -662,62 +766,70 @@
             </div>
             <div class="flex items-center gap-2"></div>
           </div>
-          <div class="overflow-x-auto">
+          <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-md">
             <table id="tableStage5" class="w-full text-sm">
-              <thead>
-                <tr class="text-left text-slate-500 border-b">
-                  <th class="py-3 px-3">Sinh viên</th>
-                  <th class="py-3 px-3">MSSV</th>
-                  <th class="py-3 px-3">Đề tài</th>
-                  <th class="py-3 px-3">Hội đồng</th>
-                  <th class="py-3 px-3">Lịch bảo vệ</th>
-                  <th class="py-3 px-3">Phòng</th>
-                  <th class="py-3 px-3">Hành động</th>
+              <!-- Header -->
+              <thead class="bg-gradient-to-r from-slate-50 to-slate-100 border-b border-slate-200">
+                <tr class="text-slate-700">
+                  <th class="py-3 px-4 font-semibold">Sinh viên</th>
+                  <th class="py-3 px-4 font-semibold text-center">MSSV</th>
+                  <th class="py-3 px-4 font-semibold">Đề tài</th>
+                  <th class="py-3 px-4 font-semibold text-center">Hội đồng</th>
+                  <th class="py-3 px-4 font-semibold">Lịch bảo vệ</th>
+                  <th class="py-3 px-4 font-semibold text-center">Phòng</th>
+                  <th class="py-3 px-4 font-semibold text-center">Hành động</th>
                 </tr>
               </thead>
-              <tbody>
-                @foreach ($assignmentSupervisors as $assignmentSupervisor)
+
+              <!-- Body -->
+              <tbody class="divide-y divide-slate-100">
+                @foreach ($assignments as $assignment)
                   @php
-                    $student = $assignmentSupervisor->assignment->student;
+                    $student = $assignment->student;
                     $fullname = $student->user->fullname;
                     $student_code = $student->student_code;
                     $studentId = $student->id;
-                    $topic = $assignmentSupervisor->assignment->project->title ?? 'Chưa có đề tài';
+                    $topic = $assignment->project->name ?? 'Chưa có đề tài';
+
+                    $committee = "CNTT-01"; // demo
+                    $schedule  = "20/08/2025 • 08:00";
+                    $room      = "P.A203";
                   @endphp
-                  <tr class="border-b hover:bg-slate-50">
+
+                  <tr class="hover:bg-slate-50 transition-colors">
                     <!-- Họ tên -->
-                    <td class="py-3 px-3">
-                      <a class="text-blue-600 hover:underline" 
-                        href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $rows->id]) }}">
+                    <td class="py-3 px-4">
+                      <a href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $rows->id]) }}"
+                        class="text-blue-600 hover:underline font-medium">
                         {{ $fullname }}
                       </a>
                     </td>
 
                     <!-- MSSV -->
-                    <td class="py-3 px-3">{{ $student_code }}</td>
+                    <td class="py-3 px-4 text-center font-mono text-slate-700">{{ $student_code }}</td>
 
                     <!-- Đề tài -->
-                    <td class="py-3 px-3">{{ $topic }}</td>
+                    <td class="py-3 px-4 text-slate-700">{{ $topic }}</td>
 
-                    <!-- Lớp -->
-                    <td class="py-3 px-3">CNTT-01</td>
+                    <!-- Hội đồng -->
+                    <td class="py-3 px-4 text-center">{{ $committee }}</td>
 
                     <!-- Ngày giờ -->
-                    <td class="py-3 px-3">20/08/2025 • 08:00</td>
+                    <td class="py-3 px-4 text-slate-600">{{ $schedule }}</td>
 
                     <!-- Phòng -->
-                    <td class="py-3 px-3">P.A203</td>
+                    <td class="py-3 px-4 text-center">{{ $room }}</td>
 
                     <!-- Hành động -->
-                    <td class="py-3 px-3">
-                      <div class="flex items-center gap-1">
-                        <a class="px-2 py-1 border border-slate-200 rounded text-xs hover:bg-slate-50" 
-                          href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $rows->id]) }}">
-                          Xem SV
+                    <td class="py-3 px-4 text-center">
+                      <div class="flex justify-center gap-2">
+                        <a href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $rows->id]) }}"
+                          class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-slate-600 hover:bg-slate-100 transition">
+                          <i class="ph ph-user"></i> SV
                         </a>
-                        <a class="px-2 py-1 border border-slate-200 rounded text-xs hover:bg-slate-50" 
-                          href="committee-detail.html?id=CNTT-01">
-                          Xem hội đồng
+                        <a href="committee-detail.html?id={{ $committee }}"
+                          class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-indigo-600 hover:bg-indigo-50 transition">
+                          <i class="ph ph-users-three"></i> Hội đồng
                         </a>
                       </div>
                     </td>
@@ -748,7 +860,7 @@
               </div>
             </div>
           </a>
-          <a href="review-assignments.html" class="group rounded-xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md hover:border-blue-300 transition">
+          <a href="{{ route('web.teacher.review_assignments') }}" class="group rounded-xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md hover:border-blue-300 transition">
             <div class="flex items-start gap-3">
               <div class="h-10 w-10 rounded-lg grid place-items-center bg-gradient-to-br from-teal-50 to-teal-100 text-teal-600 group-hover:from-teal-100 group-hover:to-teal-200">
                 <i class="ph ph-checks"></i>
@@ -773,54 +885,87 @@
               <input id="searchStage6" class="pl-8 pr-3 py-2 border border-slate-200 rounded text-sm w-64" placeholder="Tìm theo tên/MSSV/hội đồng" />
             </div>
           </div>
-          <div class="overflow-x-auto">
-            <table id="tableStage6" class="w-full text-sm border-collapse">
-                <thead>
-                  <tr class="bg-slate-100 text-slate-600 text-xs uppercase">
-                    <th class="px-4 py-3 text-center">Sinh viên</th>
-                    <th class="px-4 py-3 text-center">MSSV</th>
-                    <th class="px-4 py-3 text-center">Hội đồng</th>
-                    <th class="px-4 py-3 text-center">GV phản biện</th>
-                    <th class="px-4 py-3 text-center">Chức vụ</th>
-                    <th class="px-4 py-3 text-center">Số thứ tự PB</th>
-                    <th class="px-4 py-3 text-center">Thời gian</th>
-                    <th class="px-4 py-3 text-center">Hành động</th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-200 text-center">
-                  @foreach ($assignmentSupervisors as $assignmentSupervisor)
-                    @php
-                      $student = $assignmentSupervisor->assignment->student;
-                      $fullname = $student->user->fullname;
-                      $student_code = $student->student_code;
-                      $studentId = $student->id;
-                      $topic = $assignmentSupervisor->assignment->project->title ?? 'Chưa có đề tài';
-                    @endphp
-                    <tr class="hover:bg-slate-50 transition">
-                      <td class="px-4 py-3">
-                        <a class="text-blue-600 font-medium hover:underline" 
-                          href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $rows->id]) }}">
-                          {{ $fullname }}
+          <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-md">
+            <table id="tableStage6" class="w-full text-sm">
+              <!-- Header -->
+              <thead class="bg-gradient-to-r from-slate-50 to-slate-100 border-b border-slate-200">
+                <tr class="text-slate-700">
+                  <th class="px-4 py-3 font-semibold text-left">Sinh viên</th>
+                  <th class="px-4 py-3 font-semibold text-center">MSSV</th>
+                  <th class="px-4 py-3 font-semibold text-center">Hội đồng</th>
+                  <th class="px-4 py-3 font-semibold text-left">GV phản biện</th>
+                  <th class="px-4 py-3 font-semibold text-center">Chức vụ</th>
+                  <th class="px-4 py-3 font-semibold text-center">STT PB</th>
+                  <th class="px-4 py-3 font-semibold text-left">Thời gian</th>
+                  <th class="px-4 py-3 font-semibold text-center">Hành động</th>
+                </tr>
+              </thead>
+
+              <!-- Body -->
+              <tbody class="divide-y divide-slate-100">
+                @foreach ($assignments as $assignment)
+                  @php
+                    $student = $assignment->student;
+                    $fullname = $student->user->fullname;
+                    $student_code = $student->student_code;
+                    $studentId = $student->id;
+                    $topic = $assignment->project->title ?? 'Chưa có đề tài';
+
+                    $committee = "CNTT-01"; // ví dụ
+                    $reviewer = "TS. Nguyễn Thị E"; // ví dụ
+                    $role     = "Phản biện";
+                    $order    = "01";
+                    $time     = "20/08/2025 • 08:00";
+                  @endphp
+
+                  <tr class="hover:bg-slate-50 transition-colors">
+                    <!-- Sinh viên -->
+                    <td class="px-4 py-3">
+                      <a href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $rows->id]) }}"
+                        class="text-blue-600 hover:underline font-medium">
+                        {{ $fullname }}
+                      </a>
+                    </td>
+
+                    <!-- MSSV -->
+                    <td class="px-4 py-3 text-center font-mono text-slate-700">{{ $student_code }}</td>
+
+                    <!-- Hội đồng -->
+                    <td class="px-4 py-3 text-center">{{ $committee }}</td>
+
+                    <!-- GV phản biện -->
+                    <td class="px-4 py-3 text-slate-700">{{ $reviewer }}</td>
+
+                    <!-- Chức vụ -->
+                    <td class="px-4 py-3 text-center">
+                      <span class="px-2 py-1 text-xs rounded-full bg-indigo-50 text-indigo-700 font-medium">{{ $role }}</span>
+                    </td>
+
+                    <!-- STT PB -->
+                    <td class="px-4 py-3 text-center">
+                      <span class="px-2 py-1 text-xs rounded-md bg-slate-100 text-slate-700">{{ $order }}</span>
+                    </td>
+
+                    <!-- Thời gian -->
+                    <td class="px-4 py-3 text-slate-600">{{ $time }}</td>
+
+                    <!-- Hành động -->
+                    <td class="px-4 py-3 text-center">
+                      <div class="flex justify-center gap-2">
+                        <a href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $rows->id]) }}"
+                          class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-slate-600 hover:bg-slate-50 transition">
+                          <i class="ph ph-user"></i> SV
                         </a>
-                      </td>
-                      <td class="px-4 py-3 font-mono text-slate-700">{{ $student_code }}</td>
-                      <td class="px-4 py-3">CNTT-01</td>
-                      <td class="px-4 py-3">TS. Nguyễn Thị E</td>
-                      <td class="px-4 py-3 text-slate-600">Phản biện</td>
-                      <td class="px-4 py-3">01</td>
-                      <td class="px-4 py-3 text-slate-500">20/08/2025 • 08:00</td>
-                      <td class="px-4 py-3">
-                        <div class="flex justify-center gap-2">
-                          <a class="px-3 py-1 text-xs rounded-lg border border-slate-300 text-slate-600 hover:bg-slate-100 transition" 
-                            href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $rows->id]) }}">Xem SV</a>
-                          <a class="px-3 py-1 text-xs rounded-lg border border-slate-300 text-slate-600 hover:bg-slate-100 transition" 
-                            href="committee-detail.html?id=CNTT-01">Xem hội đồng</a>
-                        </div>
-                      </td>
-                    </tr>
-                  @endforeach
-                </tbody>
-              </table>
+                        <a href="committee-detail.html?id={{ $committee }}"
+                          class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-indigo-600 hover:bg-indigo-50 transition">
+                          <i class="ph ph-users-three"></i> Hội đồng
+                        </a>
+                      </div>
+                    </td>
+                  </tr>
+                @endforeach
+              </tbody>
+            </table>
           </div>
         </div>`;
           break;
@@ -839,43 +984,83 @@
               <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-50 text-rose-700"><span class="h-2 w-2 rounded-full bg-rose-500"></span> Không đạt</span>
             </div>
           </div>
-          <div class="overflow-x-auto">
+          <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-md">
             <table id="tableStage7" class="w-full text-sm">
-              <thead>
-                <tr class="text-left text-slate-500 border-b">
-                  <th class="py-3 px-3">Sinh viên</th>
-                  <th class="py-3 px-3">MSSV</th>
-                  <th class="py-3 px-3">Hội đồng</th>
-                  <th class="py-3 px-3">Kết quả phản biện</th>
-                  <th class="py-3 px-3">Thứ tự bảo vệ</th>
-                  <th class="py-3 px-3">Thời gian bảo vệ</th>
-                  <th class="py-3 px-3">Hành động</th>
+              <!-- Header -->
+              <thead class="bg-slate-50 border-b border-slate-200">
+                <tr class="text-slate-700">
+                  <th class="py-3 px-4 font-semibold text-left">Sinh viên</th>
+                  <th class="py-3 px-4 font-semibold text-center">MSSV</th>
+                  <th class="py-3 px-4 font-semibold text-center">Hội đồng</th>
+                  <th class="py-3 px-4 font-semibold text-center">Kết quả phản biện</th>
+                  <th class="py-3 px-4 font-semibold text-center">STT bảo vệ</th>
+                  <th class="py-3 px-4 font-semibold text-left">Thời gian bảo vệ</th>
+                  <th class="py-3 px-4 font-semibold text-center">Hành động</th>
                 </tr>
               </thead>
-              <tbody>
-              @foreach ($assignmentSupervisors as $assignmentSupervisor)
-                @php
-                  $student = $assignmentSupervisor->assignment->student;
-                  $fullname = $student->user->fullname;
-                  $student_code = $student->student_code;
-                  $studentId = $student->id;
-                  $topic = $assignmentSupervisor->assignment->project->title ?? 'Chưa có đề tài';
-                @endphp
-                <tr class="border-b hover:bg-slate-50">
-                  <td class="py-3 px-3"><a class="text-blue-600 hover:underline" href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $rows->id]) }}">{{ $fullname }}</a></td>
-                  <td class="py-3 px-3">{{$student_code}}</td>
-                  <td class="py-3 px-3">CNTT-01</td>
-                  <td class="py-3 px-3"><span class="px-2 py-0.5 rounded-full text-xs bg-emerald-50 text-emerald-700">Đạt</span></td>
-                  <td class="py-3 px-3">01</td>
-                  <td class="py-3 px-3">20/08/2025 • 08:00</td>
-                  <td class="py-3 px-3">
-                    <div class="flex items-center gap-1">
-                            <a class="px-2 py-1 border border-slate-200 rounded text-xs hover:bg-slate-50" href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $rows->id]) }}">Xem SV</a>
-                      <a class="px-2 py-1 border border-slate-200 rounded text-xs hover:bg-slate-50" href="committee-detail.html?id=CNTT-01">Xem hội đồng</a>
-                    </div>
-                  </td>
-                </tr>
-              @endforeach
+
+              <!-- Body -->
+              <tbody class="divide-y divide-slate-100">
+                @foreach ($assignments as $assignment)
+                  @php
+                    $student = $assignment->student;
+                    $fullname = $student->user->fullname;
+                    $student_code = $student->student_code;
+                    $studentId = $student->id;
+                    $topic = $assignment->project->title ?? 'Chưa có đề tài';
+
+                    $committee = "CNTT-01"; // ví dụ
+                    $result    = "Đạt";     // ví dụ
+                    $resultClass = "bg-emerald-100 text-emerald-700"; // ví dụ
+                    $order     = "01";
+                    $time      = "20/08/2025 • 08:00";
+                  @endphp
+
+                  <tr class="hover:bg-slate-50 transition-colors">
+                    <!-- Sinh viên -->
+                    <td class="px-4 py-3">
+                      <a href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $rows->id]) }}"
+                        class="text-blue-600 hover:underline font-medium">
+                        {{ $fullname }}
+                      </a>
+                    </td>
+
+                    <!-- MSSV -->
+                    <td class="px-4 py-3 text-center font-mono text-slate-700">{{ $student_code }}</td>
+
+                    <!-- Hội đồng -->
+                    <td class="px-4 py-3 text-center">{{ $committee }}</td>
+
+                    <!-- Kết quả phản biện -->
+                    <td class="px-4 py-3 text-center">
+                      <span class="px-2 py-1 text-xs font-medium rounded-full {{ $resultClass }}">
+                        {{ $result }}
+                      </span>
+                    </td>
+
+                    <!-- STT bảo vệ -->
+                    <td class="px-4 py-3 text-center">
+                      <span class="px-2 py-1 text-xs rounded-md bg-slate-100 text-slate-700">{{ $order }}</span>
+                    </td>
+
+                    <!-- Thời gian -->
+                    <td class="px-4 py-3 text-slate-600">{{ $time }}</td>
+
+                    <!-- Hành động -->
+                    <td class="px-4 py-3 text-center">
+                      <div class="flex justify-center gap-2">
+                        <a href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $rows->id]) }}"
+                          class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-slate-600 hover:bg-slate-50 transition">
+                          <i class="ph ph-user"></i> SV
+                        </a>
+                        <a href="committee-detail.html?id={{ $committee }}"
+                          class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-indigo-600 hover:bg-indigo-50 transition">
+                          <i class="ph ph-users-three"></i> Hội đồng
+                        </a>
+                      </div>
+                    </td>
+                  </tr>
+                @endforeach
               </tbody>
             </table>
           </div>
@@ -931,43 +1116,82 @@
               <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-50 text-rose-700"><span class="h-2 w-2 rounded-full bg-rose-500"></span> Không đạt</span>
             </div>
           </div>
-          <div class="overflow-x-auto">
+          <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-md">
             <table id="tableStage8" class="w-full text-sm">
-              <thead>
-                <tr class="text-left text-slate-500 border-b">
-                  <th class="py-3 px-3">Sinh viên</th>
-                  <th class="py-3 px-3">MSSV</th>
-                  <th class="py-3 px-3">Hội đồng</th>
-                  <th class="py-3 px-3">Điểm bảo vệ</th>
-                  <th class="py-3 px-3">Kết quả</th>
-                  <th class="py-3 px-3">Nhận xét</th>
-                  <th class="py-3 px-3">Hành động</th>
+              <!-- Header -->
+              <thead class="bg-slate-50 border-b border-slate-200">
+                <tr class="text-slate-700">
+                  <th class="py-3 px-4 font-semibold text-left">Sinh viên</th>
+                  <th class="py-3 px-4 font-semibold text-center">MSSV</th>
+                  <th class="py-3 px-4 font-semibold text-center">Hội đồng</th>
+                  <th class="py-3 px-4 font-semibold text-center">Điểm bảo vệ</th>
+                  <th class="py-3 px-4 font-semibold text-center">Kết quả</th>
+                  <th class="py-3 px-4 font-semibold text-left">Nhận xét</th>
+                  <th class="py-3 px-4 font-semibold text-center">Hành động</th>
                 </tr>
               </thead>
-              <tbody>
-              @foreach ($assignmentSupervisors as $assignmentSupervisor)
-                @php
-                  $student = $assignmentSupervisor->assignment->student;
-                  $fullname = $student->user->fullname;
-                  $student_code = $student->student_code;
-                  $studentId = $student->id;
-                  $topic = $assignmentSupervisor->assignment->project->title ?? 'Chưa có đề tài';
-                @endphp
-                <tr class="border-b hover:bg-slate-50">
-                  <td class="py-3 px-3"><a class="text-blue-600 hover:underline" href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $rows->id]) }}">{{ $fullname }}</a></td>
-                  <td class="py-3 px-3">{{ $student_code }}</td>
-                  <td class="py-3 px-3">CNTT-01</td>
-                  <td class="py-3 px-3">8.5</td>
-                  <td class="py-3 px-3"><span class="px-2 py-0.5 rounded-full text-xs bg-emerald-50 text-emerald-700">Đạt</span></td>
-                  <td class="py-3 px-3">Trình bày tốt, trả lời câu hỏi rõ ràng.</td>
-                  <td class="py-3 px-3">
-                    <div class="flex items-center gap-1">
-                      <a class="px-2 py-1 border border-slate-200 rounded text-xs hover:bg-slate-50" href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $rows->id]) }}">Xem SV</a>
-                      <a class="px-2 py-1 border border-slate-200 rounded text-xs hover:bg-slate-50" href="committee-detail.html?id=CNTT-01">Xem hội đồng</a>
-                    </div>
-                  </td>
-                </tr>
-              @endforeach
+
+              <!-- Body -->
+              <tbody class="divide-y divide-slate-100">
+                @foreach ($assignments as $assignment)
+                  @php
+                    $student = $assignment->student;
+                    $fullname = $student->user->fullname;
+                    $student_code = $student->student_code;
+                    $studentId = $student->id;
+
+                    $committee = "CNTT-01"; 
+                    $score     = 8.5; 
+                    $result    = "Đạt"; 
+                    $comment   = "Trình bày tốt, trả lời câu hỏi rõ ràng.";
+                    $resultClass = "bg-emerald-100 text-emerald-700";
+                  @endphp
+
+                  <tr class="hover:bg-slate-50 transition">
+                    <!-- Sinh viên -->
+                    <td class="px-4 py-3">
+                      <a href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $rows->id]) }}"
+                        class="text-blue-600 hover:underline font-medium">
+                        {{ $fullname }}
+                      </a>
+                    </td>
+
+                    <!-- MSSV -->
+                    <td class="px-4 py-3 text-center font-mono text-slate-700">{{ $student_code }}</td>
+
+                    <!-- Hội đồng -->
+                    <td class="px-4 py-3 text-center">{{ $committee }}</td>
+
+                    <!-- Điểm -->
+                    <td class="px-4 py-3 text-center font-semibold text-slate-800">{{ $score }}</td>
+
+                    <!-- Kết quả -->
+                    <td class="px-4 py-3 text-center">
+                      <span class="px-2 py-1 text-xs font-medium rounded-full {{ $resultClass }}">
+                        {{ $result }}
+                      </span>
+                    </td>
+
+                    <!-- Nhận xét -->
+                    <td class="px-4 py-3 text-slate-600 max-w-xs whitespace-normal">
+                      {{ $comment }}
+                    </td>
+
+                    <!-- Hành động -->
+                    <td class="px-4 py-3 text-center">
+                      <div class="flex justify-center gap-2">
+                        <a href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $rows->id]) }}"
+                          class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-slate-600 hover:bg-slate-50 transition">
+                          <i class="ph ph-user"></i> SV
+                        </a>
+                        <a href="committee-detail.html?id={{ $committee }}"
+                          class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-indigo-600 hover:bg-indigo-50 transition">
+                          <i class="ph ph-users-three"></i> Hội đồng
+                        </a>
+                      </div>
+                    </td>
+                  </tr>
+                @endforeach
               </tbody>
             </table>
           </div>

@@ -123,7 +123,6 @@
           <div class="max-w-6xl mx-auto space-y-6">
           <section class="bg-white rounded-xl border border-slate-200 p-5">
             <div class="flex items-center justify-between">
-              <pre>{{dd($assignmentSupervisors)}}</pre>
               @php
                 $user = Auth::user();
                 //$assignmentSupervisors = $user->teacher->supervisor->assignment_supervisors;
@@ -173,67 +172,84 @@
                 <i class="ph ph-magnifying-glass absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
               </div>
             </div>
-            <div class="mt-4 overflow-x-auto">
-              <table class="w-full text-sm">
-                <thead>
-                  <tr class="text-left text-slate-500">
-                    <th data-sort-key="mssv" data-sort-type="string" class="py-3 px-4 border-b cursor-pointer select-none">MSSV <i class="ph ph-caret-up-down ml-1 text-slate-400"></i></th>
-                    <th data-sort-key="name" data-sort-type="string" class="py-3 px-4 border-b cursor-pointer select-none">Họ tên <i class="ph ph-caret-up-down ml-1 text-slate-400"></i></th>
-                    <th data-sort-key="major" data-sort-type="string" class="py-3 px-4 border-b cursor-pointer select-none">Ngành <i class="ph ph-caret-up-down ml-1 text-slate-400"></i></th>
-                    <th data-sort-key="gpa" data-sort-type="number" class="py-3 px-4 border-b cursor-pointer select-none">Đề tài <i class="ph ph-caret-up-down ml-1 text-slate-400"></i></th>
-                    <th data-sort-key="gpa" data-sort-type="number" class="py-3 px-4 border-b cursor-pointer select-none"> Đợt <i class="ph ph-caret-up-down ml-1 text-slate-400"></i></th>
-                    <th data-sort-key="gpa" data-sort-type="number" class="py-3 px-4 border-b cursor-pointer select-none">Năm học <i class="ph ph-caret-up-down ml-1 text-slate-400"></i></th>
-                    <th data-sort-key="status" data-sort-type="string" class="py-3 px-4 border-b cursor-pointer select-none">Trạng thái <i class="ph ph-caret-up-down ml-1 text-slate-400"></i></th>
-                    <th class="py-3 px-4 border-b text-right">Hành động</th>
-                  </tr>
-                </thead>
-                <tbody id="tableBody">
-                  @foreach ($assignmentSupervisors as $assignmentSupervisor)
-                    @php
-                      $stage    = data_get($assignmentSupervisor, 'assignment.project_term.stage', '');
-                      $yearName = data_get($assignmentSupervisor, 'assignment.project_term.academy_year.year_name', '');
-                      $statusRaw = $assignmentSupervisor->assignment->status ?? 'pending';
-                    @endphp
-                    <tr class="hover:bg-slate-50"
-                        data-year="{{ $yearName }}"
-                        data-term="{{ $stage }}"
-                        data-status="{{ strtolower($statusRaw) }}">
-                      <td class="py-3 px-4">{{ $assignmentSupervisor->assignment->student->student_code }}</td>
-                      <td class="py-3 px-4">{{ $assignmentSupervisor->assignment->student->user->fullname }}</td>
-                      <td class="py-3 px-4">{{ $assignmentSupervisor->assignment->student->marjor->name }}</td>
-                      <td class="py-3 px-4">{{ $assignmentSupervisor->assignment->project->name }}</td>
-                      <td class="py-3 px-4">{{ $stage }}</td>
-                      <td class="py-3 px-4">{{ $yearName }}</td>
-                      @php
-                        $statusColors = [
-                          'approved' => 'bg-green-100 text-green-800',
-                          'pending' => 'bg-yellow-100 text-yellow-800',
-                          'accepted' => 'bg-green-100 text-green-800',
-                          'rejected' => 'bg-red-100 text-red-800',
-                        ];
-                        $statusLabels = [
-                          'approved' => 'Đã duyệt',
-                          'pending' => 'Chờ duyệt',
-                          'accepted' => 'Đã chấp nhận',
-                          'rejected' => 'Từ chối',
-                        ];
-                        $statusClass = $statusColors[$assignmentSupervisor->assignment->status] ?? 'bg-slate-100 text-slate-800';
-                        $statusLabel = $statusLabels[$assignmentSupervisor->assignment->status] ?? ucfirst($assignmentSupervisor->status);
-                      @endphp
-                      <td class="py-3 px-4">
-                        <span class="px-2 py-1 rounded-full text-xs {{ $statusClass }}">{{ $statusLabel }}</span>
-                      </td>
-                      @if ($statusRaw === 'pending')
-                        <td class="py-3 px-4 text-right space-x-2">
-                          <button class="px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-slate-600"><i class="ph ph-check"></i> Duyệt</button>
-                          <button class="px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-rose-600"><i class="ph ph-x"></i> Từ chối</button>
-                        </td>
-                      @endif
-                    </tr>
-                  @endforeach
-                </tbody>
-              </table>
-            </div>
+<div class="mt-4 overflow-x-auto">
+  <table class="w-full text-sm border border-slate-200 rounded-xl overflow-hidden">
+    <thead class="bg-slate-50">
+      <tr class="text-slate-600">
+        <th class="py-3 px-4 border-b text-center">MSSV</th>
+        <th class="py-3 px-4 border-b text-left">Họ tên</th>
+        <th class="py-3 px-4 border-b text-center">Ngành</th>
+        <th class="py-3 px-4 border-b text-left">Đề tài</th>
+        <th class="py-3 px-4 border-b text-center">Đợt</th>
+        <th class="py-3 px-4 border-b text-center">Năm học</th>
+        <th class="py-3 px-4 border-b text-center">Trạng thái</th>
+        <th class="py-3 px-4 border-b text-center">Hành động</th>
+      </tr>
+    </thead>
+    <tbody id="tableBody" class="divide-y divide-slate-200">
+      @foreach ($assignmentSupervisors as $assignmentSupervisor)
+        @php
+          $stage     = data_get($assignmentSupervisor, 'assignment.project_term.stage', '');
+          $yearName  = data_get($assignmentSupervisor, 'assignment.project_term.academy_year.year_name', '');
+          $statusRaw = $assignmentSupervisor->status ?? 'pending';
+
+          $statusColors = [
+            'approved' => 'bg-green-100 text-green-800',
+            'pending'  => 'bg-yellow-100 text-yellow-800',
+            'accepted' => 'bg-green-100 text-green-800',
+            'rejected' => 'bg-red-100 text-red-800',
+          ];
+          $statusLabels = [
+            'approved' => 'Đã duyệt',
+            'pending'  => 'Chờ duyệt',
+            'accepted' => 'Đã chấp nhận',
+            'rejected' => 'Từ chối',
+          ];
+
+          $statusClass = $statusColors[$statusRaw] ?? 'bg-slate-100 text-slate-800';
+          $statusLabel = $statusLabels[$statusRaw] ?? ucfirst($statusRaw);
+        @endphp
+        <tr class="hover:bg-slate-50 transition">
+          <td class="py-3 px-4 text-left">{{ $assignmentSupervisor->assignment->student->student_code }}</td>
+          <td class="py-3 px-4 font-medium text-slate-700">{{ $assignmentSupervisor->assignment->student->user->fullname }}</td>
+          <td class="py-3 px-4 text-center">{{ $assignmentSupervisor->assignment->student->marjor->name }}</td>
+          <td class="py-3 px-4 text-slate-700">{{ $assignmentSupervisor->assignment->project->name ?? 'Chưa có đề tài' }}</td>
+          <td class="py-3 px-4 text-left">{{ $stage }}</td>
+          <td class="py-3 px-4 text-left">{{ $yearName }}</td>
+          <td class="py-3 px-4 text-left">
+            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium {{ $statusClass }}">
+              @if ($statusRaw === 'approved' || $statusRaw === 'accepted')
+                <i class="ph ph-check-circle"></i>
+              @elseif ($statusRaw === 'pending')
+                <i class="ph ph-clock"></i>
+              @elseif ($statusRaw === 'rejected')
+                <i class="ph ph-x-circle"></i>
+              @endif
+              {{ $statusLabel }}
+            </span>
+          </td>
+          <td class="py-3 px-4">
+            @if ($statusRaw === 'pending')
+              <div class="flex justify-center gap-3">
+                <button class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 text-xs font-medium">
+                  <i class="ph ph-check"></i> Duyệt
+                </button>
+                <button class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-rose-600 text-white hover:bg-rose-700 text-xs font-medium">
+                  <i class="ph ph-x"></i> Từ chối
+                </button>
+              </div>
+            @else
+              <div class="flex justify-center">
+                <span class="text-slate-400 text-xs italic">—</span>
+              </div>
+            @endif
+          </td>
+        </tr>
+      @endforeach
+    </tbody>
+  </table>
+</div>
+
           </section>
         </div>
         </main>

@@ -115,10 +115,10 @@
         </div>
         <div class="relative">
           <button id="profileBtn" class="flex items-center gap-3 px-2 py-1.5 rounded-lg hover:bg-slate-100">
-            <img class="h-9 w-9 rounded-full object-cover" src="https://i.pravatar.cc/100?img=10" alt="avatar" />
+            <img class="h-9 w-9 rounded-full object-cover" src="{{ $avatarUrl }}" alt="avatar" />
             <div class="hidden sm:block text-left">
-              <div class="text-sm font-semibold leading-4">ThS. Nguyễn Văn H</div>
-              <div class="text-xs text-slate-500">head@uni.edu</div>
+              <div class="text-sm font-semibold leading-4">{{ $userName }}</div>
+              <div class="text-xs text-slate-500">{{ $email }}</div>
             </div>
             <i class="ph ph-caret-down text-slate-500 hidden sm:block"></i>
           </button>
@@ -237,12 +237,12 @@
 
   const stages = [
     { id:1, title:'Đăng ký đề tài',     status:'done'    },
-    { id:2, title:'Phân công GVHD',     status:'active'  },
-    { id:3, title:'Nộp đề cương',       status:'upcoming'},
-    { id:4, title:'Phản biện đề cương', status:'upcoming'},
-    { id:5, title:'Theo dõi tiến độ',   status:'upcoming'},
-    { id:6, title:'Nộp báo cáo',        status:'upcoming'},
-    { id:7, title:'Phân công / Bảo vệ', status:'upcoming'},
+    { id:2, title:'Nộp đề cương',     status:'active'  },
+    { id:3, title:'Nhật ký đồ án',       status:'upcoming'},
+    { id:4, title:'Nộp báo cáo', status:'upcoming'},
+    { id:5, title:'Phân hội đồng bảo vệ',   status:'upcoming'},
+    { id:6, title:'Phản biện đồ án',    status:'upcoming'},
+    { id:7, title:'Tra cứu phản biện', status:'upcoming'},
     { id:8, title:'Tổng kết',           status:'upcoming'},
   ];
 
@@ -504,7 +504,7 @@
               title:'Phản biện kín',
               subtitle:'Ẩn GVHD',
               desc:'Quản lý phản biện ẩn giúp đảm bảo tính khách quan.',
-              href:'blind-review-assignments.html',
+              href:'{{ route('web.head.blind_review_lecturers', ['termId' => $projectTerm->id]) }}',
               color:'violet'
             }),
             featureCard({
@@ -940,6 +940,22 @@
         box.innerHTML = `<div class="text-slate-500 text-sm">Không có dữ liệu giai đoạn.</div>`;
     }
   }
+
+  (function(){
+  const html=document.documentElement, sidebar=document.getElementById('sidebar');
+  function setCollapsed(c){
+    const h=document.querySelector('header'); const m=document.querySelector('main');
+    if(c){ html.classList.add('sidebar-collapsed'); h.classList.add('md:left-[72px]'); h.classList.remove('md:left-[260px]'); m.classList.add('md:pl-[72px]'); m.classList.remove('md:pl-[260px]'); }
+    else { html.classList.remove('sidebar-collapsed'); h.classList.remove('md:left-[72px]'); h.classList.add('md:left-[260px]'); m.classList.remove('md:pl-[72px]'); m.classList.add('md:pl-[260px]'); }
+  }
+  document.getElementById('toggleSidebar')?.addEventListener('click',()=>{const c=!html.classList.contains('sidebar-collapsed'); setCollapsed(c); localStorage.setItem('head_sidebar',''+(c?1:0));});
+  document.getElementById('openSidebar')?.addEventListener('click',()=>sidebar.classList.toggle('-translate-x-full'));
+  if(localStorage.getItem('head_sidebar')==='1') setCollapsed(true);
+  sidebar.classList.add('md:translate-x-0','-translate-x-full','md:static');
+  const profileBtn=document.getElementById('profileBtn'); const profileMenu=document.getElementById('profileMenu');
+  profileBtn?.addEventListener('click', ()=> profileMenu.classList.toggle('hidden'));
+  document.addEventListener('click', (e)=>{ if(!profileBtn?.contains(e.target) && !profileMenu?.contains(e.target)) profileMenu?.classList.add('hidden'); });
+  })();
 
   // Khởi chạy
   initRoundInfo();

@@ -20,11 +20,16 @@ return new class extends Migration
             $table->unsignedBigInteger('project_term_id')->nullable();
             $table->string('status')->default('pending');
             $table->string('role')->nullable();
+            $table->unsignedBigInteger('counter_argument_id')->nullable();
+            $table->text('counter_argument_status')->nullable();
+            $table->unsignedBigInteger('council_id')->nullable();
             $table->timestamps();
 
             $table->foreign('student_id')->references('id')->on('students')->onDelete('cascade');
             $table->foreign('project_id')->references('id')->on('projects')->onDelete('cascade');
             $table->foreign('project_term_id')->references('id')->on('project_terms')->onDelete('cascade');
+            $table->foreign('council_id')->references('id')->on('councils')->onDelete('cascade');
+            $table->foreign('counter_argument_id')->references('id')->on('supervisors')->onDelete('cascade');
         });
     }
 

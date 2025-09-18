@@ -140,7 +140,7 @@
                       <td class="py-3 px-4"><input type="checkbox" class="rowChk h-4 w-4"/></td>
                       <td class="py-3 px-4">{{ $teacher->id }}</td>
                       <td class="py-3 px-4"><a class="text-blue-600 hover:underline" href="../lecturer-ui/profile.html">{{ $teacher->user->fullname }}</a></td>
-                      <td class="py-3 px-4">Điện</td>
+                      <td class="py-3 px-4">Trí tuệ nhân tạo</td>
                       <td class="py-3 px-4">{{ $teacher->position }}</td>
                       <td class="py-3 px-4">CNTT</td>
                       <td class="py-3 px-4">{{ $teacher->user->email }}</td>

@@ -194,7 +194,7 @@
 
               <div class="grid grid-cols-2 gap-4 mb-4">
                 <div class="text-center p-3 bg-slate-50 rounded-lg">
-                  <div class="text-lg font-semibold text-blue-600">{{ $row->supervisors[0]->assignment_supervisors->where('status', 'accepted')->count() }}</div>
+                  <div class="text-lg font-semibold text-blue-600">{{ $row->assignments->count() }}</div>
                   <div class="text-xs text-slate-600">SV hướng dẫn</div>
                 </div>
                 <div class="text-center p-3 bg-slate-50 rounded-lg">

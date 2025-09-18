@@ -152,59 +152,78 @@
             <h3 class="font-semibold">Danh sách giảng viên hướng dẫn</h3>
           </div>
 
-          <div class="mt-4 overflow-x-auto">
-            <table class="w-full text-sm">
-              <thead>
-                <tr class="text-left text-slate-500">
-                  <th class="py-3 px-4 border-b select-none cursor-pointer" data-key="code">Mã GV <i class="ph ph-caret-up-down ml-1 text-slate-400"></i></th>
-                  <th class="py-3 px-4 border-b select-none cursor-pointer" data-key="name">Họ tên <i class="ph ph-caret-up-down ml-1 text-slate-400"></i></th>
-                  <th class="py-3 px-4 border-b select-none cursor-pointer" data-key="dept">Bộ môn <i class="ph ph-caret-up-down ml-1 text-slate-400"></i></th>
-                  <th class="py-3 px-4 border-b select-none cursor-pointer" data-key="degree">Học vị <i class="ph ph-caret-up-down ml-1 text-slate-400"></i></th>
-                  <th class="py-3 px-4 border-b select-none cursor-pointer" data-key="email">Email <i class="ph ph-caret-up-down ml-1 text-slate-400"></i></th>
-                  <th class="py-3 px-4 border-b select-none cursor-pointer" data-key="load">Tải hướng dẫn <i class="ph ph-caret-up-down ml-1 text-slate-400"></i></th>
-                  <th class="py-3 px-4 border-b text-right">Hành động</th>
-                </tr>
-              </thead>
-              <tbody id="tbody">
-                @if($totalSupervisors > 0)
-                  @foreach($collection as $row)
-                    @php
-                      $u = $row->user ?? optional($row->teacher)->user;
-                      $code = $row->staff_code ?? $row->code ?? optional($row->teacher)->teacher_code ?? '—';
-                      $name = optional($u)->fullname ?? $row->fullname ?? ($row->name ?? '—');
-                      $dept = $row->department_name ?? optional($row->department)->name ?? optional(optional($row->teacher)->department)->name ?? '—';
-                      $degree = $row->degree ?? optional($row->teacher)->degree ?? '—';
-                      $mail = optional($u)->email ?? $row->email ?? '—';
-                      $max = $row->max_students ?? $row->max_students ?? 0;
-                      $cur = $row->current_students_count ?? $row->assignment_supervisors->count() ?? 0;
-                      $statusInt = $row->status ?? 1;
-                      $statusLabel = is_string($statusInt) ? $statusInt : ($statusInt ? 'Hoạt động' : 'Tạm dừng');
-                      $statusCls = (is_string($statusInt) && in_array(strtolower($statusInt),['inactive','tạm dừng'])) || !$statusInt
-                        ? 'bg-amber-50 text-amber-700' : 'bg-emerald-50 text-emerald-700';
-                    @endphp
-                    <tr class="hover:bg-slate-50">
-                      <td class="py-3 px-4">{{ $code }}</td>
-                      <td class="py-3 px-4"><a class="text-blue-600 hover:underline" href="#">{{ $name }}</a></td>
-                      <td class="py-3 px-4">{{ $dept }}</td>
-                      <td class="py-3 px-4">{{ $degree }}</td>
-                      <td class="py-3 px-4">{{ $mail }}</td>
-                      <td class="py-3 px-4">
-                        <span class="px-2 py-1 rounded-full text-xs bg-slate-100 text-slate-700">{{ $cur }}/{{ $max }}</span>
-                        <span class="ml-2 px-2 py-1 rounded-full text-xs {{ $statusCls }}">{{ $statusLabel }}</span>
-                      </td>
-                      <td class="py-3 px-4 text-right space-x-2">
-                        <a class="px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-slate-600" href="#"><i class="ph ph-eye"></i></a>
-                        <button class="px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-slate-600"><i class="ph ph-pencil"></i></button>
-                        <button class="px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-rose-600"><i class="ph ph-trash"></i></button>
-                      </td>
-                    </tr>
-                  @endforeach
-                @else
-                  <tr><td colspan="7" class="py-6 px-4 text-center text-slate-500">Chưa có giảng viên nào trong đợt này.</td></tr>
-                @endif
-              </tbody>
-            </table>
-          </div>
+<div class="mt-4 overflow-x-auto border rounded-lg shadow-sm">
+  <table class="min-w-[900px] w-full text-sm border-collapse">
+    <thead class="bg-slate-50 text-slate-500">
+      <tr>
+        <th class="py-3 px-4 border-b select-none cursor-pointer hover:text-slate-700" data-key="code">
+          Mã GV <i class="ph ph-caret-up-down ml-1 text-slate-400"></i>
+        </th>
+        <th class="py-3 px-4 border-b select-none cursor-pointer hover:text-slate-700" data-key="name">
+          Họ tên <i class="ph ph-caret-up-down ml-1 text-slate-400"></i>
+        </th>
+        <th class="py-3 px-4 border-b select-none cursor-pointer hover:text-slate-700" data-key="dept">
+          Bộ môn <i class="ph ph-caret-up-down ml-1 text-slate-400"></i>
+        </th>
+        <th class="py-3 px-4 border-b select-none cursor-pointer hover:text-slate-700" data-key="degree">
+          Học vị <i class="ph ph-caret-up-down ml-1 text-slate-400"></i>
+        </th>
+        <th class="py-3 px-4 border-b select-none cursor-pointer hover:text-slate-700" data-key="email">
+          Email <i class="ph ph-caret-up-down ml-1 text-slate-400"></i>
+        </th>
+        <th class="py-3 px-4 border-b select-none cursor-pointer hover:text-slate-700" data-key="load">
+          Số sinh viên <i class="ph ph-caret-up-down ml-1 text-slate-400"></i>
+        </th>
+        <th class="py-3 px-4 border-b text-right">Hành động</th>
+      </tr>
+    </thead>
+    <tbody id="tbody" class="bg-white">
+      @if($totalSupervisors > 0)
+        @foreach($collection as $row)
+          @php
+            $u = $row->user ?? optional($row->teacher)->user;
+            $code = $row->staff_code ?? $row->code ?? optional($row->teacher)->teacher_code ?? '—';
+            $name = optional($u)->fullname ?? $row->fullname ?? ($row->name ?? '—');
+            $dept = $row->department_name ?? optional($row->department)->name ?? optional(optional($row->teacher)->department)->name ?? '—';
+            $degree = $row->degree ?? optional($row->teacher)->degree ?? '—';
+            $mail = optional($u)->email ?? $row->email ?? '—';
+            $max = $row->max_students ?? 0;
+            $cur = $row->current_students_count ?? $row->assignment_supervisors->count() ?? 0;
+            $statusInt = $row->status ?? 1;
+            $statusLabel = is_string($statusInt) ? $statusInt : ($statusInt ? 'Hoạt động' : 'Tạm dừng');
+            $statusCls = (is_string($statusInt) && in_array(strtolower($statusInt), ['inactive','tạm dừng'])) || !$statusInt
+              ? 'bg-amber-50 text-amber-700' : 'bg-emerald-50 text-emerald-700';
+          @endphp
+          <tr class="hover:bg-slate-50">
+            <td class="py-3 px-4">{{ $code }}</td>
+            <td class="py-3 px-4">
+              <a class="text-blue-600 hover:underline" href="#">{{ $name }}</a>
+            </td>
+            <td class="py-3 px-4">{{ $dept }}</td>
+            <td class="py-3 px-4">{{ $degree }}</td>
+            <td class="py-3 px-4 break-all">{{ $mail }}</td>
+            <td class="py-3 px-4 flex flex-col sm:flex-row sm:items-center gap-1">
+              <span class="px-2 py-1 rounded-full text-xs bg-slate-100 text-slate-700">{{ $cur }}/{{ $max }}</span>
+              <span class="px-2 py-1 rounded-full text-xs {{ $statusCls }}">{{ $statusLabel }}</span>
+            </td>
+            <td class="py-3 px-4 text-right">
+              <div class="flex justify-end gap-2">
+                <a class="px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-slate-600" href="#"><i class="ph ph-eye"></i></a>
+                <button class="px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-slate-600"><i class="ph ph-pencil"></i></button>
+                <button class="px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-rose-600"><i class="ph ph-trash"></i></button>
+              </div>
+            </td>
+          </tr>
+        @endforeach
+      @else
+        <tr>
+          <td colspan="8" class="py-6 px-4 text-center text-slate-500">Chưa có giảng viên nào trong đợt này.</td>
+        </tr>
+      @endif
+    </tbody>
+  </table>
+</div>
+
         </section>
       </div>
     </main>

@@ -87,51 +87,85 @@
               <button class="px-3 py-1.5 border border-slate-200 rounded text-sm"><i class="ph ph-export"></i> Xuất danh sách</button>
             </div>
           </div>
+          <div class="overflow-x-auto bg-white border rounded-xl shadow-sm">
+            <table class="w-full text-sm">
+              <thead class="bg-slate-50">
+                <tr class="text-left text-slate-600 border-b">
+                  <th class="py-3 px-3 font-medium">Sinh viên</th>
+                  <th class="py-3 px-3 font-medium">MSSV</th>
+                  <th class="py-3 px-3 font-medium">Lớp</th>
+                  <th class="py-3 px-3 font-medium">Đề tài</th>
+                  <th class="py-3 px-3 font-medium">Ngày bắt đầu</th>
+                  <th class="py-3 px-3 font-medium text-center">Trạng thái</th>
+                  <th class="py-3 px-3 font-medium text-center">Hành động</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-200">
+                @foreach ($items as $item)
+                  @php
+                    $student   = $item->student;
+                    $user      = $student->user;
+                    $name      = $user->fullname;
+                    $mssv      = $student->student_code;
+                    $studentId = $student->id;
+                    $class     = $student->class_code;
+                    $topic     = $item->project_id ? $item->project->name : 'Chưa có đề tài';
+                    $startDate = $item->created_at->format('H:i:s d/m/Y');
+                    $statusRaw = $item->status ?? null;
 
-    <div class="overflow-x-auto bg-white border rounded-xl">
-      <table class="w-full text-sm">
-        <thead>
-          <tr class="text-left text-slate-500 border-b">
-            <th class="py-3 px-3">Sinh viên</th>
-            <th class="py-3 px-3">MSSV</th>
-            <th class="py-3 px-3">Lớp</th>
-            <th class="py-3 px-3">Đề tài</th>
-            <th class="py-3 px-3">Ngày bắt đầu</th>
-            <th class="py-3 px-3">Trạng thái</th>
-            <th class="py-3 px-3">Hành động</th>
-          </tr>
-        </thead>
-        <tbody>
-          @foreach ($items as $item)
-            @php
-              $student = $item->assignment->student;
-              $user = $student->user;
-              $name = $user->fullname;
-              $mssv = $student->student_code;
-              $class = $student->class_code;
-              $topic = $item->assignment->project_id ? $item->assignment->project->name : 'Chưa có đề tài';
-              $startDate = $item->assignment->created_at->format('H:i:s d/m/Y');
-              $status = $item->assignment->status ? $item->assignment->status : 'Chưa xác định';
+                    // Gom nhóm trạng thái
+                    switch ($statusRaw) {
+                      case 'active':
+                      case 'approved':
+                        $statusText = 'Đã duyệt';
+                        $statusClass = 'bg-emerald-100 text-emerald-700';
+                        break;
+                      case 'pending':
+                      case 'submitted':
+                        $statusText = 'Đang chờ';
+                        $statusClass = 'bg-amber-100 text-amber-700';
+                        break;
+                      case 'rejected':
+                        $statusText = 'Từ chối';
+                        $statusClass = 'bg-rose-100 text-rose-700';
+                        break;
+                      default:
+                        $statusText = 'Chưa xác định';
+                        $statusClass = 'bg-slate-100 text-slate-600';
+                    }
+                  @endphp
 
-            @endphp
-          <tr class="border-b hover:bg-slate-50">
-            <tr class="border-b hover:bg-slate-50">
-            <td class="py-3 px-3"><a class="text-blue-600 hover:underline" href="supervised-student-detail.html?id=20210001&name=Nguy%E1%BB%85n%20V%C4%83n%20A">{{ $name }}</a></td>
-            <td class="py-3 px-3">{{ $mssv }}</td>
-            <td class="py-3 px-3">{{ $class }}</td>
-            <td class="py-3 px-3">{{ $topic }}</td>
-            <td class="py-3 px-3">{{ $startDate }}</td>
-            <td class="py-3 px-3"><span class="px-2 py-0.5 rounded-full text-xs bg-green-50 text-green-600">{{ $status }}</span></td>
-            <td class="py-3 px-3">
-              <div class="flex items-center gap-1">
-                <a class="px-2 py-1 border border-slate-200 rounded text-xs hover:bg-slate-50" href="supervised-student-detail.html?id=20210001&name=Nguy%E1%BB%85n%20V%C4%83n%20A">Xem chi tiết</a>
-                <button class="px-2 py-1 bg-red-600 text-white rounded text-xs">Gỡ</button>
-              </div>
-            </td>
-          </tr>
-          @endforeach
-        </tbody>
-      </table>
+                  <tr class="hover:bg-slate-50 transition-colors">
+                    <td class="py-3 px-3">
+                      <a class="text-blue-600 hover:underline font-medium"
+                        href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $termId]) }}">
+                        {{ $name }}
+                      </a>
+                    </td>
+                    <td class="py-3 px-3">{{ $mssv }}</td>
+                    <td class="py-3 px-3">{{ $class }}</td>
+                    <td class="py-3 px-3">{{ $topic }}</td>
+                    <td class="py-3 px-3 text-slate-600">{{ $startDate }}</td>
+                    <td class="py-3 px-3 text-center">
+                      <span class="px-2.5 py-1 text-xs font-medium rounded-full {{ $statusClass }}">
+                        {{ $statusText }}
+                      </span>
+                    </td>
+                    <td class="py-3 px-3 text-center">
+                      <div class="flex items-center justify-center gap-2">
+                        <a class="px-3 py-1.5 border border-slate-200 rounded-lg text-xs font-medium text-slate-700 hover:bg-slate-50 transition"
+                          href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $termId]) }}">
+                          Xem chi tiết
+                        </a>
+                        <button class="px-3 py-1.5 bg-rose-600 text-white rounded-lg text-xs font-medium hover:bg-rose-700 transition">
+                          Gỡ
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                @endforeach
+              </tbody>
+            </table>
           </div>
         </main>
       </div>

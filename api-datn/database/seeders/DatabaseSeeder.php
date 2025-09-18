@@ -81,5 +81,17 @@ class DatabaseSeeder extends Seeder
         $this->call([
             ReportFilesSeeder::class,
         ]);
+
+        $this->call([
+            CouncilSeeder::class,
+        ]);
+
+        $this->call([
+            CouncilMembersSeeder::class,
+        ]);
+
+        $this->call([
+            CouncilProjectDefencesSeeder::class,
+        ]);
     }
 }
