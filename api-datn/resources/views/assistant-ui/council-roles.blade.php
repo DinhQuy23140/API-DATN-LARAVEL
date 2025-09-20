@@ -10,24 +10,47 @@
     body{font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
     .sidebar{width:260px}
   </style>
+  <!-- CSRF for AJAX -->
+  <meta name="csrf-token" content="{{ csrf_token() }}">
 </head>
 <body class="bg-slate-50 text-slate-800">
   <div class="flex min-h-screen">
     <!-- Sidebar -->
-    <aside class="sidebar fixed inset-y-0 left-0 z-30 bg-white border-r border-slate-200 flex flex-col">
-      <div class="h-16 flex items-center gap-3 px-4 border-b border-slate-200">
-        <div class="h-9 w-9 grid place-items-center rounded-lg bg-blue-600 text-white"><i class="ph ph-buildings"></i></div>
-        <div>
-          <div class="font-semibold">Assistant</div>
-          <div class="text-xs text-slate-500">Quản trị khoa</div>
+      <aside id="sidebar" class="sidebar fixed inset-y-0 left-0 z-30 bg-white border-r border-slate-200 flex flex-col transition-all">
+        <div class="h-16 flex items-center gap-3 px-4 border-b border-slate-200">
+          <div class="h-9 w-9 grid place-items-center rounded-lg bg-blue-600 text-white"><i class="ph ph-buildings"></i></div>
+          <div class="sidebar-label">
+            <div class="font-semibold">Assistant</div>
+            <div class="text-xs text-slate-500">Quản trị khoa</div>
+          </div>
         </div>
-      </div>
-      <nav class="flex-1 overflow-y-auto p-3 text-sm">
-        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-gauge"></i>Bảng điều khiển</a>
-        <div class="text-xs uppercase text-slate-400 px-3 mt-3">Học phần tốt nghiệp</div>
-        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg bg-slate-100 font-semibold"><i class="ph ph-folder"></i>Đồ án tốt nghiệp</a>
-      </nav>
-    </aside>
+        <nav class="flex-1 overflow-y-auto p-3">
+          <a href="{{ route('web.assistant.dashboard') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-gauge"></i><span class="sidebar-label">Bảng điều khiển</span></a>
+          <a href="{{ route('web.assistant.manage_departments') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-buildings"></i><span class="sidebar-label">Bộ môn</span></a>
+          <a href="{{ route('web.assistant.manage_majors') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-book-open-text"></i><span class="sidebar-label">Ngành</span></a>
+          <a href="{{ route('web.assistant.manage_staffs') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-chalkboard-teacher"></i><span class="sidebar-label">Giảng viên</span></a>
+          <a href="{{ route('web.assistant.assign_head') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-user-switch"></i><span class="sidebar-label">Gán trưởng bộ môn</span></a>
+          <div class="sidebar-label text-xs uppercase text-slate-400 px-3 mt-3">Học phần tốt nghiệp</div>
+          <div class="graduation-item">
+            <div class="flex items-center justify-between px-3 py-2 cursor-pointer toggle-button">
+              <span class="flex items-center gap-3">
+                <i class="ph ph-folder"></i>
+                <span class="sidebar-label">Học phần tốt nghiệp</span>
+              </span>
+              <i class="ph ph-caret-down"></i>
+            </div>
+            <div id="gradMenu" class="submenu pl-6">
+              <a href="#" class="block px-3 py-2 rounded hover:bg-slate-100">Thực tập tốt nghiệp</a>
+              <a href="{{ route('web.assistant.rounds') }}"
+                 class="block px-3 py-2 rounded hover:bg-slate-100 bg-slate-100 font-semibold"
+                 aria-current="page">Đồ án tốt nghiệp</a>
+            </div>
+          </div>
+        </nav>
+        <div class="p-3 border-t border-slate-200">
+          <button id="toggleSidebar" class="w-full flex items-center justify-center gap-2 px-3 py-2 text-slate-600 hover:bg-slate-100 rounded-lg"><i class="ph ph-sidebar"></i><span class="sidebar-label">Thu gọn</span></button>
+        </div>
+      </aside>
 
     <div class="flex-1 h-screen overflow-hidden flex flex-col md:pl-[260px]">
       <header class="h-16 bg-white border-b border-slate-200 flex items-center px-4 md:px-6">
@@ -58,31 +81,19 @@
                     <th class="py-3 px-4">Tên</th>
                     <th class="py-3 px-4">Ngày</th>
                     <th class="py-3 px-4">Phòng</th>
-                    <th class="py-3 px-4">Thành viên</th>
+                    <th class="py-3 px-4">Số thành viên</th>
                   </tr>
                 </thead>
                 <tbody id="councilRows">
-                  <tr class="hover:bg-slate-50 cursor-pointer" data-id="1">
-                    <td class="py-3 px-4 font-medium">CNTT-01</td>
-                    <td class="py-3 px-4">Hội đồng CNTT-01</td>
-                    <td class="py-3 px-4">10/09/2025</td>
-                    <td class="py-3 px-4">B204</td>
-                    <td class="py-3 px-4" data-member-count>3</td>
-                  </tr>
-                  <tr class="hover:bg-slate-50 cursor-pointer" data-id="2">
-                    <td class="py-3 px-4 font-medium">CNTT-02</td>
-                    <td class="py-3 px-4">Hội đồng CNTT-02</td>
-                    <td class="py-3 px-4">11/09/2025</td>
-                    <td class="py-3 px-4">B205</td>
-                    <td class="py-3 px-4" data-member-count>2</td>
-                  </tr>
-                  <tr class="hover:bg-slate-50 cursor-pointer" data-id="3">
-                    <td class="py-3 px-4 font-medium">CNTT-03</td>
-                    <td class="py-3 px-4">Hội đồng CNTT-03</td>
-                    <td class="py-3 px-4">12/09/2025</td>
-                    <td class="py-3 px-4">B206</td>
-                    <td class="py-3 px-4" data-member-count>0</td>
-                  </tr>
+                  @foreach ($councils as $council)
+                    <tr class="hover:bg-slate-50 cursor-pointer" data-id="{{ $council->id }}">
+                      <td class="py-3 px-4 font-medium">{{ $council->code }}</td>
+                      <td class="py-3 px-4">{{ $council->name }}</td>
+                      <td class="py-3 px-4">{{ $council->date }}</td>
+                      <td class="py-3 px-4">{{ $council->address?? 'N/A' }}</td>
+                      <td class="py-3 px-4" data-member-count>{{ $council->council_members->count() ?? "Chưa có thành viên" }}</td>
+                    </tr>
+                  @endforeach
                 </tbody>
               </table>
             </div>
@@ -95,76 +106,52 @@
               <button id="btnSave" class="px-3 py-1.5 rounded-lg bg-blue-600 text-white text-sm">Lưu</button>
             </div>
             <div class="mt-3 text-sm" id="councilInfo">Chọn một hội đồng ở bảng bên trái để chỉnh sửa.</div>
+            <div class="mt-3 text-sm" id="memberSummary" aria-live="polite"></div>
 
             <div class="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
               <div>
                 <label class="text-sm text-slate-700">Chủ tịch</label>
                 <select id="sel_chairman" class="mt-1 w-full border border-slate-300 rounded-lg px-3 py-2 text-sm">
                   <option value="">-- Chọn giảng viên --</option>
-                  <option value="1">TS. Phạm Quốc C</option>
-                  <option value="2">ThS. Trần D</option>
-                  <option value="3">TS. Nguyễn E</option>
-                  <option value="4">TS. Vũ Văn F</option>
-                  <option value="5">PGS.TS. Lê Thị Hồng</option>
-                  <option value="6">TS. Bùi Minh I</option>
-                  <option value="7">ThS. Hoàng K</option>
-                  <option value="8">TS. Lương M</option>
+                  @foreach ($supervisors as $supervisor)
+                    <option value="{{ $supervisor->id }}">{{ $supervisor->teacher->user->fullname }}</option>
+                  @endforeach
                 </select>
               </div>
               <div>
                 <label class="text-sm text-slate-700">Thư ký</label>
                 <select id="sel_secretary" class="mt-1 w-full border border-slate-300 rounded-lg px-3 py-2 text-sm">
                   <option value="">-- Chọn giảng viên --</option>
-                  <option value="1">TS. Phạm Quốc C</option>
-                  <option value="2">ThS. Trần D</option>
-                  <option value="3">TS. Nguyễn E</option>
-                  <option value="4">TS. Vũ Văn F</option>
-                  <option value="5">PGS.TS. Lê Thị Hồng</option>
-                  <option value="6">TS. Bùi Minh I</option>
-                  <option value="7">ThS. Hoàng K</option>
-                  <option value="8">TS. Lương M</option>
+                  @foreach ($supervisors as $supervisor)
+                    <option value="{{ $supervisor->id }}">{{ $supervisor->teacher->user->fullname }}</option>
+                  @endforeach
                 </select>
               </div>
               <div>
                 <label class="text-sm text-slate-700">Ủy viên 1</label>
                 <select id="sel_member1" class="mt-1 w-full border border-slate-300 rounded-lg px-3 py-2 text-sm">
                   <option value="">-- Chọn giảng viên --</option>
-                  <option value="1">TS. Phạm Quốc C</option>
-                  <option value="2">ThS. Trần D</option>
-                  <option value="3">TS. Nguyễn E</option>
-                  <option value="4">TS. Vũ Văn F</option>
-                  <option value="5">PGS.TS. Lê Thị Hồng</option>
-                  <option value="6">TS. Bùi Minh I</option>
-                  <option value="7">ThS. Hoàng K</option>
-                  <option value="8">TS. Lương M</option>
+                  @foreach ($supervisors as $supervisor)
+                    <option value="{{ $supervisor->id }}">{{ $supervisor->teacher->user->fullname }}</option>
+                  @endforeach
                 </select>
               </div>
               <div>
                 <label class="text-sm text-slate-700">Ủy viên 2</label>
                 <select id="sel_member2" class="mt-1 w-full border border-slate-300 rounded-lg px-3 py-2 text-sm">
                   <option value="">-- Chọn giảng viên --</option>
-                  <option value="1">TS. Phạm Quốc C</option>
-                  <option value="2">ThS. Trần D</option>
-                  <option value="3">TS. Nguyễn E</option>
-                  <option value="4">TS. Vũ Văn F</option>
-                  <option value="5">PGS.TS. Lê Thị Hồng</option>
-                  <option value="6">TS. Bùi Minh I</option>
-                  <option value="7">ThS. Hoàng K</option>
-                  <option value="8">TS. Lương M</option>
+                  @foreach ($supervisors as $supervisor)
+                    <option value="{{ $supervisor->id }}">{{ $supervisor->teacher->user->fullname }}</option>
+                  @endforeach
                 </select>
               </div>
               <div>
                 <label class="text-sm text-slate-700">Ủy viên 3</label>
                 <select id="sel_member3" class="mt-1 w-full border border-slate-300 rounded-lg px-3 py-2 text-sm">
                   <option value="">-- Chọn giảng viên --</option>
-                  <option value="1">TS. Phạm Quốc C</option>
-                  <option value="2">ThS. Trần D</option>
-                  <option value="3">TS. Nguyễn E</option>
-                  <option value="4">TS. Vũ Văn F</option>
-                  <option value="5">PGS.TS. Lê Thị Hồng</option>
-                  <option value="6">TS. Bùi Minh I</option>
-                  <option value="7">ThS. Hoàng K</option>
-                  <option value="8">TS. Lương M</option>
+                  @foreach ($supervisors as $supervisor)
+                    <option value="{{ $supervisor->id }}">{{ $supervisor->teacher->user->fullname }}</option>
+                  @endforeach
                 </select>
               </div>
             </div>
@@ -175,52 +162,36 @@
   </div>
 
   <script>
-    // Dữ liệu tĩnh
-    const councils = [
-      {
-        id: 1, code: 'CNTT-01', name: 'Hội đồng CNTT-01', room: 'B204', defense_date: '10/09/2025',
-        roles: {
-          chairman:  { id: 1, name: 'TS. Phạm Quốc C' },
-          secretary: { id: 2, name: 'ThS. Trần D' },
-          member1:   { id: 3, name: 'TS. Nguyễn E' },
-          member2:   null,
-          member3:   null,
-        }
-      },
-      {
-        id: 2, code: 'CNTT-02', name: 'Hội đồng CNTT-02', room: 'B205', defense_date: '11/09/2025',
-        roles: {
-          chairman:  null,
-          secretary: { id: 7, name: 'ThS. Hoàng K' },
-          member1:   { id: 6, name: 'TS. Bùi Minh I' },
-          member2:   null,
-          member3:   null,
-        }
-      },
-      {
-        id: 3, code: 'CNTT-03', name: 'Hội đồng CNTT-03', room: 'B206', defense_date: '12/09/2025',
-        roles: { chairman:null, secretary:null, member1:null, member2:null, member3:null }
-      }
-    ];
+    const councils = @json($councils);
+    const supervisors = @json($supervisors);
 
-    // "Bảng" council_members dạng cục bộ để mô phỏng DB
-    // Mỗi phần tử: { council_id, role, supervisor_id }
+    const roleNumToKey = {5:'chairman', 4:'secretary', 3:'member1', 2:'member2', 1:'member3'};
+    const keyToRoleNum = {chairman:5, secretary:4, member1:3, member2:2, member3:1};
+
     let councilMembers = [];
     const ROLES = ['chairman','secretary','member1','member2','member3'];
 
-    // Snapshot vai trò gốc để so sánh (theo council_id)
     const originalRoles = {};
     function initCouncilMembersFromCouncils(){
       councilMembers = [];
-      councils.forEach(c=>{
-        originalRoles[c.id] = {};
-        ROLES.forEach(role=>{
-          const r = c.roles?.[role];
-          originalRoles[c.id][role] = r ? String(r.id) : '';
-          if(r){
-            councilMembers.push({ council_id: c.id, role, supervisor_id: r.id });
-          }
+      (councils || []).forEach(c=>{
+        const rolesObj = { chairman:null, secretary:null, member1:null, member2:null, member3:null };
+        // Lấy danh sách member an toàn (array hoặc object)
+        const cms = Array.isArray(c.council_members)
+          ? c.council_members
+          : (c.council_members && typeof c.council_members === 'object'
+             ? Object.values(c.council_members)
+             : []);
+        (cms || []).forEach(cm => {
+          const key = roleNumToKey[Number(cm.role)];
+          if (!key) return;
+          const name = cm?.supervisor?.teacher?.user?.fullname || cm?.supervisor_name || '';
+          rolesObj[key] = { id: cm.supervisor_id, name };
+          councilMembers.push({ council_id: c.id, role: key, supervisor_id: cm.supervisor_id });
         });
+        c.roles = rolesObj;
+        originalRoles[c.id] = {};
+        ROLES.forEach(k => originalRoles[c.id][k] = rolesObj[k]?.id ? String(rolesObj[k].id) : '');
       });
     }
     initCouncilMembersFromCouncils();
@@ -236,31 +207,66 @@
     };
     let currentId = null;
 
-    function fillPanel(c){
-      detailEl.innerHTML = `
-        <div class="text-sm">
-          <div><span class="text-slate-500">Mã:</span> <span class="font-medium">${c.code||'-'}</span></div>
-          <div><span class="text-slate-500">Tên:</span> <span class="font-medium">${c.name||'-'}</span></div>
-          <div><span class="text-slate-500">Ngày:</span> ${c.defense_date || '-'}</div>
-          <div><span class="text-slate-500">Phòng:</span> ${c.room || '-'}</div>
-        </div>
-      `;
-      // reset selects
-      Object.values(sels).forEach(s => s.value='');
-      // set roles if any
-      if(c.roles){
-        if(c.roles.chairman)  sels.chairman.value  = String(c.roles.chairman.id);
-        if(c.roles.secretary) sels.secretary.value = String(c.roles.secretary.id);
-        if(c.roles.member1)   sels.member1.value   = String(c.roles.member1.id);
-        if(c.roles.member2)   sels.member2.value   = String(c.roles.member2.id);
-        if(c.roles.member3)   sels.member3.value   = String(c.roles.member3.id);
-      }
-      syncRoleSelects();
+    // helper: định dạng YYYY-MM-DD -> dd/mm/yyyy
+    function formatVN(d) {
+      if (!d) return '-';
+      if (/^\d{4}-\d{2}-\d{2}$/.test(d)) return `${d.slice(8,10)}/${d.slice(5,7)}/${d.slice(0,4)}`;
+      const dt = new Date(d);
+      return isNaN(dt) ? (d || '-') : dt.toLocaleDateString('vi-VN');
     }
 
+    // Đổ options giảng viên cho tất cả select
+    function renderSupervisorOptions() {
+      const getName = (s) => s?.fullname || s?.name || s?.teacher?.user?.fullname || `GV #${s?.id}`;
+      const optsHtml = ['<option value="">-- Chọn giảng viên --</option>']
+        .concat((supervisors || []).map(s => `<option value="${s.id}">${getName(s)}</option>`))
+        .join('');
+      Object.values(sels).forEach(sel => { if(sel) sel.innerHTML = optsHtml; });
+    }
+    renderSupervisorOptions(); 
+    function renderMemberSummaryFromSelects() {
+      const getNameById = (id)=>{
+        const s = (supervisors || []).find(x => String(x.id) === String(id));
+        return s?.fullname || s?.name || s?.teacher?.user?.fullname || '';
+      };
+      const items = [
+        { label: 'Chủ tịch',  val: sels.chairman.value },
+        { label: 'Thư ký',    val: sels.secretary.value },
+        { label: 'Ủy viên 1', val: sels.member1.value },
+        { label: 'Ủy viên 2', val: sels.member2.value },
+        { label: 'Ủy viên 3', val: sels.member3.value },
+      ].map(x => `<div><span class="text-slate-500">${x.label}:</span> ${x.val ? getNameById(x.val) : '-'}</div>`);
+      const box = document.getElementById('memberSummary');
+      if (box) box.innerHTML = `<div class="text-sm space-y-1">${items.join('')}</div>`;
+    } 
+    function fillPanel(c){
+      if(!c) return;
+      if(detailEl){
+        detailEl.innerHTML = `
+          <div class="text-sm">
+            <div><span class="text-slate-500">Mã:</span> <span class="font-medium">${c.code||'-'}</span></div>
+            <div><span class="text-slate-500">Tên:</span> <span class="font-medium">${c.name||'-'}</span></div>
+            <div><span class="text-slate-500">Ngày:</span> ${formatVN(c.date)}</div>
+            <div><span class="text-slate-500">Phòng:</span> ${c.address || '-'}</div>
+          </div>
+        `;
+      }
+      Object.values(sels).forEach(s => { if(s) s.value=''; });
+      if(c.roles){
+        if(c.roles.chairman && sels.chairman)  sels.chairman.value  = String(c.roles.chairman.id);
+        if(c.roles.secretary && sels.secretary) sels.secretary.value = String(c.roles.secretary.id);
+        if(c.roles.member1 && sels.member1)   sels.member1.value   = String(c.roles.member1.id);
+        if(c.roles.member2 && sels.member2)   sels.member2.value   = String(c.roles.member2.id);
+        if(c.roles.member3 && sels.member3)   sels.member3.value   = String(c.roles.member3.id);
+      }
+      if(!c.roles) c.roles = { chairman:null, secretary:null, member1:null, member2:null, member3:null };
+      syncRoleSelects();
+      renderMemberSummaryFromSelects();
+    } 
     function syncRoleSelects(){
-      const chosen = new Set(Object.values(sels).map(s=>s.value).filter(Boolean));
+      const chosen = new Set(Object.values(sels).map(s=>s?.value).filter(Boolean));
       Object.values(sels).forEach(sel=>{
+        if(!sel) return;
         Array.from(sel.options).forEach(opt=>{
           if(!opt.value) return;
           const dup = chosen.has(opt.value) && sel.value !== opt.value;
@@ -268,94 +274,103 @@
           opt.hidden = dup;
         });
       });
+      renderMemberSummaryFromSelects();
     }
-    Object.values(sels).forEach(s=> s.addEventListener('change', syncRoleSelects));
+    Object.values(sels).forEach(s=> s?.addEventListener('change', syncRoleSelects)); 
 
-    rowsEl.querySelectorAll('tr[data-id]').forEach(tr=>{
-      tr.addEventListener('click', ()=>{
-        rowsEl.querySelectorAll('tr').forEach(r=> r.classList.remove('bg-slate-50'));
-        tr.classList.add('bg-slate-50');
-        const id = parseInt(tr.dataset.id,10);
-        currentId = id;
-        const c = councils.find(x=>x.id===id);
-        if(c) fillPanel(c);
-      })
-    });
+    // Click row -> fill panel
+    if (rowsEl) {
+      rowsEl.querySelectorAll('tr[data-id]').forEach(tr=>{
+        tr.addEventListener('click', ()=>{
+          rowsEl.querySelectorAll('tr').forEach(r=> r.classList.remove('bg-slate-50'));
+          tr.classList.add('bg-slate-50');
+          const id = Number(tr.dataset.id);
+          const c = (councils || []).find(x => Number(x.id) === id);
+          currentId = c?.id || id;
+          if(c) fillPanel(c);
+        });
+      });
+    }
+
+    // Mặc định chọn hàng đầu tiên khi load trang
+    (function autoSelectFirst(){
+      const firstRow = rowsEl?.querySelector('tr[data-id]');
+      if (!firstRow) return;
+      rowsEl.querySelectorAll('tr').forEach(r=> r.classList.remove('bg-slate-50'));
+      firstRow.classList.add('bg-slate-50');
+      const id = Number(firstRow.dataset.id);
+      const c = (councils || []).find(x => Number(x.id) === id);
+      currentId = c?.id || id;
+      if (c) fillPanel(c);
+    })();
 
     document.getElementById('q')?.addEventListener('input', (e)=>{
       const q = (e.target.value||'').toLowerCase();
-      rowsEl.querySelectorAll('tr[data-id]').forEach(tr=>{
+      rowsEl?.querySelectorAll('tr[data-id]').forEach(tr=>{
         tr.style.display = tr.innerText.toLowerCase().includes(q) ? '' : 'none';
       });
-    });
-
-    // Lưu cục bộ (không gọi API)
-    document.getElementById('btnSave').addEventListener('click', ()=>{
+    }); 
+    // Lưu về server (PATCH members)
+    document.getElementById('btnSave')?.addEventListener('click', async ()=>{
       if(!currentId){ alert('Vui lòng chọn một hội đồng.'); return; }
-      // validate duplicate
       const picked = Object.values(sels).map(s=>s.value).filter(Boolean);
-      if(new Set(picked).size !== picked.length){ alert('Các vai trò không được trùng giảng viên.'); return; }
+      if(new Set(picked).size !== picked.length){ alert('Các vai trò không được trùng giảng viên.'); return; } 
 
-      // So sánh và áp dụng thay đổi theo quy tắc:
-      // - Nếu role đổi từ A -> B: xóa bản ghi cũ (A) và chèn/cập nhật bản ghi (B).
-      // - Nếu role từ có -> rỗng: xóa bản ghi.
-      // - Nếu role từ rỗng -> có: tạo mới.
-      const before = originalRoles[currentId] || {};
-      const after = {
-        chairman:  sels.chairman.value || '',
-        secretary: sels.secretary.value || '',
-        member1:   sels.member1.value || '',
-        member2:   sels.member2.value || '',
-        member3:   sels.member3.value || '',
+      const payload = {
+        chairman:  sels.chairman.value || null,
+        secretary: sels.secretary.value || null,
+        member1:   sels.member1.value || null,
+        member2:   sels.member2.value || null,
+        member3:   sels.member3.value || null,
       };
+      const token = document.querySelector('meta[name="csrf-token"]')?.content || '';
+      const urlTpl = `{{ route('web.assistant.councils.members.update', ['council' => 0]) }}`;
+      const url = urlTpl.replace('/0','/'+currentId);
 
-      ROLES.forEach(role=>{
-        const prev = before[role] || '';
-        const curr = after[role] || '';
-        if(prev === curr){
-          return; // không thay đổi
-        }
-        // Xóa bản ghi cũ nếu có
-        if(prev){
-          councilMembers = councilMembers.filter(m => !(m.council_id === currentId && m.role === role && String(m.supervisor_id) === prev));
-        }
-        // Thêm/Cập nhật bản ghi mới nếu có chọn mới
-        if(curr){
-          // Kiểm tra xem cùng supervisor + role đã tồn tại ở hội đồng khác?
-          const existingIdx = councilMembers.findIndex(m => m.role === role && String(m.supervisor_id) === curr);
-          if(existingIdx >= 0){
-            // Cập nhật sang hội đồng hiện tại
-            councilMembers[existingIdx].council_id = currentId;
-          }else{
-            // Tạo mới
-            councilMembers.push({ council_id: currentId, role, supervisor_id: +curr });
-          }
-        }
-        // Cập nhật snapshot
-        before[role] = curr;
+      const res = await fetch(url, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type':'application/json',
+          'Accept':'application/json',
+          'X-CSRF-TOKEN': token,
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+        body: JSON.stringify(payload)
       });
-      // Lưu lại snapshot mới
-      originalRoles[currentId] = before;
+      if (!res.ok) {
+        const txt = await res.text().catch(()=> '');
+        alert('Lưu thất bại' + (txt?': '+txt:''));
+        return;
+      }
 
-      const c = councils.find(x=>x.id===currentId);
+      // Cập nhật local model để UI khớp ngay
+      const c = (councils || []).find(x => Number(x.id) === Number(currentId));
       const getNameById = (id)=>{
-        const opt = document.querySelector(`select option[value="${id}"]`);
-        return opt ? opt.textContent : '';
+        const s = (supervisors || []).find(x => String(x.id) === String(id));
+        return s?.fullname || s?.name || s?.teacher?.user?.fullname || '';
       };
-      c.roles.chairman  = sels.chairman.value  ? { id: +sels.chairman.value,  name: getNameById(sels.chairman.value) }  : null;
-      c.roles.secretary = sels.secretary.value ? { id: +sels.secretary.value, name: getNameById(sels.secretary.value) } : null;
-      c.roles.member1   = sels.member1.value   ? { id: +sels.member1.value,   name: getNameById(sels.member1.value) }   : null;
-      c.roles.member2   = sels.member2.value   ? { id: +sels.member2.value,   name: getNameById(sels.member2.value) }   : null;
-      c.roles.member3   = sels.member3.value   ? { id: +sels.member3.value,   name: getNameById(sels.member3.value) }   : null;
+      if (c) {
+        c.roles.chairman  = payload.chairman  ? { id:+payload.chairman,  name:getNameById(payload.chairman) }  : null;
+        c.roles.secretary = payload.secretary ? { id:+payload.secretary, name:getNameById(payload.secretary) } : null;
+        c.roles.member1   = payload.member1   ? { id:+payload.member1,   name:getNameById(payload.member1) }   : null;
+        c.roles.member2   = payload.member2   ? { id:+payload.member2,   name:getNameById(payload.member2) }   : null;
+        c.roles.member3   = payload.member3   ? { id:+payload.member3,   name:getNameById(payload.member3) }   : null;
+      }
+      originalRoles[currentId] = {
+        chairman:  payload.chairman  || '',
+        secretary: payload.secretary || '',
+        member1:   payload.member1   || '',
+        member2:   payload.member2   || '',
+        member3:   payload.member3   || '',
+      }; 
 
       // Cập nhật số thành viên bên bảng trái
-      const count = ['chairman','secretary','member1','member2','member3'].reduce((n,k)=> n + (c.roles[k]?1:0), 0);
-      const row = rowsEl.querySelector(`tr[data-id="${currentId}"] [data-member-count]`);
-      if(row) row.textContent = String(count);
+      const c2 = (councils || []).find(x => Number(x.id) === Number(currentId));
+      const count = ['chairman','secretary','member1','member2','member3'].reduce((n,k)=> n + (c2?.roles?.[k]?1:0), 0);
+      const row = rowsEl?.querySelector(`tr[data-id="${currentId}"] [data-member-count]`);
+      if(row) row.textContent = String(count); 
 
-      // Debug (tùy chọn): xem "cơ sở dữ liệu" hiện tại
-      // console.table(councilMembers);
-      alert('Đã lưu (dữ liệu tĩnh, xử lý thay đổi đúng quy tắc).');
+      alert('Đã lưu danh sách thành viên.');
     });
   </script>
 </body>

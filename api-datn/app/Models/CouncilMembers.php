@@ -13,8 +13,6 @@ class CouncilMembers extends Model
         'council_id',
         'supervisor_id',
         'role',
-        'order',
-        'number_student',
     ];
 
     public function council()
@@ -25,5 +23,13 @@ class CouncilMembers extends Model
     public function supervisor()
     {
         return $this->belongsTo(Supervisor::class);
+    }
+
+    public function council_project() {
+        return $this->hasMany(CouncilProjectDefences::class, 'council_member_id', 'id');
+    }
+
+    public function council_project_defences() {
+        return $this->hasMany(CouncilProjectDefences::class, 'council_member_id', 'id');
     }
 }

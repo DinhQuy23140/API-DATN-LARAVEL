@@ -2,11 +2,11 @@
 
 namespace Database\Seeders;
 
-use App\Models\CouncilProjectDefences;
+use App\Models\CouncilProjects;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
-class CouncilProjectDefencesSeeder extends Seeder
+class CouncilProjectsSeeder extends Seeder
 {
     /**
      * Run the database seeds.
@@ -16,6 +16,6 @@ class CouncilProjectDefencesSeeder extends Seeder
     public function run()
     {
         //
-        CouncilProjectDefences::factory()->count(30)->create();
+        CouncilProjects::factory()->count(20)->create();
     }
 }

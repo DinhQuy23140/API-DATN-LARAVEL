@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\AcademyYear;
 use App\Models\Assignment;
 use App\Models\AssignmentSupervisor;
+use App\Models\Department;
 use App\Models\ProjectTerm;
 use App\Models\stage_timeline; // dùng đúng Model bạn đang có
 use App\Models\Supervisor;
@@ -95,8 +96,9 @@ class ProjectTermsController extends Controller
     }
 
     public function loadRoundDetail($round_id) {
-        $round_detail = ProjectTerm::with('academy_year', 'stageTimelines', 'supervisors')->findOrFail($round_id);
-        return view('assistant-ui.round-detail', compact('round_detail'));
+        $round_detail = ProjectTerm::with('academy_year', 'stageTimelines', 'councils.department', 'councils.council_members.supervisor.teacher.user', 'supervisors')->findOrFail($round_id);
+        $departments = Department::get();
+        return view('assistant-ui.round-detail', compact('round_detail', 'departments'));
     }
 
     // Trích các mốc timeline từ request theo đúng cấu trúc bảng stage_timelines
@@ -208,6 +210,8 @@ class ProjectTermsController extends Controller
                     'student.user',
                     'project.progressLogs.attachments',
                     'project.reportFiles',
+                    'council_project.council',
+                    'council_project.council.council_members.supervisor.teacher.user',
                     'assignment_supervisors' => function ($q) use ($supervisorId) {
                         $q->where('supervisor_id', $supervisorId);
                     }

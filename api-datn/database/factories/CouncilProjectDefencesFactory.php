@@ -2,6 +2,8 @@
 
 namespace Database\Factories;
 
+use App\Models\CouncilMembers;
+use App\Models\CouncilProjects;
 use Illuminate\Database\Eloquent\Factories\Factory;
 use App\Models\Council;
 use App\Models\Assignment;
@@ -20,12 +22,10 @@ class CouncilProjectDefencesFactory extends Factory
     public function definition()
     {
         return [
-            'council_id' => Council::inRandomOrder()->first()->id ?? Council::create()->id,
-            'assignment_id' => Assignment::inRandomOrder()->first()->id ?? Assignment::create()->id,
-            'reviewer_id' => Supervisor::inRandomOrder()->first()->id ?? Supervisor::create()->id,
-            'room' => $this->faker->bothify('Room ??-###'),
-            'date' => $this->faker->dateTimeBetween('-1 month', '+1 month')->format('Y-m-d'),
-            'time' => $this->faker->dateTimeBetween('08:00', '17:00')->format('H:i:s'),
+            'council_project_id' => CouncilProjects::inRandomOrder()->first()->id ?? CouncilProjects::factory()->create()->id,
+            'council_member_id' => CouncilMembers::inRandomOrder()->first()->id ?? CouncilMembers::factory()->create()->id,
+            'score' => $this->faker->numberBetween(0, 10),
+            'comments' => $this->faker->optional()->sentence(),
         ];
     }
 }

@@ -8,20 +8,20 @@ use Illuminate\Database\Eloquent\Model;
 class CouncilProjectDefences extends Model
 {
     use HasFactory;
-    protected $fillable = ['council_id', 'assignment_id', 'reviewer_id', 'room', 'date', 'time'];
+    protected $fillable = [
+        'council_project_id',
+        'council_member_id',
+        'score',
+        'comments',
+    ];
 
-    public function council()
+    public function council_project()
     {
-        return $this->belongsTo(Council::class);
+        return $this->belongsTo(CouncilProjects::class, 'council_project_id');
     }
 
-    public function assignment()
+    public function council_member()
     {
-        return $this->belongsTo(Assignment::class);
-    }
-
-    public function reviewer()
-    {
-        return $this->belongsTo(Supervisor::class, 'reviewer_id');
+        return $this->belongsTo(CouncilMembers::class, 'council_member_id');
     }
 }

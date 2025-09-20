@@ -774,8 +774,8 @@
                   <th class="py-3 px-4 font-semibold">Sinh viên</th>
                   <th class="py-3 px-4 font-semibold text-center">MSSV</th>
                   <th class="py-3 px-4 font-semibold">Đề tài</th>
+                  <th class="py-3 px-4 font-semibold">Giảng viên hướng dẫn</th>
                   <th class="py-3 px-4 font-semibold text-center">Hội đồng</th>
-                  <th class="py-3 px-4 font-semibold">Lịch bảo vệ</th>
                   <th class="py-3 px-4 font-semibold text-center">Phòng</th>
                   <th class="py-3 px-4 font-semibold text-center">Hành động</th>
                 </tr>
@@ -790,10 +790,11 @@
                     $student_code = $student->student_code;
                     $studentId = $student->id;
                     $topic = $assignment->project->name ?? 'Chưa có đề tài';
+                    $assignment_supervisors = $assignment->assignment_supervisors ?? [];
 
-                    $committee = "CNTT-01"; // demo
-                    $schedule  = "20/08/2025 • 08:00";
-                    $room      = "P.A203";
+                    $committee = $assignment->council_project->council->name ?? 'Chưa có hội đồng'; // demo
+                    $schedule  = $assignment->council_project->council?->date ?? 'Chưa có lịch'; // demo
+                    $room = $assignment->council_project->council?->address ?? 'Chưa có phòng'; // demo
                   @endphp
 
                   <tr class="hover:bg-slate-50 transition-colors">
@@ -811,11 +812,20 @@
                     <!-- Đề tài -->
                     <td class="py-3 px-4 text-slate-700">{{ $topic }}</td>
 
+                    <!-- Giảng viên hướng dẫn -->
+                    <td class="py-3 px-4 text-slate-600">
+                    @foreach ($assignment_supervisors as $assignment_supervisor)
+                      @php
+                        $supervisorName = $assignment_supervisor->supervisor->teacher->user->fullname ?? 'Chưa có';
+                      @endphp
+                      <div class="mb-1 last:mb-0">
+                        <i class="ph ph-user text-slate-400 mr-1"></i> {{ $supervisorName }}
+                      </div>
+                    @endforeach
+                    </td>
+
                     <!-- Hội đồng -->
                     <td class="py-3 px-4 text-center">{{ $committee }}</td>
-
-                    <!-- Ngày giờ -->
-                    <td class="py-3 px-4 text-slate-600">{{ $schedule }}</td>
 
                     <!-- Phòng -->
                     <td class="py-3 px-4 text-center">{{ $room }}</td>
@@ -911,11 +921,11 @@
                     $studentId = $student->id;
                     $topic = $assignment->project->title ?? 'Chưa có đề tài';
 
-                    $committee = "CNTT-01"; // ví dụ
-                    $reviewer = "TS. Nguyễn Thị E"; // ví dụ
+                    $committee = $assignment->council_project?->council->name ?? 'Chưa có hội đồng';
+                    $reviewer = $assignment->council_project?->supervisor->teacher->user->fullname ?? 'Chưa có giảng viên';
                     $role     = "Phản biện";
-                    $order    = "01";
-                    $time     = "20/08/2025 • 08:00";
+                    $order    = $loop->index + 1;
+                    $time     = $assignment->council_project?->date?->format('H:i d/m/Y') ?? 'Chưa có lịch';
                   @endphp
 
                   <tr class="hover:bg-slate-50 transition-colors">

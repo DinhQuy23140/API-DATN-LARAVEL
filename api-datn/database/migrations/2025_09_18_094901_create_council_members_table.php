@@ -17,9 +17,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('council_id');
             $table->unsignedBigInteger('supervisor_id');
-            $table->string('role')->default('member');
-            $table->string('order')->default('0');
-            $table->string('number_student')->default('10');
+            $table->string('role')->default('5'); // 1: Chủ tịch, 2: Thư ký, 3: Ủy viên 1, 4: Ủy viên 2, 5: Ủy viên 3
             $table->foreign('council_id')->references('id')->on('councils')->onDelete('cascade');
             $table->foreign('supervisor_id')->references('id')->on('supervisors')->onDelete('cascade');
             $table->timestamps();

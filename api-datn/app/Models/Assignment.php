@@ -35,8 +35,8 @@ class Assignment extends Model
         return $this->belongsTo(ProjectTerm::class);
     }
 
-    public function council_project_defences()
+    public function council_project()
     {
-        return $this->hasOne(CouncilProjectDefences::class);
+        return $this->hasOne(CouncilProjects::class);
     }
 }

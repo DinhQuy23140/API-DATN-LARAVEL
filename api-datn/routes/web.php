@@ -6,17 +6,16 @@ use App\Http\Controllers\Web\ProgressLogController as WebProgressLogController;
 use App\Http\Controllers\Web\AttachmentController as WebAttachmentController;
 use App\Http\Controllers\Web\AcademyYearController as WebAcademyYearController;
 use App\Http\Controllers\Web\ProjectTermsController;
-use App\Http\Controllers\Web\StageTimeLineController;
 use App\Http\Controllers\Web\BatchStudentController as WebBatchStudentController;
 use App\Http\Controllers\Web\SupervisorController as WebSupervisorController;
 use App\Http\Controllers\Web\ProjectTermsController as WebProjectTermsController;
 use App\Http\Controllers\Web\TeacherController as WebTeacherController;
 use App\Http\Controllers\Web\AssignmentController as WebAssignmentController;
 use App\Http\Controllers\Web\AssignmentSupervisorController as AssignmentSupervisorController;
-use App\Http\Controllers\Web\Head\BlindReviewController;
 use App\Http\Controllers\Web\ReportFilesController;
 use App\Http\Controllers\Web\CouncilController;
-
+use App\Http\Controllers\Web\CouncilController as WebCouncilController;
+use App\Http\Controllers\Web\CouncilProjectsController as WebCouncilProjectController;
 // Guest (login)
 Route::middleware('guest')->group(function () {
     Route::get('/login', [WebUserController::class, 'showLoginForm'])->name('web.auth.login');
@@ -137,7 +136,14 @@ Route::middleware('auth')->prefix('assistant')->name('web.assistant.')->group(fu
     Route::post('/supervisors/bulk', [WebSupervisorController::class,'storeBulk'])->name('supervisors.bulk_store');
     Route::post('/councils', [CouncilController::class, 'store'])->name('councils.store');
     Route::post('/councils/{council}/roles', [CouncilController::class, 'updateRoles'])->name('councils.update_roles');
-    Route::view('/terms/{term}/councils/roles', 'assistant-ui.council-roles')->name('councils.roles');
+    Route::get('/terms/{term}/councils/roles', [WebCouncilController::class, 'getCouncilByTermId'])->name('councils.roles');
+    Route::patch('/councils/{council}', [CouncilController::class, 'update'])->name('councils.update');
+    Route::post('/councils/{council}/members/save', [CouncilController::class, 'saveMembers'])->name('councils.members.save');
+    Route::patch('/councils/{council}/members', [CouncilController::class, 'updateMembers'])
+        ->name('councils.members.update');
+    Route::get ('/assistant-ui/council-assign-students/{termId}', [WebCouncilController::class, 'getCouncilAndAssignmentByTermId'])->name('council_assign_students');
+    Route::post('/councils/{council}/assign-students', [WebCouncilProjectController::class, 'assignStudents'])
+        ->name('councils.assign_students');
 });
 
 // Authenticated

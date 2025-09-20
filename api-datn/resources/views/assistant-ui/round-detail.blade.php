@@ -258,36 +258,99 @@
                 <button id="btnCreateCommittee" class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 text-sm"><i class="ph ph-plus"></i> Tạo hội đồng</button>
               </div>
             </div>
-            <div class="mt-4 overflow-x-auto">
-              <table class="w-full text-sm">
-                <thead>
-                  <tr class="text-left text-slate-500">
-                    <th class="py-3 px-4 border-b">Tên hội đồng</th>
-                    <th class="py-3 px-4 border-b">Số thành viên</th>
-                    <th class="py-3 px-4 border-b">Giảng viên</th>
-                    <th class="py-3 px-4 border-b text-right">Hành động</th>
-                  </tr>
-                </thead>
-                <tbody id="tableBody">
-                  <tr class="hover:bg-slate-50">
-                    <td class="py-3 px-4"><a href="committee-detail.html" class="text-blue-600 hover:underline">HĐ-CNTT-01</a></td>
-                    <td class="py-3 px-4">5</td>
-                    <td class="py-3 px-4">
-                      <div class="flex flex-wrap gap-1">
-                        <a class="px-2 py-1 rounded-full text-xs bg-slate-100 text-slate-700" href="../lecturer-ui/profile.html">TS. Đặng Hữu T</a>
-                        <a class="px-2 py-1 rounded-full text-xs bg-slate-100 text-slate-700" href="../lecturer-ui/profile.html">ThS. Lưu Lan</a>
-                        <a class="px-2 py-1 rounded-full text-xs bg-slate-100 text-slate-700" href="../lecturer-ui/profile.html">TS. Nguyễn Văn A</a>
-                        <span class="px-2 py-1 rounded-full text-xs bg-slate-100 text-slate-700">...</span>
-                      </div>
-                    </td>
-                    <td class="py-3 px-4 text-right space-x-2">
-                      <button class="px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-slate-600"><i class="ph ph-pencil"></i></button>
-                      <button class="px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-rose-600"><i class="ph ph-trash"></i></button>
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
+<div class="mt-6 overflow-hidden rounded-xl shadow ring-1 ring-slate-200">
+  <table class="w-full text-sm text-slate-700">
+    <thead class="bg-slate-100 text-slate-700 text-xs uppercase tracking-wide">
+      <tr>
+        <th class="py-3 px-4 text-left">Mã hội đồng</th>
+        <th class="py-3 px-4 text-left">Tên hội đồng</th>
+        <th class="py-3 px-4 text-left">Bộ môn</th>
+        <th class="py-3 px-4 text-left">Ngày bảo vệ</th>
+        <th class="py-3 px-4 text-left">Phòng</th>
+        <th class="py-3 px-4 text-left">Số thành viên</th>
+        <th class="py-3 px-4 text-left">Thành viên</th>
+        <th class="py-3 px-4 text-right">Hành động</th>
+      </tr>
+    </thead>
+    <tbody id="tableBody" class="divide-y divide-slate-200 bg-white">
+      @php
+        $councils = $round_detail->councils->sortByDesc('created_at') ?? collect();
+      @endphp
+
+      @foreach ($councils as $council)
+      @php
+        $council_code = $council->code ?? 'N/A';
+        $council_name = $council->name ?? 'N/A';
+        $department = $council->department->name ?? 'N/A';
+        $defense_date = $council->date 
+            ? \Carbon\Carbon::parse($council->date)->format('d/m/Y') 
+            : 'N/A';
+        $address = $council->address ?? 'N/A';
+        $council_members = $council->council_members?->sortByDesc('role') ?? collect();
+
+        // Map theo vai trò số: 5=Chủ tịch, 4=Thư ký, 3=UV1, 2=UV2, 1=UV3
+        $r5 = optional($council_members->firstWhere('role', 5))->supervisor_id; // Chủ tịch
+        $r4 = optional($council_members->firstWhere('role', 4))->supervisor_id; // Thư ký
+        $r3 = optional($council_members->firstWhere('role', 3))->supervisor_id; // Ủy viên 1
+        $r2 = optional($council_members->firstWhere('role', 2))->supervisor_id; // Ủy viên 2
+        $r1 = optional($council_members->firstWhere('role', 1))->supervisor_id; // Ủy viên 3
+      @endphp
+      <tr class="hover:bg-slate-50 transition">
+        <!-- Mã hội đồng -->
+        <td class="py-3 px-4 font-medium text-blue-600 hover:underline">
+          <a href="committee-detail.html">{{ $council_code }}</a>
+        </td>
+        <td class="py-3 px-4">{{ $council_name }}</td>
+        <td class="py-3 px-4">{{ $department }}</td>
+        <td class="py-3 px-4">{{ $defense_date }}</td>
+        <td class="py-3 px-4">{{ $address }}</td>
+        <td class="py-3 px-4 text-center">{{ $council_members->count() }}</td>
+        <td class="py-3 px-4">
+          <div class="flex flex-wrap gap-1">
+            @if ($council_members->isEmpty())
+              <span class="text-xs text-slate-400 italic">Chưa có thành viên</span>
+            @else
+              @foreach ($council_members->take(5) as $member)
+                <a class="px-2 py-1 rounded-full text-xs bg-blue-50 text-blue-700 font-medium hover:bg-blue-100 transition" 
+                   href="../lecturer-ui/profile.html">
+                  {{ $member?->supervisor->teacher->user->fullname ?? 'N/A' }}
+                </a>
+              @endforeach
+              @if ($council_members->count() > 5)
+                <span class="px-2 py-1 rounded-full text-xs bg-slate-200 text-slate-600">
+                  +{{ $council_members->count() - 5 }}
+                </span>
+              @endif
+            @endif
+          </div>
+        </td>
+        <td class="py-3 px-4 text-right space-x-2">
+          <button class="p-2 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-600 editCouncilBtn transition"
+                  data-id="{{ $council->id }}"
+                  data-code="{{ $council->code }}"
+                  data-name="{{ $council->name }}"
+                  data-dept-id="{{ $council->department_id }}"
+                  data-dept-name="{{ $council->department->name ?? '' }}"
+                  data-date="{{ $council->date }}"
+                  data-room="{{ $council->address }}"
+                  data-description="{{ $council->description }}"
+                  data-chutich="{{ $r5 ?? '' }}"
+                  data-thuki="{{ $r4 ?? '' }}"
+                  data-uyvien1="{{ $r3 ?? '' }}"
+                  data-uyvien2="{{ $r2 ?? '' }}"
+                  data-uyvien3="{{ $r1 ?? '' }}">
+            <i class="ph ph-pencil"></i>
+          </button>
+          <button class="p-2 rounded-lg border border-slate-200 hover:bg-rose-50 text-rose-600 transition">
+            <i class="ph ph-trash"></i>
+          </button>
+        </td>
+      </tr>
+      @endforeach
+    </tbody>
+  </table>
+</div>
+
           </section>
         </div>
         </main>
@@ -405,7 +468,7 @@
             actions: [
               { label: 'Tạo hội đồng', href: '#', action: 'createCouncil' },
               { label: 'Phân công vai trò', href: "{{ route('web.assistant.councils.roles', [$round_detail->id]) }}" },
-              { label: 'Phân sinh viên', href: '#' }
+              { label: 'Phân sinh viên', href: '{{ route('web.assistant.council_assign_students', ['termId' => $round_detail->id]) }}' }
             ]
           },
           6: {
@@ -593,6 +656,15 @@
                 <p class="text-sm text-slate-500">Chưa có dữ liệu cho giai đoạn này.</p>
                 ${timeHtml}
               </div>`;
+          }
+
+          // Sau khi stageContent.innerHTML được set trong renderStage(...)
+          if (stageNum === 5) {
+            const createCard = stageContent.querySelector('[data-action="createCouncil"]');
+            createCard?.addEventListener('click', (e)=>{
+              e.preventDefault();
+              document.getElementById('btnCreateCommittee')?.click();
+            });
           }
         }
 
@@ -1066,11 +1138,16 @@
     </div>
     <div>
       <label class="block text-sm font-medium text-slate-700">Bộ môn</label>
-      <input name="dept" 
-             class="mt-2 w-full border border-slate-300 rounded-xl px-3 py-2 text-sm shadow-sm 
-                    focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
-             placeholder="CNTT" />
+      <select name="dept"
+              class="mt-2 w-full border border-slate-300 rounded-xl px-3 py-2 text-sm shadow-sm 
+                    focus:ring-2 focus:ring-blue-500 focus:border-blue-500 max-h-32 overflow-y-auto">
+        <option value="">-- Chọn bộ môn --</option>
+        @foreach($departments as $dept)
+          <option value="{{ $dept->id }}">{{ $dept->name }}</option>
+        @endforeach
+      </select>
     </div>
+
   </div>
 
   <!-- Ngày & phòng -->
@@ -1394,6 +1471,285 @@ document.addEventListener('DOMContentLoaded', () => {
     const expanded = !submenu?.classList.contains('hidden');
     toggleBtn.setAttribute('aria-expanded', expanded ? 'true' : 'false');
     caret?.classList.toggle('rotate-180', expanded);
+  });
+});
+
+function openEditCouncilModal(data){
+  const content = `
+<form id="editCouncilForm" class="space-y-6">
+  <!-- Thông tin chung -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div>
+      <label class="block text-sm font-medium text-slate-700">Mã hội đồng</label>
+      <input name="code" value="${(data.code||'').replace(/"/g,'&quot;')}"
+             class="mt-2 w-full border border-slate-300 rounded-xl px-3 py-2 text-sm shadow-sm 
+                    focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+             placeholder="HĐ-CNTT-02" />
+    </div>
+    <div>
+      <label class="block text-sm font-medium text-slate-700">Tên hội đồng</label>
+      <input name="name" value="${(data.name||'').replace(/"/g,'&quot;')}"
+             class="mt-2 w-full border border-slate-300 rounded-xl px-3 py-2 text-sm shadow-sm 
+                    focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+             placeholder="Hội đồng bảo vệ khóa luận CNTT" />
+    </div>
+    <div>
+      <label class="block text-sm font-medium text-slate-700">Bộ môn</label>
+      <select name="dept"
+              class="mt-2 w-full border border-slate-300 rounded-xl px-3 py-2 text-sm shadow-sm 
+                    focus:ring-2 focus:ring-blue-500 focus:border-blue-500 max-h-32 overflow-y-auto">
+        <option value="">-- Chọn bộ môn --</option>
+        @foreach($departments as $dept)
+          <option value="{{ $dept->id }}">{{ $dept->name }}</option>
+        @endforeach
+      </select>
+    </div>
+  </div>
+
+  <!-- Ngày & phòng -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div>
+      <label class="block text-sm font-medium text-slate-700">Ngày bảo vệ</label>
+      <input type="date" name="date" value="${data.date||''}"
+             class="mt-2 w-full border border-slate-300 rounded-xl px-3 py-2 text-sm shadow-sm 
+                    focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+    </div>
+    <div>
+      <label class="block text-sm font-medium text-slate-700">Phòng bảo vệ</label>
+      <input name="room" value="${(data.room||'').replace(/"/g,'&quot;')}"
+             class="mt-2 w-full border border-slate-300 rounded-xl px-3 py-2 text-sm shadow-sm 
+                    focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+             placeholder="B203" />
+    </div>
+  </div>
+
+  <!-- Mô tả -->
+  <div>
+    <label class="block text-sm font-medium text-slate-700">Mô tả</label>
+    <textarea name="description" rows="3"
+              class="mt-2 w-full border border-slate-300 rounded-xl px-3 py-2 text-sm shadow-sm 
+                     focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+              placeholder="Nhập mô tả chi tiết về hội đồng...">${(data.description||'')}</textarea>
+  </div>
+
+  <!-- Thành viên hội đồng -->
+  <div class="border rounded-xl p-5 shadow-sm bg-slate-50">
+    <div class="font-semibold text-slate-800 mb-4">Thành viên hội đồng</div>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div>
+        <label class="block text-sm font-medium text-slate-700">Chủ tịch</label>
+        <select name="chutich" 
+                class="mt-2 w-full border border-slate-300 rounded-xl px-3 py-2 text-sm shadow-sm 
+                       focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none 
+                       max-h-32 overflow-y-auto">
+          <option value="">-- Chọn --</option>
+          @foreach ($round_detail->supervisors as $supervisor)
+            <option value="{{ $supervisor->id }}">{{ $supervisor->teacher->user->fullname }}</option>
+          @endforeach
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-slate-700">Thư kí</label>
+        <select name="thuki" 
+                class="mt-2 w-full border border-slate-300 rounded-xl px-3 py-2 text-sm shadow-sm 
+                       focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none 
+                       max-h-32 overflow-y-auto">
+          <option value="">-- Chọn --</option>
+          @foreach ($round_detail->supervisors as $supervisor)
+            <option value="{{ $supervisor->id }}">{{ $supervisor->teacher->user->fullname }}</option>
+          @endforeach
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-slate-700">Ủy viên 1</label>
+        <select name="uyvien1" 
+                class="mt-2 w-full border border-slate-300 rounded-xl px-3 py-2 text-sm shadow-sm 
+                       focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none 
+                       max-h-32 overflow-y-auto">
+          <option value="">-- Chọn --</option>
+          @foreach ($round_detail->supervisors as $supervisor)
+            <option value="{{ $supervisor->id }}">{{ $supervisor->teacher->user->fullname }}</option>
+          @endforeach
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-slate-700">Ủy viên 2</label>
+        <select name="uyvien2" 
+                class="mt-2 w-full border border-slate-300 rounded-xl px-3 py-2 text-sm shadow-sm 
+                       focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none 
+                       max-h-32 overflow-y-auto">
+          <option value="">-- Chọn --</option>
+          @foreach ($round_detail->supervisors as $supervisor)
+            <option value="{{ $supervisor->id }}">{{ $supervisor->teacher->user->fullname }}</option>
+          @endforeach
+        </select>
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-slate-700">Ủy viên 3</label>
+        <select name="uyvien3" 
+                class="mt-2 w-full border border-slate-300 rounded-xl px-3 py-2 text-sm shadow-sm 
+                       focus:ring-2 focus:ring-blue-500 focus:border-blue-500 appearance-none 
+                       max-h-32 overflow-y-auto">
+          <option value="">-- Chọn --</option>
+          @foreach ($round_detail->supervisors as $supervisor)
+            <option value="{{ $supervisor->id }}">{{ $supervisor->teacher->user->fullname }}</option>
+          @endforeach
+        </select>
+      </div>
+    </div>
+    <p class="mt-4 text-xs text-slate-500">Thành phần: 1 Chủ tịch, 1 Thư kí, 3 Ủy viên.</p>
+  </div>
+
+  <!-- Buttons -->
+  <div class="flex items-center justify-end gap-3">
+    <button type="button" 
+            class="px-4 py-2 rounded-xl border text-sm text-slate-600 hover:bg-slate-100 transition" 
+            onclick="this.closest('.fixed').remove()">Hủy</button>
+    <button id="confirmUpdateCouncil" type="submit" 
+            class="px-4 py-2 rounded-xl bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 shadow-sm transition">Lưu</button>
+  </div>
+</form>`;
+  const modal = createModal('Cập nhật hội đồng', content);
+  document.body.appendChild(modal);
+
+  // Prefill selects
+  const deptSel = modal.querySelector('select[name="dept"]');
+  if (deptSel && data.deptId) deptSel.value = String(data.deptId);
+
+  const roleSelects = Array.from(
+    modal.querySelectorAll('select[name="chutich"], select[name="thuki"], select[name="uyvien1"], select[name="uyvien2"], select[name="uyvien3"]')
+  );
+  const roleValues = {
+    chutich: data.chutich || '',
+    thuki: data.thuki || '',
+    uyvien1: data.uyvien1 || '',
+    uyvien2: data.uyvien2 || '',
+    uyvien3: data.uyvien3 || '',
+  };
+  roleSelects.forEach(sel => { const k = sel.name; if (roleValues[k]) sel.value = String(roleValues[k]); });
+
+  // Đồng bộ các select vai trò
+  function syncRoleSelects(){
+    const chosen = new Set(roleSelects.map(s => s.value).filter(Boolean));
+    roleSelects.forEach(sel => {
+      Array.from(sel.options).forEach(opt => {
+        if (!opt.value) return;
+        const duplicate = chosen.has(opt.value) && sel.value !== opt.value;
+        opt.disabled = duplicate;
+        opt.hidden = duplicate;
+      });
+    });
+  }
+  roleSelects.forEach(sel => sel.addEventListener('change', syncRoleSelects));
+  syncRoleSelects();
+
+  // Submit update
+  modal.querySelector('#editCouncilForm')?.addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    // Validate trùng GV
+    const picked = roleSelects.map(s => s.value).filter(Boolean);
+    if (new Set(picked).size !== picked.length) { alert('Các vai trò không được trùng giảng viên.'); return; }
+
+    const fd = new FormData(e.currentTarget);
+    const payload = {
+      code: (fd.get('code')||'').toString().trim(),
+      name: (fd.get('name')||'').toString().trim(),
+      dept: (fd.get('dept')||'').toString().trim() || null,
+      room: (fd.get('room')||'').toString().trim(),
+      date: (fd.get('date')||'').toString().trim(),
+      description: (fd.get('description')||'').toString().trim(),
+    };
+    if (!payload.code) { alert('Mã hội đồng là bắt buộc.'); return; }
+
+    const token = document.querySelector('meta[name="csrf-token"]')?.content || '';
+    // 1) Update council info
+    const urlTpl = `{{ route('web.assistant.councils.update', ['council' => 0]) }}`;
+    const url = urlTpl.replace('/0', '/' + data.id);
+    const res = await fetch(url, {
+      method: 'PATCH',
+      headers: { 'Content-Type':'application/json','X-CSRF-TOKEN': token,'Accept':'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if(!res.ok){ alert('Cập nhật hội đồng thất bại'); return; }
+    const json = await res.json().catch(()=>({}));
+
+    // 2) Lưu vai trò (nếu có chọn)
+    const rolesBody = {
+      chairman:  fd.get('chutich') || null,
+      secretary: fd.get('thuki') || null,
+      member1:   fd.get('uyvien1') || null,
+      member2:   fd.get('uyvien2') || null,
+      member3:   fd.get('uyvien3') || null,
+    };
+    const hasAnyRole = Object.values(rolesBody).some(v=>!!v);
+    if (hasAnyRole) {
+      const urlRolesTpl = `{{ route('web.assistant.councils.members.save', ['council' => 0]) }}`;
+      const urlRoles = urlRolesTpl.replace('/0/','/'+data.id+'/');
+      const res2 = await fetch(urlRoles, {
+        method: 'POST',
+        headers: { 'Content-Type':'application/json','X-CSRF-TOKEN': token,'Accept':'application/json' },
+        body: JSON.stringify(rolesBody)
+      });
+      if(!res2.ok){ alert('Lưu vai trò thất bại'); return; }
+    }
+
+    // Cập nhật UI hàng tương ứng
+    const tr = document.querySelector(`.editCouncilBtn[data-id="${data.id}"]`)?.closest('tr');
+    if (tr) {
+      const td = tr.querySelectorAll('td');
+      td[0].querySelector('a').textContent = json?.data?.code || payload.code;
+      td[1].textContent = json?.data?.name || payload.name || 'N/A';
+      td[2].textContent = json?.data?.department?.name || td[2].textContent;
+      // Định dạng dd/mm/yyyy
+      const d = payload.date;
+      const dateFmt = d && /^\d{4}-\d{2}-\d{2}$/.test(d) ? `${d.slice(8,10)}/${d.slice(5,7)}/${d.slice(0,4)}` : (d || 'N/A');
+      td[3].textContent = dateFmt || 'N/A';
+      td[4].textContent = payload.room || 'N/A';
+      // cập nhật data-* cho nút
+      const btn = tr.querySelector('.editCouncilBtn');
+      if (btn) {
+        btn.dataset.code = json?.data?.code || payload.code;
+        btn.dataset.name = json?.data?.name || payload.name || '';
+        btn.dataset.deptId = json?.data?.department?.id || (payload.dept || '');
+        btn.dataset.date = payload.date || '';
+        btn.dataset.room = payload.room || '';
+        btn.dataset.description = payload.description || '';
+        // vai trò nếu vừa chọn
+        btn.dataset.chutich = rolesBody.chairman || '';
+        btn.dataset.thuki   = rolesBody.secretary || '';
+        btn.dataset.uyvien1 = rolesBody.member1 || '';
+        btn.dataset.uyvien2 = rolesBody.member2 || '';
+        btn.dataset.uyvien3 = rolesBody.member3 || '';
+      }
+    }
+
+    modal.remove();
+  });
+}
+
+// Event delegation: mở modal khi click nút sửa (đã có, bổ sung lấy dữ liệu vai trò nếu có)
+document.addEventListener('click', (e)=>{
+  const btn = e.target.closest('.editCouncilBtn');
+  if(!btn) return;
+  e.preventDefault();
+  const d = btn.dataset;
+  openEditCouncilModal({
+    id: Number(d.id),
+    code: d.code || '',
+    name: d.name || '',
+    deptId: d.deptId || '',
+    date: d.date || '',
+    room: d.room || '',
+    description: d.description || '',
+    chutich: d.chutich || '',
+    thuki: d.thuki || '',
+    uyvien1: d.uyvien1 || '',
+    uyvien2: d.uyvien2 || '',
+    uyvien3: d.uyvien3 || '',
   });
 });
     </script>

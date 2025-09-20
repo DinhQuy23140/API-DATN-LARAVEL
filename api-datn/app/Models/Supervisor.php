@@ -37,8 +37,8 @@ class Supervisor extends Model
         return $this->hasMany(CouncilMembers::class);
     }
 
-    public function council_project_defences()
+    public function council_projects()
     {
-        return $this->hasMany(CouncilProjectDefences::class, 'reviewer_id');
+        return $this->hasMany(CouncilProjects::class, 'reviewer_id');
     }
 }

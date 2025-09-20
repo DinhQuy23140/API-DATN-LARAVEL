@@ -13,19 +13,19 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('council_project_defences', function (Blueprint $table) {
+        Schema::create('council_projects', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('council_id');
             $table->unsignedBigInteger('assignment_id');
-            $table->unsignedBigInteger('reviewer_id');
-            $table->text('room');
-            $table->date('date');
-            $table->time('time');
+            $table->unsignedBigInteger('council_member_id')->nullable();
+            $table->text('room')->nullable();
+            $table->date('date')->nullable();
+            $table->time('time')->nullable();
             $table->timestamps();
 
             $table->foreign('council_id')->references('id')->on('councils')->onDelete('cascade');
             $table->foreign('assignment_id')->references('id')->on('assignments')->onDelete('cascade');
-            $table->foreign('reviewer_id')->references('id')->on('supervisors')->onDelete('cascade');
+            $table->foreign('council_member_id')->references('id')->on('council_members')->onDelete('cascade');
         });
     }
 
@@ -36,6 +36,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('council_project_defences');
+        Schema::dropIfExists('council_projects');
     }
 };

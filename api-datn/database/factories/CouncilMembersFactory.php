@@ -22,9 +22,7 @@ class CouncilMembersFactory extends Factory
             //
             'council_id' => Council::inRandomOrder()->first()->id ?? Council::factory()->create()->id,
             'supervisor_id' => Supervisor::inRandomOrder()->first()->id ?? Supervisor::factory()->create()->id,
-            'role' => $this->faker->randomElement(['member', 'chair', 'secretary']),
-            'order' => $this->faker->numberBetween(1, 3),
-            'number_student' => $this->faker->numberBetween(5, 15),
+            'role' => $this->faker->numberBetween(1, 5),
         ];
     }
 }

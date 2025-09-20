@@ -3,84 +3,264 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
+use App\Models\Assignment;
+use App\Models\Council;
+use App\Models\CouncilMembers;
+use App\Models\ProjectTerm;
+use App\Models\Supervisor;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class CouncilController extends Controller
 {
-    // Tạo hội đồng (đã gửi trước, giữ nguyên nếu có)
+    // Tạo hội đồng (role = số 5..1)
     public function store(Request $request)
     {
-        $data = $request->validate([
-            'term_id'     => 'required|integer|exists:project_terms,id',
-            'code'        => 'required|string|max:100',
-            'name'        => 'nullable|string|max:255',
-            'dept'        => 'nullable|string|max:255',
-            'room'        => 'nullable|string|max:100',
-            'date'        => 'nullable|date',
-            'description' => 'nullable|string|max:2000',
-            'chutich'     => 'nullable|integer|exists:supervisors,id',
-            'thuki'       => 'nullable|integer|exists:supervisors,id',
-            'uyvien1'     => 'nullable|integer|exists:supervisors,id',
-            'uyvien2'     => 'nullable|integer|exists:supervisors,id',
-            'uyvien3'     => 'nullable|integer|exists:supervisors,id',
+        $request->validate([
+            'term_id' => ['required','integer','exists:project_terms,id'],
+            'code'    => [
+                'required','string','max:100',
+                Rule::unique('councils','code')->where(fn($q)=>$q->where('project_term_id', $request->input('term_id')))
+            ],
+            'name'        => ['nullable','string','max:255'],
+            'dept'        => ['nullable','integer','exists:departments,id'],
+            'room'        => ['nullable','string','max:100'],
+            'date'        => ['nullable','date'],
+            'description' => ['nullable','string','max:2000'],
+            'chutich' => ['nullable','integer', Rule::exists('supervisors','id')->where(fn($q)=>$q->where('project_term_id',$request->input('term_id')))],
+
+            // Thành viên (tuỳ chọn) và phải thuộc đúng term
+            'thuki'   => ['nullable','integer', Rule::exists('supervisors','id')->where(fn($q)=>$q->where('project_term_id',$request->input('term_id')))],
+            'uyvien1' => ['nullable','integer', Rule::exists('supervisors','id')->where(fn($q)=>$q->where('project_term_id',$request->input('term_id')))],
+            'uyvien2' => ['nullable','integer', Rule::exists('supervisors','id')->where(fn($q)=>$q->where('project_term_id',$request->input('term_id')))],
+            'uyvien3' => ['nullable','integer', Rule::exists('supervisors','id')->where(fn($q)=>$q->where('project_term_id',$request->input('term_id')))],
         ]);
 
-        $councilId = null;
+        // Chống trùng giảng viên giữa các vai trò
+        $picked = collect([$request->chutich,$request->thuki,$request->uyvien1,$request->uyvien2,$request->uyvien3])->filter()->values();
+        if ($picked->count() !== $picked->unique()->count()) {
+            return response()->json(['ok'=>false,'message'=>'Các vai trò không được trùng giảng viên.'], 422);
+        }
+
+        $council = null;
         $memberCount = 0;
 
-        DB::transaction(function () use ($data, &$councilId, &$memberCount) {
-            $councilId = DB::table('councils')->insertGetId([
-                'project_term_id' => $data['term_id'],
-                'code'            => $data['code'],
-                'name'            => $data['name'] ?? null,
-                'department'      => $data['dept'] ?? null,
-                'room'            => $data['room'] ?? null,
-                'defense_date'    => $data['date'] ?? null,
-                'description'     => $data['description'] ?? null,
-                'created_at'      => now(),
-                'updated_at'      => now(),
+        DB::transaction(function() use ($request, &$council, &$memberCount) {
+            // Tạo hội đồng
+            $council = Council::create([
+                'project_term_id' => (int)$request->input('term_id'),
+                'code'            => (string)$request->input('code'),
+                'name'            => $request->input('name') ?: null,
+                'department_id'   => $request->input('dept') ?: null,
+                'address'         => $request->input('room') ?: null,
+                'date'            => $request->input('date') ?: null,
+                'description'     => $request->input('description') ?: null,
+                'status'          => 'draft',
             ]);
 
-            $rawMembers = [
-                ['supervisor_id' => $data['chutich'] ?? null, 'role' => 'chairman'],
-                ['supervisor_id' => $data['thuki']   ?? null, 'role' => 'secretary'],
-                ['supervisor_id' => $data['uyvien1'] ?? null, 'role' => 'member1'],
-                ['supervisor_id' => $data['uyvien2'] ?? null, 'role' => 'member2'],
-                ['supervisor_id' => $data['uyvien3'] ?? null, 'role' => 'member3'],
+            // Thành viên (vai trò số: 5=Chủ tịch, 4=Thư ký, 3=UV1, 2=UV2, 1=UV3)
+            $roles = [
+                5 => $request->input('chutich'),
+                4 => $request->input('thuki'),
+                3 => $request->input('uyvien1'),
+                2 => $request->input('uyvien2'),
+                1 => $request->input('uyvien3'),
             ];
 
-            $members = collect($rawMembers)
-                ->filter(function($m){ return !empty($m['supervisor_id']); })
-                ->unique('supervisor_id')
-                ->values()
-                ->all();
-
-            if (!empty($members)) {
-                $rows = array_map(function ($m) use ($councilId) {
-                    return [
-                        'council_id'    => $councilId,
-                        'supervisor_id' => $m['supervisor_id'],
-                        'role'          => $m['role'],
-                        'created_at'    => now(),
-                        'updated_at'    => now(),
-                    ];
-                }, $members);
-
-                DB::table('council_members')->insert($rows);
-                $memberCount = count($rows);
+            foreach ($roles as $roleNum => $sid) {
+                if (!$sid) continue;
+                CouncilMembers::create([
+                    'council_id'    => $council->id,
+                    'supervisor_id' => (int)$sid,
+                    'role'          => $roleNum,
+                ]);
+                $memberCount++;
             }
         });
 
         return response()->json([
             'ok'           => true,
-            'council_id'   => $councilId,
+            'council_id'   => $council->id,
             'member_count' => $memberCount,
-            'message'      => $memberCount > 0 ? 'Đã tạo hội đồng và thêm thành viên.' : 'Đã tạo hội đồng (chưa có thành viên).',
+            'message'      => $memberCount ? 'Đã tạo hội đồng và thêm thành viên.' : 'Đã tạo hội đồng (chưa có thành viên).',
         ], 201);
     }
 
-    // Trang phân công vai trò
+    // Cập nhật vai trò cho hội đồng (role = số)
+    public function updateRoles(Request $request, $councilId)
+    {
+        $payload = $request->validate([
+            'chairman'  => 'nullable|integer|exists:supervisors,id',
+            'secretary' => 'nullable|integer|exists:supervisors,id',
+            'member1'   => 'nullable|integer|exists:supervisors,id',
+            'member2'   => 'nullable|integer|exists:supervisors,id',
+            'member3'   => 'nullable|integer|exists:supervisors,id',
+        ]);
+
+        $vals = array_values(array_filter($payload, fn($v)=>!empty($v)));
+        if (count($vals) !== count(array_unique($vals))) {
+            return response()->json(['ok'=>false,'message'=>'Các vai trò không được trùng giảng viên.'], 422);
+        }
+
+        DB::transaction(function() use ($payload, $councilId){
+            // Xóa các role số 1..5 trong hội đồng hiện tại
+            DB::table('council_members')
+                ->where('council_id', $councilId)
+                ->whereIn('role', [1,2,3,4,5])
+                ->delete();
+
+            // Thêm lại theo map số
+            $rows = [];
+            $map = [
+                5 => $payload['chairman']  ?? null,
+                4 => $payload['secretary'] ?? null,
+                3 => $payload['member1']   ?? null,
+                2 => $payload['member2']   ?? null,
+                1 => $payload['member3']   ?? null,
+            ];
+            foreach ($map as $roleNum => $sid) {
+                if (!$sid) continue;
+                $rows[] = [
+                    'council_id'    => (int)$councilId,
+                    'supervisor_id' => (int)$sid,
+                    'role'          => $roleNum,
+                    'created_at'    => now(),
+                    'updated_at'    => now(),
+                ];
+            }
+
+            if (!empty($rows)) {
+                DB::table('council_members')->insert($rows);
+            }
+        });
+
+        return response()->json(['ok'=>true,'message'=>'Đã cập nhật vai trò hội đồng.']);
+    }
+
+    // Cập nhật thông tin hội đồng
+    public function update(Request $request, Council $council)
+    {
+        $request->validate([
+            'code' => [
+                'required','string','max:100',
+                Rule::unique('councils','code')
+                    ->where(fn($q)=>$q->where('project_term_id', $council->project_term_id))
+                    ->ignore($council->id)
+            ],
+            'name'        => ['nullable','string','max:255'],
+            'dept'        => ['nullable','integer','exists:departments,id'],
+            'room'        => ['nullable','string','max:100'],
+            'date'        => ['nullable','date'],
+            'description' => ['nullable','string','max:2000'],
+            'status'      => ['nullable','string','in:draft,scheduled,finished,canceled'],
+        ]);
+
+        $council->update([
+            'code'          => (string)$request->input('code'),
+            'name'          => $request->input('name') ?: null,
+            'department_id' => $request->input('dept') ?: null,
+            'address'       => $request->input('room') ?: null,
+            'date'          => $request->input('date') ?: null,
+            'description'   => $request->input('description') ?: null,
+            'status'        => $request->input('status') ?: ($council->status ?? 'draft'),
+        ]);
+
+        $deptName = $request->filled('dept')
+            ? DB::table('departments')->where('id',(int)$request->input('dept'))->value('name')
+            : null;
+
+        return response()->json([
+            'ok'=>true,
+            'data'=>[
+                'id'          => $council->id,
+                'code'        => (string)$council->code,
+                'name'        => $council->name,
+                'department'  => ['id'=>$council->department_id,'name'=>$deptName],
+                'address'     => $council->address,
+                // Tránh gọi ->format() trên string
+                'date'        => $council->date
+                    ? (is_object($council->date) && method_exists($council->date, 'format')
+                        ? $council->date->format('Y-m-d')
+                        : (string)$council->date)
+                    : null,
+                'description' => $council->description,
+                'status'      => $council->status,
+            ]
+        ]);
+    }
+
+    // Lưu thành viên hội đồng (role = số, xử lý đổi người/xóa/tạo)
+    public function saveMembers(Request $request, int $councilId)
+    {
+        $data = $request->validate([
+            'chairman'  => 'nullable|integer|exists:supervisors,id',
+            'secretary' => 'nullable|integer|exists:supervisors,id',
+            'member1'   => 'nullable|integer|exists:supervisors,id',
+            'member2'   => 'nullable|integer|exists:supervisors,id',
+            'member3'   => 'nullable|integer|exists:supervisors,id',
+        ]);
+
+        $vals = array_values(array_filter($data, fn($v)=>!empty($v)));
+        if (count($vals) !== count(array_unique($vals))) {
+            return response()->json(['ok'=>false,'message'=>'Các vai trò không được trùng giảng viên.'], 422);
+        }
+
+        $roleMap = ['chairman'=>5,'secretary'=>4,'member1'=>3,'member2'=>2,'member3'=>1];
+        $inserted=0; $updated=0; $deleted=0;
+
+        DB::transaction(function() use ($councilId, $data, $roleMap, &$inserted, &$updated, &$deleted) {
+            foreach ($roleMap as $key => $roleNum) {
+                $sid = $data[$key] ?? null;
+
+                if (empty($sid)) {
+                    $deleted += DB::table('council_members')
+                        ->where('council_id',$councilId)
+                        ->where('role',$roleNum)
+                        ->delete();
+                    continue;
+                }
+
+                // Xóa record cũ khác supervisor cho đúng role số
+                $deleted += DB::table('council_members')
+                    ->where('council_id',$councilId)
+                    ->where('role',$roleNum)
+                    ->where('supervisor_id','!=',$sid)
+                    ->delete();
+
+                // Tìm bản ghi (role số, supervisor)
+                $existing = DB::table('council_members')
+                    ->where('role',$roleNum)
+                    ->where('supervisor_id',$sid)
+                    ->first();
+
+                if ($existing) {
+                    if ((int)$existing->council_id !== (int)$councilId) {
+                        DB::table('council_members')->where('id',$existing->id)->update([
+                            'council_id'=>$councilId,
+                            'updated_at'=>now()
+                        ]);
+                        $updated++;
+                    } else {
+                        DB::table('council_members')->where('id',$existing->id)->update(['updated_at'=>now()]);
+                    }
+                } else {
+                    DB::table('council_members')->insert([
+                        'council_id'    => $councilId,
+                        'supervisor_id' => (int)$sid,
+                        'role'          => $roleNum,
+                        'created_at'    => now(),
+                        'updated_at'    => now(),
+                    ]);
+                    $inserted++;
+                }
+            }
+        });
+
+        return response()->json(['ok'=>true,'inserted'=>$inserted,'updated'=>$updated,'deleted'=>$deleted,'message'=>'Đã lưu thành viên hội đồng.']);
+    }
+
+    // Trang phân công vai trò (đổi mapping role -> số)
     public function rolesPage(Request $request, $term)
     {
         $termId = (int)$term;
@@ -102,7 +282,7 @@ class CouncilController extends Controller
 
         $membersByCouncil = [];
         foreach ($members as $m) {
-            $membersByCouncil[$m->council_id][$m->role] = [
+            $membersByCouncil[$m->council_id][(int)$m->role] = [
                 'id' => $m->supervisor_id,
                 'name' => $m->fullname,
             ];
@@ -119,11 +299,11 @@ class CouncilController extends Controller
                 'defense_date' => $c->defense_date,
                 'member_count' => $count,
                 'roles' => [
-                    'chairman' => $roles['chairman'] ?? null,
-                    'secretary'=> $roles['secretary'] ?? null,
-                    'member1'  => $roles['member1'] ?? null,
-                    'member2'  => $roles['member2'] ?? null,
-                    'member3'  => $roles['member3'] ?? null,
+                    'chairman' => $roles[5] ?? null,
+                    'secretary'=> $roles[4] ?? null,
+                    'member1'  => $roles[3] ?? null,
+                    'member2'  => $roles[2] ?? null,
+                    'member3'  => $roles[1] ?? null,
                 ],
             ];
         })->values();
@@ -143,10 +323,38 @@ class CouncilController extends Controller
         ]);
     }
 
-    // Cập nhật vai trò cho hội đồng
-    public function updateRoles(Request $request, $councilId)
+    public function getCouncilByTermId($termId) {
+        $councils = Council::with('council_members.supervisor.teacher.user')
+            ->where('project_term_id', $termId)
+            ->latest('created_at')
+            ->get();
+
+        $supervisors = Supervisor::with('teacher.user')
+        ->where('project_term_id', $termId)
+        ->get();
+
+        return view ('assistant-ui.council-roles', compact('councils', 'supervisors', 'termId'));
+    }
+
+    public function getCouncilAndAssignmentByTermId($termId) {
+        // $councils = Council::with('council_members.supervisor.teacher.user')
+        //     ->where('project_term_id', $termId)
+        //     ->latest('created_at')
+        //     ->get();
+        $projectTerm = ProjectTerm::with('academy_year', 'councils.council_members.supervisor.teacher.user', 'councils.council_projects')->find($termId);
+
+        $assignments = Assignment::with('student.user', 'student.marjor', 'project', 'assignment_supervisors.supervisor.teacher.user')
+            ->where('project_term_id', $termId)
+            ->whereDoesntHave('council_project') // loại assignment đã gán hội đồng
+            ->get();
+
+        return view ('assistant-ui.council-assign-students', compact('projectTerm', 'assignments', 'termId'));
+    }
+
+    // PATCH /assistant/councils/{council}/members
+    public function updateMembers(Request $request, Council $council)
     {
-        $payload = $request->validate([
+        $data = $request->validate([
             'chairman'  => 'nullable|integer|exists:supervisors,id',
             'secretary' => 'nullable|integer|exists:supervisors,id',
             'member1'   => 'nullable|integer|exists:supervisors,id',
@@ -154,34 +362,39 @@ class CouncilController extends Controller
             'member3'   => 'nullable|integer|exists:supervisors,id',
         ]);
 
-        // Không cho trùng GV giữa các vai trò
-        $vals = array_values(array_filter($payload, fn($v)=>!empty($v)));
+        // Chống trùng GV
+        $vals = array_values(array_filter($data, fn($v)=>!empty($v)));
         if (count($vals) !== count(array_unique($vals))) {
             return response()->json(['ok'=>false,'message'=>'Các vai trò không được trùng giảng viên.'], 422);
         }
 
-        DB::transaction(function() use ($payload, $councilId){
-            // Xóa các vai trò cũ (5 vai trò chuẩn)
+        // Giống updateRoles: xóa hết 1..5 và chèn lại theo map số
+        DB::transaction(function () use ($council, $data) {
             DB::table('council_members')
-                ->where('council_id', $councilId)
-                ->whereIn('role', ['chairman','secretary','member1','member2','member3'])
+                ->where('council_id', $council->id)
+                ->whereIn('role', [1,2,3,4,5])
                 ->delete();
 
-            // Thêm lại vai trò đang set
+            $map = [
+                5 => $data['chairman']  ?? null,
+                4 => $data['secretary'] ?? null,
+                3 => $data['member1']   ?? null,
+                2 => $data['member2']   ?? null,
+                1 => $data['member3']   ?? null,
+            ];
+
             $rows = [];
-            foreach (['chairman','secretary','member1','member2','member3'] as $role) {
-                $sid = $payload[$role] ?? null;
-                if ($sid) {
-                    $rows[] = [
-                        'council_id'    => (int)$councilId,
-                        'supervisor_id' => (int)$sid,
-                        'role'          => $role,
-                        'created_at'    => now(),
-                        'updated_at'    => now(),
-                    ];
-                }
+            foreach ($map as $roleNum => $sid) {
+                if (!$sid) continue;
+                $rows[] = [
+                    'council_id'    => (int)$council->id,
+                    'supervisor_id' => (int)$sid,
+                    'role'          => (int)$roleNum,
+                    'created_at'    => now(),
+                    'updated_at'    => now(),
+                ];
             }
-            if (!empty($rows)) {
+            if ($rows) {
                 DB::table('council_members')->insert($rows);
             }
         });
