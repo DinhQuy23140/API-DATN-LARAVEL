@@ -26,6 +26,7 @@ class CouncilProjectsFactory extends Factory
             'room' => $this->faker->bothify('Room ??-###'),
             'date' => $this->faker->dateTimeBetween('-1 month', '+1 month')->format('Y-m-d'),
             'time' => $this->faker->dateTimeBetween('08:00', '17:00')->format('H:i:s'),
+            'review_score' => $this->faker->randomFloat(2, 0, 10),
         ];
     }
 }

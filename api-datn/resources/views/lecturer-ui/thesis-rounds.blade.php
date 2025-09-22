@@ -227,12 +227,8 @@
       const mainArea = document.querySelector('.flex-1');
       if (c) {
         html.classList.add('sidebar-collapsed');
-        mainArea.classList.add('md:pl-[72px]');
-        mainArea.classList.remove('md:pl-[260px]');
       } else {
         html.classList.remove('sidebar-collapsed');
-        mainArea.classList.remove('md:pl-[72px]');
-        mainArea.classList.add('md:pl-[260px]');
       }
     }
     

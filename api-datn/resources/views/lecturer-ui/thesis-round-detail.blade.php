@@ -740,7 +740,7 @@
               </div>
             </div>
           </a>
-          <a href="{{ route('web.teacher.my_committees' )}}" class="group rounded-xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md hover:border-blue-300 transition">
+          <a href="{{ route('web.teacher.my_committees', ['supervisorId' => $supervisorId, 'termId' => $rows->id] )}}" class="group rounded-xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md hover:border-blue-300 transition">
             <div class="flex items-start gap-3">
               <div class="h-10 w-10 rounded-lg grid place-items-center bg-gradient-to-br from-sky-50 to-sky-100 text-sky-600 group-hover:from-sky-100 group-hover:to-sky-200">
                 <i class="ph ph-users-three"></i>
@@ -756,6 +756,7 @@
               </div>
             </div>
           </a>
+
         </div>
         <!-- Giữ nguyên bảng -->
         <div class="bg-white border rounded-xl p-4">
@@ -793,6 +794,7 @@
                     $assignment_supervisors = $assignment->assignment_supervisors ?? [];
 
                     $committee = $assignment->council_project->council->name ?? 'Chưa có hội đồng'; // demo
+                    $councilId = $assignment->council_project->council_id;
                     $schedule  = $assignment->council_project->council?->date ?? 'Chưa có lịch'; // demo
                     $room = $assignment->council_project->council?->address ?? 'Chưa có phòng'; // demo
                   @endphp
@@ -837,7 +839,7 @@
                           class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-slate-600 hover:bg-slate-100 transition">
                           <i class="ph ph-user"></i> SV
                         </a>
-                        <a href="committee-detail.html?id={{ $committee }}"
+                        <a href="{{ route('web.teacher.committee_detail', ['councilId'=>$councilId, 'termId'=>$rows->id]) }}"
                           class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-indigo-600 hover:bg-indigo-50 transition">
                           <i class="ph ph-users-three"></i> Hội đồng
                         </a>
@@ -854,7 +856,7 @@
           contentBox.innerHTML = `
         <h3 class="text-lg font-semibold mb-3">Giai đoạn 06: Phản biện</h3>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-          <a href="student-reviews.html" class="group rounded-xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md hover:border-blue-300 transition">
+          <a href="{{ route('web.teacher.student_review', ['termId' => $rows->id, 'supervisorId' => $supervisorId]) }}" class="group rounded-xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md hover:border-blue-300 transition">
             <div class="flex items-start gap-3">
               <div class="h-10 w-10 rounded-lg grid place-items-center bg-gradient-to-br from-rose-50 to-rose-100 text-rose-600 group-hover:from-rose-100 group-hover:to-rose-200">
                 <i class="ph ph-chat-circle-dots"></i>
@@ -870,7 +872,7 @@
               </div>
             </div>
           </a>
-          <a href="{{ route('web.teacher.review_assignments') }}" class="group rounded-xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md hover:border-blue-300 transition">
+          <a href="{{ route('web.teacher.review_council', ['supervisorId' => $supervisorId, 'termId' => $rows->id]) }}" class="group rounded-xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md hover:border-blue-300 transition">
             <div class="flex items-start gap-3">
               <div class="h-10 w-10 rounded-lg grid place-items-center bg-gradient-to-br from-teal-50 to-teal-100 text-teal-600 group-hover:from-teal-100 group-hover:to-teal-200">
                 <i class="ph ph-checks"></i>
@@ -925,7 +927,9 @@
                     $reviewer = $assignment->council_project?->supervisor->teacher->user->fullname ?? 'Chưa có giảng viên';
                     $role     = "Phản biện";
                     $order    = $loop->index + 1;
-                    $time     = $assignment->council_project?->date?->format('H:i d/m/Y') ?? 'Chưa có lịch';
+                    $time = $assignment->council_project && $assignment->council_project->date
+                    ? \Carbon\Carbon::parse($assignment->council_project->date)->format('H:i d/m/Y')
+                    : 'Chưa có lịch';
                   @endphp
 
                   <tr class="hover:bg-slate-50 transition-colors">
@@ -966,7 +970,7 @@
                           class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-slate-600 hover:bg-slate-50 transition">
                           <i class="ph ph-user"></i> SV
                         </a>
-                        <a href="committee-detail.html?id={{ $committee }}"
+                        <a href="{{ route('web.teacher.committee_detail', ['councilId'=>$councilId, 'termId'=>$rows->id]) }}"
                           class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-indigo-600 hover:bg-indigo-50 transition">
                           <i class="ph ph-users-three"></i> Hội đồng
                         </a>
@@ -1063,7 +1067,7 @@
                           class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-slate-600 hover:bg-slate-50 transition">
                           <i class="ph ph-user"></i> SV
                         </a>
-                        <a href="committee-detail.html?id={{ $committee }}"
+                        <a href="{{ route('web.teacher.committee_detail', ['councilId'=>$councilId, 'termId'=>$rows->id]) }}"
                           class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-indigo-600 hover:bg-indigo-50 transition">
                           <i class="ph ph-users-three"></i> Hội đồng
                         </a>
@@ -1194,7 +1198,7 @@
                           class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-slate-600 hover:bg-slate-50 transition">
                           <i class="ph ph-user"></i> SV
                         </a>
-                        <a href="committee-detail.html?id={{ $committee }}"
+                        <a href="{{ route('web.teacher.committee_detail', ['councilId'=>$councilId, 'termId'=>$rows->id]) }}"
                           class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-indigo-600 hover:bg-indigo-50 transition">
                           <i class="ph ph-users-three"></i> Hội đồng
                         </a>
@@ -1224,12 +1228,8 @@
       const mainArea = document.querySelector('.flex-1');
       if (c) {
         html.classList.add('sidebar-collapsed');
-        mainArea.classList.add('md:pl-[72px]');
-        mainArea.classList.remove('md:pl-[260px]');
       } else {
         html.classList.remove('sidebar-collapsed');
-        mainArea.classList.remove('md:pl-[72px]');
-        mainArea.classList.add('md:pl-[260px]');
       }
     }
 

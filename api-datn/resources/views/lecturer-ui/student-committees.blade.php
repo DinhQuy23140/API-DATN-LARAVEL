@@ -77,6 +77,23 @@
 
       <main class="flex-1 overflow-y-auto px-4 md:px-6 py-6">
         <div class="max-w-6xl mx-auto space-y-4">
+
+          <section class="bg-white rounded-xl border border-slate-200 p-4">
+            <h2 class="font-semibold text-lg mb-2">Thông tin đợt đồ án</h2>
+            <div class="text-slate-700 text-sm space-y-1">
+              @php
+              $stage = $rows->stage;
+              $term = $rows->academy_year->name . ' - Học kỳ ' . $rows->stage;
+              $semester = ($rows->stage % 2 == 1) ? '1' : '2';
+              $date = date('d/m/Y', strtotime($rows->start_date)) . ' - ' . date('d/m/Y', strtotime($rows->end_date));
+              @endphp
+              <div><strong>Đợt:</strong> {{ $term }} </div>
+              <div><strong>Năm học:</strong> {{ $term }} </div>
+              <div><strong>Học kỳ:</strong> {{ $semester }} </div>
+              <div><strong>Thời gian:</strong> {{ $date }} </div>
+            </div>
+          </section>
+
           <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
             <div class="relative">
               <i class="ph ph-magnifying-glass absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
@@ -85,23 +102,67 @@
             <a href="thesis-round-detail.html" class="text-sm text-blue-600 hover:underline"><i class="ph ph-caret-left"></i> Quay lại chi tiết đợt</a>
           </div>
 
-          <div class="bg-white border rounded-xl p-4">
-            <div class="overflow-x-auto">
-              <table class="w-full text-sm">
-                <thead>
-                  <tr class="text-left text-slate-500 border-b">
-                    <th class="py-3 px-3">Sinh viên</th>
-                    <th class="py-3 px-3">MSSV</th>
-                    <th class="py-3 px-3">Hội đồng</th>
-                    <th class="py-3 px-3">Lịch bảo vệ</th>
-                    <th class="py-3 px-3">Phòng</th>
-                    <th class="py-3 px-3">Hành động</th>
-                  </tr>
-                </thead>
-                <tbody id="rows"></tbody>
-              </table>
-            </div>
-          </div>
+<div class="bg-white border rounded-xl shadow-sm overflow-hidden">
+  <div class="overflow-x-auto">
+    <table id="studentTable" class="w-full text-sm border-collapse">
+      <thead class="bg-slate-50 border-b">
+        <tr class="text-slate-600">
+          <th class="py-3 px-4 text-left font-semibold">Sinh viên</th>
+          <th class="py-3 px-4 text-left font-semibold">MSSV</th>
+          <th class="py-3 px-4 text-left font-semibold">Đề tài</th>
+          <th class="py-3 px-4 text-left font-semibold">Hội đồng</th>
+          <th class="py-3 px-4 text-left font-semibold">Lịch bảo vệ</th>
+          <th class="py-3 px-4 text-left font-semibold">Phòng</th>
+          <th class="py-3 px-4 text-center font-semibold">Hành động</th>
+        </tr>
+      </thead>
+      <tbody id="rows" class="divide-y divide-slate-100">
+        @php
+          $assignments = $rows->assignments;
+        @endphp
+        @foreach ($assignments as $assignment)
+          @php
+            $fullname = $assignment->student->user->fullname;
+            $student_code = $assignment->student->code;
+            $topic = $assignment->project->name ?? 'Chưa có đề tài';
+            $council_name = $assignment->council_project->council->name ?? 'Chưa có hội đồng';
+            $date = $assignment->council_project->council->date ?? 'Chưa có lịch';
+            $room = $assignment->council_project->council->address ?? 'Chưa có phòng';
+            $councilId = $assignment->council_project->council->id ?? null;
+          @endphp
+          <tr class="hover:bg-slate-50 transition">
+            <td class="py-3 px-4 font-medium text-slate-700">
+              <a class="text-blue-600 hover:underline" href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $assignment->student->id, 'termId' => $rows->id]) }}">
+                {{ $fullname }}
+              </a>
+            </td>
+            <td class="py-3 px-4 text-slate-600">{{ $student_code }}</td>
+            <td class="py-3 px-4">{{ $topic }}</td>
+            <td class="py-3 px-4">{{ $council_name }}</td>
+            <td class="py-3 px-4">{{ $date }}</td>
+            <td class="py-3 px-4">{{ $room }}</td>
+            <td class="py-3 px-4 text-center">
+              <div class="flex items-center justify-center gap-2">
+                <a href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $assignment->student->id, 'termId' => $rows->id]) }}"
+                  class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 text-xs font-medium transition">
+                  <i class="ph ph-user text-sm"></i> SV
+                </a>
+                @if ($councilId)
+                <a href="{{ route('web.teacher.committee_detail', ['councilId'=>$councilId, 'termId'=>$rows->id]) }}"
+                  class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-slate-50 text-slate-600 hover:bg-slate-100 text-xs font-medium transition">
+                  <i class="ph ph-chalkboard-teacher text-sm"></i> Hội đồng
+                </a>
+                @endif
+              </div>
+            </td>
+          </tr>
+        @endforeach
+      </tbody>
+    </table>
+  </div>
+</div>
+
+
         </div>
       </main>
     </div>
@@ -124,37 +185,15 @@
       profileBtn?.addEventListener('click', ()=> profileMenu.classList.toggle('hidden'));
       document.addEventListener('click', (e)=>{ if(!profileBtn?.contains(e.target) && !profileMenu?.contains(e.target)) profileMenu?.classList.add('hidden'); });
     })();
-
-    // Mock data could be wired to localStorage later
-    const items = [
-      { id:'20210001', name:'Nguyễn Văn A', committee:'CNTT-01', time:'20/08/2025 • 08:00', room:'P.A203' },
-      { id:'20210002', name:'Trần Thị B', committee:'CNTT-02', time:'20/08/2025 • 09:30', room:'P.A204' },
-      { id:'20210003', name:'Lê Văn C', committee:'CNTT-01', time:'20/08/2025 • 08:45', room:'P.A203' }
-    ];
-
-    function render(){
-      const q=(document.getElementById('search').value||'').toLowerCase();
-      const rows=document.getElementById('rows');
-      const list = items.filter(s=> s.name.toLowerCase().includes(q) || s.id.includes(q) || s.committee.toLowerCase().includes(q));
-      rows.innerHTML = list.map(s=>`
-        <tr class="border-b hover:bg-slate-50">
-          <td class="py-3 px-3"><a class="text-blue-600 hover:underline" href="supervised-student-detail.html?id=${s.id}&name=${encodeURIComponent(s.name)}">${s.name}</a></td>
-          <td class="py-3 px-3">${s.id}</td>
-          <td class="py-3 px-3">${s.committee}</td>
-          <td class="py-3 px-3">${s.time}</td>
-          <td class="py-3 px-3">${s.room}</td>
-          <td class="py-3 px-3">
-            <div class="flex items-center gap-1">
-              <a class="px-2 py-1 border border-slate-200 rounded text-xs hover:bg-slate-50" href="supervised-student-detail.html?id=${s.id}&name=${encodeURIComponent(s.name)}">Xem SV</a>
-              <a class="px-2 py-1 border border-slate-200 rounded text-xs hover:bg-slate-50" href="committee-detail.html?id=${s.committee}">Xem hội đồng</a>
-            </div>
-          </td>
-        </tr>
-      `).join('');
-    }
-
-    document.getElementById('search').addEventListener('input', render);
-    render();
+    
+    document.getElementById('search').addEventListener('input', function() {
+      const filter = this.value.toLowerCase();
+      const rows = document.querySelectorAll('#studentTable tbody tr');
+      rows.forEach(row => {
+        const text = row.innerText.toLowerCase();
+        row.style.display = text.includes(filter) ? '' : 'none';
+      });
+    });
   </script>
 </body>
 </html>

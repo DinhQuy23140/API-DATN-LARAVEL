@@ -128,7 +128,7 @@
                     $start_year = $round_detail->start_date ? substr($round_detail->start_date, 0, 4) : '';
                     $end_year = $round_detail->end_date ? substr($round_detail->end_date, 0, 4) : '';
                 @endphp
-                <h2 class="font-semibold text-lg mt-1">{{ "Đợt " . $round_detail->stage . " năm học " . $start_year . "-" . $end_year}}</h2>
+                <h2 class="font-semibold text-lg mt-1">{{ "Đợt " . $round_detail->stage . ". Năm học " . $round_detail->academy_year->year_name}}</h2>
                 <div class="text-sm text-slate-600">{{ $round_detail->start_date }} - {{ $round_detail->end_date }}</div>
               </div>
             </div>

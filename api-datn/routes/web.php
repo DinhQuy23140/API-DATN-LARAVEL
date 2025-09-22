@@ -16,6 +16,7 @@ use App\Http\Controllers\Web\ReportFilesController;
 use App\Http\Controllers\Web\CouncilController;
 use App\Http\Controllers\Web\CouncilController as WebCouncilController;
 use App\Http\Controllers\Web\CouncilProjectsController as WebCouncilProjectController;
+use App\Http\Controllers\Web\CouncilMembersController as WebCouncilMembersController;
 // Guest (login)
 Route::middleware('guest')->group(function () {
     Route::get('/login', [WebUserController::class, 'showLoginForm'])->name('web.auth.login');
@@ -179,11 +180,14 @@ Route::middleware('auth')->group(function () {
 
     //stage 5
 
-    Route::view('/teacher/my-committees', 'lecturer-ui.my-committees')->name('web.teacher.my_committees');
-    Route::view('/teacher/student-committee/supervisor/{supervisorId}/term/{termId}', 'lecturer-ui.student-committees')->name('web.teacher.student_committee');
+    Route::get('/teacher/my-committees/supervisor/{supervisorId}/term/{termId}', [WebCouncilMembersController::class, 'getCouncilMembersBySupervisorIdandTermId'])->name('web.teacher.my_committees');
+    Route::get('/teacher/student-committee/supervisor/{supervisorId}/term/{termId}', [WebProjectTermsController::class, 'studentCommitee'])->name('web.teacher.student_committee');
+    Route::get('/teacher/committee-detail/{councilId}/term/{termId}', [WebCouncilController::class, 'getCouncilDetail' ])->name('web.teacher.committee_detail');
 
     //stage 6
-    Route::view('/teacher/review-assignments', 'lecturer-ui.review-assignments')->name('web.teacher.review_assignments');
+    Route::get('/teacher/review-assignments/supervisor/{supervisorId}/council/{councilId}/term/{termId}', [WebProjectTermsController::class, 'reviewAssignment'])->name('web.teacher.review_assignments');
+    Route::get('/teacher/review-council/supervisor/{supervisorId}/term/{termId}', [WebCouncilMembersController::class, 'reviewCouncil'])->name('web.teacher.review_council');
+    Route::get('/teacher/student-review/term/{termId}/supervisor/{supervisorId}', [WebProjectTermsController::class, 'studentReviews'])->name('web.teacher.student_review');
 });
 
 Route::middleware(['web','auth'])->group(function () {

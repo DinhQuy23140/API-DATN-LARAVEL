@@ -32,8 +32,8 @@
         <a href="research.html" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-flask"></i><span class="sidebar-label">Nghiên cứu</span></a>
         <a href="students.html" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-student"></i><span class="sidebar-label">Sinh viên</span></a>
         <div class="sidebar-label text-xs uppercase text-slate-400 px-3 mt-3">Học phần tốt nghiệp</div>
-        <a href="thesis-internship.html" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100 pl-10"><i class="ph ph-briefcase"></i><span class="sidebar-label">Thực tập tốt nghiệp</span></a>
-        <a href="thesis-rounds.html" class="flex items-center gap-3 px-3 py-2 rounded-lg bg-slate-100 font-semibold pl-10"><i class="ph ph-calendar"></i><span class="sidebar-label">Đồ án tốt nghiệp</span></a>
+        <a href="thesis-internship.html" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100 pl-5"><i class="ph ph-briefcase"></i><span class="sidebar-label">Thực tập tốt nghiệp</span></a>
+        <a href="thesis-rounds.html" class="flex items-center gap-3 px-3 py-2 rounded-lg bg-slate-100 font-semibold pl-5"><i class="ph ph-calendar"></i><span class="sidebar-label">Đồ án tốt nghiệp</span></a>
       </nav>
       <div class="p-3 border-t border-slate-200">
         <button id="toggleSidebar" class="w-full flex items-center justify-center gap-2 px-3 py-2 text-slate-600 hover:bg-slate-100 rounded-lg"><i class="ph ph-sidebar"></i><span class="sidebar-label">Thu gọn</span></button>
@@ -76,32 +76,146 @@
       </header>
 
       <main class="flex-1 overflow-y-auto px-4 md:px-6 py-6">
-        <div class="max-w-6xl mx-auto space-y-4">
+        <div class="max-w-7xl mx-auto space-y-4">
+
+          <div class="flex flex-col md:flex-row md:items-center justify-end gap-3">
+            <a href="thesis-round-detail.html" class="text-sm text-blue-600 hover:underline"><i class="ph ph-caret-left"></i> Quay lại chi tiết đợt</a>
+          </div>
+
+          <section class="bg-white rounded-xl border border-slate-200 p-4">
+            <h2 class="font-semibold text-lg mb-2">Thông tin đợt đồ án</h2>
+            <div class="text-slate-700 text-sm space-y-1">
+              @php
+              $stage = $rows->stage;
+              $term = $rows->academy_year->name . ' - Học kỳ ' . $rows->stage;
+              $semester = $rows->stage?? '';
+              $date = date('d/m/Y', strtotime($rows->start_date ?? '')) . ' - ' . date('d/m/Y', strtotime($rows->end_date ?? ''));
+              @endphp
+              <div><strong>Đợt:</strong> {{ $term }} </div>
+              <div><strong>Năm học:</strong> {{ $term }} </div>
+              <div><strong>Học kỳ:</strong> {{ $semester }} </div>
+              <div><strong>Thời gian:</strong> {{ $date }} </div>
+            </div>
+          </section>
+
+          <section class="bg-white rounded-xl border border-slate-200 p-4 my-6">
+            <h2 class="font-semibold text-lg mb-4">Thông tin hội đồng</h2>
+            <div class="text-slate-700 text-sm space-y-2">
+              @php
+                $council = $rows->council_project?->council ?? null;
+              @endphp
+              @if ($council)
+                <div>
+                  <strong>Tên hội đồng:</strong> {{ $council->name }}
+                </div>
+                <div>
+                  <strong>Mã hội đồng:</strong> {{ $council->code }}
+                </div>
+                <div>
+                  <strong>Mô tả:</strong> {{ $council->description ?? 'Không có mô tả' }}
+                </div>
+                <div>
+                  <strong>Khoa/Bộ môn:</strong> {{ $council->department->name ?? 'N/A' }}
+                </div>
+                <div>
+                  <strong>Địa điểm:</strong> {{ $council->address ?? 'Chưa có' }}
+                </div>
+                <div>
+                  <strong>Ngày bảo vệ:</strong> 
+                  {{ $council->date ? date('d/m/Y', strtotime($council->date)) : 'Chưa có' }}
+                </div>
+                <div>
+                  <strong>Trạng thái:</strong> 
+                  <span class="px-2 py-1 text-xs rounded-full border
+                    {{ $council->status === 'active' 
+                        ? 'bg-green-50 text-green-700 border-green-200' 
+                        : 'bg-slate-50 text-slate-600 border-slate-200' }}">
+                    {{ ucfirst($council->status) }}
+                  </span>
+                </div>
+                <div>
+                  <strong>Thuộc đợt đồ án:</strong> 
+                  {{ $council->project_term->academy_year->name ?? '' }} - Học kỳ {{ $council->project_term->stage ?? '' }}
+                </div>
+              @else
+                <div class="text-slate-500 italic">Chưa có thông tin hội đồng</div>
+              @endif
+            </div>
+          </section>
+
           <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
             <div class="relative">
               <i class="ph ph-magnifying-glass absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
               <input id="search" class="pl-8 pr-3 py-2 border border-slate-200 rounded text-sm w-80" placeholder="Tìm theo tên/MSSV/hội đồng" />
             </div>
-            <a href="thesis-round-detail.html" class="text-sm text-blue-600 hover:underline"><i class="ph ph-caret-left"></i> Quay lại chi tiết đợt</a>
           </div>
 
-          <div class="bg-white border rounded-xl p-4">
+          <div class="bg-white border rounded-xl p-4 shadow-sm">
             <div class="overflow-x-auto">
-              <table class="w-full text-sm">
+              <table id="studentTable" class="w-full text-sm table-fixed border-collapse">
                 <thead>
-                  <tr class="text-left text-slate-500 border-b">
-                    <th class="py-3 px-3">Sinh viên</th>
-                    <th class="py-3 px-3">MSSV</th>
-                    <th class="py-3 px-3">Hội đồng</th>
-                    <th class="py-3 px-3">Trạng thái</th>
-                    <th class="py-3 px-3">Thời gian</th>
-                    <th class="py-3 px-3">Hành động</th>
+                  <tr class="bg-slate-100 text-slate-600 text-left">
+                    <th class="py-3 px-3 font-medium w-40">Sinh viên</th>
+                    <th class="py-3 px-3 font-medium w-28">MSSV</th>
+                    <th class="py-3 px-3 font-medium w-64">Đề tài</th>
+                    <th class="py-3 px-3 font-medium w-28 text-center">Thứ tự</th>
+                    <th class="py-3 px-3 font-medium w-32 text-center">Điểm</th>
+                    <th class="py-3 px-3 font-medium w-32">Trạng thái</th>
+                    <th class="py-3 px-3 font-medium w-40">Thời gian</th>
+                    <th class="py-3 px-3 font-medium w-44">Hành động</th>
                   </tr>
                 </thead>
-                <tbody id="rows"></tbody>
+                @php
+                  $assignments = $rows->assignments;
+                @endphp
+                <tbody id="rows">
+                  @foreach ($assignments as $assignment)
+                    @php
+                      $student = $assignment->student;
+                      $studentName = $student ? $student->user->fullname : 'N/A';
+                      $studentCode = $student ? $student->student_code : 'N/A';
+                      $topic = $assignment->project?->name ?? 'N/A';
+                      $index = $loop->index + 1;
+                      $scoreReview = $assignment->council_project?->review_score ?? 'Chưa chấm';
+                      $status = $scoreReview !== 'Chưa chấm' ? 'Đã chấm' : 'Chưa chấm';
+                      $statusColor = $scoreReview !== 'Chưa chấm'
+                                    ? 'bg-green-50 text-green-700 border-green-200'
+                                    : 'bg-rose-50 text-rose-700 border-rose-200';
+                      $time = $assignment->council_project?->time ?? 'N/A';
+                      $councilId = $assignment->council_project?->council_id ?? null;
+                    @endphp
+                    <tr class="border-b hover:bg-slate-50 transition">
+                      <td class="py-3 px-3 truncate max-w-[150px]" title="{{ $studentName }}">{{ $studentName }}</td>
+                      <td class="py-3 px-3 whitespace-nowrap">{{ $studentCode }}</td>
+                      <td class="py-3 px-3 truncate max-w-[250px]" title="{{ $topic }}">{{ $topic }}</td>
+                      <td class="py-3 px-3 text-center">{{ $index }}</td>
+                      <td class="py-3 px-3 text-center">{{ $scoreReview }}</td>
+                      <td class="py-3 px-3">
+                        <span class="px-2 py-1 text-xs font-medium rounded-full border {{ $statusColor }}">
+                          {{ $status }}
+                        </span>
+                      </td>
+                      <td class="py-3 px-3 whitespace-nowrap">{{ $time }}</td>
+                      <td class="py-3 px-3">
+                        <div class="flex items-center gap-2">
+                          <a class="px-2 py-1 border border-slate-200 rounded text-xs hover:bg-slate-100 transition whitespace-nowrap" href="#">
+                            Chấm phản biện
+                          </a>
+                          @if ($councilId)
+                            <a class="px-2 py-1 border border-slate-200 rounded text-xs hover:bg-slate-100 transition whitespace-nowrap" 
+                              href="{{ route('web.teacher.committee_detail', ['councilId' => $councilId, 'termId' => $rows->id]) }}">
+                              Xem hội đồng
+                            </a>
+                          @endif
+                        </div>
+                      </td>
+                    </tr>
+                  @endforeach
+                </tbody>
               </table>
             </div>
           </div>
+
         </div>
       </main>
     </div>
@@ -113,8 +227,8 @@
       const html=document.documentElement, sidebar=document.getElementById('sidebar');
       function setCollapsed(c){
         const h=document.querySelector('header'); const m=document.querySelector('main');
-        if(c){ html.classList.add('sidebar-collapsed'); h.classList.add('md:left-[72px]'); h.classList.remove('md:left-[260px]'); m.classList.add('md:pl-[72px]'); m.classList.remove('md:pl-[260px]'); }
-        else { html.classList.remove('sidebar-collapsed'); h.classList.remove('md:left-[72px]'); h.classList.add('md:left-[260px]'); m.classList.remove('md:pl-[72px]'); m.classList.add('md:pl-[260px]'); }
+        if(c){ html.classList.add('sidebar-collapsed')}
+        else { html.classList.remove('sidebar-collapsed')}
       }
       document.getElementById('toggleSidebar')?.addEventListener('click',()=>{const c=!html.classList.contains('sidebar-collapsed'); setCollapsed(c); localStorage.setItem('lecturer_sidebar',''+(c?1:0));});
       document.getElementById('openSidebar')?.addEventListener('click',()=>sidebar.classList.toggle('-translate-x-full'));
@@ -125,38 +239,15 @@
       document.addEventListener('click', (e)=>{ if(!profileBtn?.contains(e.target) && !profileMenu?.contains(e.target)) profileMenu?.classList.add('hidden'); });
     })();
 
-    // Mock assignments - can be persisted via localStorage under 'review_assignments'
-    let assignments = [
-      { id:'20210021', name:'Ngô Văn H', committee:'CNTT-01', status:'Chưa chấm', time:'20/08/2025 • 08:00' },
-      { id:'20210022', name:'Trịnh Thị I', committee:'CNTT-02', status:'Đang chấm', time:'20/08/2025 • 09:30' },
-      { id:'20210023', name:'Bùi Văn K', committee:'CNTT-01', status:'Đã chấm', time:'20/08/2025 • 10:15' }
-    ];
+    document.getElementById('search').addEventListener('input', function() {
+      const filter = this.value.toLowerCase();
+      const rows = document.querySelectorAll('#studentTable tbody tr');
+      rows.forEach(row => {
+        const text = row.innerText.toLowerCase();
+        row.style.display = text.includes(filter) ? '' : 'none';
+      });
+    });
 
-    function render(){
-      const q=(document.getElementById('search').value||'').toLowerCase();
-      const rows=document.getElementById('rows');
-      const list = assignments.filter(s=> s.name.toLowerCase().includes(q) || s.id.includes(q) || s.committee.toLowerCase().includes(q));
-      rows.innerHTML = list.map(s=>`
-        <tr class="border-b hover:bg-slate-50">
-          <td class="py-3 px-3">${s.name}</td>
-          <td class="py-3 px-3">${s.id}</td>
-          <td class="py-3 px-3">${s.committee}</td>
-          <td class="py-3 px-3">${s.status}</td>
-          <td class="py-3 px-3">${s.time}</td>
-          <td class="py-3 px-3">
-            <div class="flex items-center gap-1">
-              <a class="px-2 py-1 border border-slate-200 rounded text-xs hover:bg-slate-50" href="review-student.html?id=${s.id}&name=${encodeURIComponent(s.name)}&committee=${s.committee}">Chấm phản biện</a>
-              <a class="px-2 py-1 border border-slate-200 rounded text-xs hover:bg-slate-50" href="committee-detail.html?id=${s.committee}">Xem hội đồng</a>
-            </div>
-          </td>
-        </tr>
-      `).join('');
-    }
-
-    const saved = localStorage.getItem('review_assignments');
-    if(saved){ try{ assignments = JSON.parse(saved);}catch(e){} }
-    document.getElementById('search').addEventListener('input', render);
-    render();
   </script>
 </body>
 </html>

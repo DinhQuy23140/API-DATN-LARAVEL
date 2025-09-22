@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\AcademyYear;
 use App\Models\Assignment;
 use App\Models\AssignmentSupervisor;
+use App\Models\CouncilProjects;
 use App\Models\Department;
 use App\Models\ProjectTerm;
 use App\Models\stage_timeline; // dùng đúng Model bạn đang có
@@ -220,6 +221,85 @@ class ProjectTermsController extends Controller
         ])->findOrFail($termId);
 
         return view('lecturer-ui.thesis-round-detail', compact('rows', 'supervisorId'));
+    }
+
+    public function studentReviews($termId, $supervisorId)
+    {
+        $rows = ProjectTerm::with([
+            'academy_year',
+            'stageTimelines',
+            'assignments' => function ($query) use ($supervisorId) {
+                $query->whereHas('assignment_supervisors', function ($q) use ($supervisorId) {
+                    $q->where('supervisor_id', $supervisorId);
+                })->with([
+                    'student.user',
+                    'project.progressLogs.attachments',
+                    'project.reportFiles',
+                    'council_project.council',
+                    'council_project.council.council_members.supervisor.teacher.user',
+                    'assignment_supervisors' => function ($q) use ($supervisorId) {
+                        $q->where('supervisor_id', $supervisorId);
+                    }
+                ]);
+            }
+        ])->findOrFail($termId);
+
+        return view('lecturer-ui.student-reviews', compact('rows', 'supervisorId'));
+    }
+
+    public function reviewAssignment($supervisorId, $councilId, $termId){
+        $rows = ProjectTerm::with([
+            'academy_year',
+            'stageTimelines',
+            'assignments' => function ($query) use ($supervisorId) {
+                $query->whereHas('assignment_supervisors', function ($q) use ($supervisorId) {
+                    $q->where('supervisor_id', $supervisorId);
+                })->with([
+                    'student.user',
+                    'project.progressLogs.attachments',
+                    'project.reportFiles',
+                    'council_project.council',
+                    'council_project.council.council_members.supervisor.teacher.user',
+                    'assignment_supervisors' => function ($q) use ($supervisorId) {
+                        $q->where('supervisor_id', $supervisorId);
+                    }
+                ]);
+            }
+        ])->findOrFail($termId);
+        $term = ProjectTerm::with('academy_year')->findOrFail($termId);
+        // $rows = CouncilProjects::with(['assignment.student.user', 'assignment.project', 'council'=>function($q) use ($termId) { 
+        //     $q->where('project_term_id', $termId); 
+        // }])
+        // ->where('council_id', $councilId)
+        // ->whereHas('assignment.assignment_supervisors', function ($q) use ($supervisorId) {
+        //     $q->where('supervisor_id', $supervisorId);
+        // })
+        // ->get();
+        return view('lecturer-ui.review-assignments', compact('rows', 'supervisorId', 'termId', 'term', 'councilId'));
+    }
+
+    public function studentCommitee($supervisorId, $termId)
+    {
+        $rows = ProjectTerm::with([
+            'academy_year',
+            'stageTimelines',
+            'assignments' => function ($query) use ($supervisorId) {
+                $query->whereHas('assignment_supervisors', function ($q) use ($supervisorId) {
+                    $q->where('supervisor_id', $supervisorId);
+                })->with([
+                    'student.user',
+                    'project.progressLogs.attachments',
+                    'project.reportFiles',
+                    'council_project.council',
+                    'council_project.council.council_members.supervisor.teacher.user',
+                    'assignment_supervisors' => function ($q) use ($supervisorId) {
+                        $q->where('supervisor_id', $supervisorId);
+                    }
+                ]);
+            }
+        ])->findOrFail($termId);
+
+        return view('lecturer-ui.student-committees', compact('rows', 'supervisorId'));
     }
 
     public function getProjectTermBtId($termId)

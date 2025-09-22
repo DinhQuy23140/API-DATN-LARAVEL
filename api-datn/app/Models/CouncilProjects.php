@@ -14,7 +14,8 @@ class CouncilProjects extends Model
         'council_member_id',
         'room',
         'date',
-        'time'
+        'time',
+        'review_score',
     ];
 
     public function council()

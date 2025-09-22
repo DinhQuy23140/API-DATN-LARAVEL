@@ -14,7 +14,7 @@ class CouncilProjectsController extends Controller
     {
         $validated = $request->validate([
             'assignment_ids'   => 'required|array|min:1',
-            'assignment_ids.*' => 'integer|exists:students,id',
+            'assignment_ids.*' => 'integer|exists:assignments,id',
         ]);
 
         $assignmentIds = array_values(array_unique($validated['assignment_ids']));

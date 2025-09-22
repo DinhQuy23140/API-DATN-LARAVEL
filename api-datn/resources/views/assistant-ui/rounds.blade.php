@@ -132,9 +132,10 @@
                     @php
                       $start_year = $term->start_date ? substr($term->start_date, 0, 4) : '';
                       $end_year = $term->end_date ? substr($term->end_date, 0, 4) : '';
+                      $termName = "Đợt " . $term->stage . " " . $term->academy_year->year_name;
                     @endphp
                   <tr class="hover:bg-slate-50">
-                    <td class="py-3 px-4"><a href="{{ route('web.assistant.round_detail', ['round_id' => $term->id]) }}" class="text-blue-600 hover:underline">{{"Đợt " . $term->stage . " " . $start_year . "-" . $end_year}}</a></td>
+                    <td class="py-3 px-4"><a href="{{ route('web.assistant.round_detail', ['round_id' => $term->id]) }}" class="text-blue-600 hover:underline">{{$termName}}</a></td>
                     <td class="py-3 px-4">{{$term->start_date}} - {{$term->end_date}}</td>
                     <td class="py-3 px-4">12</td>
                     <td class="py-3 px-4 text-right space-x-2">
