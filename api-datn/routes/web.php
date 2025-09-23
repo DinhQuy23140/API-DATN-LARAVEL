@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Web\CouncilProjectsController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Web\UserController as WebUserController;
 use App\Http\Controllers\Web\ProgressLogController as WebProgressLogController;
@@ -17,6 +18,7 @@ use App\Http\Controllers\Web\CouncilController;
 use App\Http\Controllers\Web\CouncilController as WebCouncilController;
 use App\Http\Controllers\Web\CouncilProjectsController as WebCouncilProjectController;
 use App\Http\Controllers\Web\CouncilMembersController as WebCouncilMembersController;
+use App\Http\Controllers\Web\Teacher\ReviewController;
 // Guest (login)
 Route::middleware('guest')->group(function () {
     Route::get('/login', [WebUserController::class, 'showLoginForm'])->name('web.auth.login');
@@ -183,6 +185,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/teacher/my-committees/supervisor/{supervisorId}/term/{termId}', [WebCouncilMembersController::class, 'getCouncilMembersBySupervisorIdandTermId'])->name('web.teacher.my_committees');
     Route::get('/teacher/student-committee/supervisor/{supervisorId}/term/{termId}', [WebProjectTermsController::class, 'studentCommitee'])->name('web.teacher.student_committee');
     Route::get('/teacher/committee-detail/{councilId}/term/{termId}', [WebCouncilController::class, 'getCouncilDetail' ])->name('web.teacher.committee_detail');
+    Route::post('/teacher/councils/{council}/assign-reviewer', [CouncilProjectsController::class, 'assign'])
+        ->name('web.teacher.councils.assign_reviewer');
 
     //stage 6
     Route::get('/teacher/review-assignments/supervisor/{supervisorId}/council/{councilId}/term/{termId}', [WebProjectTermsController::class, 'reviewAssignment'])->name('web.teacher.review_assignments');
@@ -203,4 +207,7 @@ Route::middleware(['web','auth'])->prefix('teacher')->name('web.teacher.')->grou
         ->name('assignments.counter_status');
     Route::post('/report-files/{reportFile}/status', [ReportFilesController::class, 'setStatus'])
         ->name('report_files.set_status');
+    // Lưu điểm phản biện cho 1 council_project
+    Route::post('/reviews/{council_project}', [WebCouncilProjectController::class, 'update_review_score'])
+        ->name('reviews.store');
 });

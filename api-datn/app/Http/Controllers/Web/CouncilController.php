@@ -209,6 +209,54 @@ class CouncilController extends Controller
         $roleMap = ['chairman'=>5,'secretary'=>4,'member1'=>3,'member2'=>2,'member3'=>1];
         $inserted=0; $updated=0; $deleted=0;
 
+        // DB::transaction(function() use ($councilId, $data, $roleMap, &$inserted, &$updated, &$deleted) {
+        //     foreach ($roleMap as $key => $roleNum) {
+        //         $sid = $data[$key] ?? null;
+
+        //         if (empty($sid)) {
+        //             $deleted += DB::table('council_members')
+        //                 ->where('council_id',$councilId)
+        //                 ->where('role',$roleNum)
+        //                 ->delete();
+        //             continue;
+        //         }
+
+        //         // Xóa record cũ khác supervisor cho đúng role số
+        //         $deleted += DB::table('council_members')
+        //             ->where('council_id',$councilId)
+        //             ->where('role',$roleNum)
+        //             ->where('supervisor_id','!=',$sid)
+        //             ->delete();
+
+        //         // Tìm bản ghi (role số, supervisor)
+        //         $existing = DB::table('council_members')
+        //             ->where('role',$roleNum)
+        //             ->where('supervisor_id',$sid)
+        //             ->first();
+
+        //         if ($existing) {
+        //             if ((int)$existing->council_id !== (int)$councilId) {
+        //                 DB::table('council_members')->where('id',$existing->id)->update([
+        //                     'council_id'=>$councilId,
+        //                     'updated_at'=>now()
+        //                 ]);
+        //                 $updated++;
+        //             } else {
+        //                 DB::table('council_members')->where('id',$existing->id)->update(['updated_at'=>now()]);
+        //             }
+        //         } else {
+        //             DB::table('council_members')->insert([
+        //                 'council_id'    => $councilId,
+        //                 'supervisor_id' => (int)$sid,
+        //                 'role'          => $roleNum,
+        //                 'created_at'    => now(),
+        //                 'updated_at'    => now(),
+        //             ]);
+        //             $inserted++;
+        //         }
+        //     }
+        // });
+
         DB::transaction(function() use ($councilId, $data, $roleMap, &$inserted, &$updated, &$deleted) {
             foreach ($roleMap as $key => $roleNum) {
                 $sid = $data[$key] ?? null;
@@ -221,30 +269,30 @@ class CouncilController extends Controller
                     continue;
                 }
 
-                // Xóa record cũ khác supervisor cho đúng role số
-                $deleted += DB::table('council_members')
+                // Kiểm tra trong cùng hội đồng: giảng viên này đã có vai trò nào chưa
+                $existingSameCouncil = DB::table('council_members')
                     ->where('council_id',$councilId)
-                    ->where('role',$roleNum)
-                    ->where('supervisor_id','!=',$sid)
-                    ->delete();
-
-                // Tìm bản ghi (role số, supervisor)
-                $existing = DB::table('council_members')
-                    ->where('role',$roleNum)
                     ->where('supervisor_id',$sid)
                     ->first();
 
-                if ($existing) {
-                    if ((int)$existing->council_id !== (int)$councilId) {
-                        DB::table('council_members')->where('id',$existing->id)->update([
-                            'council_id'=>$councilId,
-                            'updated_at'=>now()
-                        ]);
+                if ($existingSameCouncil) {
+                    // Nếu role khác thì cập nhật sang role mới
+                    if ((int)$existingSameCouncil->role !== $roleNum) {
+                        DB::table('council_members')
+                            ->where('id',$existingSameCouncil->id)
+                            ->update([
+                                'role'       => $roleNum,
+                                'updated_at' => now()
+                            ]);
                         $updated++;
                     } else {
-                        DB::table('council_members')->where('id',$existing->id)->update(['updated_at'=>now()]);
+                        // Đúng role rồi thì chỉ update timestamp
+                        DB::table('council_members')
+                            ->where('id',$existingSameCouncil->id)
+                            ->update(['updated_at'=>now()]);
                     }
                 } else {
+                    // Nếu chưa có trong hội đồng thì insert
                     DB::table('council_members')->insert([
                         'council_id'    => $councilId,
                         'supervisor_id' => (int)$sid,
@@ -254,6 +302,13 @@ class CouncilController extends Controller
                     ]);
                     $inserted++;
                 }
+
+                // Đảm bảo không có nhiều người cùng role trong council này:
+                DB::table('council_members')
+                    ->where('council_id',$councilId)
+                    ->where('role',$roleNum)
+                    ->where('supervisor_id','!=',$sid)
+                    ->delete();
             }
         });
 

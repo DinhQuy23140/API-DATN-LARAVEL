@@ -66,6 +66,7 @@
     $listProgressLog = $assignments[0]->project->progressLogs ?? [];
     $latestLog = collect($listProgressLog)->sortByDesc('created_at')->first() ?? null;
   @endphp
+
   <div class="flex min-h-screen">
     <aside class="sidebar fixed inset-y-0 left-0 z-30 bg-white border-r border-slate-200 flex flex-col transition-all"
       id="sidebar">
@@ -195,7 +196,7 @@
               <div>
                 <div class="text-sm text-slate-500">Mã đợt: <span
                     class="font-medium text-slate-700">{{ $rows->id }}</span></div>
-                <h2 class="font-semibold text-lg mt-1">{{ "Đợt ". $rows->stage . " năm học " . date('Y', strtotime($rows->start_date)) . " - " . date('Y', strtotime($rows->end_date))}}</h2>
+                <h2 class="font-semibold text-lg mt-1">{{ "Đợt ". $rows->stage . " Năm học " . $rows->academy_year->year_name}}</h2>
                 <div class="text-sm text-slate-600">{{ date('d/m/Y', strtotime($rows->start_date)) }} - {{ date('d/m/Y', strtotime($rows->end_date)) }}</div>
               </div>
               <div class="text-right">
@@ -206,6 +207,7 @@
             </div>
           </section>
           <!-- Timeline -->
+
           <section class="bg-white rounded-xl border border-slate-200 p-5">
             <div class="flex items-center justify-between mb-6">
               <h3 class="font-semibold">Tiến độ giai đoạn hướng dẫn</h3>
@@ -560,7 +562,7 @@
           $student_code = $student->student_code;
           $studentId = $student->id;
 
-          $listProgressLog = $assignment->project->progressLogs ?? [];
+          $listProgressLog = $assignment->project?->progressLogs ?? [];
           $latestLog = collect($listProgressLog)->sortByDesc('created_at')->first() ?? null;
 
           $lastestTitle = $latestLog->title ?? 'Chưa nộp';
@@ -660,12 +662,15 @@
                     $topic = $assignment->project->name ?? 'Chưa có đề tài';
 
                     // Lấy report cuối cùng
-                    $latestReport = $assignment->project?->reportFiles()->latest('created_at')->first();
+                    $latestReport = $assignment->project?->reportFiles()
+                    ->where('type_report', 'report')
+                    ->latest('created_at')
+                    ->first();
                     $statusRaw = $latestReport?->status ?? 'none';
 
                     $listStatus = [
                       'none' => ['label' => 'Chưa nộp', 'class' => 'bg-slate-100 text-slate-600', 'icon' => 'ph-clock'],
-                      'submitted' => ['label' => 'Đã nộp', 'class' => 'bg-amber-100 text-amber-700', 'icon' => 'ph-upload-simple'],
+                      'pending' => ['label' => 'Đã nộp', 'class' => 'bg-amber-100 text-amber-700', 'icon' => 'ph-upload-simple'],
                       'approved' => ['label' => 'Đã duyệt', 'class' => 'bg-emerald-100 text-emerald-700', 'icon' => 'ph-check-circle'],
                       'rejected' => ['label' => 'Bị từ chối', 'class' => 'bg-rose-100 text-rose-700', 'icon' => 'ph-x-circle'],
                     ];
@@ -790,13 +795,13 @@
                     $fullname = $student->user->fullname;
                     $student_code = $student->student_code;
                     $studentId = $student->id;
-                    $topic = $assignment->project->name ?? 'Chưa có đề tài';
+                    $topic = $assignment->project?->name ?? 'Chưa có đề tài';
                     $assignment_supervisors = $assignment->assignment_supervisors ?? [];
 
-                    $committee = $assignment->council_project->council->name ?? 'Chưa có hội đồng'; // demo
-                    $councilId = $assignment->council_project->council_id;
-                    $schedule  = $assignment->council_project->council?->date ?? 'Chưa có lịch'; // demo
-                    $room = $assignment->council_project->council?->address ?? 'Chưa có phòng'; // demo
+                    $committee = $assignment->council_project?->council->name ?? 'Chưa có hội đồng'; // demo
+                    $councilId = $assignment->council_project?->council_id;
+                    $schedule  = $assignment->council_project?->council?->date ?? 'Chưa có lịch'; // demo
+                    $room = $assignment->council_project?->council?->address ?? 'Chưa có phòng'; // demo
                   @endphp
 
                   <tr class="hover:bg-slate-50 transition-colors">
@@ -839,10 +844,14 @@
                           class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-slate-600 hover:bg-slate-100 transition">
                           <i class="ph ph-user"></i> SV
                         </a>
-                        <a href="{{ route('web.teacher.committee_detail', ['councilId'=>$councilId, 'termId'=>$rows->id]) }}"
-                          class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-indigo-600 hover:bg-indigo-50 transition">
-                          <i class="ph ph-users-three"></i> Hội đồng
-                        </a>
+                        @if($councilId !== null)
+                            <a href="{{ route('web.teacher.committee_detail', ['councilId'=>$councilId, 'termId'=>$rows->id]) }}"
+                              class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-indigo-600 hover:bg-indigo-50 transition">
+                              <i class="ph ph-users-three"></i> Hội đồng
+                            </a>
+                        @else
+                            <span class="text-xs text-slate-400 italic">Chưa có hội đồng</span>
+                        @endif
                       </div>
                     </td>
                   </tr>
@@ -922,10 +931,17 @@
                     $student_code = $student->student_code;
                     $studentId = $student->id;
                     $topic = $assignment->project->title ?? 'Chưa có đề tài';
-
+                    $councilId = $assignment->council_project?->council_id;
                     $committee = $assignment->council_project?->council->name ?? 'Chưa có hội đồng';
-                    $reviewer = $assignment->council_project?->supervisor->teacher->user->fullname ?? 'Chưa có giảng viên';
-                    $role     = "Phản biện";
+                    $reviewer = $assignment->council_project?->council_member?->supervisor->teacher->user->fullname ?? 'Chưa có giảng viên';
+                    $role     = $assignment->council_project?->council_member?->role ?? 'NA';
+                    $listRole = [
+                    '5' => 'Chủ tịch',
+                    '4' => 'Thư ký',
+                    '3' => 'Ủy viên 1',
+                    '2' => 'Ủy viên 2',
+                    '1' => 'Ủy viên 3',];
+                    $role = $listRole[$role] ?? 'NA';
                     $order    = $loop->index + 1;
                     $time = $assignment->council_project && $assignment->council_project->date
                     ? \Carbon\Carbon::parse($assignment->council_project->date)->format('H:i d/m/Y')
@@ -952,7 +968,9 @@
 
                     <!-- Chức vụ -->
                     <td class="px-4 py-3 text-center">
-                      <span class="px-2 py-1 text-xs rounded-full bg-indigo-50 text-indigo-700 font-medium">{{ $role }}</span>
+                      <span class="inline-block whitespace-nowrap px-2 py-1 text-xs rounded-full bg-indigo-50 text-indigo-700 font-medium">
+                        {{ $role }}
+                      </span>
                     </td>
 
                     <!-- STT PB -->
@@ -970,10 +988,14 @@
                           class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-slate-600 hover:bg-slate-50 transition">
                           <i class="ph ph-user"></i> SV
                         </a>
-                        <a href="{{ route('web.teacher.committee_detail', ['councilId'=>$councilId, 'termId'=>$rows->id]) }}"
-                          class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-indigo-600 hover:bg-indigo-50 transition">
-                          <i class="ph ph-users-three"></i> Hội đồng
-                        </a>
+                        @if($councilId !== null)
+                            <a href="{{ route('web.teacher.committee_detail', ['councilId'=>$councilId, 'termId'=>$rows->id]) }}"
+                              class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-indigo-600 hover:bg-indigo-50 transition">
+                              <i class="ph ph-users-three"></i> Hội đồng
+                            </a>
+                        @else
+                            <span class="text-xs text-slate-400 italic">Chưa có hội đồng</span>
+                        @endif
                       </div>
                     </td>
                   </tr>
@@ -1022,8 +1044,8 @@
                     $student_code = $student->student_code;
                     $studentId = $student->id;
                     $topic = $assignment->project->title ?? 'Chưa có đề tài';
-
-                    $committee = "CNTT-01"; // ví dụ
+                    $councilId = $assignment->council_project?->council_id;
+                    $committee = $assignment->council_project?->council?->name ?? 'Chưa có hội đồng'; // ví dụ
                     $result    = "Đạt";     // ví dụ
                     $resultClass = "bg-emerald-100 text-emerald-700"; // ví dụ
                     $order     = "01";
@@ -1067,10 +1089,14 @@
                           class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-slate-600 hover:bg-slate-50 transition">
                           <i class="ph ph-user"></i> SV
                         </a>
-                        <a href="{{ route('web.teacher.committee_detail', ['councilId'=>$councilId, 'termId'=>$rows->id]) }}"
-                          class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-indigo-600 hover:bg-indigo-50 transition">
-                          <i class="ph ph-users-three"></i> Hội đồng
-                        </a>
+                        @if($councilId !== null)
+                            <a href="{{ route('web.teacher.committee_detail', ['councilId'=>$councilId, 'termId'=>$rows->id]) }}"
+                              class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-indigo-600 hover:bg-indigo-50 transition">
+                              <i class="ph ph-users-three"></i> Hội đồng
+                            </a>
+                        @else
+                            <span class="text-xs text-slate-400 italic">Chưa có hội đồng</span>
+                        @endif
                       </div>
                     </td>
                   </tr>
@@ -1153,10 +1179,10 @@
                     $fullname = $student->user->fullname;
                     $student_code = $student->student_code;
                     $studentId = $student->id;
-
-                    $committee = "CNTT-01"; 
-                    $score     = 8.5; 
-                    $result    = "Đạt"; 
+                    $councilId = $assignment->council_project?->council_id;
+                    $committee = $assignment->council_project?->council?->name ?? 'Chưa có hội đồng';
+                    $score     = 8.5;
+                    $result    = "Đạt";
                     $comment   = "Trình bày tốt, trả lời câu hỏi rõ ràng.";
                     $resultClass = "bg-emerald-100 text-emerald-700";
                   @endphp
@@ -1198,10 +1224,14 @@
                           class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-slate-600 hover:bg-slate-50 transition">
                           <i class="ph ph-user"></i> SV
                         </a>
-                        <a href="{{ route('web.teacher.committee_detail', ['councilId'=>$councilId, 'termId'=>$rows->id]) }}"
-                          class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-indigo-600 hover:bg-indigo-50 transition">
-                          <i class="ph ph-users-three"></i> Hội đồng
-                        </a>
+                        @if($councilId !== null)
+                            <a href="{{ route('web.teacher.committee_detail', ['councilId'=>$councilId, 'termId'=>$rows->id]) }}"
+                              class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-indigo-600 hover:bg-indigo-50 transition">
+                              <i class="ph ph-users-three"></i> Hội đồng
+                            </a>
+                        @else
+                            <span class="text-xs text-slate-400 italic">Chưa có hội đồng</span>
+                        @endif
                       </div>
                     </td>
                   </tr>

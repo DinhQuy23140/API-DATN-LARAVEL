@@ -26,7 +26,7 @@ class CouncilMembers extends Model
     }
 
     public function council_project() {
-        return $this->hasMany(CouncilProjectDefences::class, 'council_member_id', 'id');
+        return $this->hasMany(CouncilProjects::class, 'council_member_id', 'id');
     }
 
     public function council_project_defences() {

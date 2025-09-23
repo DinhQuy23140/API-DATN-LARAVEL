@@ -15,6 +15,7 @@
     .sidebar-collapsed .sidebar { width:72px; }
     .sidebar { width:260px; }
   </style>
+  <meta name="csrf-token" content="{{ csrf_token() }}">
 </head>
 <body class="bg-slate-50 text-slate-800">
   <div class="flex min-h-screen">
@@ -86,13 +87,13 @@
             <h2 class="font-semibold text-lg mb-2">Thông tin đợt đồ án</h2>
             <div class="text-slate-700 text-sm space-y-1">
               @php
-              $stage = $rows->stage;
-              $term = $rows->academy_year->name . ' - Học kỳ ' . $rows->stage;
-              $semester = $rows->stage?? '';
-              $date = date('d/m/Y', strtotime($rows->start_date ?? '')) . ' - ' . date('d/m/Y', strtotime($rows->end_date ?? ''));
+                $stage = $projectTerm->stage;
+                $termName = $projectTerm->academy_year->name . ' - Học kỳ ' . $stage;
+                $semester = ($stage % 2 == 1) ? '1' : '2';
+                $date = date('d/m/Y', strtotime($projectTerm->start_date)) . ' - ' . date('d/m/Y', strtotime($projectTerm->end_date));
               @endphp
-              <div><strong>Đợt:</strong> {{ $term }} </div>
-              <div><strong>Năm học:</strong> {{ $term }} </div>
+              <div><strong>Đợt:</strong> {{ $termName }} </div>
+              <div><strong>Năm học:</strong> {{ $termName }} </div>
               <div><strong>Học kỳ:</strong> {{ $semester }} </div>
               <div><strong>Thời gian:</strong> {{ $date }} </div>
             </div>
@@ -101,9 +102,6 @@
           <section class="bg-white rounded-xl border border-slate-200 p-4 my-6">
             <h2 class="font-semibold text-lg mb-4">Thông tin hội đồng</h2>
             <div class="text-slate-700 text-sm space-y-2">
-              @php
-                $council = $rows->council_project?->council ?? null;
-              @endphp
               @if ($council)
                 <div>
                   <strong>Tên hội đồng:</strong> {{ $council->name }}
@@ -158,53 +156,73 @@
                     <th class="py-3 px-3 font-medium w-40">Sinh viên</th>
                     <th class="py-3 px-3 font-medium w-28">MSSV</th>
                     <th class="py-3 px-3 font-medium w-64">Đề tài</th>
+                    <th class="py-3 px-3 font-medium w-40">Báo cáo</th>
                     <th class="py-3 px-3 font-medium w-28 text-center">Thứ tự</th>
-                    <th class="py-3 px-3 font-medium w-32 text-center">Điểm</th>
-                    <th class="py-3 px-3 font-medium w-32">Trạng thái</th>
+                    <th class="py-3 px-3 font-medium w-32">Điểm</th>
                     <th class="py-3 px-3 font-medium w-40">Thời gian</th>
-                    <th class="py-3 px-3 font-medium w-44">Hành động</th>
+                    <th class="py-3 px-3 font-medium w-44 text-center">Thao tác</th>
                   </tr>
                 </thead>
-                @php
-                  $assignments = $rows->assignments;
-                @endphp
+
                 <tbody id="rows">
-                  @foreach ($assignments as $assignment)
+                  @foreach ($council_projects as $council_project)
                     @php
-                      $student = $assignment->student;
+                      $student = $council_project->assignment->student;
                       $studentName = $student ? $student->user->fullname : 'N/A';
                       $studentCode = $student ? $student->student_code : 'N/A';
-                      $topic = $assignment->project?->name ?? 'N/A';
+                      $topic = $council_project->assignment->project?->name ?? 'N/A';
+                      $advisor = $council_project->assignment->assignment_supervisors ?? [];
+                      $reportUrl = $council_project->assignment->reportFiles?->sortByDesc('created_at')->first()?->file_url
+                                    ?? $council_project->assignment->reportFiles?->sortByDesc('created_at')->first()?->file_path
+                                    ?? '#';
                       $index = $loop->index + 1;
-                      $scoreReview = $assignment->council_project?->review_score ?? 'Chưa chấm';
+                      $scoreReview = $council_project->review_score
+                                    ?? $council_project->assignment->council_project?->review_score
+                                    ?? 'Chưa chấm';
                       $status = $scoreReview !== 'Chưa chấm' ? 'Đã chấm' : 'Chưa chấm';
                       $statusColor = $scoreReview !== 'Chưa chấm'
                                     ? 'bg-green-50 text-green-700 border-green-200'
                                     : 'bg-rose-50 text-rose-700 border-rose-200';
-                      $time = $assignment->council_project?->time ?? 'N/A';
-                      $councilId = $assignment->council_project?->council_id ?? null;
+                      $time = $council_project->time ?? 'N/A';
+                      $councilId = $council_project->council_id ?? null;
                     @endphp
-                    <tr class="border-b hover:bg-slate-50 transition">
+                    <tr class="border-b hover:bg-slate-50 hover:shadow-sm transition">
                       <td class="py-3 px-3 truncate max-w-[150px]" title="{{ $studentName }}">{{ $studentName }}</td>
                       <td class="py-3 px-3 whitespace-nowrap">{{ $studentCode }}</td>
                       <td class="py-3 px-3 truncate max-w-[250px]" title="{{ $topic }}">{{ $topic }}</td>
+                      <td class="py-3 px-3">
+                        @if ($reportUrl && $reportUrl !== '#')
+                          <a href="{{ $reportUrl }}" target="_blank" class="text-blue-600 hover:underline inline-flex items-center gap-1">
+                            <i class="ph ph-file"></i> Xem báo cáo
+                          </a>
+                        @else
+                          <span class="text-slate-500">Chưa có báo cáo</span>
+                        @endif
+                      </td>
                       <td class="py-3 px-3 text-center">{{ $index }}</td>
-                      <td class="py-3 px-3 text-center">{{ $scoreReview }}</td>
                       <td class="py-3 px-3">
                         <span class="px-2 py-1 text-xs font-medium rounded-full border {{ $statusColor }}">
-                          {{ $status }}
+                          {{ $scoreReview }}
                         </span>
                       </td>
                       <td class="py-3 px-3 whitespace-nowrap">{{ $time }}</td>
                       <td class="py-3 px-3">
-                        <div class="flex items-center gap-2">
-                          <a class="px-2 py-1 border border-slate-200 rounded text-xs hover:bg-slate-100 transition whitespace-nowrap" href="#">
-                            Chấm phản biện
-                          </a>
+                        <div class="flex items-center justify-center gap-2">
+                           <button type="button"
+                                   class="btnGrade min-w-[90px] text-center inline-flex items-center justify-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-md border border-blue-200 bg-blue-50 text-blue-700 hover:bg-blue-100 transition"
+                                   data-cp-id="{{ $council_project->id }}"
+                                   data-student-name="{{ $studentName }}"
+                                   data-student-code="{{ $studentCode }}"
+                                   data-topic="{{ $topic }}"
+                                   data-advisor='@json($advisor->map(fn($a) => $a->supervisor->teacher->user->fullname))'
+                                   data-report="{{ $reportUrl }}"
+                                   data-current-score="{{ is_numeric($scoreReview) ? $scoreReview : '' }}">
+                             <i class="ph ph-pen"></i> Chấm
+                           </button>
                           @if ($councilId)
-                            <a class="px-2 py-1 border border-slate-200 rounded text-xs hover:bg-slate-100 transition whitespace-nowrap" 
-                              href="{{ route('web.teacher.committee_detail', ['councilId' => $councilId, 'termId' => $rows->id]) }}">
-                              Xem hội đồng
+                            <a class="min-w-[90px] text-center inline-flex items-center justify-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-md border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 transition" 
+                              href="{{ route('web.teacher.committee_detail', ['councilId' => $councilId, 'termId' => $projectTerm->id]) }}">
+                              <i class="ph ph-eye"></i> Hội đồng
                             </a>
                           @endif
                         </div>
@@ -218,6 +236,64 @@
 
         </div>
       </main>
+    </div>
+  </div>
+
+  <!-- Modal: Chấm phản biện -->
+  <div id="gradeModal" class="fixed inset-0 z-50 hidden">
+    <div class="absolute inset-0 bg-black/40" data-close-grade></div>
+    <div class="relative bg-white w-full max-w-3xl mx-auto mt-10 md:mt-24 rounded-2xl shadow-xl">
+      <div class="flex items-center justify-between px-5 py-4 border-b">
+        <h3 class="font-semibold">Chấm phản biện</h3>
+        <button class="text-slate-500 hover:text-slate-700" data-close-grade><i class="ph ph-x"></i></button>
+      </div>
+      <div class="p-5">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+          <div>
+            <div class="text-slate-500">Sinh viên</div>
+            <div id="gStudent" class="font-medium text-slate-800">—</div>
+          </div>
+          <div>
+            <div class="text-slate-500">MSSV</div>
+            <div id="gCode" class="font-medium text-slate-800">—</div>
+          </div>
+          <div class="md:col-span-2">
+            <div class="text-slate-500">Đề tài</div>
+            <div id="gTopic" class="font-medium text-slate-800 line-clamp-2">—</div>
+          </div>
+          <div>
+            <div class="text-slate-500">GV hướng dẫn</div>
+            <div id="gAdvisor" class="font-medium text-slate-800">—</div>
+          </div>
+          <div class="flex items-center gap-2">
+            <i class="ph ph-file text-slate-500"></i>
+            <a id="gReportLink" href="#" target="_blank" class="text-blue-600 hover:underline text-sm">Xem báo cáo</a>
+          </div>
+        </div>
+        <hr class="my-4">
+        <form id="gradeForm" class="space-y-4">
+          <input type="hidden" name="cp_id" id="gCpId" />
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+              <label class="text-sm text-slate-600">Điểm (0 - 10)</label>
+              <input name="score" id="gScore" type="number" step="0.1" min="0" max="10"
+                     class="mt-1 w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
+            </div>
+            <div class="md:col-span-2">
+              <label class="text-sm text-slate-600">Nhận xét</label>
+              <textarea name="comment" id="gComment" rows="3"
+                        class="mt-1 w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                        placeholder="Nhận xét, góp ý..."></textarea>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="px-5 py-4 border-t flex items-center justify-end gap-2">
+        <button class="px-3 py-1.5 rounded-lg border text-sm hover:bg-slate-50" data-close-grade>Đóng</button>
+        <button id="btnSubmitGrade" class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm">
+          <i class="ph ph-check"></i> Lưu điểm
+        </button>
+      </div>
     </div>
   </div>
 
@@ -248,6 +324,68 @@
       });
     });
 
+    // Grade modal helpers
+    const gradeModal = document.getElementById('gradeModal');
+    function openGrade(){ gradeModal.classList.remove('hidden'); document.body.classList.add('overflow-hidden'); }
+    function closeGrade(){ gradeModal.classList.add('hidden'); document.body.classList.remove('overflow-hidden'); }
+    gradeModal?.addEventListener('click', (e)=>{ if(e.target.closest('[data-close-grade]')) closeGrade(); });
+
+    // Open modal with row data
+    document.querySelectorAll('.btnGrade').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const cpId = btn.dataset.cpId || '';
+        const stName = btn.dataset.studentName || 'N/A';
+        const stCode = btn.dataset.studentCode || 'N/A';
+        const topic = btn.dataset.topic || 'N/A';
+        let advisor = [];
+        try {
+          advisor = JSON.parse(btn.dataset.advisor || '[]');
+        } catch {
+          advisor = [];
+        }
+        const report = btn.dataset.report || '#';
+        const current = btn.dataset.currentScore || '';
+        document.getElementById('gCpId').value = cpId;
+        document.getElementById('gStudent').textContent = stName;
+        document.getElementById('gCode').textContent = stCode;
+        document.getElementById('gTopic').textContent = topic;
+        document.getElementById('gAdvisor').textContent = advisor.join(', ');
+        const link = document.getElementById('gReportLink');
+        link.href = report && report !== '' ? report : '#';
+        link.classList.toggle('pointer-events-none', !report || report === '#');
+        link.classList.toggle('text-slate-400', !report || report === '#');
+        document.getElementById('gScore').value = current;
+        document.getElementById('gComment').value = '';
+        openGrade();
+      });
+    });
+
+    // Submit grade (AJAX placeholder - cập nhật URL phù hợp backend của bạn)
+    document.getElementById('btnSubmitGrade')?.addEventListener('click', async ()=>{
+      const cpId = document.getElementById('gCpId').value;
+      const score = document.getElementById('gScore').value;
+      const comment = document.getElementById('gComment').value;
+      if (!cpId) { alert('Thiếu mã bản ghi.'); return; }
+      if (score === '' || isNaN(parseFloat(score))) { alert('Vui lòng nhập điểm hợp lệ.'); return; }
+      const token = document.querySelector('meta[name="csrf-token"]')?.content || '';
+      // TODO: thay route này theo hệ thống của bạn
+      const url = `{{ route('web.teacher.reviews.store', ['council_project' => 0]) ?? '' }}`.replace('/0','/'+cpId);
+      if (!url || url.includes('route(')) { console.log({cpId, score, comment}); alert('Đã nhập điểm (demo). Hãy nối route lưu điểm ở backend).'); closeGrade(); return; }
+      const btn = document.getElementById('btnSubmitGrade');
+      const old = btn.innerHTML; btn.disabled = true; btn.innerHTML = '<i class="ph ph-spinner-gap animate-spin"></i> Đang lưu...';
+      try {
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: {'Content-Type':'application/json','Accept':'application/json','X-CSRF-TOKEN': token,'X-Requested-With':'XMLHttpRequest'},
+          body: JSON.stringify({ score: parseFloat(score), comment })
+        });
+        const data = await res.json().catch(()=> ({}));
+        if (!res.ok || data.ok === false) { alert(data.message || 'Lưu điểm thất bại.'); btn.disabled=false; btn.innerHTML=old; return; }
+        closeGrade(); location.reload();
+      } catch (e) {
+        alert('Lỗi mạng.'); btn.disabled=false; btn.innerHTML=old;
+      }
+    });
   </script>
 </body>
 </html>

@@ -118,7 +118,7 @@
                 $department = $coucilMenber->council->department->name ?? 'N/A';
                 $faculty = "Công nghệ thông tin"; // Placeholder, replace with actual faculty if available
                 $description = $coucilMenber->council->description;
-                $studentsCount = $coucilMenber?->council_projects?->count() ?? 0;
+                $studentsCount = $coucilMenber?->council_project?->count() ?? 0;
               @endphp
                 <div class="bg-white border rounded-xl p-4 shadow-sm hover:shadow-md transition">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -157,7 +157,7 @@
 
                             <!-- Số lượng sinh viên -->
                             <div class="bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-lg text-sm font-medium border border-indigo-200 mb-4">
-                                <i class="ph ph-users-three mr-1"></i> {{ $studentsCount ?? 0 }} sinh viên
+                                <i class="ph ph-users-three mr-1"></i> {{ $studentsCount }} sinh viên
                             </div>
 
                             <a href="{{ route('web.teacher.review_assignments', ['supervisorId' => $supervisorId, 'councilId' => $coucilMenber->council_id, 'termId' => $termId]) }}"

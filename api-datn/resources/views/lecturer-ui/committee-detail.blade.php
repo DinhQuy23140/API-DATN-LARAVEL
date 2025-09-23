@@ -15,6 +15,7 @@
     .sidebar-collapsed .sidebar { width:72px; }
     .sidebar { width:260px; }
   </style>
+  <meta name="csrf-token" content="{{ csrf_token() }}">
 </head>
   @php
     $user = auth()->user();
@@ -175,7 +176,7 @@
             <!-- Header -->
             <div class="flex items-center justify-between">
               <h2 class="font-semibold text-lg">Thông tin hội đồng</h2>
-              <span class="text-xs text-slate-500">Vị trí phòng bảo vệ đồ án</span>
+              <span class="text-xs text-slate-500">Mã hội đồng: {{ $council->code }}</span>
             </div>
 
             <!-- Thông tin chính -->
@@ -218,7 +219,7 @@
               <!-- Đợt đồ án -->
               <div>
                 <h3 class="text-sm font-semibold text-slate-700">Đợt đồ án</h3>
-                <p class="mt-1 text-slate-600">{{ $council->project_term->name ?? '-' }}</p>
+                <p class="mt-1 text-slate-600">{{ $council->project_term->stage ?? '-' }}</p>
               </div>
             </div>
 
@@ -230,7 +231,7 @@
 
             <!-- Sơ đồ phòng -->
             <div>
-              <h3 class="text-sm font-semibold text-slate-700">Sơ đồ phòng</h3>
+              <h3 class="text-sm font-semibold text-slate-700">Sơ đồ phòng: Phòng {{ $council->address }}</h3>
               <div class="mt-2 h-40 bg-slate-100 border border-dashed rounded grid place-items-center text-slate-500 text-sm">
                 Sơ đồ phòng (placeholder)
               </div>
@@ -239,33 +240,60 @@
           @php
           $council_members = $council->council_members->sortByDesc('role') ?? collect();
           @endphp
-          <section class="bg-white border rounded-xl p-4">
-            <div class="flex items-center justify-between mb-2">
-              <h3 class="font-semibold">Thành viên hội đồng</h3>
+
+          <section class="bg-white border rounded-xl p-6 shadow-sm">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-lg font-semibold text-slate-800">Thành viên hội đồng</h3>
               <div class="text-xs text-slate-500">Xem thông tin chi tiết từng thành viên</div>
             </div>
-            <div id="members" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+
+            <div id="members" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               @foreach ($council_members as $council_member)
-              @php
-              $liatRole = [
-                '5' => 'Chủ tịch',
-                '4' => 'Thư ký',
-                '3' => 'Ủy viên 1',
-                '2' => 'Ủy viên 2',
-                '1' => 'Ủy viên 3',];
-                $role = $liatRole[$council_member->role] ?? 'Thành viên';
-                $name = $council_member->supervisor->teacher->user->fullname ?? 'N/A';
-                $email = $council_member->supervisor->teacher->user->email ?? 'N/A';
-                $phone = $council_member->supervisor->teacher->user->phone ?? 'N/A';
-              @endphp
-              <div class="border rounded-lg p-3 bg-white">
-                <div class="text-slate-500 text-sm">{{ $role }}</div>
-                <div class="font-medium">{{ $name }}</div>
-                <div class="text-xs text-slate-600">{{ $email }} • {{ $phone }}</div>
-                <div class="mt-2">
-                  <button data-midx="${idx}" class="px-3 py-1.5 border border-slate-200 rounded text-sm"><i class="ph ph-user"></i> Xem thông tin</button>
+                @php
+                  $liatRole = [
+                    '5' => 'Chủ tịch',
+                    '4' => 'Thư ký',
+                    '3' => 'Ủy viên 1',
+                    '2' => 'Ủy viên 2',
+                    '1' => 'Ủy viên 3',
+                  ];
+                  $role  = $liatRole[$council_member->role] ?? 'Thành viên';
+                  $name  = $council_member->supervisor->teacher->user->fullname ?? 'N/A';
+                  $email = $council_member->supervisor->teacher->user->email ?? 'N/A';
+                  $phone = $council_member->supervisor->teacher->user->phone ?? 'N/A';
+                @endphp
+
+                <div class="border rounded-xl p-4 bg-white shadow-sm hover:shadow-md transition duration-200 flex flex-col">
+                  <div class="flex items-center gap-3">
+                    <!-- Avatar -->
+                    <div class="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold">
+                      <i class="ph ph-user text-xl"></i>
+                    </div>
+                    <div>
+                      <div class="font-medium text-slate-800">{{ $name }}</div>
+                      <div class="text-xs text-slate-500">{{ $email }}</div>
+                      <div class="text-xs text-slate-500">{{ $phone }}</div>
+                    </div>
+                  </div>
+
+                  <div class="mt-3">
+                    <span class="inline-flex items-center px-2 py-1 text-xs font-medium rounded-full 
+                      {{ $council_member->role == 5 ? 'bg-red-100 text-red-600' : 
+                        ($council_member->role == 4 ? 'bg-blue-100 text-blue-600' : 
+                        'bg-slate-100 text-slate-600') }}">
+                      {{ $role }}
+                    </span>
+                  </div>
+
+                  <div class="mt-auto pt-3">
+                    <button data-midx="${idx}" 
+                      class="w-full inline-flex items-center justify-center gap-2 px-3 py-2 
+                            border border-slate-200 rounded-lg text-sm font-medium text-slate-700 
+                            hover:bg-slate-50 transition">
+                      <i class="ph ph-address-book"></i> Xem thông tin
+                    </button>
+                  </div>
                 </div>
-              </div>
               @endforeach
             </div>
           </section>
@@ -273,7 +301,13 @@
           <section class="bg-white border rounded-xl p-4">
             <div class="flex items-center justify-between mb-2">
               <h3 class="font-semibold">Sinh viên thuộc hội đồng</h3>
-              <div class="text-xs text-slate-500">Danh sách sinh viên bảo vệ tại hội đồng này</div>
+              <div class="flex items-center gap-3">
+                <div class="hidden md:block text-xs text-slate-500">Danh sách sinh viên bảo vệ tại hội đồng này</div>
+                <button id="btnOpenAssignModal"
+                        class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm">
+                  <i class="ph ph-user-switch"></i> Phân công sinh viên
+                </button>
+              </div>
             </div>
 
             @php
@@ -324,6 +358,117 @@
               </table>
             </div>
           </section>
+
+          <!-- Modal: Phân công sinh viên -->
+          <div id="assignModal" class="fixed inset-0 z-50 hidden">
+            <div class="absolute inset-0 bg-black/40" data-close-assign></div>
+            <div class="relative bg-white w-full max-w-5xl mx-auto mt-6 md:mt-20 rounded-2xl shadow-lg">
+              <div class="flex items-center justify-between px-5 py-4 border-b">
+                <h3 class="font-semibold">Phân công sinh viên vào giảng viên phản biện</h3>
+                <button class="text-slate-500 hover:text-slate-700" data-close-assign><i class="ph ph-x"></i></button>
+              </div>
+              <div class="p-5">
+                <!-- Lịch bảo vệ: Ngày - Giờ - Phòng -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5">
+                  <div>
+                    <label class="text-sm text-slate-600">Ngày</label>
+                    <input id="assignDate" type="date"
+                           class="mt-1 w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
+                  </div>
+                  <div>
+                    <label class="text-sm text-slate-600">Giờ</label>
+                    <input id="assignTime" type="time"
+                           class="mt-1 w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
+                  </div>
+                  <div>
+                    <label class="text-sm text-slate-600">Phòng</label>
+                    <input id="assignRoom" type="text" placeholder="VD: B203"
+                           class="mt-1 w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
+                  </div>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <!-- Bảng giảng viên -->
+                  <div class="border rounded-xl overflow-hidden">
+                    <div class="px-4 py-3 border-b font-medium bg-slate-50">Giảng viên trong hội đồng</div>
+                    <div class="overflow-x-auto">
+                      <table class="w-full text-sm">
+                        <thead>
+                          <tr class="text-left text-slate-500 border-b">
+                            <th class="py-2 px-3 w-10"></th>
+                            <th class="py-2 px-3">Họ tên</th>
+                            <th class="py-2 px-3">Chức vụ</th>
+                          </tr>
+                        </thead>
+                        <tbody id="cmTbody" class="divide-y divide-slate-200">
+                          @php
+                            $roleMap = ['5'=>'Chủ tịch','4'=>'Thư ký','3'=>'Ủy viên 1','2'=>'Ủy viên 2','1'=>'Ủy viên 3'];
+                          @endphp
+                          @foreach(($council->council_members ?? collect())->sortByDesc('role') as $m)
+                            @php
+                              $cmId = $m->id;
+                              $cmName = $m->supervisor->teacher->user->fullname ?? 'N/A';
+                              $cmRole = $roleMap[(string)$m->role] ?? 'Thành viên';
+                            @endphp
+                            <tr class="hover:bg-slate-50 cursor-pointer" data-cm-id="{{ $cmId }}">
+                              <td class="py-2 px-3">
+                                <input type="checkbox" class="cm-check" value="{{ $cmId }}">
+                              </td>
+                              <td class="py-2 px-3 font-medium text-slate-800">{{ $cmName }}</td>
+                              <td class="py-2 px-3 text-slate-600">{{ $cmRole }}</td>
+                            </tr>
+                          @endforeach
+                        </tbody>
+                      </table>
+                    </div>
+                    <div class="px-4 py-2 border-t text-xs text-slate-500">Chọn 1 giảng viên (click dòng để chọn).</div>
+                  </div>
+
+                  <!-- Bảng sinh viên -->
+                  <div class="border rounded-xl overflow-hidden">
+                    <div class="px-4 py-3 border-b font-medium bg-slate-50">Sinh viên thuộc hội đồng</div>
+                    <div class="overflow-x-auto">
+                      <table class="w-full text-sm">
+                        <thead>
+                          <tr class="text-left text-slate-500 border-b">
+                            <th class="py-2 px-3 w-10"></th>
+                            <th class="py-2 px-3">MSSV</th>
+                            <th class="py-2 px-3">Họ tên</th>
+                            <th class="py-2 px-3">Đề tài</th>
+                          </tr>
+                        </thead>
+                        <tbody id="cpTbody" class="divide-y divide-slate-200">
+                          @foreach (($council->council_projects ?? collect()) as $cp)
+                            @php
+                              $cpId = $cp->id;
+                              $svCode = $cp->assignment->student->student_code ?? 'N/A';
+                              $svName = $cp->assignment->student->user->fullname ?? 'N/A';
+                              $topic  = $cp->assignment->project->name ?? 'N/A';
+                            @endphp
+                            <tr class="hover:bg-slate-50 cursor-pointer" data-cp-id="{{ $cpId }}">
+                              <td class="py-2 px-3">
+                                <input type="checkbox" class="cp-check" value="{{ $cpId }}">
+                              </td>
+                              <td class="py-2 px-3 font-medium text-slate-800">{{ $svCode }}</td>
+                              <td class="py-2 px-3">{{ $svName }}</td>
+                              <td class="py-2 px-3 text-slate-600">{{ $topic }}</td>
+                            </tr>
+                          @endforeach
+                        </tbody>
+                      </table>
+                    </div>
+                    <div class="px-4 py-2 border-t text-xs text-slate-500">Chọn 1 hoặc nhiều sinh viên (click dòng để chọn).</div>
+                  </div>
+                </div>
+              </div>
+              <div class="px-5 py-4 border-t flex items-center justify-end gap-2">
+                <button class="px-3 py-1.5 rounded-lg border text-sm hover:bg-slate-50" data-close-assign>Đóng</button>
+                <button id="btnDoAssign"
+                        class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm">
+                  <i class="ph ph-check"></i> Phân công
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </main>
     </div>
@@ -347,112 +492,87 @@
       document.addEventListener('click', (e)=>{ if(!profileBtn?.contains(e.target) && !profileMenu?.contains(e.target)) profileMenu?.classList.add('hidden'); });
     })();
 
-    function qs(k){ const p = new URLSearchParams(location.search); return p.get(k) || ''; }
-    const cid = qs('id') || 'CNTT-01';
-    document.getElementById('cId').textContent = cid;
+    // Chỉ giữ logic cho modal phân công
 
-    // Mock data for committees, members, students
-    const DATA = {
-      committees: {
-        'CNTT-01': {
-          id: 'CNTT-01', name: 'Hội đồng CNTT-01', date: '20/08/2025', time: '08:00', room: 'P.A203',
-          members: [
-            { role: 'Chủ tịch', name: 'PGS.TS. Trần Văn B', email: 'b@uni.edu', phone: '0900 001 001' },
-            { role: 'Ủy viên', name: 'TS. Lê Thị C', email: 'c@uni.edu', phone: '0900 001 002' },
-            { role: 'Ủy viên', name: 'TS. Phạm Văn D', email: 'd@uni.edu', phone: '0900 001 003' },
-            { role: 'Thư ký', name: 'ThS. Nguyễn Văn G', email: 'g@uni.edu', phone: '0900 001 004' },
-            { role: 'Phản biện', name: 'TS. Nguyễn Thị E', email: 'e@uni.edu', phone: '0900 001 005' }
-          ],
-          students: [
-            { id: '20210001', name: 'Nguyễn Văn A', topic: 'Hệ thống quản lý thư viện', time: '08:00' },
-            { id: '20210003', name: 'Lê Văn C', topic: 'Hệ thống đặt lịch khám', time: '08:45' }
-          ]
-        },
-        'CNTT-02': {
-          id: 'CNTT-02', name: 'Hội đồng CNTT-02', date: '20/08/2025', time: '09:30', room: 'P.A204',
-          members: [
-            { role: 'Chủ tịch', name: 'TS. Phạm Văn D', email: 'd@uni.edu', phone: '0900 002 001' },
-            { role: 'Ủy viên', name: 'TS. Lê Thị C', email: 'c@uni.edu', phone: '0900 002 002' },
-            { role: 'Ủy viên', name: 'ThS. Trần Thị F', email: 'f@uni.edu', phone: '0900 002 003' },
-            { role: 'Thư ký', name: 'ThS. Nguyễn Văn G', email: 'g@uni.edu', phone: '0900 002 004' },
-            { role: 'Phản biện', name: 'TS. Nguyễn Thị E', email: 'e@uni.edu', phone: '0900 002 005' }
-          ],
-          students: [
-            { id: '20210002', name: 'Trần Thị B', topic: 'Ứng dụng quản lý công việc', time: '09:30' }
-          ]
-        }
-      }
-    };
-
-    const c = DATA.committees[cid] || DATA.committees['CNTT-01'];
-    document.getElementById('cName').textContent = c.name;
-    document.getElementById('cDate').textContent = c.date;
-    document.getElementById('cTime').textContent = c.time;
-    document.getElementById('cRoom').textContent = c.room;
-
-    // Members
-    const membersBox = document.getElementById('members');
-    membersBox.innerHTML = c.members.map((m,idx)=>`
-      <div class="border rounded-lg p-3 bg-white">
-        <div class="text-slate-500 text-sm">${m.role}</div>
-        <div class="font-medium">${m.name}</div>
-        <div class="text-xs text-slate-600">${m.email} • ${m.phone}</div>
-        <div class="mt-2">
-          <button data-midx="${idx}" class="px-3 py-1.5 border border-slate-200 rounded text-sm"><i class="ph ph-user"></i> Xem thông tin</button>
-        </div>
-      </div>
-    `).join('');
-
-    // Simple modal for member info
-    function modal(title, body){
-      const w = document.createElement('div');
-      w.className = 'fixed inset-0 z-50 flex items-end sm:items-center justify-center';
-      w.innerHTML = `
-        <div class='absolute inset-0 bg-black/40' data-close></div>
-        <div class='relative bg-white w-full sm:max-w-md rounded-t-2xl sm:rounded-2xl shadow-lg p-4 m-0 sm:m-4'>
-          <div class='flex items-center justify-between mb-3'>
-            <h3 class='font-semibold'>${title}</h3>
-            <button data-close class='text-slate-500'><i class='ph ph-x'></i></button>
-          </div>
-          <div class='text-sm'>${body}</div>
-          <div class='mt-3 flex justify-end'><button data-close class='px-3 py-1.5 bg-blue-600 text-white rounded text-sm'>Đóng</button></div>
-        </div>`;
-      document.body.appendChild(w); const close=()=>w.remove();
-      w.addEventListener('click', e=>{ if(e.target.matches('[data-close]')) close(); });
-      return { close };
+    // Modal helpers
+    const assignModal = document.getElementById('assignModal');
+    function openAssignModal(){
+      assignModal?.classList.remove('hidden');
+      document.body.classList.add('overflow-hidden');
     }
-
-    document.querySelectorAll('[data-midx]').forEach(btn=>{
-      btn.addEventListener('click', ()=>{
-        const i = parseInt(btn.getAttribute('data-midx'));
-        const m = c.members[i];
-        modal('Thông tin thành viên', `
-          <div class='space-y-1'>
-            <div><span class='text-slate-500'>Chức vụ:</span> ${m.role}</div>
-            <div><span class='text-slate-500'>Họ tên:</span> ${m.name}</div>
-            <div><span class='text-slate-500'>Email:</span> <a class='text-blue-600 hover:underline' href='mailto:${m.email}'>${m.email}</a></div>
-            <div><span class='text-slate-500'>Điện thoại:</span> ${m.phone}</div>
-          </div>
-        `);
-      });
+    function closeAssignModal(){
+      assignModal?.classList.add('hidden');
+      document.body.classList.remove('overflow-hidden');
+    }
+    document.getElementById('btnOpenAssignModal')?.addEventListener('click', (e)=>{
+      e.preventDefault();
+      openAssignModal();
+    });
+    assignModal?.addEventListener('click', (e)=>{
+      if(e.target.closest('[data-close-assign]')) closeAssignModal();
     });
 
-    // Students table
-    const sRows = document.getElementById('studentRows');
-    sRows.innerHTML = c.students.map(s=>`
-      <tr class='border-b hover:bg-slate-50'>
-        <td class='py-3 px-3'><a class='text-blue-600 hover:underline' href='supervised-student-detail.html?id=${encodeURIComponent(s.id)}&name=${encodeURIComponent(s.name)}'>${s.name}</a></td>
-        <td class='py-3 px-3'>${s.id}</td>
-        <td class='py-3 px-3'>${s.topic}</td>
-        <td class='py-3 px-3'>${c.date} • ${s.time}</td>
-        <td class='py-3 px-3'>
-          <div class="flex items-center gap-1">
-            <a class='px-2 py-1 border border-slate-200 rounded text-xs hover:bg-slate-50' href='supervised-student-detail.html?id=${encodeURIComponent(s.id)}&name=${encodeURIComponent(s.name)}'>Xem SV</a>
-            <a class='px-2 py-1 border border-slate-200 rounded text-xs hover:bg-slate-50' href='defense-student.html?studentId=${encodeURIComponent(s.id)}&name=${encodeURIComponent(s.name)}&committeeId=${encodeURIComponent(c.id)}'>Chấm bảo vệ</a>
-          </div>
-        </td>
-      </tr>
-    `).join('');
+    // Toggle bằng click row
+    function setupRowToggle(containerSel, checkboxCls, single=false){
+      const tbody = document.querySelector(containerSel);
+      if(!tbody) return;
+      tbody.addEventListener('click', (e)=>{
+        const tr = e.target.closest('tr');
+        if(!tr) return;
+        const cb = tr.querySelector('input.'+checkboxCls);
+        if(!cb) return;
+        if (single) {
+          tbody.querySelectorAll('input.'+checkboxCls).forEach(x => x.checked = false);
+          cb.checked = true;
+        } else {
+          cb.checked = !cb.checked;
+        }
+      });
+    }
+    // Giảng viên: chọn 1
+    setupRowToggle('#cmTbody', 'cm-check', true);
+    // Sinh viên: chọn nhiều
+    setupRowToggle('#cpTbody', 'cp-check', false);
+
+    function getSelectedCM(){
+      const el = document.querySelector('#cmTbody input.cm-check:checked');
+      return el ? el.value : null;
+    }
+    function getSelectedCPs(){
+      return Array.from(document.querySelectorAll('#cpTbody input.cp-check:checked')).map(x=>x.value);
+    }
+
+    // Gọi API phân công
+    document.getElementById('btnDoAssign')?.addEventListener('click', async ()=>{
+      const cmId = getSelectedCM();
+      const cpIds = getSelectedCPs();
+      const date = (document.getElementById('assignDate')?.value || '').trim();
+      const time = (document.getElementById('assignTime')?.value || '').trim();
+      const room = (document.getElementById('assignRoom')?.value || '').trim();
+      if(!cmId){ alert('Vui lòng chọn 1 giảng viên trong hội đồng.'); return; }
+      if(!cpIds.length){ alert('Vui lòng chọn ít nhất 1 sinh viên.'); return; }
+      // Có thể yêu cầu bắt buộc nếu DB của bạn không cho null
+      // if (!room) { alert('Vui lòng nhập phòng.'); return; }
+
+      const token = document.querySelector('meta[name="csrf-token"]')?.content || '';
+      const url = `{{ route('web.teacher.councils.assign_reviewer', ['council' => $council->id]) }}`;
+      const btn = document.getElementById('btnDoAssign');
+      const old = btn.innerHTML; btn.disabled = true; btn.innerHTML = '<i class="ph ph-spinner-gap animate-spin"></i> Đang phân công...';
+      try {
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type':'application/json','Accept':'application/json','X-CSRF-TOKEN': token,'X-Requested-With':'XMLHttpRequest' },
+          body: JSON.stringify({ council_member_id: cmId, council_project_ids: cpIds, date, time, room })
+        });
+        const data = await res.json().catch(()=> ({}));
+        if(!res.ok || data.ok === false){ alert(data.message || 'Phân công thất bại.'); btn.disabled=false; btn.innerHTML=old; return; }
+        closeAssignModal();
+        location.reload();
+      } catch(err){
+        alert('Lỗi mạng, vui lòng thử lại.');
+        btn.disabled = false; btn.innerHTML = old;
+      }
+    });
   </script>
 </body>
 </html>

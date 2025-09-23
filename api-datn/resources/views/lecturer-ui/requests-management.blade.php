@@ -34,6 +34,7 @@
         ?? $user->profile_photo_url
         ?? 'https://ui-avatars.com/api/?name=' . urlencode($userName) . '&background=0ea5e9&color=ffffff';
     @endphp
+
   <div class="flex min-h-screen">
     <aside id="sidebar" class="sidebar fixed inset-y-0 left-0 z-30 bg-white border-r border-slate-200 flex flex-col transition-all">
       <div class="h-16 flex items-center gap-3 px-4 border-b border-slate-200">
@@ -253,21 +254,22 @@
                   <span class="status-pill px-2 py-0.5 rounded-full text-xs {{ $statusClass }}">{{ $statusLabel }}</span>
                 </td>
                 <td class="py-3 px-3" data-col="actions">
-                  @if ($item->status === 'pending')
+                  @if ($item->assignment_supervisors->first()->status === 'pending')
+                    @php $as = $item->assignment_supervisors->first(); @endphp
                     <button
-                     type="button"
+                      type="button"
                       class="accept-btn px-2 py-1 text-sm bg-green-600 text-white rounded mr-2 hover:bg-green-700"
                       data-id="{{ $item->id }}"
-                      data-name="{{ $item->assignment->student->user->fullname }}"
-                      data-url="{{ route('web.teacher.requests.accept', $item->id) }}">
+                      data-name="{{ $item->student->user->fullname}}"
+                      data-url="{{ route('web.teacher.requests.accept', $as->id) }}">
                       Chấp nhận
                     </button>
                     <button
-                     type="button"
+                      type="button"
                       class="reject-btn px-2 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700"
                       data-id="{{ $item->id }}"
-                      data-name="{{ $item->assignment->student->user->fullname }}"
-                      data-url="{{ route('web.teacher.requests.reject', $item->id) }}">
+                      data-name="{{ $item->student->user->fullname }}"
+                      data-url="{{ route('web.teacher.requests.reject', $as->id) }}">
                       Từ chối
                     </button>
                   @endif

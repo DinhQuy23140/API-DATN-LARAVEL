@@ -43,10 +43,17 @@
         // Các tập dữ liệu (đổi theo quan hệ thật của bạn)
         $outlineSubmissions = collect($assignment->project->progressLogs ?? []); // [] nếu không có
         $weeklyLogs = collect($assignment?->project?->progressLogs->sortBy('created_at') ?? []); // [] nếu không có
-        $finalReport = $assignment->final_report ?? null;
-        $finalOutline = $assignment->reportFiles[0] ?? null;
+        $finalReport = $assignment->project?->reportFiles()
+            ->where('type_report', 'report')
+            ->latest('created_at')
+            ->first() ?? null;
+        $finalOutline = $assignment->project?->reportFiles()
+            ->where('type_report', 'outline')
+            ->latest('created_at')
+            ->first() ?? null;
         $committee = $assignment->committee ?? null;
     @endphp
+
     <body class="bg-slate-50 text-slate-800">
     <div class="flex min-h-screen">
         <aside id="sidebar" class="sidebar fixed inset-y-0 left-0 z-30 bg-white border-r border-slate-200 flex flex-col transition-all">
@@ -188,10 +195,6 @@
                                        default => 'bg-slate-100 text-slate-700'
                                    };
 
-                                   $finalOutline = $assignment->project?->reportFiles()
-                                    ->latest('created_at')
-                                    ->first();
-
                                     $listOutline = $assignment->project?->reportFiles->sortByDesc('created_at') ?? collect();
                                     $countOutline = $assignment->project?->reportFiles()->count() ?? 0;
 
@@ -244,43 +247,51 @@
                                        <div class="mt-3">
                                            <div class="text-slate-600 text-sm mb-1">Các lần nộp</div>
                                            <div class="divide-y border rounded bg-white">
+                                                @php
+                                                $index = 0;
+                                                @endphp
                                                @foreach($listOutline as $outline )
-                                                   <div class="p-2 flex items-center justify-between gap-3">
-                                                       <div>
-                                                           <div class="text-sm">
-                                                               <span class="text-slate-500">#{{ $loop->index + 1 }}@if($loop->first) • mới nhất @endif:</span>
-                                                               {{ $outline->file_name ?? 'Đề cương' }}
-                                                           </div>
-                                                           <div class="text-xs text-slate-600">
-                                                               {{ $outline->created_at->format('H:m:i d/m/Y') ?? '-' }} •
-                                                               @if(!empty($outline->file_url))
-                                                                   <a class="text-blue-600 hover:underline" href="{{ $outline->file_url }}" target="_blank">{{ $outline->file_name ?? 'Tệp' }}</a>
-                                                               @else
-                                                                   <span class="text-slate-500">Không có tệp</span>
-                                                               @endif
-                                                           </div>
-                                                           @if(($outline->status ?? '') === 'rejected' && !empty($outline->note))
-                                                               <div class="text-xs text-rose-600">Lý do từ chối: Rejected</div>
-                                                           @endif
-                                                       </div>
-                                                       @php
-                                                           $pill = match($outline->status ?? null){
-                                                               'pending' => 'bg-amber-50 text-amber-700',
-                                                               'submitted' => 'bg-amber-50 text-amber-700',
-                                                               'approved' => 'bg-emerald-50 text-emerald-700',
-                                                               'rejected' => 'bg-rose-50 text-rose-700',
-                                                               default => 'bg-slate-100 text-slate-700'
-                                                           };
-                                                           $listStatus = [
-                                                               'pending' => 'Đã nộp',
-                                                               'submitted' => 'Đã nộp',
-                                                               'approved' => 'Đã duyệt',
-                                                               'rejected' => 'Bị từ chối',
-                                                           ];
-                                                           $statusOutline = $listStatus[$outline->status] ?? 'Chưa nộp';
-                                                       @endphp
-                                                       <div><span class="px-2 py-0.5 rounded-full text-xs {{ $pill }}">{{ $statusOutline }}</span></div>
-                                                   </div>
+                                                    @if ($outline->type_report == 'outline')
+                                                        @php
+                                                            $index++;
+                                                        @endphp
+                                                        <div class="p-2 flex items-center justify-between gap-3">
+                                                            <div>
+                                                                <div class="text-sm">
+                                                                    <span class="text-slate-500">#{{ $index }}@if($index == 1) • mới nhất @endif:</span>
+                                                                    {{ $outline->file_name ?? 'Đề cương' }}
+                                                                </div>
+                                                                <div class="text-xs text-slate-600">
+                                                                    {{ $outline->created_at->format('H:m:i d/m/Y') ?? '-' }} •
+                                                                    @if(!empty($outline->file_url))
+                                                                        <a class="text-blue-600 hover:underline" href="{{ $outline->file_url }}" target="_blank">{{ $outline->file_name ?? 'Tệp' }}</a>
+                                                                    @else
+                                                                        <span class="text-slate-500">Không có tệp</span>
+                                                                    @endif
+                                                                </div>
+                                                                @if(($outline->status ?? '') === 'rejected' && !empty($outline->note))
+                                                                    <div class="text-xs text-rose-600">Lý do từ chối: Rejected</div>
+                                                                @endif
+                                                            </div>
+                                                            @php
+                                                                $pill = match($outline->status ?? null){
+                                                                    'pending' => 'bg-amber-50 text-amber-700',
+                                                                    'submitted' => 'bg-amber-50 text-amber-700',
+                                                                    'approved' => 'bg-emerald-50 text-emerald-700',
+                                                                    'rejected' => 'bg-rose-50 text-rose-700',
+                                                                    default => 'bg-slate-100 text-slate-700'
+                                                                };
+                                                                $listStatus = [
+                                                                    'pending' => 'Đã nộp',
+                                                                    'submitted' => 'Đã nộp',
+                                                                    'approved' => 'Đã duyệt',
+                                                                    'rejected' => 'Bị từ chối',
+                                                                ];
+                                                                $statusOutline = $listStatus[$outline->status] ?? 'Chưa nộp';
+                                                            @endphp
+                                                            <div><span class="px-2 py-0.5 rounded-full text-xs {{ $pill }}">{{ $statusOutline }}</span></div>
+                                                        </div>
+                                                    @endif
                                                @endforeach
                                            </div>
                                        </div>
@@ -404,14 +415,14 @@
                                 <div class="font-medium">Báo cáo đồ án tốt nghiệp</div>
                                 <div class="text-slate-600">
                                     Tệp:
-                                    <a href="bao-cao-cuoi.pdf" class="text-blue-600 hover:underline" target="_blank">bao-cao-cuoi.pdf</a>
+                                    <a href="{{ $finalReport->file_url }}" class="text-blue-600 hover:underline" target="_blank">{{ $finalReport->file_name ?? 'Tệp báo cáo' }}</a>
                                 </div>
-                                <div class="text-slate-500">Nộp lúc: 12/08/2025 09:00</div>
-                                <div class="text-slate-500">Tương đồng: 8% (Turnitin)</div>
+                                <div class="text-slate-500">Nộp lúc: {{ $finalReport->created_at->format('H:m:i d/m/Y') ?? '-' }}</div>
+                                <div class="text-slate-500">Tương đồng: {{ $finalReport->similarity ?? '-' }}</div>
                             </div>
                             <div class="border rounded-lg p-3">
                                 <div class="text-slate-600">Điểm GVHD</div>
-                                <div class="text-3xl font-bold">9.0</div>
+                                <div class="text-3xl font-bold">{{ $finalReport->supervisor_score ?? '-' }}</div>
                             </div>
                         </div>
                     </div>
