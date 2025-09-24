@@ -1048,8 +1048,8 @@
                     $committee = $assignment->council_project?->council?->name ?? 'Chưa có hội đồng'; // ví dụ
                     $result    = "Đạt";     // ví dụ
                     $resultClass = "bg-emerald-100 text-emerald-700"; // ví dụ
-                    $order     = "01";
-                    $time      = "20/08/2025 • 08:00";
+                    $order     = $loop->index + 1; // ví dụ
+                    $time      = $assignment->council_project?->council?->date ?? 'Chưa có lịch';
                   @endphp
 
                   <tr class="hover:bg-slate-50 transition-colors">

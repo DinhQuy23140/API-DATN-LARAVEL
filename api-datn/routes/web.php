@@ -149,6 +149,21 @@ Route::middleware('auth')->prefix('assistant')->name('web.assistant.')->group(fu
         ->name('councils.assign_students');
 });
 
+Route::middleware('auth')->prefix('admin')->name('web.admin.')->group(function () {
+    Route::view('/overview', 'admin-ui.dashboard')->name('dashboard');
+    Route::view('/manage_accounts', 'admin-ui.manage-accounts')->name('manage_accounts');
+    Route::view('/manage_academy_years', 'admin-ui.manage-academy-years')->name('manage_academy_years');
+    Route::view('/manage_projects', 'admin-ui.manage-projects')->name('manage_projects');
+    Route::view('/manage_terms', 'admin-ui.manage-terms')->name('manage_terms');
+    Route::view('/manage_faculties', 'admin-ui.manage-faculties')->name('manage_faculties');
+    Route::view('/manage_assistants', 'admin-ui.manage-assistants')->name('manage_assistants');
+    Route::view('/manage_departments', 'admin-ui.manage-departments')->name('manage_departments');
+    Route::view('/manage_majors', 'admin-ui.manage-majors')->name('manage_majors');
+    Route::view('/manage_students', 'admin-ui.manage_students')->name('manage_students');
+    Route::view('/manage_staffs', 'admin-ui.manage_staffs')->name('manage_staffs');
+    Route::view('/assign_head', 'admin-ui.assign-head')->name('assign_head');
+});
+
 // Authenticated
 Route::middleware('auth')->group(function () {
     // Lecturer UI pages
@@ -210,4 +225,6 @@ Route::middleware(['web','auth'])->prefix('teacher')->name('web.teacher.')->grou
     // Lưu điểm phản biện cho 1 council_project
     Route::post('/reviews/{council_project}', [WebCouncilProjectController::class, 'update_review_score'])
         ->name('reviews.store');
+    Route::post('/assignment-supervisors/{assignmentSupervisor}/report-score', [AssignmentSupervisorController::class, 'updateReportScore'])
+        ->name('assignment_supervisors.report_score');
 });

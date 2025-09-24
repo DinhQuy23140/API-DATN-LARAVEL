@@ -30,13 +30,13 @@
           </div>
         </div>
         <nav class="flex-1 overflow-y-auto p-3">
-          <a href="dashboard.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-100 font-medium">
+          <a href="{{ route('web.admin.dashboard') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-100 font-medium">
             <i class="ph ph-gauge"></i> <span class="sidebar-label">Bảng điều khiển</span>
           </a>
-          <a href="manage-faculties.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-100 font-medium">
+          <a href="{{ route('web.admin.manage_faculties') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-100 font-medium">
             <i class="ph ph-graduation-cap"></i> <span class="sidebar-label">Quản lý Khoa</span>
           </a>
-          <a href="manage-assistants.html" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-100 font-medium">
+          <a href="{{ route('web.admin.manage_assistants') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-100 font-medium">
             <i class="ph ph-users-three"></i> <span class="sidebar-label">Trợ lý khoa</span>
           </a>
         </nav>
@@ -46,7 +46,7 @@
       </aside>
 
       <!-- Main area -->
-      <div class="flex-1 md:pl-[260px] h-screen overflow-hidden flex flex-col">
+      <div class="flex-1 h-screen overflow-hidden flex flex-col">
         <!-- Topbar -->
         <header class="h-16 bg-white border-b border-slate-200 flex items-center px-4 md:px-6 flex-shrink-0">
           <div class="flex items-center gap-3 flex-1">

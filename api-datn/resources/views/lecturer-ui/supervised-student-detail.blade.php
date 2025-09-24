@@ -15,6 +15,7 @@
         .sidebar-collapsed .sidebar { width:72px; }
         .sidebar { width:260px; }
     </style>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     </head>
     @php
         $user = auth()->user();
@@ -52,6 +53,9 @@
             ->latest('created_at')
             ->first() ?? null;
         $committee = $assignment->committee ?? null;
+        $asCurrent = optional($assignment->assignment_supervisors ?? collect())->firstWhere('supervisor_id', $supervisorId);
+        $asId = $supervisorId ?? 0;
+        $currentScoreReport = $asCurrent->score_report ?? '';
     @endphp
 
     <body class="bg-slate-50 text-slate-800">
@@ -379,7 +383,14 @@
                 <section class="bg-white border rounded-xl p-4 mt-4">
                     <div class="flex items-center justify-between mb-3">
                         <h2 class="font-semibold">Báo cáo cuối đồ án</h2>
-                       <button id="btnGradeFinal" class="px-3 py-1.5 bg-emerald-600 text-white rounded text-sm"><i class="ph ph-check-circle"></i> Chấm điểm</button>
+                       <button id="btnGradeFinal"
+                               class="px-3 py-1.5 bg-emerald-600 text-white rounded text-sm"
+                               data-as-id="{{ $asId }}"
+                               data-student="{{ $studentUser->fullname ?? 'Sinh viên' }}"
+                               data-project="{{ $project->name ?? ($project->title ?? 'Đề tài') }}"
+                               data-current-score="{{ $currentScoreReport }}">
+                         <i class="ph ph-check-circle"></i> Chấm điểm
+                       </button>
                     </div>
                    <div id="finalReport" class="text-sm text-slate-700"></div>
 <!-- +                   <div class="text-sm text-slate-700">
@@ -415,14 +426,14 @@
                                 <div class="font-medium">Báo cáo đồ án tốt nghiệp</div>
                                 <div class="text-slate-600">
                                     Tệp:
-                                    <a href="{{ $finalReport->file_url }}" class="text-blue-600 hover:underline" target="_blank">{{ $finalReport->file_name ?? 'Tệp báo cáo' }}</a>
+                                    <a href="{{ $finalReport?->file_url ?? '#' }}" class="text-blue-600 hover:underline" target="_blank">{{ $finalReport->file_name ?? 'Chưa có' }}</a>
                                 </div>
-                                <div class="text-slate-500">Nộp lúc: {{ $finalReport->created_at->format('H:m:i d/m/Y') ?? '-' }}</div>
-                                <div class="text-slate-500">Tương đồng: {{ $finalReport->similarity ?? '-' }}</div>
+                                <div class="text-slate-500">Nộp lúc: {{ $finalReport?->created_at->format('H:m:i d/m/Y') ?? '-' }}</div>
+                                <div class="text-slate-500">Tương đồng: {{ $finalReport?->similarity ?? '-' }}</div>
                             </div>
                             <div class="border rounded-lg p-3">
                                 <div class="text-slate-600">Điểm GVHD</div>
-                                <div class="text-3xl font-bold">{{ $finalReport->supervisor_score ?? '-' }}</div>
+                                <div class="text-3xl font-bold">{{ $finalReport?->supervisor_score ?? '-' }}</div>
                             </div>
                         </div>
                     </div>
@@ -539,6 +550,92 @@
         const profileBtn=document.getElementById('profileBtn'); const profileMenu=document.getElementById('profileMenu');
         profileBtn?.addEventListener('click', ()=> profileMenu.classList.toggle('hidden'));
         document.addEventListener('click', (e)=>{ if(!profileBtn?.contains(e.target) && !profileMenu?.contains(e.target)) profileMenu?.classList.add('hidden'); });
+    </script>
+    <!-- Modal: Chấm điểm GVHD -->
+    <div id="modalReportScore" class="fixed inset-0 z-50 hidden">
+      <div class="absolute inset-0 bg-black/40" data-close-rs></div>
+      <div class="relative bg-white w-full max-w-xl mx-auto mt-10 md:mt-24 rounded-2xl shadow-xl">
+        <div class="flex items-center justify-between px-5 py-4 border-b">
+          <h3 class="font-semibold">Chấm điểm báo cáo (GVHD)</h3>
+          <button class="text-slate-500 hover:text-slate-700" data-close-rs><i class="ph ph-x"></i></button>
+        </div>
+        <div class="p-5 space-y-4 text-sm">
+          <div>
+            <div class="text-slate-500">Sinh viên</div>
+            <div id="rsStudent" class="font-medium text-slate-800">—</div>
+          </div>
+          <div>
+            <div class="text-slate-500">Đề tài</div>
+            <div id="rsProject" class="font-medium text-slate-800">—</div>
+          </div>
+          <form id="rsForm" class="space-y-3">
+            <input type="hidden" id="rsAsId" />
+            <div>
+              <label class="text-sm text-slate-600">Điểm báo cáo (0 - 10)</label>
+              <input id="rsScore" type="number" step="0.1" min="0" max="10"
+                     class="mt-1 w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500" />
+            </div>
+            <div>
+              <label class="text-sm text-slate-600">Ghi chú (không bắt buộc)</label>
+              <textarea id="rsNote" rows="3"
+                        class="mt-1 w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                        placeholder="Nhận xét/ghi chú..."></textarea>
+            </div>
+          </form>
+        </div>
+        <div class="px-5 py-4 border-t flex items-center justify-end gap-2">
+          <button class="px-3 py-1.5 rounded-lg border text-sm hover:bg-slate-50" data-close-rs>Đóng</button>
+          <button id="rsSubmit" class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm">
+            <i class="ph ph-check"></i> Lưu điểm
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+        // Modal Report Score (GVHD)
+        const rsModal = document.getElementById('modalReportScore');
+        const openRs = ()=> { rsModal.classList.remove('hidden'); document.body.classList.add('overflow-hidden'); };
+        const closeRs= ()=> { rsModal.classList.add('hidden'); document.body.classList.remove('overflow-hidden'); };
+        rsModal?.addEventListener('click', (e)=>{ if(e.target.closest('[data-close-rs]')) closeRs(); });
+
+        document.getElementById('btnGradeFinal')?.addEventListener('click', ()=>{
+          const btn = document.getElementById('btnGradeFinal');
+          const asId = btn?.dataset.asId || '';
+          if (!asId || asId === '0') { alert('Không tìm thấy phân công GVHD cho sinh viên này.'); return; }
+          document.getElementById('rsAsId').value = asId;
+          document.getElementById('rsStudent').textContent = btn?.dataset.student || 'Sinh viên';
+          document.getElementById('rsProject').textContent = btn?.dataset.project || 'Đề tài';
+          document.getElementById('rsScore').value = btn?.dataset.currentScore || '';
+          document.getElementById('rsNote').value = '';
+          openRs();
+        });
+
+        document.getElementById('rsSubmit')?.addEventListener('click', async ()=>{
+          const asId = document.getElementById('rsAsId').value;
+          const score = document.getElementById('rsScore').value;
+          const note  = document.getElementById('rsNote').value;
+          if (!asId) { alert('Thiếu mã phân công.'); return; }
+          if (score === '' || isNaN(parseFloat(score))) { alert('Vui lòng nhập điểm hợp lệ.'); return; }
+          const token = document.querySelector('meta[name="csrf-token"]')?.content || '';
+          const url = `{{ route('web.teacher.assignment_supervisors.report_score', ['assignmentSupervisor' => 0]) }}`.replace('/0','/'+asId);
+          const btn = document.getElementById('rsSubmit');
+          const old = btn.innerHTML; btn.disabled = true; btn.innerHTML = '<i class="ph ph-spinner-gap animate-spin"></i> Đang lưu...';
+          try {
+            const res = await fetch(url, {
+              method: 'POST',
+              headers: {'Content-Type':'application/json','Accept':'application/json','X-CSRF-TOKEN': token,'X-Requested-With':'XMLHttpRequest'},
+              body: JSON.stringify({ score_report: parseFloat(score), note })
+            });
+            const data = await res.json().catch(()=> ({}));
+            if (!res.ok || data.ok === false) { alert(data.message || 'Lưu điểm thất bại.'); btn.disabled=false; btn.innerHTML=old; return; }
+            closeRs();
+            location.reload();
+          } catch (e) {
+            alert('Lỗi mạng, vui lòng thử lại.');
+            btn.disabled = false; btn.innerHTML = old;
+          }
+        });
     </script>
     </body>
 </html>

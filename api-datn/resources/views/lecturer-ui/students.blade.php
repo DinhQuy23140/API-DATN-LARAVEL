@@ -59,10 +59,19 @@
              class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('web.teacher.research') ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}">
             <i class="ph ph-flask"></i><span class="sidebar-label">Nghiên cứu</span>
           </a>
-          <a href="{{ route('web.teacher.students', ['supervisorId' => $supervisorId]) }}"
-             class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('web.teacher.students') ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}">
-            <i class="ph ph-student"></i><span class="sidebar-label">Sinh viên</span>
-          </a>
+
+        @if($user->teacher && $user->teacher->supervisor)
+            <a href="{{ route('web.teacher.students', ['supervisorId' => $supervisorId]) }}"
+               class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('web.teacher.students') ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}">
+              <i class="ph ph-student"></i><span class="sidebar-label">Sinh viên</span>
+            </a>
+        @else
+            <a href="#"
+               class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('web.teacher.students') ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}">
+              <i class="ph ph-student"></i><span class="sidebar-label">Sinh viên</span>
+            </a>
+        @endif
+
           <button type="button" id="toggleThesisMenu"
                   class="w-full flex items-center justify-between px-3 py-2 rounded-lg mt-3
                          {{ $isThesisOpen ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}">
