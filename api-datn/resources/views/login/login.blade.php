@@ -114,8 +114,16 @@
           </button>
 
           <!-- Links -->
-          <div class="text-center text-sm">
-            <a href="{{ route('web.auth.forgot') }}" class="text-sky-700 hover:text-sky-900 font-medium">Quên mật khẩu?</a>
+          <div class="text-center text-sm space-y-1">
+            <a href="{{ route('web.auth.forgot') }}" class="text-sky-700 hover:text-sky-900 font-medium">
+              Quên mật khẩu?
+            </a>
+            <div>
+              Chưa có tài khoản?
+              <a href="{{ route('register') }}" class="text-sky-700 hover:text-sky-900 font-medium">
+                Đăng ký
+              </a>
+            </div>
           </div>
         </form>
       </div>

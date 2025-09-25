@@ -18,7 +18,14 @@ class FacultiesSeeder extends Seeder
         Faculties::factory()->create([
             'code' => 'CNTT',
             'name' => 'Khoa Công nghệ thông tin',
+            'short_name' => 'CNTT',
             'description' => 'Khoa đào tạo ngành Công nghệ thông tin',
+            'assistant_id' => null,
+            'dean_id' => null,
+            'vice_dean_id' => null,
+            'phone' => '0123456789',
+            'email' => 'cntt@university.edu',
+            'address' => '123 Công nghệ, Quận 1, TP.HCM',
         ]);
     }
 }

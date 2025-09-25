@@ -18,6 +18,21 @@
   /* utility classes if needed */
     </style>
   </head>
+  @php
+    $user = auth()->user();
+    $userName = $user->fullname ?? $user->name ?? 'Giảng viên';
+    $email = $user->email ?? '';
+    // Tùy mô hình dữ liệu, thay các field bên dưới cho khớp
+    $dept = $user->department_name ?? optional($user->teacher)->department ?? '';
+    $faculty = $user->faculty_name ?? optional($user->teacher)->faculty ?? '';
+    $subtitle = trim(($dept ? "Bộ môn $dept" : '') . (($dept && $faculty) ? ' • ' : '') . ($faculty ? "Khoa $faculty" : ''));
+    $degree = $user->teacher->degree ?? '';
+    $expertise = $user->teacher->supervisor->expertise ?? 'null';
+    $teacherId = $user->teacher->id ?? 0;
+    $avatarUrl = $user->avatar_url
+      ?? $user->profile_photo_url
+      ?? 'https://ui-avatars.com/api/?name=' . urlencode($userName) . '&background=0ea5e9&color=ffffff';
+  @endphp
   <body class="bg-slate-50 text-slate-800">
     <div class="flex min-h-screen">
       <!-- Sidebar -->
@@ -30,7 +45,7 @@
           </div>
         </div>
         <nav class="flex-1 overflow-y-auto p-3">
-          <a href="{{ route('web.admin.dashboard') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-100 font-medium">
+          <a href="{{ route('web.admin.dashboard') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-700 bg-slate-100 font-bold">
             <i class="ph ph-gauge"></i> <span class="sidebar-label">Bảng điều khiển</span>
           </a>
           <a href="{{ route('web.admin.manage_faculties') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-100 font-medium">
@@ -58,10 +73,10 @@
           </div>
           <div class="relative">
             <button id="profileBtn" class="flex items-center gap-3 px-2 py-1.5 rounded-lg hover:bg-slate-100">
-              <img class="h-9 w-9 rounded-full object-cover" src="https://i.pravatar.cc/100?img=12" alt="avatar" />
+              <img class="h-9 w-9 rounded-full object-cover" src="{{ $avatarUrl }}" alt="avatar" />
               <div class="hidden sm:block text-left">
-                <div class="text-sm font-semibold leading-4">Admin</div>
-                <div class="text-xs text-slate-500">admin@uni.edu</div>
+                <div class="text-sm font-semibold leading-4">{{ $userName }}</div>
+                <div class="text-xs text-slate-500">{{ $email }}</div>
               </div>
               <i class="ph ph-caret-down text-slate-500 hidden sm:block"></i>
             </button>
@@ -203,12 +218,8 @@
         const mainArea = document.querySelector('.flex-1');
         if (collapsed) {
           html.classList.add('sidebar-collapsed');
-          mainArea.classList.add('md:pl-[72px]');
-          mainArea.classList.remove('md:pl-[260px]');
         } else {
           html.classList.remove('sidebar-collapsed');
-          mainArea.classList.remove('md:pl-[72px]');
-          mainArea.classList.add('md:pl-[260px]');
         }
       }
 

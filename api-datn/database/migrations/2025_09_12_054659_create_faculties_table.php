@@ -17,7 +17,14 @@ return new class extends Migration
             $table->id();
             $table->string('code');
             $table->string('name');
+            $table->string('short_name');
             $table->text('description');
+            $table->unsignedBigInteger('assistant_id')->nullable();
+            $table->unsignedBigInteger('dean_id')->nullable();
+            $table->unsignedBigInteger('vice_dean_id')->nullable();
+            $table->text('phone')->nullable();
+            $table->text('email')->nullable();
+            $table->text('address')->nullable();
             $table->timestamps();
         });
     }

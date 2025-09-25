@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 
 class UserController extends Controller
 {
@@ -42,42 +43,65 @@ class UserController extends Controller
     public function login(Request $request)
     {
         $data = $request->validate([
-            'email' => ['required','email'],
+            'email'    => ['required','email'],
             'password' => ['required','string'],
         ]);
 
-        // TẠM THỜI: so sánh mật khẩu plain trong DB (không an toàn cho production)
         $user = User::where('email', $data['email'])->first();
-
+        //     return back()
+        //         ->withErrors(['email' => 'Thông tin đăng nhập không đúng'])
+        //         ->onlyInput('email');
+        // Sai email hoặc mật khẩu
         if (!$user || $user->password !== $data['password']) {
             return back()
                 ->withErrors(['email' => 'Thông tin đăng nhập không đúng'])
                 ->onlyInput('email');
         }
+        // if (!$user || !Hash::check($data['password'], $user->password)) {
+        //     return back()
+        //         ->withErrors(['email' => 'Thông tin đăng nhập không đúng'])
+        //         ->onlyInput('email');
+        // }
 
+        // Nếu user cần verify email và chưa verify
+        if ($user instanceof MustVerifyEmail && !$user->hasVerifiedEmail()) {
+            // Đăng nhập tạm để gửi mail (hoặc không cần nếu muốn)
+            Auth::login($user);
+            // Gửi lại email xác thực (có throttle ở route)
+            try {
+                $user->sendEmailVerificationNotification();
+            } catch (\Throwable $e) {
+                // im lặng
+            }
+            // Đăng xuất để tránh vào được khu vực authenticated
+
+            return redirect()
+                ->route('verification.notice')
+                ->with('status', 'Vui lòng kiểm tra email để xác thực trước khi đăng nhập.');
+        }
+
+        // Đăng nhập chính thức
         Auth::login($user, $request->boolean('remember'));
         $request->session()->regenerate();
+
         $user->loadMissing([
             'teacher.supervisor.assignment_supervisors.assignment.student'
         ]);
 
-        // Nếu là giáo viên → chuyển tới lecturer-ui/overview.blade.php
-        if ($user->role === 'teacher') {
-            return redirect()->route('web.teacher.overview', compact('user'))
-                ->with('status', 'Đăng nhập thành công');
-        } else if($user->role=== 'head') {
-            return redirect()->route('web.head.overview', compact('user'))
-                ->with('status', 'Đăng nhập thành công');
-        } else if ($user->role === 'admin') {
-            return redirect()->route('web.admin.overview', compact('user'))
-                ->with('status', 'Đăng nhập thành công');
-        } else if($user->role === 'assistant') {
-            return redirect()->route('web.assistant.dashboard', compact('user'))
-                ->with('status', 'Đăng nhập thành công');
+        switch ($user->role) {
+            case 'teacher':
+            case 'dean':
+            case 'vice_dean':
+                return redirect()->route('web.teacher.overview')->with('status','Đăng nhập thành công');
+            case 'head':
+                return redirect()->route('web.head.overview')->with('status','Đăng nhập thành công');
+            case 'admin':
+                return redirect()->route('web.admin.dashboard')->with('status','Đăng nhập thành công');
+            case 'assistant':
+                return redirect()->route('web.assistant.dashboard')->with('status','Đăng nhập thành công');
         }
-        // Mặc định
-        // return redirect()->intended(route('web.users.index'))
-        //     ->with('status', 'Đăng nhập thành công');
+
+        return redirect()->intended('/')->with('status','Đăng nhập thành công');
     }
 
     public function showOverView()

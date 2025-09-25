@@ -18,17 +18,58 @@ use App\Http\Controllers\Web\CouncilController;
 use App\Http\Controllers\Web\CouncilController as WebCouncilController;
 use App\Http\Controllers\Web\CouncilProjectsController as WebCouncilProjectController;
 use App\Http\Controllers\Web\CouncilMembersController as WebCouncilMembersController;
-use App\Http\Controllers\Web\Teacher\ReviewController;
-// Guest (login)
+use App\Http\Controllers\Web\FacultiesController as WebFacultiesController;
+use App\Http\Controllers\Web\RegisterController;
+use Illuminate\Foundation\Auth\EmailVerificationRequest;
+use App\Http\Controllers\Web\EmailVerificationController;
+
+// Chỉ cho guest
 Route::middleware('guest')->group(function () {
+    // Login
     Route::get('/login', [WebUserController::class, 'showLoginForm'])->name('web.auth.login');
     Route::post('/login', [WebUserController::class, 'login'])->name('web.auth.login.post');
+    
+    // Forgot password
     Route::get('/forgot-password', function () {
         return view('login.forgot_pass_ui');
     })->name('web.auth.forgot');
+    
+    // Register
+    Route::get('/register', [RegisterController::class, 'showRegisterForm'])->name('register');
+    Route::post('/register', [RegisterController::class, 'register'])->name('register.post');
+
+    // (GỬ KHỎI ĐÂY) // Route::get('/verify-success', [RegisterController::class, 'showVerifySuccess'])->name('verification.success');
 });
 
-// Logout (chỉ cho user đã đăng nhập)
+// Cho cả user đã đăng nhập (sau verify vẫn vào được)
+Route::get('/verify-success', [RegisterController::class, 'showVerifySuccess'])->name('verification.success');
+
+// ===== Nhóm xác thực email (sau khi đăng ký) =====
+Route::middleware('auth')->group(function () {
+
+    // Trang nhắc kiểm tra email
+    Route::get('/email/verify', function () {
+        return view('login.verify-email');
+    })->name('verification.notice');
+
+    // Người dùng click link trong email
+    Route::get('/email/verify/{id}/{hash}', [EmailVerificationController::class, 'verify'])
+        ->middleware(['signed','throttle:6,1'])
+        ->name('verification.verify');
+
+    // Gửi lại link
+    Route::post('/email/verification-notification', [EmailVerificationController::class, 'resend'])
+        ->middleware(['throttle:6,1'])
+        ->name('verification.send');
+});
+
+// Ví dụ: nhóm route yêu cầu email đã verify
+Route::middleware(['auth','verified'])->prefix('teacher')->name('web.teacher.')->group(function () {
+    // đặt các route cho giảng viên ở đây
+    // Route::get('/dashboard', ...);
+});
+
+// Logout (chỉ cho auth user)
 Route::post('/logout', [WebUserController::class, 'logout'])
     ->middleware('auth')
     ->name('web.auth.logout');
@@ -149,19 +190,17 @@ Route::middleware('auth')->prefix('assistant')->name('web.assistant.')->group(fu
         ->name('councils.assign_students');
 });
 
-Route::middleware('auth')->prefix('admin')->name('web.admin.')->group(function () {
+Route::middleware(['web','auth'])->prefix('admin')->name('web.admin.')->group(function () {
     Route::view('/overview', 'admin-ui.dashboard')->name('dashboard');
     Route::view('/manage_accounts', 'admin-ui.manage-accounts')->name('manage_accounts');
     Route::view('/manage_academy_years', 'admin-ui.manage-academy-years')->name('manage_academy_years');
     Route::view('/manage_projects', 'admin-ui.manage-projects')->name('manage_projects');
     Route::view('/manage_terms', 'admin-ui.manage-terms')->name('manage_terms');
-    Route::view('/manage_faculties', 'admin-ui.manage-faculties')->name('manage_faculties');
     Route::view('/manage_assistants', 'admin-ui.manage-assistants')->name('manage_assistants');
-    Route::view('/manage_departments', 'admin-ui.manage-departments')->name('manage_departments');
-    Route::view('/manage_majors', 'admin-ui.manage-majors')->name('manage_majors');
-    Route::view('/manage_students', 'admin-ui.manage_students')->name('manage_students');
-    Route::view('/manage_staffs', 'admin-ui.manage_staffs')->name('manage_staffs');
-    Route::view('/assign_head', 'admin-ui.assign-head')->name('assign_head');
+    Route::get('/manage_faculties', [WebFacultiesController::class, 'load_dashboard'])->name('manage_faculties');
+    Route::post('/faculties', [WebFacultiesController::class, 'store'])->name('faculties.store');
+    Route::patch('/faculties/{faculty}', [WebFacultiesController::class, 'update'])->name('faculties.update');
+    Route::delete('/faculties/{faculty}', [WebFacultiesController::class, 'destroy'])->name('faculties.destroy');
 });
 
 // Authenticated

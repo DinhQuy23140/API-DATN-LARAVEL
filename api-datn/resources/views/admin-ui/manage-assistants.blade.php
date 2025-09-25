@@ -17,6 +17,21 @@
       .sidebar { width:260px; }
     </style>
   </head>
+  @php
+    $user = auth()->user();
+    $userName = $user->fullname ?? $user->name ?? 'Giảng viên';
+    $email = $user->email ?? '';
+    // Tùy mô hình dữ liệu, thay các field bên dưới cho khớp
+    $dept = $user->department_name ?? optional($user->teacher)->department ?? '';
+    $faculty = $user->faculty_name ?? optional($user->teacher)->faculty ?? '';
+    $subtitle = trim(($dept ? "Bộ môn $dept" : '') . (($dept && $faculty) ? ' • ' : '') . ($faculty ? "Khoa $faculty" : ''));
+    $degree = $user->teacher->degree ?? '';
+    $expertise = $user->teacher->supervisor->expertise ?? 'null';
+    $teacherId = $user->teacher->id ?? 0;
+    $avatarUrl = $user->avatar_url
+      ?? $user->profile_photo_url
+      ?? 'https://ui-avatars.com/api/?name=' . urlencode($userName) . '&background=0ea5e9&color=ffffff';
+  @endphp
   <body class="bg-slate-50 text-slate-800">
     <div class="flex min-h-screen">
       <!-- Sidebar -->
@@ -35,7 +50,7 @@
           <a href="{{ route('web.admin.manage_faculties') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-100 font-medium">
             <i class="ph ph-graduation-cap"></i> <span class="sidebar-label">Quản lý Khoa</span>
           </a>
-          <a href="{{ route('web.admin.manage_assistants') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-100 font-medium">
+          <a href="{{ route('web.admin.manage_assistants') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-700 bg-slate-100 font-bold">
             <i class="ph ph-users-three"></i> <span class="sidebar-label">Trợ lý khoa</span>
           </a>
         </nav>
@@ -45,7 +60,7 @@
       </aside>
 
       <!-- Main area -->
-      <div class="flex-1 md:pl-[260px] h-screen overflow-hidden flex flex-col">
+      <div class="flex-1 h-screen overflow-hidden flex flex-col">
         <!-- Topbar -->
         <header class="h-16 bg-white border-b border-slate-200 flex items-center px-4 md:px-6 flex-shrink-0">
           <div class="flex items-center gap-3 flex-1">
@@ -57,16 +72,19 @@
           </div>
           <div class="relative">
             <button id="profileBtn" class="flex items-center gap-3 px-2 py-1.5 rounded-lg hover:bg-slate-100">
-              <img class="h-9 w-9 rounded-full object-cover" src="https://i.pravatar.cc/100?img=12" alt="avatar" />
+              <img class="h-9 w-9 rounded-full object-cover" src="{{ $avatarUrl }}" alt="avatar" />
               <div class="hidden sm:block text-left">
-                <div class="text-sm font-semibold leading-4">Admin</div>
-                <div class="text-xs text-slate-500">admin@uni.edu</div>
+                <div class="text-sm font-semibold leading-4">{{ $userName }}</div>
+                <div class="text-xs text-slate-500">{{ $email }}</div>
               </div>
               <i class="ph ph-caret-down text-slate-500 hidden sm:block"></i>
             </button>
             <div id="profileMenu" class="hidden absolute right-0 mt-2 w-44 bg-white border border-slate-200 rounded-lg shadow-lg py-1 text-sm">
               <a href="#" class="flex items-center gap-2 px-3 py-2 hover:bg-slate-50"><i class="ph ph-user"></i>Xem thông tin</a>
-              <a href="#" class="flex items-center gap-2 px-3 py-2 hover:bg-slate-50 text-rose-600"><i class="ph ph-sign-out"></i>Đăng xuất</a>
+              <a href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();" class="flex items-center gap-2 px-3 py-2 hover:bg-slate-50 text-rose-600"><i class="ph ph-sign-out"></i>Đăng xuất</a>
+              <form id="logout-form" action="{{ route('web.auth.logout') }}" method="POST" class="hidden">
+                @csrf
+              </form>
             </div>
           </div>
         </header>
@@ -205,16 +223,8 @@
   const mainEl = document.querySelector('main');
         if (collapsed) {
           html.classList.add('sidebar-collapsed');
-          header.classList.add('md:left-[72px]');
-          header.classList.remove('md:left-[260px]');
-    mainEl.classList.add('md:pl-[72px]');
-    mainEl.classList.remove('md:pl-[260px]');
         } else {
           html.classList.remove('sidebar-collapsed');
-          header.classList.remove('md:left-[72px]');
-          header.classList.add('md:left-[260px]');
-    mainEl.classList.remove('md:pl-[72px]');
-    mainEl.classList.add('md:pl-[260px]');
         }
       }
       toggleSidebar?.addEventListener('click', ()=>{

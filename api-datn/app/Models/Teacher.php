@@ -31,4 +31,9 @@ class Teacher extends Model
     {
         return $this->belongsTo(Department::class);
     }
+
+    public function faculty()
+    {
+        return $this->belongsTo(Faculties::class, 'faculty_id');
+    }
 }

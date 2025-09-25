@@ -9,7 +9,7 @@ use App\Models\Department;
 class Faculties extends Model
 {
     use HasFactory;
-    protected $fillable = ['code', 'name', 'description'];
+    protected $fillable = ['code', 'name', 'short_name', 'description' ,'assistant_id', 'dean_id', 'vice_dean_id', 'phone', 'email', 'address'];
 
     public function departments()
     {
@@ -19,5 +19,25 @@ class Faculties extends Model
     public function marjors()
     {
         return $this->hasMany(Marjor::class);
+    }
+
+    public function assistant()
+    {
+        return $this->belongsTo(Teacher::class, 'assistant_id');
+    }
+
+    public function dean()
+    {
+        return $this->belongsTo(Teacher::class, 'dean_id');
+    }
+
+    public function viceDean()
+    {
+        return $this->belongsTo(Teacher::class, 'vice_dean_id');
+    }
+
+    public function teachers()
+    {
+        return $this->hasMany(Teacher::class, 'faculty_id');
     }
 }

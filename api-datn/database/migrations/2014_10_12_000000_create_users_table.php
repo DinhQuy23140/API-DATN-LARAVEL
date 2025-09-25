@@ -19,11 +19,12 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->string('phone')->nullable();
             $table->string('password');
-            $table->date('dob');
-            $table->string('gender');
+            $table->date('dob')->nullable();
+            $table->string('gender')->nullable();
             $table->text('address')->nullable(); // <-- thêm dòng này
             $table->string('image')->nullable();
-            $table->string('role');
+            $table->string('role')->default('teacher');
+            $table->timestamp('email_verified_at')->nullable();
             $table->rememberToken()->nullable(); // <-- thêm dòng này
             $table->timestamps();
         });
