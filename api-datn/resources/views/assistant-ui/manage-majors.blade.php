@@ -215,37 +215,34 @@
                 <th class="py-3 px-4 border-b w-10"><input id="chkAll" type="checkbox" class="h-4 w-4" /></th>
                 <th class="py-3 px-4 border-b">Mã</th>
                 <th class="py-3 px-4 border-b">Tên</th>
-                <th class="py-3 px-4 border-b">Bộ môn phụ trách</th>
+                <th class="py-3 px-4 border-b">Khoa phụ trách</th>
+                <th class="py-3 px-4 border-b">Số sinh viên</th>
                 <th class="py-3 px-4 border-b text-right">Hành động</th>
               </tr>
             </thead>
             <tbody id="tableBody">
-              <tr class="hover:bg-slate-50">
-                <td class="py-3 px-4"><input type="checkbox" class="rowChk h-4 w-4" /></td>
-                <td class="py-3 px-4">MJ-SE</td>
-                <td class="py-3 px-4">Kỹ thuật phần mềm</td>
-                <td class="py-3 px-4"><a class="text-blue-600 hover:underline" href="manage-departments.html">CNTT</a>
-                </td>
-                <td class="py-3 px-4 text-right space-x-2">
-                  <button class="px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-slate-600"
-                    onclick="openModal('edit','MJ-SE','Kỹ thuật phần mềm','CNTT')"><i class="ph ph-pencil"></i></button>
-                  <button class="px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-rose-600"
-                    onclick="deleteRow(this)"><i class="ph ph-trash"></i></button>
-                </td>
-              </tr>
-              <tr class="hover:bg-slate-50">
-                <td class="py-3 px-4"><input type="checkbox" class="rowChk h-4 w-4" /></td>
-                <td class="py-3 px-4">MJ-MKT</td>
-                <td class="py-3 px-4">Marketing</td>
-                <td class="py-3 px-4"><a class="text-blue-600 hover:underline"
-                    href="manage-departments.html">Marketing</a></td>
-                <td class="py-3 px-4 text-right space-x-2">
-                  <button class="px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-slate-600"
-                    onclick="openModal('edit','MJ-MKT','Marketing','Marketing')"><i class="ph ph-pencil"></i></button>
-                  <button class="px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-rose-600"
-                    onclick="deleteRow(this)"><i class="ph ph-trash"></i></button>
-                </td>
-              </tr>
+              @if($majors->isEmpty())
+                <tr class="text-center">
+                  <td colspan="5" class="py-3 px-4 border-b">Không có dữ liệu</td>
+                </tr>
+              @else
+                @foreach($majors as $major)
+                  <tr class="hover:bg-slate-50">
+                    <td class="py-3 px-4"><input type="checkbox" class="rowChk h-4 w-4" /></td>
+                    <td class="py-3 px-4">{{ $major->code }}</td>
+                    <td class="py-3 px-4">{{ $major->name }}</td>
+                    <td class="py-3 px-4"><a class="text-blue-600 hover:underline" href="manage-departments.html">{{ $major->faculties?->name ?? 'chưa có khoa phụ trách' }}</a>
+                    </td>
+                    <td class="py-3 px-4">{{ $major->students->count() }}</td>
+                    <td class="py-3 px-4 text-right space-x-2">
+                      <button class="px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-slate-600"
+                        onclick="openEditModal('MJ-SE','Kỹ thuật phần mềm','1','')"><i class="ph ph-pencil"></i></button>
+                      <button class="px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-rose-600"
+                        onclick="deleteRow(this)"><i class="ph ph-trash"></i></button>
+                    </td>
+                  </tr>
+                @endforeach
+              @endif
             </tbody>
           </table>
         </div>
@@ -264,44 +261,156 @@
     </div>
   </main>
 
-  <!-- Modal -->
-  <div id="modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm hidden items-center justify-center z-50">
-    <div class="bg-white rounded-xl w-full max-w-lg shadow-xl">
-      <div class="p-4 border-b flex items-center justify-between">
-        <h3 id="modalTitle" class="font-semibold">Thêm ngành</h3>
-        <button class="p-2 hover:bg-slate-100 rounded-lg" onclick="closeModal()"><i class="ph ph-x"></i></button>
+<!-- Modal Add Major -->
+<div id="modalAdd" 
+     class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm hidden items-center justify-center z-50">
+  <div class="bg-white rounded-xl w-full max-w-lg shadow-xl">
+    
+    <!-- Header -->
+    <div class="p-4 border-b flex items-center justify-between">
+      <h3 class="font-semibold">Thêm ngành</h3>
+      <button type="button" class="p-2 hover:bg-slate-100 rounded-lg" onclick="closeAddModal()">
+        <i class="ph ph-x"></i>
+      </button>
+    </div>
+
+    <!-- Form -->
+    <form id="formAdd" class="p-4 space-y-4" onsubmit="event.preventDefault(); saveNewMajor();">
+
+      <!-- Code + Name -->
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="text-sm font-medium flex items-center gap-1">
+            <i class="ph ph-hash text-slate-500"></i> Mã ngành
+          </label>
+          <input id="addCode" required 
+                 class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500" 
+                 placeholder="VD: MJ-SE"/>
+        </div>
+        <div>
+          <label class="text-sm font-medium flex items-center gap-1">
+            <i class="ph ph-book text-slate-500"></i> Tên ngành
+          </label>
+          <input id="addName" required 
+                 class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500" 
+                 placeholder="VD: Kỹ thuật phần mềm"/>
+        </div>
       </div>
 
-      <form id="modalForm" class="p-4 space-y-4" onsubmit="event.preventDefault(); saveMajor();">
+      <!-- Faculty + Department -->
+      <div class="grid grid-cols-2 gap-4">
         <div>
-          <label class="text-sm font-medium">Mã ngành</label>
-          <input id="inputCode" required
-            class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600"
-            placeholder="VD: MJ-SE" />
-        </div>
-        <div>
-          <label class="text-sm font-medium">Tên ngành</label>
-          <input id="inputName" required
-            class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600"
-            placeholder="VD: Kỹ thuật phần mềm" />
-        </div>
-        <div>
-          <label class="text-sm font-medium">Bộ môn phụ trách</label>
-          <select id="inputDept"
-            class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600">
-            <option value="CNTT">CNTT</option>
-            <option value="Marketing">Marketing</option>
+          <label class="text-sm font-medium flex items-center gap-1">
+            <i class="ph ph-buildings text-slate-500"></i> Khoa phụ trách
+          </label>
+          <select id="addFaculty" required
+                  class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+            <option value="">— Chọn khoa —</option>
+            <option value="1">Công nghệ thông tin</option>
+            <option value="2">Kinh tế</option>
           </select>
         </div>
+      </div>
 
-        <div class="flex items-center justify-end gap-2 pt-2">
-          <button type="button" onclick="closeModal()"
-            class="px-4 py-2 rounded-lg border hover:bg-slate-50">Hủy</button>
-          <button type="submit" class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700">Lưu</button>
-        </div>
-      </form>
-    </div>
+      <!-- Description -->
+      <div>
+        <label class="text-sm font-medium flex items-center gap-1">
+          <i class="ph ph-text-align-left text-slate-500"></i> Mô tả
+        </label>
+        <textarea id="addDescription" rows="3" 
+                  class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                  placeholder="Mô tả chi tiết ngành..."></textarea>
+      </div>
+
+      <!-- Actions -->
+      <div class="flex justify-end gap-2 pt-2">
+        <button type="button" onclick="closeAddModal()" 
+                class="px-4 py-2 border rounded-lg hover:bg-slate-50">
+          Hủy
+        </button>
+        <button type="submit" 
+                class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700">
+          Lưu
+        </button>
+      </div>
+    </form>
   </div>
+</div>
+
+
+<!-- Modal Edit Major -->
+<div id="modalEdit" 
+     class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm hidden items-center justify-center z-50">
+  <div class="bg-white rounded-xl w-full max-w-lg shadow-xl">
+    
+    <!-- Header -->
+    <div class="p-4 border-b flex items-center justify-between">
+      <h3 class="font-semibold">Sửa ngành</h3>
+      <button type="button" class="p-2 hover:bg-slate-100 rounded-lg" onclick="closeEditModal()">
+        <i class="ph ph-x"></i>
+      </button>
+    </div>
+
+    <!-- Form -->
+    <form id="formEdit" class="p-4 space-y-4" onsubmit="event.preventDefault(); updateMajor();">
+      <input type="hidden" id="editId"/>
+
+      <!-- Code + Name -->
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="text-sm font-medium flex items-center gap-1">
+            <i class="ph ph-hash text-slate-500"></i> Mã ngành
+          </label>
+          <input id="editCode" required 
+                 class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"/>
+        </div>
+        <div>
+          <label class="text-sm font-medium flex items-center gap-1">
+            <i class="ph ph-book text-slate-500"></i> Tên ngành
+          </label>
+          <input id="editName" required 
+                 class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"/>
+        </div>
+      </div>
+
+      <!-- Faculty + Department -->
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="text-sm font-medium flex items-center gap-1">
+            <i class="ph ph-buildings text-slate-500"></i> Khoa phụ trách
+          </label>
+          <select id="editFaculty" required
+                  class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
+            <option value="">— Chọn khoa —</option>
+            <option value="1">Công nghệ thông tin</option>
+            <option value="2">Kinh tế</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Description -->
+      <div>
+        <label class="text-sm font-medium flex items-center gap-1">
+          <i class="ph ph-text-align-left text-slate-500"></i> Mô tả
+        </label>
+        <textarea id="editDescription" rows="3" 
+                  class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"></textarea>
+      </div>
+
+      <!-- Actions -->
+      <div class="flex justify-end gap-2 pt-2">
+        <button type="button" onclick="closeEditModal()" 
+                class="px-4 py-2 border rounded-lg hover:bg-slate-50">
+          Hủy
+        </button>
+        <button type="submit" 
+                class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700">
+          Cập nhật
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
 
   <script>
     // Layout controls
@@ -366,28 +475,41 @@
       document.querySelectorAll('.rowChk').forEach(chk => chk.checked = e.target.checked);
     });
 
-    // Modal controls
-    function openModal(mode = 'add', code = '', name = '', dept = '') {
-      document.getElementById('modalTitle').textContent = mode === 'edit' ? 'Sửa ngành' : 'Thêm ngành';
-      document.getElementById('inputCode').value = code;
-      document.getElementById('inputName').value = name;
-      document.getElementById('inputDept').value = dept || 'CNTT';
-      const m = document.getElementById('modal');
-      m.classList.remove('hidden');
-      m.classList.add('flex');
-    }
+function openAddModal() {
+  document.getElementById('formAdd').reset();
+  const m = document.getElementById('modalAdd');
+  m.classList.remove('hidden'); m.classList.add('flex');
+}
 
-    function closeModal() {
-      const m = document.getElementById('modal');
-      m.classList.add('hidden');
-      m.classList.remove('flex');
-      // reset form if needed
-      // document.getElementById('modalForm').reset();
-    }
+function closeAddModal() {
+  const m = document.getElementById('modalAdd');
+  m.classList.add('hidden'); m.classList.remove('flex');
+}
 
-    // expose globally for inline onclicks
-    window.openModal = openModal;
-    window.closeModal = closeModal;
+function openEditModal(code, name, faculty, desc) {
+  document.getElementById('editCode').value = code;
+  document.getElementById('editName').value = name;
+  document.getElementById('editFaculty').value = faculty;
+  document.getElementById('editDescription').value = desc || '';
+  const m = document.getElementById('modalEdit');
+  m.classList.remove('hidden'); m.classList.add('flex');
+}
+
+function closeEditModal() {
+  const m = document.getElementById('modalEdit');
+  m.classList.add('hidden'); m.classList.remove('flex');
+}
+
+
+    // expose đúng các hàm dùng inline
+    window.openAddModal = openAddModal;
+    window.closeAddModal = closeAddModal;
+    window.openEditModal = openEditModal;
+    window.closeEditModal = closeEditModal;
+
+    // Gỡ bỏ 2 dòng gây lỗi ReferenceError:
+// window.openModal = openModal;
+// window.closeModal = closeModal;
 
     // Save (demo: simply add to table)
     function saveMajor() {
@@ -430,12 +552,24 @@
     }
 
     // hook add button
-    document.getElementById('btnAdd')?.addEventListener('click', () => openModal('add'));
+    document.getElementById('btnAdd')?.addEventListener('click', openAddModal);
 
-    // close modal on backdrop click
-    document.getElementById('modal')?.addEventListener('click', (e) => {
-      if (e.target.id === 'modal') closeModal();
+    // Đóng modal khi click backdrop
+    ['modalAdd','modalEdit'].forEach((id)=>{
+      const m = document.getElementById(id);
+      m?.addEventListener('click', (e)=>{
+        if(e.target.id !== id) return;
+        if(id === 'modalAdd') closeAddModal();
+        else closeEditModal();
+      });
     });
+
+    // Gỡ listener thừa tới #modal không tồn tại
+    // document.getElementById('modal')?.addEventListener(...);
+
+    // (Tùy chọn) tránh lỗi submit vì thiếu hàm:
+    window.saveNewMajor = function(){ /* TODO: implement save */ alert('Chưa triển khai lưu.'); }
+    window.updateMajor  = function(){ /* TODO: implement update */ alert('Chưa triển khai cập nhật.'); }
   </script>
 </body>
 

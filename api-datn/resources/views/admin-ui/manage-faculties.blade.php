@@ -123,11 +123,15 @@
                     </tr>
                   @else
                     @foreach($faculties as $f)
-                      @php
-                        $deanName  = optional(optional($f->dean)->user)->fullname;
-                        $viceName  = optional(optional($f->viceDean)->user)->fullname;
-                        $assistName= optional(optional($f->assistant)->user)->fullname;
-                      @endphp
+                    @php
+                        $deanRole  = $f->facultyRoles->firstWhere('role', 'dean');
+                        $viceRole  = $f->facultyRoles->firstWhere('role', 'vice_dean');
+                        $assistRole= $f->facultyRoles->firstWhere('role', 'assistant');
+
+                        $deanName   = optional($deanRole?->user)->fullname;
+                        $viceName   = optional($viceRole?->user)->fullname;
+                        $assistName = optional($assistRole?->user)->fullname;
+                    @endphp
                       <tr class="hover:bg-slate-50" data-row-id="{{ $f->id }}">
                         <td class="py-3 px-4"><input type="checkbox" class="rowChk h-4 w-4" /></td>
                         <td class="py-3 px-4">{{ $f->code }}</td>
@@ -153,11 +157,11 @@
                             data-id="{{ $f->id }}"
                             data-code="{{ $f->code }}"
                             data-name="{{ $f->name }}"
-                            data-short_name="{{ $f->short_name }}"
+                            data-short-name="{{ $f->short_name }}"
                             data-description="{{ $f->description }}"
-                            data-assistant_id="{{ $f->assistant?->id }}"
-                            data-dean_id="{{ $f->dean?->id }}"
-                            data-vice_dean_id="{{ $f->viceDean?->id }}"
+                            data-assistant-id="{{ $assistRole?->user?->id }}"
+                            data-dean-id="{{ $deanRole?->user?->id }}"
+                            data-vice-dean-id="{{ $viceRole?->user?->id }}"
                             data-phone="{{ $f->phone }}"
                             data-email="{{ $f->email }}"
                             data-address="{{ $f->address }}">
@@ -296,6 +300,9 @@
           <select name="dean_id" required class="mt-2 w-full px-3 py-2 rounded-xl border border-slate-300 focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 text-sm">
             <option value="">— Chọn —</option>
             @foreach($teachers as $t)
+              <!-- @if ($t->user->role === 'teacher')
+                <option value="{{ $t->user->id }}">{{ $t->degree }} {{ $t->user->fullname }}</option>
+              @endif -->
               <option value="{{ $t->user->id }}">{{ $t->degree }} {{ $t->user->fullname }}</option>
             @endforeach
           </select>
@@ -306,6 +313,9 @@
             <option value="">— Chọn —</option>
             @foreach($teachers as $t)
               <option value="{{ $t->user->id }}">{{ $t->degree }} {{ $t->user->fullname }}</option>
+              <!-- @if ($t->user->role === 'teacher')
+                <option value="{{ $t->user->id }}">{{ $t->degree }} {{ $t->user->fullname }}</option>
+              @endif -->
             @endforeach
           </select>
         </div>
@@ -314,6 +324,9 @@
           <select name="assistant_id" required class="mt-2 w-full px-3 py-2 rounded-xl border border-slate-300 focus:ring-2 focus:ring-amber-500/30 focus:border-amber-500 text-sm">
             <option value="">— Chọn —</option>
             @foreach($teachers as $t)
+              <!-- @if ($t->user->role === 'teacher')
+                <option value="{{ $t->user->id }}">{{ $t->degree }} {{ $t->user->fullname }}</option>
+              @endif -->
               <option value="{{ $t->user->id }}">{{ $t->degree }} {{ $t->user->fullname }}</option>
             @endforeach
           </select>
@@ -411,17 +424,17 @@
       // Fill edit form
       function fillEdit(ds){
         const form = document.getElementById('facultyEditForm');
-        form.querySelector('[name="code"]').value        = ds.code || '';
-        form.querySelector('[name="name"]').value        = ds.name || '';
-        form.querySelector('[name="short_name"]').value  = ds.short_name || '';
-        form.querySelector('[name="assistant_id"]').value= ds.assistant_id || '';
-        form.querySelector('[name="dean_id"]').value     = ds.dean_id || '';
-        form.querySelector('[name="vice_dean_id"]').value= ds.vice_dean_id || '';
-        form.querySelector('[name="phone"]').value       = ds.phone || '';
-        form.querySelector('[name="email"]').value       = ds.email || '';
-        form.querySelector('[name="address"]').value     = ds.address || '';
-        form.querySelector('[name="description"]').value = ds.description || '';
-        document.getElementById('edit_faculty_id').value = ds.id;
+        form.querySelector('[name="code"]').value         = ds.code || '';
+        form.querySelector('[name="name"]').value         = ds.name || '';
+        form.querySelector('[name="short_name"]').value   = ds.shortName || '';
+        form.querySelector('[name="assistant_id"]').value = ds.assistantId || '';
+        form.querySelector('[name="dean_id"]').value      = ds.deanId || '';
+        form.querySelector('[name="vice_dean_id"]').value = ds.viceDeanId || '';
+        form.querySelector('[name="phone"]').value        = ds.phone || '';
+        form.querySelector('[name="email"]').value        = ds.email || '';
+        form.querySelector('[name="address"]').value      = ds.address || '';
+        form.querySelector('[name="description"]').value  = ds.description || '';
+        document.getElementById('edit_faculty_id').value  = ds.id;
       }
 
       // Delegation edit/delete
@@ -430,6 +443,7 @@
         if(!btn) return;
         if(btn.classList.contains('btnEdit')){
           fillEdit(btn.dataset);
+          filterSelectOptions('#facultyEditForm'); // đảm bảo options không bị disable sai
           closeCreate();
           openEdit();
         } else {
@@ -480,6 +494,12 @@
             btn.disabled=false; btn.innerHTML=old; return;
           }
           const f = data.data;
+
+          // Lấy lại các value đã chọn từ form CREATE
+          const deanVal      = document.querySelector('#facultyCreateForm select[name="dean_id"]')?.value || '';
+          const viceDeanVal  = document.querySelector('#facultyCreateForm select[name="vice_dean_id"]')?.value || '';
+          const assistantVal = document.querySelector('#facultyCreateForm select[name="assistant_id"]')?.value || '';
+
           const tb = document.getElementById('tableBody');
           const tr = document.createElement('tr');
           tr.className='hover:bg-slate-50';
@@ -497,11 +517,11 @@
                 data-id="${f.id}"
                 data-code="${f.code}"
                 data-name="${f.name}"
-                data-short_name="${f.short_name}"
+                data-short-name="${f.short_name}"
                 data-description="${f.description||''}"
-                data-assistant_id="${f.assistant_id}"
-                data-dean_id="${f.dean_id}"
-                data-vice_dean_id="${f.vice_dean_id}"
+                data-assistant-id="${assistantVal}"
+                data-dean-id="${deanVal}"
+                data-vice-dean-id="${viceDeanVal}"
                 data-phone="${f.phone||''}"
                 data-email="${f.email||''}"
                 data-address="${f.address||''}">
@@ -554,6 +574,12 @@
             btn.disabled=false; btn.innerHTML=old; return;
           }
           const f = data.data;
+
+          // Lấy lại các value đã chọn từ form EDIT
+          const deanVal      = document.querySelector('#facultyEditForm select[name="dean_id"]')?.value || '';
+          const viceDeanVal  = document.querySelector('#facultyEditForm select[name="vice_dean_id"]')?.value || '';
+          const assistantVal = document.querySelector('#facultyEditForm select[name="assistant_id"]')?.value || '';
+
           const tr = document.querySelector(`tr[data-row-id="${f.id}"]`);
           if(tr){
             tr.querySelectorAll('td')[1].textContent = f.code;
@@ -565,11 +591,11 @@
             if(editBtn){
               editBtn.dataset.code = f.code;
               editBtn.dataset.name = f.name;
-              editBtn.dataset.short_name = f.short_name;
+              editBtn.dataset.shortName = f.short_name || '';
               editBtn.dataset.description = f.description || '';
-              editBtn.dataset.assistant_id = f.assistant_id;
-              editBtn.dataset.dean_id = f.dean_id;
-              editBtn.dataset.vice_dean_id = f.vice_dean_id;
+              editBtn.dataset.assistantId = assistantVal;
+              editBtn.dataset.deanId = deanVal;
+              editBtn.dataset.viceDeanId = viceDeanVal;
               editBtn.dataset.phone = f.phone || '';
               editBtn.dataset.email = f.email || '';
               editBtn.dataset.address = f.address || '';
@@ -591,52 +617,78 @@
         if(e.target===modalEdit) closeEdit();
       });
 
-//validate select
-function filterSelectOptions(formSelector) {
-  const selects = document.querySelectorAll(`${formSelector} select[name$="_id"]`);
+      //validate select
+      function filterSelectOptions(formSelector) {
+        const selects = document.querySelectorAll(`${formSelector} select[name$="_id"]`);
 
-  const selectedValues = Array.from(selects)
-    .map(s => s.value)
-    .filter(v => v !== "");
+        const selectedValues = Array.from(selects)
+          .map(s => s.value)
+          .filter(v => v !== "");
 
-  selects.forEach(select => {
-    const currentValue = select.value;
-    Array.from(select.options).forEach(option => {
-      if (option.value === "") return; // bỏ qua option rỗng
+        selects.forEach(select => {
+          const currentValue = select.value;
+          Array.from(select.options).forEach(option => {
+            if (option.value === "") return; // bỏ qua option rỗng
 
-      // disable nếu đã chọn ở select khác
-      if (selectedValues.includes(option.value) && option.value !== currentValue) {
-        option.disabled = true;
-        option.classList.add("text-slate-400");
-      } else {
-        option.disabled = false;
-        option.classList.remove("text-slate-400");
+            // disable nếu đã chọn ở select khác
+            if (selectedValues.includes(option.value) && option.value !== currentValue) {
+              option.disabled = true;
+              option.classList.add("text-slate-400");
+            } else {
+              option.disabled = false;
+              option.classList.remove("text-slate-400");
+            }
+          });
+        });
       }
-    });
-  });
-}
 
-// gắn sự kiện cho modal CREATE
-document.querySelectorAll('#facultyCreateForm select[name$="_id"]').forEach(sel => {
-  sel.addEventListener("change", () => filterSelectOptions("#facultyCreateForm"));
-});
+      // gắn sự kiện cho modal CREATE
+      document.querySelectorAll('#facultyCreateForm select[name$="_id"]').forEach(sel => {
+        sel.addEventListener("change", () => filterSelectOptions("#facultyCreateForm"));
+      });
 
-// gắn sự kiện cho modal EDIT
-document.querySelectorAll('#facultyEditForm select[name$="_id"]').forEach(sel => {
-  sel.addEventListener("change", () => filterSelectOptions("#facultyEditForm"));
-});
+      // gắn sự kiện cho modal EDIT
+      document.querySelectorAll('#facultyEditForm select[name$="_id"]').forEach(sel => {
+        sel.addEventListener("change", () => filterSelectOptions("#facultyEditForm"));
+      });
 
-// gọi mỗi lần modal mở
-document.getElementById("modalCreateFaculty").addEventListener("click", e => {
-  if (e.target.closest("[data-close-create]")) return;
-  filterSelectOptions("#facultyCreateForm");
-});
+      // gọi mỗi lần modal mở
+      document.getElementById("modalCreateFaculty").addEventListener("click", e => {
+        if (e.target.closest("[data-close-create]")) return;
+        filterSelectOptions("#facultyCreateForm");
+      });
 
-document.getElementById("modalEditFaculty").addEventListener("click", e => {
-  if (e.target.closest("[data-close-edit]")) return;
-  filterSelectOptions("#facultyEditForm");
-});
+      document.getElementById("modalEditFaculty").addEventListener("click", e => {
+        if (e.target.closest("[data-close-edit]")) return;
+        filterSelectOptions("#facultyEditForm");
+      });
 
+      // Profile dropdown: toggle + click outside + ESC
+      const profileBtn = document.getElementById('profileBtn');
+      const profileMenu = document.getElementById('profileMenu');
+
+      function closeProfileMenu() {
+        profileMenu?.classList.add('hidden');
+        profileBtn?.setAttribute('aria-expanded', 'false');
+      }
+      function openProfileMenu() {
+        profileMenu?.classList.remove('hidden');
+        profileBtn?.setAttribute('aria-expanded', 'true');
+      }
+      profileBtn?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isHidden = profileMenu?.classList.contains('hidden');
+        if (isHidden) openProfileMenu(); else closeProfileMenu();
+      });
+      document.addEventListener('click', (e) => {
+        if (!profileMenu || !profileBtn) return;
+        if (!profileMenu.contains(e.target) && !profileBtn.contains(e.target)) {
+          closeProfileMenu();
+        }
+      });
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closeProfileMenu();
+      });
     </script>
   </body>
 </html>

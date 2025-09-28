@@ -23,4 +23,15 @@ class Department extends Model
     {
         return $this->hasMany(Council::class);
     }
+
+    public function departmentRoles()
+    {
+        return $this->hasMany(departmentRoles::class, 'department_id');
+    }
+
+    public function subjects()
+    {
+        return $this->hasMany(Subjects::class, 'department_id');
+    }
+
 }

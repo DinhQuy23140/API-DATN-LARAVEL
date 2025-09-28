@@ -171,36 +171,37 @@
                   </tr>
                 </thead>
                 <tbody id="tableBody">
-                  <tr class="hover:bg-slate-50">
-                    <td class="py-3 px-4"><input type="checkbox" class="rowChk h-4 w-4" /></td>
-                    <td class="py-3 px-4">D-CNTT</td>
-                    <td class="py-3 px-4">Công nghệ thông tin</td>
-                    <td class="py-3 px-4"><a class="text-blue-600 hover:underline"
-                        href="../lecturer-ui/profile.html">TS. Đặng Hữu T</a></td>
-                    <td class="py-3 px-4">KTPM, KHMT</td>
-                    <td class="py-3 px-4">35</td>
-                    <td class="py-3 px-4 text-right space-x-2">
-                      <button class="px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-slate-600"
-                        onclick="openModal('edit')"><i class="ph ph-pencil"></i></button>
-                      <button class="px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-rose-600"><i
-                          class="ph ph-trash"></i></button>
-                    </td>
-                  </tr>
-                  <tr class="hover:bg-slate-50">
-                    <td class="py-3 px-4"><input type="checkbox" class="rowChk h-4 w-4" /></td>
-                    <td class="py-3 px-4">D-MKT</td>
-                    <td class="py-3 px-4">Marketing</td>
-                    <td class="py-3 px-4"><a class="text-blue-600 hover:underline"
-                        href="../lecturer-ui/profile.html">ThS. Lưu Lan</a></td>
-                    <td class="py-3 px-4">MKT</td>
-                    <td class="py-3 px-4">22</td>
-                    <td class="py-3 px-4 text-right space-x-2">
-                      <button class="px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-slate-600"
-                        onclick="openModal('edit')"><i class="ph ph-pencil"></i></button>
-                      <button class="px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-rose-600"><i
-                          class="ph ph-trash"></i></button>
-                    </td>
-                  </tr>
+                  @if ($departments->isEmpty())
+                    <tr>
+                      <td colspan="7" class="text-center text-slate-500 py-6">Chưa có bộ môn nào.</td>
+                    </tr>
+                  @else
+                    @foreach ($departments as $department)
+                      <tr class="hover:bg-slate-50">
+                        <td class="py-3 px-4"><input type="checkbox" class="rowChk h-4 w-4" /></td>
+                        <td class="py-3 px-4">{{ $department->code }}</td>
+                        <td class="py-3 px-4">{{ $department->name }}</td>
+                        <td class="py-3 px-4"><a class="text-blue-600 hover:underline"
+                            href="../lecturer-ui/profile.html">{{ $department->departmentRoles?->first('head')?->teacher?->name ?? 'Chưa có trưởng bộ môn' }}</a></td>
+                        @if ($department->subjects->isNotEmpty())
+                          <td class="py-3 px-4">
+                            @foreach ($department->subjects as $subject)
+                              <a class="text-blue-600 hover:underline" href="manage-subjects.html">{{ $subject->name }}</a>
+                            @endforeach
+                          </td>
+                        @else
+                          <td class="py-3 px-4">Chưa có môn học</td>
+                        @endif
+                        <td class="py-3 px-4">{{ $department->teachers->count() }}</td>
+                        <td class="py-3 px-4 text-right space-x-2">
+                          <button class="px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-slate-600"
+                            onclick="openModal('edit')"><i class="ph ph-pencil"></i></button>
+                          <button class="px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-rose-600"><i
+                              class="ph ph-trash"></i></button>
+                        </td>
+                      </tr>
+                    @endforeach
+                  @endif
                 </tbody>
               </table>
             </div>
@@ -220,47 +221,198 @@
     </div>
   </div>
 
-  <!-- Modal -->
-  <div id="modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm hidden items-center justify-center z-50">
-    <div class="bg-white rounded-xl w-full max-w-lg shadow-xl">
-      <div class="p-4 border-b flex items-center justify-between">
-        <h3 id="modalTitle" class="font-semibold">Thêm bộ môn</h3>
-        <button class="p-2 hover:bg-slate-100 rounded-lg" onclick="closeModal()"><i class="ph ph-x"></i></button>
+<!-- Modal Add Department -->
+<div id="modalAddDepartment"
+  class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm hidden items-center justify-center z-50">
+  <div class="bg-white rounded-xl w-full max-w-2xl shadow-xl">
+    
+    <!-- Header -->
+    <div class="p-4 border-b flex items-center justify-between">
+      <h3 class="font-semibold text-lg">Thêm Bộ môn</h3>
+      <button type="button" class="p-2 hover:bg-slate-100 rounded-lg"
+              onclick="closeModal('add')">
+        <i class="ph ph-x"></i>
+      </button>
+    </div>
+
+    <!-- Form -->
+    <form class="p-6 space-y-5" onsubmit="event.preventDefault(); closeModal('add');">
+      
+      <!-- Code + Name -->
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="text-sm font-medium flex items-center gap-2">
+            <i class="ph ph-hash"></i> Mã bộ môn
+          </label>
+          <input id="addCode" required
+                 class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 
+                        focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600"
+                 placeholder="VD: D-CNTT" />
+        </div>
+        <div>
+          <label class="text-sm font-medium flex items-center gap-2">
+            <i class="ph ph-bookmarks"></i> Tên bộ môn
+          </label>
+          <input id="addName" required
+                 class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 
+                        focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600"
+                 placeholder="VD: Công nghệ thông tin" />
+        </div>
       </div>
-      <form class="p-4 space-y-4" onsubmit="event.preventDefault(); closeModal();">
+
+      <!-- Head + Majors -->
+      <div class="grid grid-cols-2 gap-4">
         <div>
-          <label class="text-sm font-medium">Mã bộ môn</label>
-          <input required
-            class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600"
-            placeholder="VD: D-CNTT" />
-        </div>
-        <div>
-          <label class="text-sm font-medium">Tên bộ môn</label>
-          <input required
-            class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600"
-            placeholder="VD: Công nghệ thông tin" />
-        </div>
-        <div>
-          <label class="text-sm font-medium">Trưởng bộ môn</label>
-          <select
-            class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600">
+          <label class="text-sm font-medium flex items-center gap-2">
+            <i class="ph ph-user-circle"></i> Trưởng bộ môn
+          </label>
+          <select id="addHead"
+                  class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 
+                         focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600">
             <option>— Chọn trưởng bộ môn —</option>
             <option>TS. Đặng Hữu T</option>
             <option>ThS. Lưu Lan</option>
           </select>
         </div>
         <div>
-          <label class="text-sm font-medium">Ngành thuộc bộ môn</label>
-          <input class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200" placeholder="VD: KTPM, KHMT" />
+          <label class="text-sm font-medium flex items-center gap-2">
+            <i class="ph ph-graduation-cap"></i> Ngành thuộc bộ môn
+          </label>
+          <input id="addMajors"
+                 class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 
+                        focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600"
+                 placeholder="VD: KTPM, KHMT" />
         </div>
-        <div class="flex items-center justify-end gap-2 pt-2">
-          <button type="button" onclick="closeModal()"
-            class="px-4 py-2 rounded-lg border hover:bg-slate-50">Hủy</button>
-          <button class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700">Lưu</button>
-        </div>
-      </form>
-    </div>
+      </div>
+
+      <!-- Description -->
+      <div>
+        <label class="text-sm font-medium flex items-center gap-2">
+          <i class="ph ph-text-align-left"></i> Mô tả
+        </label>
+        <textarea id="addDescription" rows="3"
+                  class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 
+                         focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600"
+                  placeholder="Nhập mô tả về bộ môn..."></textarea>
+      </div>
+
+      <!-- Actions -->
+      <div class="flex items-center justify-end gap-2 pt-2">
+        <button type="button" onclick="closeModal('add')"
+                class="px-4 py-2 rounded-lg border hover:bg-slate-50">
+          Hủy
+        </button>
+        <button type="submit"
+                class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700">
+          Lưu
+        </button>
+      </div>
+    </form>
   </div>
+</div>
+
+
+  <!-- Modal sửa bộ môn -->
+<div id="modalEditDepartment"
+     class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center z-50">
+  <div class="bg-white rounded-2xl w-full max-w-3xl shadow-2xl overflow-hidden">
+
+    <!-- Header -->
+    <div class="px-6 py-4 border-b flex items-center justify-between bg-slate-50">
+      <h3 class="text-lg font-semibold text-slate-800 flex items-center gap-2">
+        <i class="ph ph-buildings text-blue-600"></i>
+        Sửa Bộ môn
+      </h3>
+      <button type="button"
+              class="p-2 hover:bg-slate-200 rounded-full transition"
+              onclick="document.getElementById('modalEditDepartment').classList.add('hidden')">
+        <i class="ph ph-x text-lg"></i>
+      </button>
+    </div>
+
+    <!-- Form -->
+    <form action="#" method="POST" class="px-6 py-5 space-y-5">
+      @csrf
+      @method('PATCH')
+      <input type="hidden" name="id" value="1">
+
+      <!-- Code & Name -->
+      <div class="grid grid-cols-2 gap-5">
+        <div>
+          <label class="text-sm font-medium text-slate-700">Mã bộ môn</label>
+          <div class="mt-1 relative">
+            <i class="ph ph-identification-card text-slate-400 absolute left-3 top-3"></i>
+            <input type="text" name="code" value="BM001" required
+                   class="pl-10 w-full px-3 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500">
+          </div>
+        </div>
+        <div>
+          <label class="text-sm font-medium text-slate-700">Tên bộ môn</label>
+          <div class="mt-1 relative">
+            <i class="ph ph-book-open-text text-slate-400 absolute left-3 top-3"></i>
+            <input type="text" name="name" value="Bộ môn Toán" required
+                   class="pl-10 w-full px-3 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500">
+          </div>
+        </div>
+      </div>
+
+      <!-- Faculty & Head -->
+      <div class="grid grid-cols-2 gap-5">
+        <div>
+          <label class="text-sm font-medium text-slate-700">Khoa trực thuộc</label>
+          <div class="mt-1 relative">
+            <i class="ph ph-graduation-cap text-slate-400 absolute left-3 top-3"></i>
+            <select name="faculty_id"
+                    class="pl-10 w-full px-3 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500">
+              <option value="1" selected>Khoa Khoa học Tự nhiên</option>
+              <option value="2">Khoa Công nghệ Thông tin</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="text-sm font-medium text-slate-700">Trưởng bộ môn</label>
+          <div class="mt-1 relative">
+            <i class="ph ph-user-circle text-slate-400 absolute left-3 top-3"></i>
+            <select name="head_id"
+                    class="pl-10 w-full px-3 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500">
+              <option value="">— Chọn trưởng bộ môn —</option>
+              <option value="10" selected>Nguyễn Văn A</option>
+              <option value="12">Trần Thị B</option>
+              <option value="15">Lê Văn C</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- Description -->
+      <div>
+        <label class="text-sm font-medium text-slate-700">Mô tả</label>
+        <div class="mt-1 relative">
+          <i class="ph ph-text-align-left text-slate-400 absolute left-3 top-3"></i>
+          <textarea name="description" rows="3"
+                    class="pl-10 w-full px-3 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500">Phụ trách giảng dạy các môn liên quan đến toán học.</textarea>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="flex items-center justify-end gap-3 pt-4 border-t">
+        <button type="button"
+                onclick="document.getElementById('modalEditDepartment').classList.add('hidden')"
+                class="px-4 py-2 rounded-lg border border-slate-300 text-slate-600 hover:bg-slate-100 transition flex items-center gap-2">
+          <i class="ph ph-x-circle"></i>
+          Hủy
+        </button>
+        <button type="submit"
+                class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition flex items-center gap-2">
+          <i class="ph ph-check-circle"></i>
+          Cập nhật
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+
 
   <script>
     const html = document.documentElement, sidebar = document.getElementById('sidebar');
@@ -309,6 +461,33 @@
         });
       }
     });
+
+function openModal(type, data = null) {
+  if (type === 'add') {
+    const m = document.getElementById('modalAddDepartment');
+    m.classList.remove('hidden'); m.classList.add('flex');
+  } else if (type === 'edit') {
+    if (data) {
+      document.getElementById('editId').value = data.id || '';
+      document.getElementById('editCode').value = data.code || '';
+      document.getElementById('editName').value = data.name || '';
+      document.getElementById('editHead').value = data.head || '— Chọn trưởng bộ môn —';
+      document.getElementById('editMajors').value = data.majors || '';
+    }
+    const m = document.getElementById('modalEditDepartment');
+    m.classList.remove('hidden'); m.classList.add('flex');
+  }
+}
+
+function closeModal(type) {
+  const id = type === 'add' ? 'modalAddDepartment' : 'modalEditDepartment';
+  const m = document.getElementById(id);
+  m.classList.add('hidden'); m.classList.remove('flex');
+}
+
+// Ví dụ: khi click vào nút sửa của bộ môn CNTT
+// openModal('edit', { id: 1, code: 'D-CNTT', name: 'Công nghệ thông tin', head: 'TS. Đặng Hữu T', majors: 'KTPM, KHMT' });
+
   </script>
 </body>
 

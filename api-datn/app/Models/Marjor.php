@@ -12,7 +12,7 @@ class Marjor extends Model
 
     public function faculties()
     {
-        return $this->belongsTo(Faculties::class);
+        return $this->belongsTo(Faculties::class , 'faculty_id');
     }
 
     public function students()

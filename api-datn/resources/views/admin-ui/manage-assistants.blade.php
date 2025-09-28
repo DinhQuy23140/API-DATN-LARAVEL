@@ -100,7 +100,6 @@
             </div>
             <button id="btnAdd" class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700"><i class="ph ph-plus"></i>Thêm tài khoản</button>
           </div>
-
           <!-- Table -->
           <div class="bg-white border border-slate-200 rounded-xl">
             <div class="overflow-x-auto">
@@ -116,30 +115,26 @@
                   </tr>
                 </thead>
                 <tbody id="tableBody">
+                @if (!empty($faculties))
+                @foreach ($faculties as $faculty)
+                  @php
+                    $facultyRoles = $faculty->facultyRoles ?? [];
+                    $assistant = $facultyRoles->firstWhere('role', 'assistant');
+                  @endphp
                   <tr class="hover:bg-slate-50">
                     <td class="py-3 px-4"><input type="checkbox" class="rowChk h-4 w-4" /></td>
-                    <td class="py-3 px-4">Nguyễn Minh Đức</td>
-                    <td class="py-3 px-4">duc.nguyen@uni.edu</td>
+                    <td class="py-3 px-4">{{ $assistant?->user->fullname }}</td>
+                    <td class="py-3 px-4">{{ $assistant?->user->email }}</td>
                     <td class="py-3 px-4"><span class="px-2 py-1 rounded-full text-xs bg-emerald-50 text-emerald-700">Active</span></td>
-                    <td class="py-3 px-4"><a href="manage-faculties.html" class="text-blue-600 hover:underline">Khoa Kỹ thuật</a></td>
+                    <td class="py-3 px-4"><a href="manage-faculties.html" class="text-blue-600 hover:underline">{{ $faculty->name }}</a></td>
                     <td class="py-3 px-4 text-right space-x-2">
                       <button class="px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-amber-600"><i class="ph ph-key"></i> Reset</button>
                       <button class="px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-slate-600" onclick="openModal('edit')"><i class="ph ph-pencil"></i> Sửa</button>
                       <button class="px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-rose-600"><i class="ph ph-trash"></i> Xóa</button>
                     </td>
                   </tr>
-                  <tr class="hover:bg-slate-50">
-                    <td class="py-3 px-4"><input type="checkbox" class="rowChk h-4 w-4" /></td>
-                    <td class="py-3 px-4">Trần Thị Thu</td>
-                    <td class="py-3 px-4">thu.tran@uni.edu</td>
-                    <td class="py-3 px-4"><span class="px-2 py-1 rounded-full text-xs bg-slate-100 text-slate-700">Inactive</span></td>
-                    <td class="py-3 px-4"><a href="manage-faculties.html" class="text-blue-600 hover:underline">Khoa Kinh tế</a></td>
-                    <td class="py-3 px-4 text-right space-x-2">
-                      <button class="px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-amber-600"><i class="ph ph-key"></i> Reset</button>
-                      <button class="px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-slate-600" onclick="openModal('edit')"><i class="ph ph-pencil"></i> Sửa</button>
-                      <button class="px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-rose-600"><i class="ph ph-trash"></i> Xóa</button>
-                    </td>
-                  </tr>
+                @endforeach
+                @endif
                 </tbody>
               </table>
             </div>

@@ -20,6 +20,8 @@ use App\Http\Controllers\Web\CouncilProjectsController as WebCouncilProjectContr
 use App\Http\Controllers\Web\CouncilMembersController as WebCouncilMembersController;
 use App\Http\Controllers\Web\FacultiesController as WebFacultiesController;
 use App\Http\Controllers\Web\RegisterController;
+use App\Http\Controllers\Web\DepartmentController as WebDepartmentController;
+use App\Http\Controllers\Web\MarjorController as WebMarjorController;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use App\Http\Controllers\Web\EmailVerificationController;
 
@@ -162,8 +164,8 @@ Route::middleware('auth')->prefix('head')->name('web.head.')->group(function () 
 
 Route::middleware('auth')->prefix('assistant')->name('web.assistant.')->group(function () {
     Route::get('/dash', [WebTeacherController::class, 'loadDashboardAssistant'])->name('dashboard');
-    Route::view('/manage_departments', 'assistant-ui.manage-departments')->name('manage_departments');
-    Route::view('/manage_majors', 'assistant-ui.manage-majors')->name('manage_majors');
+    Route::get('/manage_departments', [WebDepartmentController::class, 'loadDepartments'])->name('manage_departments');
+    Route::get('/manage_majors', [WebMarjorController::class, 'loadMajor'])->name('manage_majors');
     Route::get('/manage_staffs', [WebTeacherController::class, 'loadTeachers'])->name('manage_staffs');
     Route::view('/assign_head', 'assistant-ui.assign-head')->name('assign_head');
     Route::get('/rounds', [WebProjectTermsController::class, 'loadRounds'])->name('rounds');
@@ -196,7 +198,7 @@ Route::middleware(['web','auth'])->prefix('admin')->name('web.admin.')->group(fu
     Route::view('/manage_academy_years', 'admin-ui.manage-academy-years')->name('manage_academy_years');
     Route::view('/manage_projects', 'admin-ui.manage-projects')->name('manage_projects');
     Route::view('/manage_terms', 'admin-ui.manage-terms')->name('manage_terms');
-    Route::view('/manage_assistants', 'admin-ui.manage-assistants')->name('manage_assistants');
+    Route::get('/manage_assistants', [WebFacultiesController::class, 'getAssistants'])->name('manage_assistants');
     Route::get('/manage_faculties', [WebFacultiesController::class, 'load_dashboard'])->name('manage_faculties');
     Route::post('/faculties', [WebFacultiesController::class, 'store'])->name('faculties.store');
     Route::patch('/faculties/{faculty}', [WebFacultiesController::class, 'update'])->name('faculties.update');

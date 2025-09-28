@@ -40,4 +40,8 @@ class Faculties extends Model
     {
         return $this->hasMany(Teacher::class, 'faculty_id');
     }
+
+    public function facultyRoles() {
+        return $this->hasMany(FacultyRoles::class, 'faculty_id');
+    }
 }
