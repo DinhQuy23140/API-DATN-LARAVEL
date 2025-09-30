@@ -14,11 +14,39 @@ use App\Http\Controllers\Api\TeacherController;
 use App\Http\Controllers\Api\AcademyYearController;
 use App\Http\Controllers\Api\ProjectTermsController;
 use App\Http\Controllers\Api\BatchStudentController;
+use Illuminate\Foundation\Auth\EmailVerificationRequest;
 
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
+
+//vertify email
+// Gửi email xác minh
+Route::post('/email/verification-notification', function (Request $request) {
+    if ($request->user()->hasVerifiedEmail()) {
+        return response()->json(['message' => 'Email already verified.']);
+    }
+
+    $request->user()->sendEmailVerificationNotification();
+
+    return response()->json(['message' => 'Verification link sent!']);
+})->middleware('auth:sanctum');
+
+// Xác minh email
+Route::get('/email/verify/{id}/{hash}', function (EmailVerificationRequest $request) {
+    $request->fulfill(); // đánh dấu verified
+
+    return response()->json(['message' => 'Email verified successfully.']);
+})->middleware(['auth:sanctum', 'signed'])->name('verification.verify');
+
+// Kiểm tra trạng thái
+Route::get('/email/verified-status', function (Request $request) {
+    return response()->json([
+        'verified' => $request->user()->hasVerifiedEmail()
+    ]);
+})->middleware('auth:sanctum');
+
 
 //progress-log
 Route::apiResource('progress-logs', ProgressLogController::class);

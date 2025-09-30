@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Web\CouncilProjectsController;
+use App\Http\Controllers\Web\DepartmentController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Web\UserController as WebUserController;
 use App\Http\Controllers\Web\ProgressLogController as WebProgressLogController;
@@ -21,9 +22,10 @@ use App\Http\Controllers\Web\CouncilMembersController as WebCouncilMembersContro
 use App\Http\Controllers\Web\FacultiesController as WebFacultiesController;
 use App\Http\Controllers\Web\RegisterController;
 use App\Http\Controllers\Web\DepartmentController as WebDepartmentController;
-use App\Http\Controllers\Web\MarjorController as WebMarjorController;
+use App\Http\Controllers\Web\MarjorController;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use App\Http\Controllers\Web\EmailVerificationController;
+use App\Http\Controllers\Web\DepartmentRolesController as WebDepartmentRolesController;
 
 // Chỉ cho guest
 Route::middleware('guest')->group(function () {
@@ -165,9 +167,9 @@ Route::middleware('auth')->prefix('head')->name('web.head.')->group(function () 
 Route::middleware('auth')->prefix('assistant')->name('web.assistant.')->group(function () {
     Route::get('/dash', [WebTeacherController::class, 'loadDashboardAssistant'])->name('dashboard');
     Route::get('/manage_departments', [WebDepartmentController::class, 'loadDepartments'])->name('manage_departments');
-    Route::get('/manage_majors', [WebMarjorController::class, 'loadMajor'])->name('manage_majors');
+    Route::get('/manage_majors', [MarjorController::class, 'loadMajor'])->name('manage_majors');
     Route::get('/manage_staffs', [WebTeacherController::class, 'loadTeachers'])->name('manage_staffs');
-    Route::view('/assign_head', 'assistant-ui.assign-head')->name('assign_head');
+    Route::get('/assign_head', [WebDepartmentRolesController::class, 'loadDepartmentRoles'])->name('assign_head');
     Route::get('/rounds', [WebProjectTermsController::class, 'loadRounds'])->name('rounds');
     Route::view('/round-detail', 'assistant-ui.round-detail')->name('round_detail');
     Route::get('/round-detail/{round_id}', [WebProjectTermsController::class, 'loadRoundDetail'])->name('round_detail');
@@ -177,7 +179,7 @@ Route::middleware('auth')->prefix('assistant')->name('web.assistant.')->group(fu
     Route::get('/students/import_students/{termId}', [WebBatchStudentController::class, 'getStudentNotInProjectTerm'])->name('students_import');
     Route::get('/staffs/import_supervisors/{termId}', [WebSupervisorController::class, 'getSupervisorNotInProjectTerm'])->name('supervisors_import');
     Route::get('/students_detail/{termId}', [WebBatchStudentController::class, 'getAllBatchStudentsByTerm'])->name('students_detail');
-    Route::get('/supervisors_detail/{termId}', [WebSupervisorController::class, 'getAllSupervisorsByTerm'])->name('supervisors_detail');
+    Route::get('/supervisors_detail/{termId}', action: [WebSupervisorController::class, 'getAllSupervisorsByTerm'])->name('supervisors_detail');
     Route::post('/batch-students/bulk', [WebAssignmentController::class,'storeBulk'])->name('batch_students.bulk_store');
     Route::post('/supervisors/bulk', [WebSupervisorController::class,'storeBulk'])->name('supervisors.bulk_store');
     Route::post('/councils', [CouncilController::class, 'store'])->name('councils.store');
@@ -268,4 +270,18 @@ Route::middleware(['web','auth'])->prefix('teacher')->name('web.teacher.')->grou
         ->name('reviews.store');
     Route::post('/assignment-supervisors/{assignmentSupervisor}/report-score', [AssignmentSupervisorController::class, 'updateReportScore'])
         ->name('assignment_supervisors.report_score');
+});
+
+Route::middleware(['auth','verified'])->prefix('assistant')->name('web.assistant.')->group(function () {
+    // Tạo bộ môn (đã có)
+    Route::post('/departments', [DepartmentController::class, 'store'])->name('departments.store');
+    // Cập nhật bộ môn
+    Route::patch('/departments/{id}', [DepartmentController::class, 'update'])->name('departments.update');
+    Route::delete('/departments/{id}', [WebDepartmentRolesController::class, 'delete'])->name('departments.destroy');
+    Route::delete('/departments/{id}', [WebDepartmentController::class, 'destroy'])->name('departments.destroy');
+    Route::post('/department-roles', [WebDepartmentRolesController::class, 'assignHead'])
+        ->name('department_roles.store');
+    Route::post('/majors', [MarjorController::class, 'store'])->name('majors.store');
+    Route::patch('/majors/{id}', [MarjorController::class, 'update'])->name('majors.update');
+    Route::delete('/majors/{id}', [MarjorController::class, 'delete'])->name('majors.destroy');
 });

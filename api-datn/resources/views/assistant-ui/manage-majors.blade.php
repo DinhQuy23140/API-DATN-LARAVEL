@@ -207,57 +207,105 @@
       </section>
 
       <!-- Table -->
-      <section class="bg-white rounded-xl border border-slate-200 p-5">
-        <div class="overflow-x-auto">
-          <table class="w-full text-sm">
-            <thead>
-              <tr class="text-left text-slate-500">
-                <th class="py-3 px-4 border-b w-10"><input id="chkAll" type="checkbox" class="h-4 w-4" /></th>
-                <th class="py-3 px-4 border-b">Mã</th>
-                <th class="py-3 px-4 border-b">Tên</th>
-                <th class="py-3 px-4 border-b">Khoa phụ trách</th>
-                <th class="py-3 px-4 border-b">Số sinh viên</th>
-                <th class="py-3 px-4 border-b text-right">Hành động</th>
-              </tr>
-            </thead>
-            <tbody id="tableBody">
-              @if($majors->isEmpty())
-                <tr class="text-center">
-                  <td colspan="5" class="py-3 px-4 border-b">Không có dữ liệu</td>
-                </tr>
-              @else
-                @foreach($majors as $major)
-                  <tr class="hover:bg-slate-50">
-                    <td class="py-3 px-4"><input type="checkbox" class="rowChk h-4 w-4" /></td>
-                    <td class="py-3 px-4">{{ $major->code }}</td>
-                    <td class="py-3 px-4">{{ $major->name }}</td>
-                    <td class="py-3 px-4"><a class="text-blue-600 hover:underline" href="manage-departments.html">{{ $major->faculties?->name ?? 'chưa có khoa phụ trách' }}</a>
-                    </td>
-                    <td class="py-3 px-4">{{ $major->students->count() }}</td>
-                    <td class="py-3 px-4 text-right space-x-2">
-                      <button class="px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-slate-600"
-                        onclick="openEditModal('MJ-SE','Kỹ thuật phần mềm','1','')"><i class="ph ph-pencil"></i></button>
-                      <button class="px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-rose-600"
-                        onclick="deleteRow(this)"><i class="ph ph-trash"></i></button>
-                    </td>
-                  </tr>
-                @endforeach
-              @endif
-            </tbody>
-          </table>
-        </div>
+<section class="bg-white rounded-xl border border-slate-200 p-5">
+  <div class="overflow-x-auto">
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="text-left text-slate-500">
+          <th class="py-3 px-4 border-b w-10">
+            <input id="chkAll" type="checkbox" class="h-4 w-4" />
+          </th>
+          <th class="py-3 px-4 border-b">Mã ngành</th>
+          <th class="py-3 px-4 border-b">Thông tin ngành</th>
+          <th class="py-3 px-4 border-b">Số sinh viên</th>
+          <th class="py-3 px-4 border-b text-right">Hành động</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody">
+        @if($majors->isEmpty())
+          <tr class="text-center">
+            <td colspan="5" class="py-3 px-4 border-b">Không có dữ liệu</td>
+          </tr>
+        @else
+          @foreach($majors as $major)
+            <tr class="hover:bg-slate-50 align-top">
+              <!-- Checkbox -->
+              <td class="py-3 px-4">
+                <input type="checkbox" class="rowChk h-4 w-4" />
+              </td>
 
-        <div class="p-4 flex items-center justify-between text-sm text-slate-600">
-          <div id="infoCount">Hiển thị 1-2 của 32</div>
-          <div class="inline-flex rounded-lg border border-slate-200 overflow-hidden">
-            <button class="px-3 py-1.5 hover:bg-slate-50"><i class="ph ph-caret-left"></i></button>
-            <button class="px-3 py-1.5 bg-slate-100 font-medium">1</button>
-            <button class="px-3 py-1.5 hover:bg-slate-50">2</button>
-            <button class="px-3 py-1.5 hover:bg-slate-50">3</button>
-            <button class="px-3 py-1.5 hover:bg-slate-50"><i class="ph ph-caret-right"></i></button>
-          </div>
-        </div>
-      </section>
+              <!-- Mã ngành -->
+              <td class="py-3 px-4 font-semibold text-indigo-700 flex items-center gap-2">
+                <i class="ph ph-identification-card text-indigo-600"></i>
+                {{ $major->code }}
+              </td>
+
+              <!-- Thông tin ngành -->
+              <td class="py-3 px-4">
+                <!-- Tên ngành -->
+                <div class="font-semibold text-slate-800 flex items-center gap-2">
+                  <i class="ph ph-graduation-cap text-indigo-600"></i>
+                  <span>{{ $major->name }}</span>
+                </div>
+
+                <!-- Khoa phụ trách -->
+                <div class="text-slate-600 text-sm flex items-center gap-2 mt-1">
+                  <i class="ph ph-buildings text-slate-500"></i>
+                  <span>{{ $major->faculties?->name ?? 'Chưa có khoa phụ trách' }}</span>
+                </div>
+
+                <!-- Mô tả -->
+                @if($major->description)
+                  <div class="text-slate-500 text-sm mt-1 flex items-start gap-2">
+                    <i class="ph ph-note text-slate-400 mt-0.5"></i>
+                    <span>{{ $major->description }}</span>
+                  </div>
+                @endif
+              </td>
+
+              <!-- Số sinh viên -->
+              <td class="py-3 px-4 font-medium text-slate-700">
+                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-xs font-medium">
+                  <i class="ph ph-users-three"></i> {{ $major->students->count() }}
+                </span>
+              </td>
+
+              <!-- Hành động -->
+              <td class="py-3 px-4 text-right space-x-2">
+                <button
+                  class="btnEdit px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-indigo-600"
+                  data-id="{{ $major->id }}"
+                  data-code="{{ $major->code }}"
+                  data-name="{{ $major->name }}"
+                  data-faculty-id="{{ $major->faculties?->id }}"
+                  data-description="{{ e($major->description) }}">
+                  <i class="ph ph-pencil"></i>
+                </button>
+                <button class="btnDelete px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-rose-600"
+                  data-id="{{ $major->id }}">
+                  <i class="ph ph-trash"></i>
+                </button>
+              </td>
+            </tr>
+          @endforeach
+        @endif
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Phân trang -->
+  <div class="p-4 flex items-center justify-between text-sm text-slate-600">
+    <div id="infoCount">Hiển thị 1-2 của 32</div>
+    <div class="inline-flex rounded-lg border border-slate-200 overflow-hidden">
+      <button class="px-3 py-1.5 hover:bg-slate-50"><i class="ph ph-caret-left"></i></button>
+      <button class="px-3 py-1.5 bg-slate-100 font-medium">1</button>
+      <button class="px-3 py-1.5 hover:bg-slate-50">2</button>
+      <button class="px-3 py-1.5 hover:bg-slate-50">3</button>
+      <button class="px-3 py-1.5 hover:bg-slate-50"><i class="ph ph-caret-right"></i></button>
+    </div>
+  </div>
+</section>
+
     </div>
   </main>
 
@@ -294,21 +342,6 @@
           <input id="addName" required 
                  class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500" 
                  placeholder="VD: Kỹ thuật phần mềm"/>
-        </div>
-      </div>
-
-      <!-- Faculty + Department -->
-      <div class="grid grid-cols-2 gap-4">
-        <div>
-          <label class="text-sm font-medium flex items-center gap-1">
-            <i class="ph ph-buildings text-slate-500"></i> Khoa phụ trách
-          </label>
-          <select id="addFaculty" required
-                  class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
-            <option value="">— Chọn khoa —</option>
-            <option value="1">Công nghệ thông tin</option>
-            <option value="2">Kinh tế</option>
-          </select>
         </div>
       </div>
 
@@ -370,21 +403,6 @@
           </label>
           <input id="editName" required 
                  class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"/>
-        </div>
-      </div>
-
-      <!-- Faculty + Department -->
-      <div class="grid grid-cols-2 gap-4">
-        <div>
-          <label class="text-sm font-medium flex items-center gap-1">
-            <i class="ph ph-buildings text-slate-500"></i> Khoa phụ trách
-          </label>
-          <select id="editFaculty" required
-                  class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500">
-            <option value="">— Chọn khoa —</option>
-            <option value="1">Công nghệ thông tin</option>
-            <option value="2">Kinh tế</option>
-          </select>
         </div>
       </div>
 
@@ -486,11 +504,12 @@ function closeAddModal() {
   m.classList.add('hidden'); m.classList.remove('flex');
 }
 
-function openEditModal(code, name, faculty, desc) {
-  document.getElementById('editCode').value = code;
-  document.getElementById('editName').value = name;
-  document.getElementById('editFaculty').value = faculty;
-  document.getElementById('editDescription').value = desc || '';
+// Sửa: nhận dataset, không đụng tới editFaculty
+function openEditModal(ds) {
+  document.getElementById('editId').value = ds.id || '';
+  document.getElementById('editCode').value = ds.code || '';
+  document.getElementById('editName').value = ds.name || '';
+  document.getElementById('editDescription').value = ds.description || '';
   const m = document.getElementById('modalEdit');
   m.classList.remove('hidden'); m.classList.add('flex');
 }
@@ -500,6 +519,28 @@ function closeEditModal() {
   m.classList.add('hidden'); m.classList.remove('flex');
 }
 
+// expose
+window.openAddModal = openAddModal;
+window.closeAddModal = closeAddModal;
+window.openEditModal = openEditModal;
+window.closeEditModal = closeEditModal;
+
+// Ủy quyền click: Sửa + Xóa
+document.getElementById('tableBody')?.addEventListener('click', async (e) => {
+  const editBtn = e.target.closest('.btnEdit');
+  if (editBtn) {
+    openEditModal(editBtn.dataset);
+    return;
+  }
+  const delBtn = e.target.closest('.btnDelete');
+  if (delBtn) {
+    const id = delBtn.dataset.id || delBtn.closest('tr')?.querySelector('.btnEdit')?.dataset.id;
+    if (!id) { alert('Thiếu ID ngành'); return; }
+    if (!confirm('Bạn có chắc muốn xóa ngành này?')) return;
+    const ok = await deleteMajor(id);
+    if (ok) delBtn.closest('tr')?.remove();
+  }
+});
 
     // expose đúng các hàm dùng inline
     window.openAddModal = openAddModal;
@@ -512,43 +553,191 @@ function closeEditModal() {
 // window.closeModal = closeModal;
 
     // Save (demo: simply add to table)
-    function saveMajor() {
-      const code = document.getElementById('inputCode').value.trim();
-      const name = document.getElementById('inputName').value.trim();
-      const dept = document.getElementById('inputDept').value;
+    async function saveNewMajor() {
+      const code = document.getElementById('addCode')?.value.trim() || '';
+      const name = document.getElementById('addName')?.value.trim() || '';
+      const description = document.getElementById('addDescription')?.value.trim() || '';
+      if (!code || !name) { alert('Vui lòng nhập mã và tên ngành'); return; }
 
-      if (!code || !name) return alert('Vui lòng điền đầy đủ thông tin.');
+      const payload = { code, name, description, faculty_id: 1 };
+      try {
+        const res = await fetch("{{ route('web.assistant.majors.store') }}", {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': "{{ csrf_token() }}"
+          },
+          body: JSON.stringify(payload)
+        });
+        const txt = await res.text();
+        let data; try { data = JSON.parse(txt); } catch { console.error(txt); throw new Error('RESP_NOT_JSON'); }
+        if (!res.ok || data.ok === false) {
+          const msg = data.message || (data.errors ? Object.values(data.errors).flat().join('\n') : 'Lưu thất bại');
+          alert(msg); return;
+        }
+        const m = data.data || data;
 
-      const tbody = document.getElementById('tableBody');
-
-      // If editing existing row (simple approach: try to find matching code)
-      const existing = Array.from(tbody.querySelectorAll('tr')).find(tr => tr.cells[1]?.innerText === code);
-      if (existing) {
-        existing.cells[2].innerText = name;
-        existing.cells[3].innerHTML = `<a class="text-blue-600 hover:underline" href="manage-departments.html">${dept}</a>`;
-      } else {
+        // Thêm hàng mới
+        const tb = document.getElementById('tableBody');
         const tr = document.createElement('tr');
-        tr.className = 'hover:bg-slate-50';
+        tr.className = 'hover:bg-slate-50 align-top';
         tr.innerHTML = `
-            <td class="py-3 px-4"><input type="checkbox" class="rowChk h-4 w-4" /></td>
-            <td class="py-3 px-4">${code}</td>
-            <td class="py-3 px-4">${name}</td>
-            <td class="py-3 px-4"><a class="text-blue-600 hover:underline" href="manage-departments.html">${dept}</a></td>
-            <td class="py-3 px-4 text-right space-x-2">
-              <button class="px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-slate-600" onclick="openModal('edit','${code}','${name}','${dept}')"><i class="ph ph-pencil"></i></button>
-              <button class="px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-rose-600" onclick="deleteRow(this)"><i class="ph ph-trash"></i></button>
-            </td>
-          `;
-        tbody.prepend(tr);
+          <td class="py-3 px-4"><input type="checkbox" class="rowChk h-4 w-4" /></td>
+          <td class="py-3 px-4 font-semibold text-indigo-700 flex items-center gap-2">
+            <i class="ph ph-identification-card text-indigo-600"></i>${m.code}
+          </td>
+          <td class="py-3 px-4">
+            <div class="font-semibold text-slate-800 flex items-center gap-2">
+              <i class="ph ph-graduation-cap text-indigo-600"></i>
+              <span>${m.name}</span>
+            </div>
+            <div class="text-slate-600 text-sm flex items-center gap-2 mt-1">
+              <i class="ph ph-buildings text-slate-500"></i>
+              <span>${m.faculties?.name || 'Chưa có khoa phụ trách'}</span>
+            </div>
+            ${m.description ? `
+              <div class="text-slate-500 text-sm mt-1 flex items-start gap-2">
+                <i class="ph ph-note text-slate-400 mt-0.5"></i>
+                <span>${m.description}</span>
+              </div>` : ''}
+          </td>
+          <td class="py-3 px-4 font-medium text-slate-700">
+            <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-xs font-medium">
+              <i class="ph ph-users-three"></i> ${m.students_count ?? 0}
+            </span>
+          </td>
+          <td class="py-3 px-4 text-right space-x-2">
+            <button
+              class="btnEdit px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-indigo-600"
+              data-id="${m.id}"
+              data-code="${m.code}"
+              data-name="${m.name}"
+              data-faculty-id="${m.faculty_id ?? m.faculties?.id ?? ''}"
+              data-description="${m.description ?? ''}">
+              <i class="ph ph-pencil"></i>
+            </button>
+            <button class="btnDelete px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-rose-600" data-id="${m.id}">
+              <i class="ph ph-trash"></i>
+            </button>
+          </td>
+        `;
+        tb?.prepend(tr);
+
+        document.getElementById('formAdd')?.reset();
+        closeAddModal();
+      } catch (err) {
+        console.error(err);
+        alert('Lỗi: ' + (err.message || 'Không xác định'));
+      }
+    }
+
+    async function updateMajor() {
+      const id = document.getElementById('editId')?.value;
+      const code = document.getElementById('editCode')?.value.trim() || '';
+      const name = document.getElementById('editName')?.value.trim() || '';
+      const description = document.getElementById('editDescription')?.value.trim() || '';
+      if (!id || !code || !name) { alert('Vui lòng nhập mã và tên ngành'); return; }
+      const payload = { code, name, description, faculty_id: 1 };
+      try {
+        const res = await fetch(`{{ route('web.assistant.majors.update', 0) }}`.replace('/0', '/' + id), {
+          method: 'PATCH',
+           headers: {
+             'Content-Type': 'application/json',
+             'Accept': 'application/json',
+             'X-CSRF-TOKEN': "{{ csrf_token() }}"
+           },
+           body: JSON.stringify(payload)
+         });
+        const txt = await res.text();
+        let data; try { data = JSON.parse(txt); } catch { console.error(txt); throw new Error('RESP_NOT_JSON'); }
+        if (!res.ok || data.ok === false) {
+          const msg = data.message || (data.errors ? Object.values(data.errors).flat().join('\n') : 'Cập nhật thất bại');
+          alert(msg); return;
+        }
+        const m = data.data || data;
+
+        // Cập nhật hàng
+        const tb = document.getElementById('tableBody');
+        const tr = tb?.querySelector(`button.btnEdit[data-id="${id}"]`)?.closest('tr');
+        if (!tr) throw new Error('ROW_NOT_FOUND');
+        tr.innerHTML = `
+          <td class="py-3 px-4"><input type="checkbox" class="rowChk h-4 w-4" /></td>
+          <td class="py-3 px-4 font-semibold text-indigo-700 flex items-center gap-2">
+            <i class="ph ph-identification-card text-indigo-600"></i>${m.code}
+          </td>
+          <td class="py-3 px-4">
+            <div class="font-semibold text-slate-800 flex items-center gap-2">
+              <i class="ph ph-graduation-cap text-indigo-600"></i>
+              <span>${m.name}</span>
+            </div>
+            <div class="text-slate-600 text-sm flex items-center gap-2 mt-1">
+              <i class="ph ph-buildings text-slate-500"></i>
+              <span>${m.faculties?.name || 'Chưa có khoa phụ trách'}</span>
+            </div>
+            ${m.description ? `
+              <div class="text-slate-500 text-sm mt-1 flex items-start gap-2">
+                <i class="ph ph-note text-slate-400 mt-0.5"></i>
+                <span>${m.description}</span>
+              </div>` : ''}
+          </td>
+          <td class="py-3 px-4 font-medium text-slate-700">
+            <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-xs font-medium">
+              <i class="ph ph-users-three"></i> ${m.students_count ?? 0}
+            </span>
+          </td>
+          <td class="py-3 px-4 text-right space-x-2">
+            <button
+              class="btnEdit px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-indigo-600"
+              data-id="${m.id}"
+              data-code="${m.code}"
+              data-name="${m.name}"
+              data-faculty-id="${m.faculty_id ?? m.faculties?.id ?? ''}"
+              data-description="${m.description ?? ''}">
+              <i class="ph ph-pencil"></i>
+            </button>
+            <button class="btnDelete px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-rose-600" data-id="${m.id}">
+              <i class="ph ph-trash"></i>
+            </button>
+          </td>
+        `;
+
+        // Đóng modal
+        closeEditModal();
+      } catch (err) {
+        console.error(err);
+        alert('Lỗi: ' + (err.message || 'Không xác định'));
       }
 
-      closeModal();
     }
 
     function deleteRow(btn) {
       if (!confirm('Bạn có chắc muốn xóa ngành này?')) return;
       const tr = btn.closest('tr');
       tr?.remove();
+    }
+
+    async function deleteMajor(id) {
+      try {
+        const res = await fetch(`{{ route('web.assistant.majors.destroy', 0) }}`.replace('/0', '/' + id), {
+          method: 'DELETE',
+          headers: {
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': "{{ csrf_token() }}"
+          }
+        });
+        const txt = await res.text();
+        let data; try { data = JSON.parse(txt); } catch { console.error(txt); throw new Error('RESP_NOT_JSON'); }
+        if (!res.ok || data.ok === false) {
+          const msg = data.message || (data.errors ? Object.values(data.errors).flat().join('\n') : 'Xóa thất bại');
+          alert(msg); return false;
+        }
+        return true;
+      } catch (err) {
+        console.error(err);
+        alert('Lỗi: ' + (err.message || 'Không xác định'));
+        return false;
+      }
     }
 
     // hook add button
@@ -568,8 +757,7 @@ function closeEditModal() {
     // document.getElementById('modal')?.addEventListener(...);
 
     // (Tùy chọn) tránh lỗi submit vì thiếu hàm:
-    window.saveNewMajor = function(){ /* TODO: implement save */ alert('Chưa triển khai lưu.'); }
-    window.updateMajor  = function(){ /* TODO: implement update */ alert('Chưa triển khai cập nhật.'); }
+    window.saveNewMajor = saveNewMajor;
   </script>
 </body>
 

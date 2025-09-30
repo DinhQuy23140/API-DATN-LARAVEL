@@ -156,48 +156,87 @@
                 class="ph ph-plus"></i>Thêm bộ môn</button>
           </div>
 
-          <div class="bg-white border border-slate-200 rounded-xl">
-            <div class="overflow-x-auto">
+          <div class="bg-white border border-slate-200 rounded-xl shadow-sm">
+            <div class="overflow-x-auto rounded-t-xl">
               <table class="w-full text-sm">
-                <thead>
-                  <tr class="text-left text-slate-500">
-                    <th class="py-3 px-4 border-b w-10"><input id="chkAll" type="checkbox" class="h-4 w-4" /></th>
-                    <th class="py-3 px-4 border-b">Mã</th>
-                    <th class="py-3 px-4 border-b">Tên</th>
-                    <th class="py-3 px-4 border-b">Trưởng bộ môn</th>
-                    <th class="py-3 px-4 border-b">Ngành thuộc bộ môn</th>
-                    <th class="py-3 px-4 border-b">Số giảng viên</th>
-                    <th class="py-3 px-4 border-b text-right">Hành động</th>
+                <thead class="bg-slate-50 text-slate-600 text-xs uppercase">
+                  <tr>
+                    <th class="py-3 px-4 w-10">
+                      <input id="chkAll" type="checkbox" class="h-4 w-4 rounded border-slate-300">
+                    </th>
+                    <th class="py-3 px-4">Mã</th>
+                    <th class="py-3 px-4">Tên bộ môn</th>
+                    <th class="py-3 px-4">Trưởng bộ môn</th>
+                    <th class="py-3 px-4">Môn học</th>
+                    <th class="py-3 px-4">Số GV</th>
+                    <th class="py-3 px-4 text-right">Hành động</th>
                   </tr>
                 </thead>
-                <tbody id="tableBody">
+                <tbody id="tableBody" class="divide-y divide-slate-100">
                   @if ($departments->isEmpty())
                     <tr>
-                      <td colspan="7" class="text-center text-slate-500 py-6">Chưa có bộ môn nào.</td>
+                      <td colspan="7" class="text-center text-slate-500 py-8">Chưa có bộ môn nào.</td>
                     </tr>
                   @else
                     @foreach ($departments as $department)
-                      <tr class="hover:bg-slate-50">
-                        <td class="py-3 px-4"><input type="checkbox" class="rowChk h-4 w-4" /></td>
-                        <td class="py-3 px-4">{{ $department->code }}</td>
-                        <td class="py-3 px-4">{{ $department->name }}</td>
-                        <td class="py-3 px-4"><a class="text-blue-600 hover:underline"
-                            href="../lecturer-ui/profile.html">{{ $department->departmentRoles?->first('head')?->teacher?->name ?? 'Chưa có trưởng bộ môn' }}</a></td>
-                        @if ($department->subjects->isNotEmpty())
-                          <td class="py-3 px-4">
-                            @foreach ($department->subjects as $subject)
-                              <a class="text-blue-600 hover:underline" href="manage-subjects.html">{{ $subject->name }}</a>
-                            @endforeach
-                          </td>
-                        @else
-                          <td class="py-3 px-4">Chưa có môn học</td>
-                        @endif
-                        <td class="py-3 px-4">{{ $department->teachers->count() }}</td>
+                      <tr class="hover:bg-slate-50 transition-colors">
+                        <td class="py-3 px-4">
+                          <input type="checkbox" class="rowChk h-4 w-4 rounded border-slate-300" />
+                        </td>
+                        <td class="py-3 px-4 font-mono text-slate-700">{{ $department->code }}</td>
+                        <td class="py-3 px-4 font-medium text-slate-800 flex items-center gap-2">
+                          <i class="ph ph-buildings text-slate-400"></i>
+                          {{ $department->name }}
+                        </td>
+                        <td class="py-3 px-4">
+                          @php
+                            $head = $department->departmentRoles ?? [];
+                          @endphp
+                          @if ($head->where('role', 'head')->first()?->teacher->user->fullname)
+                            <a href="{{ route('web.teacher.profile') }}" class="flex items-center gap-2 text-blue-600 hover:underline">
+                              <i class="ph ph-user text-slate-400"></i>
+                              {{ $head->where('role', 'head')->first()?->teacher->user->fullname ?? 'Chưa có trưởng bộ môn' }}
+                            </a>
+                          @else
+                            <span class="text-slate-400">Chưa có trưởng bộ môn</span>
+                          @endif
+                        </td>
+                        <td class="py-3 px-4">
+                          @if ($department->subjects->isNotEmpty())
+                            <div class="flex flex-wrap gap-1">
+                              @foreach ($department->subjects as $subject)
+                                <a href="manage-subjects.html"
+                                  class="px-2 py-0.5 text-xs rounded-full bg-blue-50 text-blue-700 hover:bg-blue-100">
+                                  {{ $subject->name }}
+                                </a>
+                              @endforeach
+                            </div>
+                          @else
+                            <span class="text-slate-400">Chưa có môn học</span>
+                          @endif
+                        </td>
+                        <td class="py-3 px-4 text-center">
+                          <span class="px-2 py-1 rounded-md bg-slate-100 text-slate-700 text-xs">
+                            {{ $department->teachers->count() }}
+                          </span>
+                        </td>
                         <td class="py-3 px-4 text-right space-x-2">
-                          <button class="px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-slate-600"
-                            onclick="openModal('edit')"><i class="ph ph-pencil"></i></button>
-                          <button class="px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-rose-600"><i
-                              class="ph ph-trash"></i></button>
+                          <button
+                            class="p-2 rounded-full hover:bg-slate-100 text-slate-600"
+                            onclick="openModal('edit', this.dataset)"
+                            data-id="{{ $department->id }}"
+                            data-code="{{ $department->code }}"
+                            data-name="{{ $department->name }}"
+                            data-head-id="{{ optional($department->departmentRoles->where('role','head')->first())->teacher_id }}"
+                            data-description="{{ e($department->description) }}"
+                          >
+                            <i class="ph ph-pencil"></i>
+                          </button>
+                          <button
+                            class="btnDelete p-2 rounded-full hover:bg-rose-50 text-rose-600"
+                            data-id="{{ $department->id }}">
+                            <i class="ph ph-trash"></i>
+                          </button>
                         </td>
                       </tr>
                     @endforeach
@@ -205,17 +244,20 @@
                 </tbody>
               </table>
             </div>
-            <div class="p-4 flex items-center justify-between text-sm text-slate-600">
-              <div>Hiển thị 1-2 của 18</div>
+
+            <!-- Pagination -->
+            <div class="p-4 flex items-center justify-between text-sm text-slate-600 border-t">
+              <div>Hiển thị 1–2 của 18</div>
               <div class="inline-flex rounded-lg border border-slate-200 overflow-hidden">
                 <button class="px-3 py-1.5 hover:bg-slate-50"><i class="ph ph-caret-left"></i></button>
-                <button class="px-3 py-1.5 bg-slate-100 font-medium">1</button>
+                <button class="px-3 py-1.5 bg-blue-600 text-white font-medium">1</button>
                 <button class="px-3 py-1.5 hover:bg-slate-50">2</button>
                 <button class="px-3 py-1.5 hover:bg-slate-50">3</button>
                 <button class="px-3 py-1.5 hover:bg-slate-50"><i class="ph ph-caret-right"></i></button>
               </div>
             </div>
           </div>
+
         </div>
       </main>
     </div>
@@ -236,7 +278,7 @@
     </div>
 
     <!-- Form -->
-    <form class="p-6 space-y-5" onsubmit="event.preventDefault(); closeModal('add');">
+    <form class="p-6 space-y-5" onsubmit="event.preventDefault(); submitAddDepartment(); closeModal('add');">
       
       <!-- Code + Name -->
       <div class="grid grid-cols-2 gap-4">
@@ -270,18 +312,10 @@
                   class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 
                          focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600">
             <option>— Chọn trưởng bộ môn —</option>
-            <option>TS. Đặng Hữu T</option>
-            <option>ThS. Lưu Lan</option>
+            @foreach ($teachers as $teacher)
+              <option value="{{ $teacher->id }}">{{ $teacher->user->fullname }}</option>
+            @endforeach
           </select>
-        </div>
-        <div>
-          <label class="text-sm font-medium flex items-center gap-2">
-            <i class="ph ph-graduation-cap"></i> Ngành thuộc bộ môn
-          </label>
-          <input id="addMajors"
-                 class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 
-                        focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600"
-                 placeholder="VD: KTPM, KHMT" />
         </div>
       </div>
 
@@ -314,104 +348,88 @@
 
   <!-- Modal sửa bộ môn -->
 <div id="modalEditDepartment"
-     class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden items-center justify-center z-50">
-  <div class="bg-white rounded-2xl w-full max-w-3xl shadow-2xl overflow-hidden">
+  class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm hidden items-center justify-center z-50">
+  <div class="bg-white rounded-xl w-full max-w-2xl shadow-xl">
 
     <!-- Header -->
-    <div class="px-6 py-4 border-b flex items-center justify-between bg-slate-50">
-      <h3 class="text-lg font-semibold text-slate-800 flex items-center gap-2">
+    <div class="p-4 border-b flex items-center justify-between">
+      <h3 class="font-semibold text-lg flex items-center gap-2">
         <i class="ph ph-buildings text-blue-600"></i>
         Sửa Bộ môn
       </h3>
-      <button type="button"
-              class="p-2 hover:bg-slate-200 rounded-full transition"
-              onclick="document.getElementById('modalEditDepartment').classList.add('hidden')">
-        <i class="ph ph-x text-lg"></i>
+      <button type="button" class="p-2 hover:bg-slate-100 rounded-lg"
+              onclick="closeModal('edit')">
+        <i class="ph ph-x"></i>
       </button>
     </div>
 
     <!-- Form -->
-    <form action="#" method="POST" class="px-6 py-5 space-y-5">
+    <form class="p-6 space-y-5" onsubmit="event.preventDefault(); submitEditDepartment();">
       @csrf
       @method('PATCH')
-      <input type="hidden" name="id" value="1">
+      <input type="hidden" name="id" id="editId">
 
-      <!-- Code & Name -->
-      <div class="grid grid-cols-2 gap-5">
+      <div class="grid grid-cols-2 gap-4">
         <div>
-          <label class="text-sm font-medium text-slate-700">Mã bộ môn</label>
-          <div class="mt-1 relative">
-            <i class="ph ph-identification-card text-slate-400 absolute left-3 top-3"></i>
-            <input type="text" name="code" value="BM001" required
-                   class="pl-10 w-full px-3 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500">
-          </div>
+          <label class="text-sm font-medium flex items-center gap-2">
+            <i class="ph ph-hash"></i> Mã bộ môn
+          </label>
+          <input id="editCode" name="code" required
+                 class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 
+                        focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600"
+                 placeholder="VD: D-CNTT" />
         </div>
         <div>
-          <label class="text-sm font-medium text-slate-700">Tên bộ môn</label>
-          <div class="mt-1 relative">
-            <i class="ph ph-book-open-text text-slate-400 absolute left-3 top-3"></i>
-            <input type="text" name="name" value="Bộ môn Toán" required
-                   class="pl-10 w-full px-3 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500">
-          </div>
+          <label class="text-sm font-medium flex items-center gap-2">
+            <i class="ph ph-bookmarks"></i> Tên bộ môn
+          </label>
+          <input id="editName" name="name" required
+                 class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 
+                        focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600"
+                 placeholder="VD: Công nghệ thông tin" />
         </div>
       </div>
 
-      <!-- Faculty & Head -->
-      <div class="grid grid-cols-2 gap-5">
+      <div class="grid grid-cols-2 gap-4">
         <div>
-          <label class="text-sm font-medium text-slate-700">Khoa trực thuộc</label>
-          <div class="mt-1 relative">
-            <i class="ph ph-graduation-cap text-slate-400 absolute left-3 top-3"></i>
-            <select name="faculty_id"
-                    class="pl-10 w-full px-3 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500">
-              <option value="1" selected>Khoa Khoa học Tự nhiên</option>
-              <option value="2">Khoa Công nghệ Thông tin</option>
-            </select>
-          </div>
-        </div>
-        <div>
-          <label class="text-sm font-medium text-slate-700">Trưởng bộ môn</label>
-          <div class="mt-1 relative">
-            <i class="ph ph-user-circle text-slate-400 absolute left-3 top-3"></i>
-            <select name="head_id"
-                    class="pl-10 w-full px-3 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500">
-              <option value="">— Chọn trưởng bộ môn —</option>
-              <option value="10" selected>Nguyễn Văn A</option>
-              <option value="12">Trần Thị B</option>
-              <option value="15">Lê Văn C</option>
-            </select>
-          </div>
+          <label class="text-sm font-medium flex items-center gap-2">
+            <i class="ph ph-user-circle"></i> Trưởng bộ môn
+          </label>
+          <select id="editHead" name="head_id"
+              class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 
+                     focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600">
+        <option value="">— Chọn trưởng bộ môn —</option>
+        @foreach ($teachers as $teacher)
+          <option value="{{ $teacher->id }}">{{ $teacher->user->fullname }}</option>
+        @endforeach
+      </select>
         </div>
       </div>
 
-      <!-- Description -->
       <div>
-        <label class="text-sm font-medium text-slate-700">Mô tả</label>
-        <div class="mt-1 relative">
-          <i class="ph ph-text-align-left text-slate-400 absolute left-3 top-3"></i>
-          <textarea name="description" rows="3"
-                    class="pl-10 w-full px-3 py-2 rounded-lg border border-slate-300 focus:ring-2 focus:ring-blue-500">Phụ trách giảng dạy các môn liên quan đến toán học.</textarea>
-        </div>
+        <label class="text-sm font-medium flex items-center gap-2">
+          <i class="ph ph-text-align-left"></i> Mô tả
+        </label>
+        <textarea id="editDescription" name="description" rows="3"
+              class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 
+                     focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600"
+              placeholder="Nhập mô tả về bộ môn..."></textarea>
       </div>
 
       <!-- Actions -->
-      <div class="flex items-center justify-end gap-3 pt-4 border-t">
-        <button type="button"
-                onclick="document.getElementById('modalEditDepartment').classList.add('hidden')"
-                class="px-4 py-2 rounded-lg border border-slate-300 text-slate-600 hover:bg-slate-100 transition flex items-center gap-2">
-          <i class="ph ph-x-circle"></i>
+      <div class="flex items-center justify-end gap-2 pt-2">
+        <button type="button" onclick="closeModal('edit')"
+                class="px-4 py-2 rounded-lg border hover:bg-slate-50">
           Hủy
         </button>
         <button type="submit"
-                class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition flex items-center gap-2">
-          <i class="ph ph-check-circle"></i>
+                class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700">
           Cập nhật
         </button>
       </div>
     </form>
   </div>
 </div>
-
 
 
   <script>
@@ -421,12 +439,6 @@
     document.getElementById('openSidebar')?.addEventListener('click', () => sidebar.classList.toggle('-translate-x-full'));
     if (localStorage.getItem('assistant_sidebar') === '1') setCollapsed(true);
     sidebar.classList.add('md:translate-x-0', '-translate-x-full', 'md:static');
-
-    function openModal(mode) { document.getElementById('modalTitle').textContent = mode === 'edit' ? 'Sửa bộ môn' : 'Thêm bộ môn'; const m = document.getElementById('modal'); m.classList.remove('hidden'); m.classList.add('flex'); }
-    function closeModal() { const m = document.getElementById('modal'); m.classList.add('hidden'); m.classList.remove('flex'); }
-    window.openModal = openModal; window.closeModal = closeModal;
-
-    document.getElementById('searchInput').addEventListener('input', e => { const q = e.target.value.toLowerCase(); document.querySelectorAll('#tableBody tr').forEach(tr => { tr.style.display = tr.innerText.toLowerCase().includes(q) ? '' : ''; }); });
 
     // checkbox all
     document.getElementById('chkAll')?.addEventListener('change', (e) => { document.querySelectorAll('.rowChk').forEach(chk => chk.checked = e.target.checked); });
@@ -462,18 +474,48 @@
       }
     });
 
-function openModal(type, data = null) {
+    // XÓA 2 hàm cũ dưới đây (nếu còn):
+    // function openModal(mode) { document.getElementById('modalTitle')...; const m = document.getElementById('modal'); ... }
+    // function closeModal() { const m = document.getElementById('modal'); ... }
+    // window.openModal = openModal; window.closeModal = closeModal;
+
+    // Helper: nếu option chưa có thì thêm tạm rồi set value
+function ensureSelectedOption(selectEl, value, label) {
+  if (!selectEl || !value) return;
+  if (![...selectEl.options].some(o => o.value === String(value))) {
+    const opt = document.createElement('option');
+    opt.value = value;
+    opt.textContent = label || value;
+    selectEl.appendChild(opt);
+  }
+  selectEl.value = String(value);
+}
+
+function openModal(type, ds = null) {
   if (type === 'add') {
     const m = document.getElementById('modalAddDepartment');
     m.classList.remove('hidden'); m.classList.add('flex');
-  } else if (type === 'edit') {
-    if (data) {
-      document.getElementById('editId').value = data.id || '';
-      document.getElementById('editCode').value = data.code || '';
-      document.getElementById('editName').value = data.name || '';
-      document.getElementById('editHead').value = data.head || '— Chọn trưởng bộ môn —';
-      document.getElementById('editMajors').value = data.majors || '';
-    }
+    return;
+  }
+
+  if (type === 'edit') {
+    // Điền dữ liệu
+    document.getElementById('editId').value = ds?.id || '';
+    document.getElementById('editCode').value = ds?.code || '';
+    document.getElementById('editName').value = ds?.name || '';
+    document.getElementById('editDescription').value = ds?.description || '';
+
+    const selHead = document.getElementById('editHead');
+    const headId = ds?.headId || '';
+    // Lấy nhãn từ cột bảng (nếu cần): tìm về tr gần nhất để lấy tên hiển thị
+    let headLabel = '';
+    try {
+      const btn = document.querySelector(`button[data-id="${ds?.id}"][data-code="${ds?.code}"]`);
+      const tr = btn?.closest('tr');
+      headLabel = tr?.querySelectorAll('td')[3]?.innerText?.trim() || '';
+    } catch (_) {}
+    ensureSelectedOption(selHead, headId, headLabel);
+
     const m = document.getElementById('modalEditDepartment');
     m.classList.remove('hidden'); m.classList.add('flex');
   }
@@ -485,9 +527,164 @@ function closeModal(type) {
   m.classList.add('hidden'); m.classList.remove('flex');
 }
 
-// Ví dụ: khi click vào nút sửa của bộ môn CNTT
-// openModal('edit', { id: 1, code: 'D-CNTT', name: 'Công nghệ thông tin', head: 'TS. Đặng Hữu T', majors: 'KTPM, KHMT' });
+window.openModal = openModal;
+window.closeModal = closeModal;
 
+    async function submitAddDepartment() {
+      const code = document.getElementById('addCode').value.trim();
+      const name = document.getElementById('addName').value.trim();
+      const head = document.getElementById('addHead').value;
+      const description = document.getElementById('addDescription').value.trim();
+      const faculty_id = 1;
+
+      const data  = {
+        code: code,
+        name: name,
+        head_id: head,
+        description: description,
+        faculty_id: faculty_id  
+      };
+
+      console.log("data", data);
+
+      try {
+        const response = await fetch("{{route('web.assistant.departments.store')}}", {
+          method: "POST",
+          headers: {
+                "X-CSRF-TOKEN": "{{ csrf_token() }}",
+                "Content-Type": "application/json",
+                "Accept": "application/json"
+            },
+          body: JSON.stringify(data)
+        })
+
+        if (!response.ok) {
+            const err = await response.json();
+            console.error("Lỗi:", err);
+            alert("Thêm bộ môn thất bại!");
+            return;
+        }
+
+        const result = await response.json();
+        console.log("Kết quả:", result);
+
+        alert("Thêm bộ môn thành công!");
+        location.reload()
+      } catch (error) {
+        console.error("Lỗi fetch:", error);
+        alert("Không thể kết nối server!");
+      }
+    } 
+
+   async function submitEditDepartment() {
+     const id = document.getElementById('editId')?.value;
+     if (!id) { alert('Thiếu ID bộ môn'); return; }
+
+     const code = document.getElementById('editCode')?.value?.trim() || '';
+     const name = document.getElementById('editName')?.value?.trim() || '';
+     const head = document.getElementById('editHead')?.value || '';
+     const description = document.getElementById('editDescription')?.value?.trim() || '';
+     const headLabel = document.getElementById('editHead')?.selectedOptions?.[0]?.textContent?.trim() || 'Chưa có trưởng bộ môn';
+
+     const payload = {
+       code, name, description,
+       head_id: head || null
+     };
+
+     try {
+       const url = `{{ route('web.assistant.departments.update', 0) }}`.replace('/0', '/' + id);
+       const res = await fetch(url, {
+         method: 'PATCH',
+         headers: {
+           'X-CSRF-TOKEN': '{{ csrf_token() }}',
+           'Content-Type': 'application/json',
+           'Accept': 'application/json'
+         },
+         body: JSON.stringify(payload)
+       });
+       const txt = await res.text();
+       let data; try { data = JSON.parse(txt); } catch { console.error(txt); throw new Error('RESP_NOT_JSON'); }
+       if (!res.ok || data.ok === false) {
+         alert(data.message || (data.errors ? Object.values(data.errors).flat().join('\n') : 'Cập nhật thất bại'));
+         return;
+       }
+
+       // Cập nhật lại hàng trong bảng
+       const editBtn = document.querySelector(`button[data-id="${id}"]`);
+       const tr = editBtn?.closest('tr');
+       if (tr) {
+         // Cột Mã (index 1)
+         tr.querySelectorAll('td')[1].textContent = code;
+         // Cột Tên (index 2)
+         tr.querySelectorAll('td')[2].innerHTML = `
+           <i class="ph ph-buildings text-slate-400"></i>
+           ${name}
+         `;
+         // Cột Trưởng bộ môn (index 3)
+         tr.querySelectorAll('td')[3].innerHTML = `
+           <a href="../lecturer-ui/profile.html" class="flex items-center gap-2 text-blue-600 hover:underline">
+             <i class="ph ph-user text-slate-400"></i>
+             ${head ? headLabel : 'Chưa có trưởng bộ môn'}
+           </a>
+         `;
+         // Cập nhật dataset của nút sửa
+         editBtn.dataset.code = code;
+         editBtn.dataset.name = name;
+         editBtn.dataset.description = description;
+         editBtn.dataset.headId = head || '';
+       }
+
+       closeModal('edit');
+       // Optional: toast
+       // alert('Cập nhật bộ môn thành công');
+     } catch (err) {
+       console.error(err);
+       alert('Lỗi: ' + (err.message || 'Không xác định'));
+     }
+   }
+
+    // Ủy quyền click nút Xóa
+    document.getElementById('tableBody')?.addEventListener('click', async (e) => {
+      const delBtn = e.target.closest('.btnDelete');
+      if (!delBtn) return;
+
+      const id = delBtn.dataset.id;
+      if (!id) { alert('Thiếu ID bộ môn'); return; }
+
+      if (!confirm('Bạn có chắc muốn xóa bộ môn này?')) return;
+
+      const old = delBtn.innerHTML;
+      delBtn.disabled = true;
+      delBtn.innerHTML = '<i class="ph ph-spinner-gap animate-spin"></i>';
+
+      try {
+        const url = `{{ route('web.assistant.departments.destroy', 0) }}`.replace('/0', '/' + id);
+        const res = await fetch(url, {
+          method: 'DELETE',
+          headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Accept': 'application/json'
+          }
+        });
+
+        const txt = await res.text();
+        let data; try { data = JSON.parse(txt); } catch { data = { ok: res.ok }; }
+
+        if (!res.ok || data.ok === false) {
+          alert(data?.message || 'Xóa thất bại');
+          return;
+        }
+
+        // Xóa hàng khỏi bảng
+        delBtn.closest('tr')?.remove();
+      } catch (err) {
+        console.error(err);
+        alert('Lỗi: ' + (err.message || 'Không xác định'));
+      } finally {
+        delBtn.disabled = false;
+        delBtn.innerHTML = old;
+      }
+    });
   </script>
 </body>
 

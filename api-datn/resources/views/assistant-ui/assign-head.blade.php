@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Gán trưởng bộ môn</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- CSRF -->
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -86,16 +88,20 @@
             </div>
           </div>
           <div class="relative">
-            <button id="profileBtn" class="flex items-center gap-3 px-2 py-1.5 rounded-lg hover:bg-slate-100">
-              <img class="h-9 w-9 rounded-full object-cover" src="https://i.pravatar.cc/100?img=6" alt="avatar" />
-              <i class="ph ph-caret-down text-slate-500 hidden sm:block"></i>
-            </button>
+              <button id="profileBtn" class="flex items-center gap-3 px-2 py-1.5 rounded-lg hover:bg-slate-100">
+                <img class="h-9 w-9 rounded-full object-cover" src="{{ $avatarUrl }}" alt="avatar" />
+                <div class="hidden sm:block text-left">
+                  <div class="text-sm font-semibold leading-4">{{ $userName }}</div>
+                  <div class="text-xs text-slate-500">{{ $email }}</div>
+                </div>
+                <i class="ph ph-caret-down text-slate-500 hidden sm:block"></i>
+              </button>
             <div id="profileMenu" class="hidden absolute right-0 mt-2 w-44 bg-white border border-slate-200 rounded-lg shadow-lg py-1 text-sm">
               <a href="#" class="flex items-center gap-2 px-3 py-2 hover:bg-slate-50"><i class="ph ph-user"></i>Xem thông tin</a>
-              <a href="#" class="flex items-center gap-2 px-3 py-2 hover:bg-slate-50 text-rose-600"><i class="ph ph-sign-out"></i>Đăng xuất</a>
-              <form action="{{ route('web.auth.logout') }}" method="POST" class="hidden"><input type="submit">
+              <a href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();" class="flex items-center gap-2 px-3 py-2 hover:bg-slate-50 text-rose-600"><i class="ph ph-sign-out"></i>Đăng xuất</a>
+              <form id="logout-form" action="{{ route('web.auth.logout') }}" method="POST" class="hidden">
                 @csrf
-            </form>
+              </form>
             </div>
           </div>
         </header>
@@ -108,53 +114,36 @@
             <div class="mt-4 grid sm:grid-cols-3 gap-4">
               <div>
                 <label class="text-sm font-medium">Chọn giảng viên</label>
-                <select class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600">
-                  <option>GV001 - Ngô Hải Nam</option>
-                  <option>GV002 - Lê Thu Hằng</option>
-                  <option>GV003 - Phạm Đức Minh</option>
+                <select id="selectTeacher" class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600">
+                  @foreach ($teachers as $teacher)
+                    <option value="{{ $teacher->id }}">{{ $teacher->user->fullname }}</option>
+                  @endforeach
                 </select>
               </div>
               <div>
                 <label class="text-sm font-medium">Chọn bộ môn</label>
-                <select class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600">
-                  <option>CNTT</option>
-                  <option>Điện</option>
-                  <option>Marketing</option>
+                <select id="selectDepartment" class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600">
+                  @foreach ($departmentsNotHead as $department)
+                    <option value="{{ $department->id }}">{{ $department->name }}</option>
+                  @endforeach
                 </select>
               </div>
               <div class="flex items-end">
-                <button class="w-full sm:w-auto inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700"><i class="ph ph-check"></i>Xác nhận gán quyền</button>
+                <button id="btnAssignHead" class="w-full sm:w-auto inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700"><i class="ph ph-check"></i>Xác nhận gán quyền</button>
               </div>
             </div>
           </section>
-
           <!-- Current heads list -->
           <section class="bg-white rounded-xl border border-slate-200 p-5">
             <div class="flex items-center justify-between">
               <h2 class="font-semibold">Danh sách Trưởng bộ môn hiện tại</h2>
-            <div class="relative">
-              <button id="profileBtn" class="flex items-center gap-3 px-2 py-1.5 rounded-lg hover:bg-slate-100">
-                <img class="h-9 w-9 rounded-full object-cover" src="{{ $avatarUrl }}" alt="avatar" />
-                <div class="hidden sm:block text-left">
-                  <div class="text-sm font-semibold leading-4">{{ $userName }}</div>
-                  <div class="text-xs text-slate-500">{{ $email }}</div>
-                </div>
-                <i class="ph ph-caret-down text-slate-500 hidden sm:block"></i>
-              </button>
-              <div id="profileMenu" class="hidden absolute right-0 mt-2 w-44 bg-white border border-slate-200 rounded-lg shadow-lg py-1 text-sm">
-                <a href="#" class="flex items-center gap-2 px-3 py-2 hover:bg-slate-50"><i class="ph ph-user"></i>Xem thông tin</a>
-                <a href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();" class="flex items-center gap-2 px-3 py-2 hover:bg-slate-50 text-rose-600"><i class="ph ph-sign-out"></i>Đăng xuất</a>
-                <form id="logout-form" action="{{ route('web.auth.logout') }}" method="POST" class="hidden">
-                  @csrf
-                </form>
-              </div>
-            </div>
             </div>
             <div class="mt-4 overflow-x-auto">
               <table class="w-full text-sm">
                 <thead>
                   <tr class="text-left text-slate-500">
                     <th class="py-3 px-4 border-b w-10"><input id="chkAll" type="checkbox" class="h-4 w-4"/></th>
+                    <th class="py-3 px-4 border-b">Mã bộ môn</th>
                     <th class="py-3 px-4 border-b">Bộ môn</th>
                     <th class="py-3 px-4 border-b">Trưởng bộ môn</th>
                     <th class="py-3 px-4 border-b">Email</th>
@@ -162,9 +151,26 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr class="hover:bg-slate-50"><td class="py-3 px-4"><input type="checkbox" class="rowChk h-4 w-4"/></td><td class="py-3 px-4">CNTT</td><td class="py-3 px-4">TS. Đặng Hữu T</td><td class="py-3 px-4">dang.t@uni.edu</td><td class="py-3 px-4 text-right"><button class="px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-rose-600" onclick="removeHead(this)"><i class="ph ph-user-minus"></i> Bỏ quyền</button></td></tr>
-                  <tr class="hover:bg-slate-50"><td class="py-3 px-4"><input type="checkbox" class="rowChk h-4 w-4"/></td><td class="py-3 px-4">Điện</td><td class="py-3 px-4">ThS. Lưu Lan</td><td class="py-3 px-4">lan.luu@uni.edu</td><td class="py-3 px-4 text-right"><button class="px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-rose-600" onclick="removeHead(this)"><i class="ph ph-user-minus"></i> Bỏ quyền</button></td></tr>
-                  <tr class="hover:bg-slate-50"><td class="py-3 px-4"><input type="checkbox" class="rowChk h-4 w-4"/></td><td class="py-3 px-4">Marketing</td><td class="py-3 px-4">TS. Phan Đức</td><td class="py-3 px-4">duc.phan@uni.edu</td><td class="py-3 px-4 text-right"><button class="px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-rose-600" onclick="removeHead(this)"><i class="ph ph-user-minus"></i> Bỏ quyền</button></td></tr>
+                  @foreach ($departments as $department)
+                    <tr class="hover:bg-slate-50">
+                      <td class="py-3 px-4"><input type="checkbox" class="rowChk h-4 w-4"/></td>
+                      <td class="py-3 px-4">{{ $department->department->code }}</td>
+                      <td class="py-3 px-4">{{ $department->department->name }}</td>
+                      <td class="py-3 px-4">{{ $department->teacher->user->fullname }}</td>
+                      <td class="py-3 px-4">{{ $department->teacher->user->email }}</td>
+                      <td class="py-3 px-4 text-right">
+                        <button
+                          class="px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-rose-600"
+                          data-department-id="{{ $department->department->id }}"
+                          data-role-id="{{ $department->id }}"
+                          data-teacher-id="{{ $department->teacher->id }}"
+                          onclick="removeHead(this)">
+                          <i class="ph ph-user-minus"></i>
+                          Bỏ quyền
+                        </button>
+                      </td>
+                    </tr>
+                  @endforeach
                 </tbody>
               </table>
             </div>
@@ -191,11 +197,142 @@
   // checkbox all
   document.getElementById('chkAll')?.addEventListener('change', (e)=>{document.querySelectorAll('.rowChk').forEach(chk=> chk.checked = e.target.checked);});
 
-  // remove head action
-  function removeHead(btn){
-    if(confirm('Bỏ quyền trưởng bộ môn khỏi người này?')){
-      const tr=btn.closest('tr'); tr?.remove();
+  // remove head action (CALL route('departments.destroy'))
+  async function removeHead(btn){
+    const tr = btn.closest('tr');
+    const deptId   = btn.dataset.departmentId;
+    const roleId   = btn.dataset.roleId;     // id của bảng department_roles
+    const teacherId= btn.dataset.teacherId;
+
+    if(!roleId){
+      alert('Thiếu role_id (department_roles.id)'); return;
     }
+    if(!confirm('Bỏ quyền trưởng bộ môn khỏi người này?')) return;
+
+    const token = document.querySelector('meta[name="csrf-token"]')?.content || '';
+    const oldHtml = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<i class="ph ph-spinner-gap animate-spin"></i> Đang xử lý...';
+
+    try{
+      // route đang bind DepartmentRole → cần truyền roleId
+      const url = `{{ route('web.assistant.departments.destroy', 0) }}`.replace('/0','/'+roleId);
+
+      const res = await fetch(url, {
+        method: 'DELETE',
+        headers: {
+          'Accept': 'application/json',
+          'X-CSRF-TOKEN': token,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          action: 'remove_head',
+          department_id: deptId,
+          teacher_id: teacherId
+        })
+      });
+
+      const txt = await res.text();
+      let data; try { data = JSON.parse(txt); } catch { data = { ok: res.ok }; }
+
+      if(!res.ok || data.ok === false){
+        alert(data?.message || 'Thao tác thất bại');
+        return;
+      }
+
+      tr?.remove();
+    } catch(err){
+      alert('Lỗi mạng hoặc máy chủ');
+      console.error(err);
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = oldHtml;
+    }
+  }
+
+  // Gán quyền trưởng bộ môn
+document.getElementById('btnAssignHead')?.addEventListener('click', assignHead);
+
+async function assignHead(e){
+  e.preventDefault();
+  const selTeacher = document.getElementById('selectTeacher');
+  const selDept    = document.getElementById('selectDepartment');
+  const teacher_id = selTeacher?.value || '';
+  const department_id = selDept?.value || '';
+  const teacherName = selTeacher?.selectedOptions?.[0]?.textContent?.trim() || '';
+  const deptName    = selDept?.selectedOptions?.[0]?.textContent?.trim() || '';
+
+  if(!teacher_id || !department_id){
+    alert('Vui lòng chọn giảng viên và bộ môn'); return;
+  }
+
+  const btn = document.getElementById('btnAssignHead');
+  const old = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<i class="ph ph-spinner-gap animate-spin"></i> Đang gán...';
+
+  try{
+    const res = await fetch(`{{ route('web.assistant.department_roles.store') }}`, {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+      },
+      body: JSON.stringify({
+        teacher_id,
+        department_id,
+        role: 'head'
+      })
+    });
+
+    const txt = await res.text();
+    let data; try { data = JSON.parse(txt); } catch { console.error(txt); throw new Error('RESP_NOT_JSON'); }
+    if(!res.ok || data.ok === false){
+      alert(data.message || (data.errors ? Object.values(data.errors).flat().join('\n') : 'Gán quyền thất bại'));
+      return;
+    }
+
+    // Kỳ vọng API trả về DepartmentRole + quan hệ
+    const role = data.data || data;
+    const roleId = role.id || role.role_id || '';
+    const teacherEmail = role.teacher?.user?.email || '';
+
+    // Thêm hàng mới vào bảng
+    const tb = document.querySelector('table tbody');
+    const tr = document.createElement('tr');
+    tr.className = 'hover:bg-slate-50';
+    tr.innerHTML = `
+      <td class="py-3 px-4"><input type="checkbox" class="rowChk h-4 w-4"/></td>
+      <td class="py-3 px-4">${role.department?.code ?? '—'}</td>
+      <td class="py-3 px-4">${deptName}</td>
+      <td class="py-3 px-4">${teacherName}</td>
+      <td class="py-3 px-4">${teacherEmail || '—'}</td>
+      <td class="py-3 px-4 text-right">
+        <button
+          class="px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-rose-600"
+          data-department-id="${department_id}"
+          data-role-id="${roleId}"
+          data-teacher-id="${teacher_id}"
+          onclick="removeHead(this)">
+          <i class="ph ph-user-minus"></i>
+          Bỏ quyền
+        </button>
+      </td>
+    `;
+    tb?.prepend(tr);
+
+    // Loại bộ môn vừa được gán khỏi select (không còn "chưa có trưởng")
+    selDept?.querySelector(`option[value="${department_id}"]`)?.remove();
+
+    alert('Gán quyền Trưởng bộ môn thành công');
+  } catch(err){
+    console.error(err);
+    alert('Lỗi: ' + (err.message || 'Không xác định'));
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = old;
+  }
   }
 
   // auto active nav highlight

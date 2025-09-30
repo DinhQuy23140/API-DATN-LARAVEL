@@ -118,43 +118,85 @@
             <button onclick="openModal('add')" class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700"><i class="ph ph-plus"></i>Thêm giảng viên</button>
           </div>
 
-          <div class="bg-white border border-slate-200 rounded-xl">
+          <div class="bg-white border border-slate-200 shadow-md rounded-xl overflow-hidden">
             <div class="overflow-x-auto">
-              <table class="w-full text-sm">
-                <thead>
-                  <tr class="text-left text-slate-500">
-                    <th class="py-3 px-4 border-b w-10"><input id="chkAll" type="checkbox" class="h-4 w-4"/></th>
+              <table class="w-full text-sm text-slate-700">
+                <thead class="bg-slate-100 text-slate-600 text-xs uppercase">
+                  <tr>
+                    <th class="py-3 px-4 w-10 text-center border-b">
+                      <input id="chkAll" type="checkbox" class="h-4 w-4 rounded border-slate-300"/>
+                    </th>
                     <th class="py-3 px-4 border-b">Mã GV</th>
-                    <th class="py-3 px-4 border-b">Tên</th>
-                    <th class="py-3 px-4 border-b">Bộ môn</th>
-                    <th class="py-3 px-4 border-b">Chức vụ</th>
-                    <th class="py-3 px-4 border-b">Ngành</th>
-                    <th class="py-3 px-4 border-b">Email</th>
-                    <th class="py-3 px-4 border-b">Trạng thái</th>
+                    <th class="py-3 px-4 border-b text-left">Tên</th>
+                    <th class="py-3 px-4 border-b text-left">Bộ môn</th>
+                    <th class="py-3 px-4 border-b text-left">Chức vụ</th>
+                    <th class="py-3 px-4 border-b text-left">Email</th>
                     <th class="py-3 px-4 border-b text-right">Hành động</th>
                   </tr>
                 </thead>
-                <tbody id="tableBody">
+                <tbody id="tableBody" class="divide-y divide-slate-200">
                   @foreach ($teachers as $teacher)
-                    <tr class="hover:bg-slate-50">
-                      <td class="py-3 px-4"><input type="checkbox" class="rowChk h-4 w-4"/></td>
-                      <td class="py-3 px-4">{{ $teacher->id }}</td>
-                      <td class="py-3 px-4"><a class="text-blue-600 hover:underline" href="../lecturer-ui/profile.html">{{ $teacher->user->fullname }}</a></td>
-                      <td class="py-3 px-4">Trí tuệ nhân tạo</td>
-                      <td class="py-3 px-4">{{ $teacher->position }}</td>
-                      <td class="py-3 px-4">CNTT</td>
+                    @php
+                      // Lấy roles của bộ môn
+                      $rolesDepartment = $teacher->departmentRoles?->pluck('role')->toArray() ?? [];
+                      $listRolesDepartment = [
+                        'head' => 'Trưởng bộ môn',
+                        'vice_head' => 'Phó bộ môn',
+                        'staff' => 'Cán bộ bộ môn'
+                      ];
+                      $rolesDepartmentWithNames = array_map(fn($role) => $listRolesDepartment[$role] ?? $role, $rolesDepartment);
+                      $rolesDepartmentText = $rolesDepartment ? implode(', ', $rolesDepartmentWithNames) : '';
+
+                      // Lấy roles của khoa
+                      $rolesFaculty = $teacher->user?->facultyRoles?->pluck('role')->toArray() ?? [];
+                      $listRolesFaculty = [
+                        'dean'=> 'Trưởng khoa',
+                        'vice_dean' => 'Phó khoa',
+                        'assistant' => 'Trợ lý khoa'
+                      ];
+                      $rolesFacultyWithNames = array_map(fn($role) => $listRolesFaculty[$role] ?? $role, $rolesFaculty);
+                      $rolesFacultyText = $rolesFaculty ? implode(', ', $rolesFacultyWithNames) : '';
+
+                      // Ghép text hiển thị
+                      if ($rolesDepartmentText && $rolesFacultyText) {
+                        $rolesText = $rolesDepartmentText . ', ' . $rolesFacultyText;
+                      } elseif ($rolesDepartmentText) {
+                        $rolesText = $rolesDepartmentText;
+                      } elseif ($rolesFacultyText) {
+                        $rolesText = $rolesFacultyText;
+                      } else {
+                        $rolesText = 'Giảng viên';
+                      }
+                    @endphp
+
+                    <tr class="hover:bg-slate-50 transition-colors">
+                      <td class="py-3 px-4 text-center">
+                        <input type="checkbox" class="rowChk h-4 w-4 rounded border-slate-300"/>
+                      </td>
+                      <td class="py-3 px-4 font-medium text-slate-800">{{ $teacher->teacher_code }}</td>
+                      <td class="py-3 px-4">
+                        <a class="text-blue-600 hover:text-blue-800 hover:underline font-medium" href="../lecturer-ui/profile.html">
+                          {{ $teacher->user->fullname }}
+                        </a>
+                      </td>
+                      <td class="py-3 px-4">{{ $teacher->department->name }}</td>
+                      <td class="py-3 px-4 text-left">{{ $rolesText }}</td>
                       <td class="py-3 px-4">{{ $teacher->user->email }}</td>
-                      <td class="py-3 px-4"><span class="px-2 py-1 rounded-full text-xs bg-slate-100 text-slate-700">Inactive</span></td>
-                      <td class="py-3 px-4 text-right space-x-2">
-                        <button class="px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-slate-600" onclick="openModal('edit')"><i class="ph ph-pencil"></i></button>
-                        <button class="px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-rose-600"><i class="ph ph-trash"></i></button>
+                      <td class="py-3 px-4 text-right space-x-1">
+                        <button class="inline-flex items-center px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-slate-600 hover:bg-slate-100 transition" onclick="openModal('edit')">
+                          <i class="ph ph-pencil"></i>
+                        </button>
+                        <button class="inline-flex items-center px-3 py-1.5 rounded-lg border border-rose-300 bg-white text-rose-600 hover:bg-rose-50 transition">
+                          <i class="ph ph-trash"></i>
+                        </button>
                       </td>
                     </tr>
                   @endforeach
                 </tbody>
               </table>
             </div>
-            <div class="p-4 flex items-center justify-between text-sm text-slate-600">
+
+            <div class="p-4 flex items-center justify-between text-sm text-slate-600 bg-slate-50 border-t">
               @if ($teachers instanceof \Illuminate\Contracts\Pagination\LengthAwarePaginator)
                 <div>
                   Hiển thị {{ $teachers->firstItem() }}-{{ $teachers->lastItem() }} của {{ $teachers->total() }}
@@ -169,6 +211,8 @@
               @endif
             </div>
           </div>
+
+          
         </div>
         </main>
       </div>

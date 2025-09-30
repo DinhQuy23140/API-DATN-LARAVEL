@@ -93,5 +93,9 @@ class DatabaseSeeder extends Seeder
         $this->call([
             CouncilProjectDefencesSeeder::class,
         ]);
+
+        $this->call([
+            SubjectsSeeder::class,
+        ]);
     }
 }
