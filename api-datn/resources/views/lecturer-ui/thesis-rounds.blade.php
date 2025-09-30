@@ -178,43 +178,51 @@
             </div>
           </div>
 
-          <!-- Rounds List -->  
-          <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          @foreach ($rows as $row)
-                      <!-- Round 1 -->
-            <div class="bg-white rounded-xl border border-slate-200 p-6 hover:shadow-md transition-shadow">
-              <div class="flex items-start justify-between mb-4">
-                <div>
-                  <h3 class="font-semibold text-lg">{{ "Đợt " . $row->stage . " " . $row->academy_year->year_name }}</h3>
-                  <p class="text-sm text-slate-600">{{ $row->start_date }} - {{ $row->end_date }}</p>
-                  <p class="text-xs text-slate-500 mt-1">Mã đợt: {{ $row->id }}</p>
-                </div>
-                <span class="px-2 py-1 rounded-full text-xs bg-blue-50 text-blue-600">Đang diễn ra</span>
-              </div>
-
-              <div class="grid grid-cols-2 gap-4 mb-4">
-                <div class="text-center p-3 bg-slate-50 rounded-lg">
-                  <div class="text-lg font-semibold text-blue-600">{{ $row->assignments->count() }}</div>
-                  <div class="text-xs text-slate-600">SV hướng dẫn</div>
-                </div>
-                <div class="text-center p-3 bg-slate-50 rounded-lg">
-                  <div class="text-lg font-semibold text-green-600">3</div>
-                  <div class="text-xs text-slate-600">Hội đồng tham gia</div>
-                </div>
-              </div>
-
-              <div class="flex items-center justify-between">
-                <div class="text-xs text-slate-500">
-                  Cập nhật: 2 giờ trước
-                </div>
-                <a href="{{ route('web.teacher.thesis_round_detail', ['termId' => $row->id, 'supervisorId'=>$row->supervisors[0]->id]) }}"
-                  class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm">
-                  Xem chi tiết
-                </a>
-              </div>
-            </div>
-          @endforeach
-
+          <!-- Rounds List -->
+          <div class="bg-white rounded-xl border border-slate-200 overflow-x-auto">
+            <table id="roundsTable" class="w-full text-sm">
+              <thead class="bg-slate-50 text-slate-600">
+                <tr>
+                  <th class="text-left px-4 py-3 font-medium">Đợt</th>
+                  <th class="text-left px-4 py-3 font-medium">Năm học</th>
+                  <th class="text-left px-4 py-3 font-medium">Thời gian</th>
+                  <th class="text-left px-4 py-3 font-medium">Mã đợt</th>
+                  <th class="text-center px-4 py-3 font-medium">SV hướng dẫn</th>
+                  <th class="text-center px-4 py-3 font-medium">Hội đồng</th>
+                  <th class="text-left px-4 py-3 font-medium">Trạng thái</th>
+                  <th class="text-right px-4 py-3 font-medium">Hành động</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100">
+                @foreach ($rows as $row)
+                  <tr class="hover:bg-slate-50">
+                    <td class="px-4 py-3 font-medium text-slate-800">Đợt {{ $row->stage }}</td>
+                    <td class="px-4 py-3">{{ $row->academy_year->year_name }}</td>
+                    <td class="px-4 py-3 text-slate-600">{{ $row->start_date }} - {{ $row->end_date }}</td>
+                    <td class="px-4 py-3 font-mono text-slate-700">#{{ $row->id }}</td>
+                    <td class="px-4 py-3 text-center">
+                      <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-blue-50 text-blue-600 text-xs">
+                        <i class="ph ph-student"></i>{{ $row->assignments->count() }}
+                      </span>
+                    </td>
+                    <td class="px-4 py-3 text-center">
+                      <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-xs">
+                        <i class="ph ph-users-three"></i>3
+                      </span>
+                    </td>
+                    <td class="px-4 py-3">
+                      <span class="px-2 py-1 rounded-full text-xs bg-blue-50 text-blue-600">Đang diễn ra</span>
+                    </td>
+                    <td class="px-4 py-3 text-right">
+                      <a href="{{ route('web.teacher.thesis_round_detail', ['termId' => $row->id, 'supervisorId' => $row->supervisors[0]->id ?? 0]) }}"
+                         class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700">
+                        <i class="ph ph-arrow-right"></i> Xem chi tiết
+                      </a>
+                    </td>
+                  </tr>
+                @endforeach
+              </tbody>
+            </table>
           </div>
         </div>
       </main>
@@ -237,12 +245,12 @@
     if (localStorage.getItem('lecturer_sidebar') === '1') setCollapsed(true);
     sidebar.classList.add('md:translate-x-0', '-translate-x-full', 'md:static');
 
-    // Search functionality
+    // Search functionality (lọc theo từng dòng trong bảng)
     document.getElementById('searchInput')?.addEventListener('input', (e) => {
       const q = e.target.value.toLowerCase();
-      document.querySelectorAll('.grid > div').forEach(card => {
-        const text = card.innerText.toLowerCase();
-        card.style.display = text.includes(q) ? '' : 'none';
+      document.querySelectorAll('#roundsTable tbody tr').forEach(tr => {
+        const text = tr.innerText.toLowerCase();
+        tr.style.display = text.includes(q) ? '' : 'none';
       });
     });
 

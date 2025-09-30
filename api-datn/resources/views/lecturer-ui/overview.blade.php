@@ -40,14 +40,13 @@
     $subtitle = trim(($dept ? "Bộ môn $dept" : '') . (($dept && $faculty) ? ' • ' : '') . ($faculty ? "Khoa $faculty" : ''));
     $degree = $user->teacher->degree ?? '';
     $expertise = $user->teacher->supervisor->expertise ?? 'null';
-    $data_assignment_supervisors = $user->teacher->supervisor->assignment_supervisors ?? collect();
+    $data_assignment_supervisors = $assignmentSupervisors;
     $supervisorId = $user->teacher->supervisor->id ?? 0;
     $teacherId = $user->teacher->id ?? 0;
     $avatarUrl = $user->avatar_url
       ?? $user->profile_photo_url
       ?? 'https://ui-avatars.com/api/?name=' . urlencode($userName) . '&background=0ea5e9&color=ffffff';
   @endphp
-
   <div class="flex min-h-screen">
     <aside id="sidebar"
       class="sidebar fixed inset-y-0 left-0 z-30 bg-white border-r border-slate-200 flex flex-col transition-all">

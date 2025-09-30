@@ -485,7 +485,7 @@
         <tr class="hover:bg-slate-50 transition-colors">
           <!-- Sinh viên -->
           <td class="py-3 px-4">
-            <a href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $rows->id]) }}"
+            <a href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $rows->id, 'supervisorId' => $supervisorId]) }}"
                class="text-blue-600 hover:underline font-medium">
               {{ $fullname }}
             </a>
@@ -510,7 +510,7 @@
 
           <!-- Hành động -->
           <td class="py-3 px-4 text-center">
-            <a href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $rows->id]) }}"
+            <a href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $rows->id, 'supervisorId' => $supervisorId]) }}"
                class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-slate-600 hover:bg-slate-100 transition">
               <i class="ph ph-eye"></i> Xem
             </a>
@@ -584,7 +584,7 @@
         <tr class="hover:bg-slate-50 transition-colors">
           <!-- Sinh viên -->
           <td class="py-3 px-4">
-            <a href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $rows->id]) }}"
+            <a href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $rows->id, 'supervisorId' => $supervisorId, 'assignmentId' => $assignment->id]) }}"
                class="text-blue-600 hover:underline font-medium">
               {{ $fullname }}
             </a>
@@ -609,7 +609,7 @@
 
           <!-- Hành động -->
           <td class="py-3 px-4 text-center">
-            <a href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $rows->id]) }}"
+            <a href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $rows->id, 'supervisorId' => $supervisorId]) }}"
                class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-slate-600 hover:bg-slate-100 transition">
               <i class="ph ph-eye"></i> Xem
             </a>
@@ -682,7 +682,7 @@
                   <tr class="hover:bg-slate-50 transition-colors">
                     <!-- Sinh viên -->
                     <td class="py-3 px-4">
-                      <a href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $rows->id]) }}"
+                      <a href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $rows->id, 'supervisorId' => $supervisorId]) }}"
                         class="text-blue-600 hover:underline font-medium">
                         {{ $fullname }}
                       </a>
@@ -708,7 +708,7 @@
                     <!-- Hành động -->
                     <td class="py-3 px-4 text-center">
                       <div class="flex justify-center gap-2">
-                        <a href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $rows->id]) }}"
+                        <a href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $rows->id, 'supervisorId' => $supervisorId]) }}"
                           class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-slate-600 hover:bg-slate-100 transition">
                           <i class="ph ph-eye"></i> Xem
                         </a>
@@ -807,7 +807,7 @@
                   <tr class="hover:bg-slate-50 transition-colors">
                     <!-- Họ tên -->
                     <td class="py-3 px-4">
-                      <a href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $rows->id]) }}"
+                      <a href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $rows->id, 'supervisorId' => $supervisorId]) }}"
                         class="text-blue-600 hover:underline font-medium">
                         {{ $fullname }}
                       </a>
@@ -840,7 +840,7 @@
                     <!-- Hành động -->
                     <td class="py-3 px-4 text-center">
                       <div class="flex justify-center gap-2">
-                        <a href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $rows->id]) }}"
+                        <a href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $rows->id, 'supervisorId' => $supervisorId]) }}"
                           class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-slate-600 hover:bg-slate-100 transition">
                           <i class="ph ph-user"></i> SV
                         </a>
@@ -951,7 +951,7 @@
                   <tr class="hover:bg-slate-50 transition-colors">
                     <!-- Sinh viên -->
                     <td class="px-4 py-3">
-                      <a href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $rows->id]) }}"
+                      <a href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $rows->id, 'supervisorId' => $supervisorId]) }}"
                         class="text-blue-600 hover:underline font-medium">
                         {{ $fullname }}
                       </a>
@@ -984,7 +984,7 @@
                     <!-- Hành động -->
                     <td class="px-4 py-3 text-center">
                       <div class="flex justify-center gap-2">
-                        <a href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $rows->id]) }}"
+                        <a href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $rows->id, 'supervisorId' => $supervisorId]) }}"
                           class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-slate-600 hover:bg-slate-50 transition">
                           <i class="ph ph-user"></i> SV
                         </a>
@@ -1055,7 +1055,7 @@
                   <tr class="hover:bg-slate-50 transition-colors">
                     <!-- Sinh viên -->
                     <td class="px-4 py-3">
-                      <a href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $rows->id]) }}"
+                      <a href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $rows->id, 'supervisorId' => $supervisorId]) }}"
                         class="text-blue-600 hover:underline font-medium">
                         {{ $fullname }}
                       </a>
@@ -1085,7 +1085,7 @@
                     <!-- Hành động -->
                     <td class="px-4 py-3 text-center">
                       <div class="flex justify-center gap-2">
-                        <a href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $rows->id]) }}"
+                        <a href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $rows->id, 'supervisorId' => $supervisorId]) }}"
                           class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-slate-600 hover:bg-slate-50 transition">
                           <i class="ph ph-user"></i> SV
                         </a>
@@ -1190,7 +1190,7 @@
                   <tr class="hover:bg-slate-50 transition">
                     <!-- Sinh viên -->
                     <td class="px-4 py-3">
-                      <a href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $rows->id]) }}"
+                      <a href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $rows->id, 'supervisorId' => $supervisorId]) }}"
                         class="text-blue-600 hover:underline font-medium">
                         {{ $fullname }}
                       </a>
@@ -1220,7 +1220,7 @@
                     <!-- Hành động -->
                     <td class="px-4 py-3 text-center">
                       <div class="flex justify-center gap-2">
-                        <a href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $rows->id]) }}"
+                        <a href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $rows->id, 'supervisorId' => $supervisorId]) }}"
                           class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-slate-600 hover:bg-slate-50 transition">
                           <i class="ph ph-user"></i> SV
                         </a>

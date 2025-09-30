@@ -76,6 +76,22 @@ class UsersController extends Controller
             ],
         ]);
     }
+
+    public function register(Request $request) {
+        $data = $request->validate([
+            'fullname' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')],
+            'password' => ['required', 'string', 'min:6'],
+        ]);
+
+        $data['password'] = Hash::make($data['password']);
+        $user = User::create($data);
+        return response()->json([
+            'success' => true,
+            'message' => 'Đăng ký tạo người dùng thanh cong',
+            'user' => $user
+        ]);
+    }
     /**
      * Hiển thị danh sách người dùng (có phân trang & optional include quan hệ).
      * GET /api/users

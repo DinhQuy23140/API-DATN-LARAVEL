@@ -144,7 +144,7 @@ class AssignmentController extends Controller
                      ->with('not_found', $notFound);
     }
 
-    public function getAssignmentByStudentIdAndTermId($studentId, $termId)
+    public function getAssignmentByStudentIdAndTermId($studentId, $termId, $supervisorId)
     {
         $assignment = Assignment::with(['student.user','assignment_supervisors.supervisor.teacher.user','project.progressLogs.attachments','project.reportFiles'])
                         ->where('student_id', $studentId)
@@ -153,7 +153,7 @@ class AssignmentController extends Controller
         // if (!$assignment) {
         //     return redirect()->back()->with('error', 'Không tìm thấy phân công phù hợp.');
         // }
-        return view('lecturer-ui.supervised-student-detail', compact('assignment'));
+        return view('lecturer-ui.supervised-student-detail', compact('assignment', 'supervisorId'));
     }
 
     public function assign(Request $request)

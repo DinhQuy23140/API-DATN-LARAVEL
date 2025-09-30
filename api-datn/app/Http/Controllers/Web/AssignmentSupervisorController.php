@@ -208,4 +208,37 @@ public function getRequestManagementPage($supervisorId, $termId)
             'data'             => $created
         ], 201);
     }
+
+    // POST: web.teacher.assignment_supervisors.report_score
+    public function updateReportScore(Request $request, AssignmentSupervisor $assignmentSupervisor)
+    {
+        // Bỏ kiểm tra supervisor hiện tại theo yêu cầu
+
+        $data = $request->validate([
+            'score_report' => ['required', 'numeric', 'min:0', 'max:10'],
+            'note'         => ['nullable', 'string', 'max:2000'],
+        ]);
+
+        // $assignmentSupervisor->score_report = (float) $data['score_report'];
+        // if (array_key_exists('note', $data)) {
+        //     $assignmentSupervisor->note = $data['note'];
+        // }
+        // $assignmentSupervisor->save();
+
+        // return response()->json([
+        //     'ok'     => true,
+        //     'data'   => $assignmentSupervisor->only(['id', 'assignment_id', 'supervisor_id', 'score_report', 'note']),
+        //     'message'=> 'Lưu điểm thành công.',
+        // ]);
+
+        $assignmentSupervisor->score_report = (float) $data['score_report'];
+        $assignmentSupervisor->save();
+
+        return response()->json([
+            'ok'      => true,
+            'data'    => $assignmentSupervisor->only(['id', 'assignment_id', 'supervisor_id', 'score_report']),
+            'message' => 'Lưu điểm thành công.',
+        ]);
+
+    }
 }

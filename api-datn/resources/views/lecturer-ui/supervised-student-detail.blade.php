@@ -27,8 +27,17 @@
         $degree = $user->teacher->degree ?? '';
         $expertise = $user->teacher->supervisor->expertise ?? null;
         $data_assignment_supervisors = $user->teacher->supervisor->assignment_supervisors ?? null;
-        $supervisorId = $user->teacher->supervisor->id ?? 0;
-        $teacherId = $user->teacher->id ?? 0;
+
+        // Tập bản ghi phân công
+        $asList = collect($assignment->assignment_supervisors ?? []);
+        // Tìm bản ghi theo supervisor_id (so sánh int), nếu không có thì fallback bản ghi đầu tiên
+        $asCurrent = $asList->first(function($as) use ($supervisorId){
+            return (int)($as->supervisor_id ?? 0) === $supervisorId;
+        }) ?? $asList->first();
+
+        $asId = (int)($asCurrent->id ?? 0);
+        $currentScoreReport = $asCurrent->score_report ?? '';
+
         $avatarUrl = $user->avatar_url
             ?? $user->profile_photo_url
             ?? 'https://ui-avatars.com/api/?name=' . urlencode($userName) . '&background=0ea5e9&color=ffffff';
@@ -54,10 +63,10 @@
             ->first() ?? null;
         $committee = $assignment->committee ?? null;
         $asCurrent = optional($assignment->assignment_supervisors ?? collect())->firstWhere('supervisor_id', $supervisorId);
-        $asId = $supervisorId ?? 0;
+        $asId = $asCurrent->id ?? 0;
         $currentScoreReport = $asCurrent->score_report ?? '';
+        $current_assignment_supervisor = $assignment->assignment_supervisors->where('supervisor_id', $supervisorId)->first();
     @endphp
-
     <body class="bg-slate-50 text-slate-800">
     <div class="flex min-h-screen">
         <aside id="sidebar" class="sidebar fixed inset-y-0 left-0 z-30 bg-white border-r border-slate-200 flex flex-col transition-all">
@@ -384,13 +393,13 @@
                     <div class="flex items-center justify-between mb-3">
                         <h2 class="font-semibold">Báo cáo cuối đồ án</h2>
                        <button id="btnGradeFinal"
-                               class="px-3 py-1.5 bg-emerald-600 text-white rounded text-sm"
-                               data-as-id="{{ $asId }}"
-                               data-student="{{ $studentUser->fullname ?? 'Sinh viên' }}"
-                               data-project="{{ $project->name ?? ($project->title ?? 'Đề tài') }}"
-                               data-current-score="{{ $currentScoreReport }}">
-                         <i class="ph ph-check-circle"></i> Chấm điểm
-                       </button>
+                                class="px-3 py-1.5 bg-emerald-600 text-white rounded text-sm"
+                                data-as-id="{{ $asId }}"
+                                data-student="{{ $studentUser->fullname ?? 'Sinh viên' }}"
+                                data-project="{{ $project->name ?? ($project->title ?? 'Đề tài') }}"
+                                data-current-score="{{ $currentScoreReport }}">
+                          <i class="ph ph-check-circle"></i> Chấm điểm
+                        </button>
                     </div>
                    <div id="finalReport" class="text-sm text-slate-700"></div>
 <!-- +                   <div class="text-sm text-slate-700">
@@ -433,7 +442,7 @@
                             </div>
                             <div class="border rounded-lg p-3">
                                 <div class="text-slate-600">Điểm GVHD</div>
-                                <div class="text-3xl font-bold">{{ $finalReport?->supervisor_score ?? '-' }}</div>
+                                <div class="text-3xl font-bold">{{ $current_assignment_supervisor?->score_report ?? '-'  }}</div>
                             </div>
                         </div>
                     </div>
@@ -613,19 +622,21 @@
 
         document.getElementById('rsSubmit')?.addEventListener('click', async ()=>{
           const asId = document.getElementById('rsAsId').value;
-          const score = document.getElementById('rsScore').value;
+          let score = document.getElementById('rsScore').value;
           const note  = document.getElementById('rsNote').value;
           if (!asId) { alert('Thiếu mã phân công.'); return; }
           if (score === '' || isNaN(parseFloat(score))) { alert('Vui lòng nhập điểm hợp lệ.'); return; }
+          score = Math.max(0, Math.min(10, parseFloat(score))); // clamp 0..10
+
           const token = document.querySelector('meta[name="csrf-token"]')?.content || '';
-          const url = `{{ route('web.teacher.assignment_supervisors.report_score', ['assignmentSupervisor' => 0]) }}`.replace('/0','/'+asId);
+          const url = `{{ route('web.teacher.assignment_supervisors.report_score', ['assignmentSupervisor' => $asId]) }}`.replace('/0','/'+asId);
           const btn = document.getElementById('rsSubmit');
           const old = btn.innerHTML; btn.disabled = true; btn.innerHTML = '<i class="ph ph-spinner-gap animate-spin"></i> Đang lưu...';
           try {
             const res = await fetch(url, {
               method: 'POST',
               headers: {'Content-Type':'application/json','Accept':'application/json','X-CSRF-TOKEN': token,'X-Requested-With':'XMLHttpRequest'},
-              body: JSON.stringify({ score_report: parseFloat(score), note })
+              body: JSON.stringify({ score_report: score, note })
             });
             const data = await res.json().catch(()=> ({}));
             if (!res.ok || data.ok === false) { alert(data.message || 'Lưu điểm thất bại.'); btn.disabled=false; btn.innerHTML=old; return; }

@@ -236,7 +236,7 @@ Route::middleware('auth')->group(function () {
     //stage 2
     Route::get('/teacher/supervised-outline-reports/{supervisorId}/term/{termId}', [WebProjectTermsController::class, 'getDetailProjectTermBySupervisorId'])->name('web.teacher.supervised_outline_reports');
     Route::get('/teacher/outline-review-assignments/term/{termId}/supervisor/{supervisorId}', [WebAssignmentController::class, 'outlineReviewAssignments'])->name('web.teacher.outline_review_assignments');
-    Route::get('/teacher/supervised-student-detail/{studentId}/term/{termId}', [WebAssignmentController::class, 'getAssignmentByStudentIdAndTermId'])->name('web.teacher.supervised_student_detail');
+    Route::get('/teacher/supervised-student-detail/{studentId}/term/{termId}/supervisor/{supervisorId}', [WebAssignmentController::class, 'getAssignmentByStudentIdAndTermId'])->name('web.teacher.supervised_student_detail');
 
     //stage 5
 

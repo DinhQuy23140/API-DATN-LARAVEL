@@ -47,6 +47,8 @@ Route::get('/email/verified-status', function (Request $request) {
     ]);
 })->middleware('auth:sanctum');
 
+Route::post('auth/register', [UsersController::class, 'register']);
+
 
 //progress-log
 Route::apiResource('progress-logs', ProgressLogController::class);

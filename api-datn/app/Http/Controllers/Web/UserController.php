@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
+use App\Models\AssignmentSupervisor;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -110,8 +111,10 @@ class UserController extends Controller
         $user = User::with('teacher.supervisor')
         ->with('teacher.supervisor.assignment_supervisors.assignment.project_term.academy_year')
         ->findOrFail(Auth::id());
-
-        return view('lecturer-ui.overview', compact('user'));
+        $assignmentSupervisors = AssignmentSupervisor::with(['assignment.student.marjor', 'assignment.project', 'assignment.project_term'])
+        ->whereHas('supervisor', fn($query) => $query->where('teacher_id', $user->teacher->id))
+        ->get();
+        return view('lecturer-ui.overview', compact('user', 'assignmentSupervisors'));
     }
 
     public function showProfile()
