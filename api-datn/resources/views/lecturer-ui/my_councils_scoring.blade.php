@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Hội đồng của sinh viên</title>
+  <title>Hội đồng chấm thi của tôi</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -16,6 +16,7 @@
     .sidebar { width:260px; }
   </style>
 </head>
+
 <body class="bg-slate-50 text-slate-800">
   <div class="flex min-h-screen">
     <aside id="sidebar" class="sidebar fixed inset-y-0 left-0 z-30 bg-white border-r border-slate-200 flex flex-col transition-all">
@@ -45,7 +46,7 @@
         <div class="flex items-center gap-3 flex-1">
           <button id="openSidebar" class="md:hidden p-2 rounded-lg hover:bg-slate-100"><i class="ph ph-list"></i></button>
           <div>
-            <h1 class="text-lg md:text-xl font-semibold">Hội đồng của sinh viên</h1>
+            <h1 class="text-lg md:text-xl font-semibold">Danh sách hội đồng chấm bảo vệ đồ án của tôi</h1>
             <nav class="text-xs text-slate-500 mt-0.5">
               <a href="overview.html" class="hover:underline text-slate-600">Trang chủ</a>
               <span class="mx-1">/</span>
@@ -55,7 +56,7 @@
               <span class="mx-1">/</span>
               <a href="thesis-round-detail.html" class="hover:underline text-slate-600">Chi tiết đợt</a>
               <span class="mx-1">/</span>
-              <span class="text-slate-500">Hội đồng của sinh viên</span>
+              <span class="text-slate-500">Hội đồng của tôi</span>
             </nav>
           </div>
         </div>
@@ -78,91 +79,90 @@
       <main class="flex-1 overflow-y-auto px-4 md:px-6 py-6">
         <div class="max-w-6xl mx-auto space-y-4">
 
+          <div class="flex items-center justify-end">
+            <a href="thesis-round-detail.html" class="text-sm text-blue-600 hover:underline"><i class="ph ph-caret-left"></i> Quay lại chi tiết đợt</a>
+          </div>
+
           <section class="bg-white rounded-xl border border-slate-200 p-4">
             <h2 class="font-semibold text-lg mb-2">Thông tin đợt đồ án</h2>
             <div class="text-slate-700 text-sm space-y-1">
               @php
-              $stage = $rows->stage;
-              $term = $rows->academy_year->name . ' - Học kỳ ' . $rows->stage;
-              $semester = ($rows->stage % 2 == 1) ? '1' : '2';
-              $date = date('d/m/Y', strtotime($rows->start_date)) . ' - ' . date('d/m/Y', strtotime($rows->end_date));
+              $stage = $term->stage;
+              $academicYear = $term->academy_year->year_name ?? 'N/A';
+              $semester = $term->stage;
+              $date = date('d/m/Y', strtotime($term->start_date)) . ' - ' . date('d/m/Y', strtotime($term->end_date));
               @endphp
-              <div><strong>Đợt:</strong> {{ $term }} </div>
-              <div><strong>Năm học:</strong> {{ $term }} </div>
+              <div><strong>Đợt:</strong> {{ $stage }} </div>
+              <div><strong>Năm học:</strong> {{ $academicYear }} </div>
               <div><strong>Học kỳ:</strong> {{ $semester }} </div>
               <div><strong>Thời gian:</strong> {{ $date }} </div>
             </div>
           </section>
 
-          <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div class="flex items-center justify-between">
             <div class="relative">
               <i class="ph ph-magnifying-glass absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
-              <input id="search" class="pl-8 pr-3 py-2 border border-slate-200 rounded text-sm w-80" placeholder="Tìm theo tên/MSSV/hội đồng" />
+              <input id="searchInput" class="pl-8 pr-3 py-2 border border-slate-200 rounded text-sm w-80" placeholder="Tìm theo mã/tên hội đồng" />
             </div>
-            <a href="thesis-round-detail.html" class="text-sm text-blue-600 hover:underline"><i class="ph ph-caret-left"></i> Quay lại chi tiết đợt</a>
           </div>
 
-<div class="bg-white border rounded-xl shadow-sm overflow-hidden">
-  <div class="overflow-x-auto">
-    <table id="studentTable" class="w-full text-sm border-collapse">
-      <thead class="bg-slate-50 border-b">
-        <tr class="text-slate-600">
-          <th class="py-3 px-4 text-left font-semibold">Sinh viên</th>
-          <th class="py-3 px-4 text-left font-semibold">MSSV</th>
-          <th class="py-3 px-4 text-left font-semibold">Đề tài</th>
-          <th class="py-3 px-4 text-left font-semibold">Hội đồng</th>
-          <th class="py-3 px-4 text-left font-semibold">Lịch bảo vệ</th>
-          <th class="py-3 px-4 text-left font-semibold">Phòng</th>
-          <th class="py-3 px-4 text-center font-semibold">Hành động</th>
-        </tr>
-      </thead>
-      <tbody id="rows" class="divide-y divide-slate-100">
-        @php
-          $assignments = $rows->assignments;
-        @endphp
-        @foreach ($assignments as $assignment)
-          @php
-            $fullname = $assignment->student->user->fullname;
-            $student_code = $assignment->student->code;
-            $topic = $assignment->project->name ?? 'Chưa có đề tài';
-            $council_name = $assignment->council_project->council->name ?? 'Chưa có hội đồng';
-            $date = $assignment->council_project->council->date ?? 'Chưa có lịch';
-            $room = $assignment->council_project->council->address ?? 'Chưa có phòng';
-            $councilId = $assignment->council_project->council->id ?? null;
-          @endphp
-          <tr class="hover:bg-slate-50 transition">
-            <td class="py-3 px-4 font-medium text-slate-700">
-              <a class="text-blue-600 hover:underline" href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $assignment->student->id, 'termId' => $rows->id, 'supervisorId' => $supervisorId]) }}">
-                {{ $fullname }}
-              </a>
-            </td>
-            <td class="py-3 px-4 text-slate-600">{{ $student_code }}</td>
-            <td class="py-3 px-4">{{ $topic }}</td>
-            <td class="py-3 px-4">{{ $council_name }}</td>
-            <td class="py-3 px-4">{{ $date }}</td>
-            <td class="py-3 px-4">{{ $room }}</td>
-            <td class="py-3 px-4 text-center">
-              <div class="flex items-center justify-center gap-2">
-                <a href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $assignment->student->id, 'termId' => $rows->id, 'supervisorId' => $supervisorId]) }}"
-                  class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 text-xs font-medium transition">
-                  <i class="ph ph-user text-sm"></i> SV
-                </a>
-                @if ($councilId)
-                <a href="{{ route('web.teacher.committee_detail', ['councilId'=>$councilId, 'termId'=>$rows->id]) }}"
-                  class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-slate-50 text-slate-600 hover:bg-slate-100 text-xs font-medium transition">
-                  <i class="ph ph-chalkboard-teacher text-sm"></i> Hội đồng
-                </a>
-                @endif
+          <div id="committeesWrap" class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            @foreach ($coucilMenbers as $coucilMenber)
+              @php
+                $name = $coucilMenber->council->name;
+                $code = $coucilMenber->council->code;
+                $date = $coucilMenber->council->date;
+                $room = $coucilMenber->council->address;
+                $listRole = [5 => 'Chủ tịch', 4 => 'Thư ký', 3 => 'Ủy viên 1', 2 => 'Ủy viên 2', 1 => 'Ủy viên 3'];
+                $role = $listRole[$coucilMenber->role];
+                $department = $coucilMenber->council->department->name ?? 'N/A';
+                $faculty = "Công nghệ thông tin"; // Placeholder, replace with actual faculty if available
+                $description = $coucilMenber->council->description;
+              @endphp
+              <div class="bg-white border rounded-xl p-4 shadow-sm hover:shadow-md transition">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <!-- Thông tin hội đồng -->
+                  <div class="space-y-2">
+                    <div class="text-sm text-slate-500">
+                      Mã hội đồng: <span class="font-medium text-slate-700">{{ $code }}</span>
+                    </div>
+                    <h2 class="font-semibold text-lg text-slate-800">{{ $name }}</h2>
+                    <div class="text-sm text-slate-600 flex flex-wrap gap-3">
+                      <span class="inline-flex items-center gap-1">
+                        <i class="ph ph-calendar text-slate-400"></i> {{ $date }}
+                      </span>
+                      <span class="inline-flex items-center gap-1">
+                        <i class="ph ph-map-pin text-slate-400"></i> {{ $room }}
+                      </span>
+                    </div>
+                    <div class="text-sm text-slate-600 flex items-center gap-1">
+                      <i class="ph ph-buildings text-slate-400"></i>
+                      <span>Khoa: {{ $faculty ?? 'N/A' }}</span>
+                    </div>
+                    <div class="text-sm text-slate-600 flex items-center gap-1">
+                      <i class="ph ph-chalkboard-teacher text-slate-400"></i>
+                      <span>Bộ môn: {{ $department ?? 'N/A' }}</span>
+                    </div>
+                    <p class="text-sm text-slate-500 mt-2 leading-snug">
+                      {{ $description ?? 'Không có mô tả' }}
+                    </p>
+                  </div>
+
+                  <!-- Vai trò và hành động -->
+                  <div class="flex flex-col items-start md:items-end justify-between">
+                    <div class="bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-lg text-sm font-medium border border-emerald-200 mb-2">
+                      Vai trò: {{ $role }}
+                    </div>
+                    <a href="{{ route('web.teacher.council_scoring_detail', ['supervisorId' =>$supervisorId, 'councilId' => $coucilMenber->council_id, 'termId'=>$termId]) }}"
+                      class="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition flex items-center gap-2">
+                      <i class="ph ph-eye"></i> Xem chi tiết
+                    </a>
+                  </div>
+
+                </div>
               </div>
-            </td>
-          </tr>
-        @endforeach
-      </tbody>
-    </table>
-  </div>
-</div>
-
-
+            @endforeach
+          </div>
         </div>
       </main>
     </div>
@@ -185,15 +185,23 @@
       profileBtn?.addEventListener('click', ()=> profileMenu.classList.toggle('hidden'));
       document.addEventListener('click', (e)=>{ if(!profileBtn?.contains(e.target) && !profileMenu?.contains(e.target)) profileMenu?.classList.add('hidden'); });
     })();
-    
-    document.getElementById('search').addEventListener('input', function() {
-      const filter = this.value.toLowerCase();
-      const rows = document.querySelectorAll('#studentTable tbody tr');
-      rows.forEach(row => {
-        const text = row.innerText.toLowerCase();
-        row.style.display = text.includes(filter) ? '' : 'none';
-      });
+
+  document.getElementById("searchInput").addEventListener("input", function () {
+    const searchValue = this.value.toLowerCase().trim();
+    const cards = document.querySelectorAll("#committeesWrap > div");
+
+    cards.forEach(card => {
+      // Lấy toàn bộ text trong card
+      const text = card.innerText.toLowerCase();
+
+      if (text.includes(searchValue)) {
+        card.style.display = "block"; // hiện
+      } else {
+        card.style.display = "none"; // ẩn
+      }
     });
+  });
+
   </script>
 </body>
 </html>

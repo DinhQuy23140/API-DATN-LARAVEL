@@ -360,115 +360,116 @@
           </section>
 
           <!-- Modal: Phân công sinh viên -->
-          <div id="assignModal" class="fixed inset-0 z-50 hidden">
+          <div id="assignModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 md:p-6" role="dialog" aria-modal="true">
             <div class="absolute inset-0 bg-black/40" data-close-assign></div>
-            <div class="relative bg-white w-full max-w-5xl mx-auto mt-6 md:mt-20 rounded-2xl shadow-lg">
-              <div class="flex items-center justify-between px-5 py-4 border-b">
-                <h3 class="font-semibold">Phân công sinh viên vào giảng viên phản biện</h3>
-                <button class="text-slate-500 hover:text-slate-700" data-close-assign><i class="ph ph-x"></i></button>
-              </div>
-              <div class="p-5">
-                <!-- Lịch bảo vệ: Ngày - Giờ - Phòng -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5">
-                  <div>
-                    <label class="text-sm text-slate-600">Ngày</label>
-                    <input id="assignDate" type="date"
-                           class="mt-1 w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
-                  </div>
-                  <div>
-                    <label class="text-sm text-slate-600">Giờ</label>
-                    <input id="assignTime" type="time"
-                           class="mt-1 w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
-                  </div>
-                  <div>
-                    <label class="text-sm text-slate-600">Phòng</label>
-                    <input id="assignRoom" type="text" placeholder="VD: B203"
-                           class="mt-1 w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
-                  </div>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                  <!-- Bảng giảng viên -->
-                  <div class="border rounded-xl overflow-hidden">
-                    <div class="px-4 py-3 border-b font-medium bg-slate-50">Giảng viên trong hội đồng</div>
-                    <div class="overflow-x-auto">
-                      <table class="w-full text-sm">
-                        <thead>
-                          <tr class="text-left text-slate-500 border-b">
-                            <th class="py-2 px-3 w-10"></th>
-                            <th class="py-2 px-3">Họ tên</th>
-                            <th class="py-2 px-3">Chức vụ</th>
-                          </tr>
-                        </thead>
-                        <tbody id="cmTbody" class="divide-y divide-slate-200">
-                          @php
-                            $roleMap = ['5'=>'Chủ tịch','4'=>'Thư ký','3'=>'Ủy viên 1','2'=>'Ủy viên 2','1'=>'Ủy viên 3'];
-                          @endphp
-                          @foreach(($council->council_members ?? collect())->sortByDesc('role') as $m)
-                            @php
-                              $cmId = $m->id;
-                              $cmName = $m->supervisor->teacher->user->fullname ?? 'N/A';
-                              $cmRole = $roleMap[(string)$m->role] ?? 'Thành viên';
-                            @endphp
-                            <tr class="hover:bg-slate-50 cursor-pointer" data-cm-id="{{ $cmId }}">
-                              <td class="py-2 px-3">
-                                <input type="checkbox" class="cm-check" value="{{ $cmId }}">
-                              </td>
-                              <td class="py-2 px-3 font-medium text-slate-800">{{ $cmName }}</td>
-                              <td class="py-2 px-3 text-slate-600">{{ $cmRole }}</td>
-                            </tr>
-                          @endforeach
-                        </tbody>
-                      </table>
-                    </div>
-                    <div class="px-4 py-2 border-t text-xs text-slate-500">Chọn 1 giảng viên (click dòng để chọn).</div>
-                  </div>
+            <div class="relative z-10 bg-white w-full max-w-5xl rounded-2xl shadow-lg flex flex-col max-h-[calc(100vh-2rem)] md:max-h-[calc(100vh-4rem)]">
+              <div class="flex items-center justify-between px-5 py-4 border-b flex-shrink-0">
+                 <h3 class="font-semibold">Phân công sinh viên vào giảng viên phản biện</h3>
+                 <button class="text-slate-500 hover:text-slate-700" data-close-assign><i class="ph ph-x"></i></button>
+               </div>
+              <!-- Vùng nội dung cuộn -->
+              <div class="p-5 overflow-y-auto">
+                 <!-- Lịch bảo vệ: Ngày - Giờ - Phòng -->
+                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-5">
+                   <div>
+                     <label class="text-sm text-slate-600">Ngày</label>
+                     <input id="assignDate" type="date"
+                            class="mt-1 w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
+                   </div>
+                   <div>
+                     <label class="text-sm text-slate-600">Giờ</label>
+                     <input id="assignTime" type="time"
+                            class="mt-1 w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
+                   </div>
+                   <div>
+                     <label class="text-sm text-slate-600">Phòng</label>
+                     <input id="assignRoom" type="text" placeholder="VD: B203"
+                            class="mt-1 w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" />
+                   </div>
+                 </div>
+                 <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                   <!-- Bảng giảng viên -->
+                   <div class="border rounded-xl overflow-hidden">
+                     <div class="px-4 py-3 border-b font-medium bg-slate-50">Giảng viên trong hội đồng</div>
+                     <div class="overflow-x-auto">
+                       <table class="w-full text-sm">
+                         <thead>
+                           <tr class="text-left text-slate-500 border-b">
+                             <th class="py-2 px-3 w-10"></th>
+                             <th class="py-2 px-3">Họ tên</th>
+                             <th class="py-2 px-3">Chức vụ</th>
+                           </tr>
+                         </thead>
+                         <tbody id="cmTbody" class="divide-y divide-slate-200">
+                           @php
+                             $roleMap = ['5'=>'Chủ tịch','4'=>'Thư ký','3'=>'Ủy viên 1','2'=>'Ủy viên 2','1'=>'Ủy viên 3'];
+                           @endphp
+                           @foreach(($council->council_members ?? collect())->sortByDesc('role') as $m)
+                             @php
+                               $cmId = $m->id;
+                               $cmName = $m->supervisor->teacher->user->fullname ?? 'N/A';
+                               $cmRole = $roleMap[(string)$m->role] ?? 'Thành viên';
+                             @endphp
+                             <tr class="hover:bg-slate-50 cursor-pointer" data-cm-id="{{ $cmId }}">
+                               <td class="py-2 px-3">
+                                 <input type="checkbox" class="cm-check" value="{{ $cmId }}">
+                               </td>
+                               <td class="py-2 px-3 font-medium text-slate-800">{{ $cmName }}</td>
+                               <td class="py-2 px-3 text-slate-600">{{ $cmRole }}</td>
+                             </tr>
+                           @endforeach
+                         </tbody>
+                       </table>
+                     </div>
+                     <div class="px-4 py-2 border-t text-xs text-slate-500">Chọn 1 giảng viên (click dòng để chọn).</div>
+                   </div>
 
                   <!-- Bảng sinh viên -->
-                  <div class="border rounded-xl overflow-hidden">
-                    <div class="px-4 py-3 border-b font-medium bg-slate-50">Sinh viên thuộc hội đồng</div>
-                    <div class="overflow-x-auto">
-                      <table class="w-full text-sm">
-                        <thead>
-                          <tr class="text-left text-slate-500 border-b">
-                            <th class="py-2 px-3 w-10"></th>
-                            <th class="py-2 px-3">MSSV</th>
-                            <th class="py-2 px-3">Họ tên</th>
-                            <th class="py-2 px-3">Đề tài</th>
-                          </tr>
-                        </thead>
-                        <tbody id="cpTbody" class="divide-y divide-slate-200">
-                          @foreach (($council->council_projects ?? collect()) as $cp)
-                            @php
-                              $cpId = $cp->id;
-                              $svCode = $cp->assignment->student->student_code ?? 'N/A';
-                              $svName = $cp->assignment->student->user->fullname ?? 'N/A';
-                              $topic  = $cp->assignment->project->name ?? 'N/A';
-                            @endphp
-                            <tr class="hover:bg-slate-50 cursor-pointer" data-cp-id="{{ $cpId }}">
-                              <td class="py-2 px-3">
-                                <input type="checkbox" class="cp-check" value="{{ $cpId }}">
-                              </td>
-                              <td class="py-2 px-3 font-medium text-slate-800">{{ $svCode }}</td>
-                              <td class="py-2 px-3">{{ $svName }}</td>
-                              <td class="py-2 px-3 text-slate-600">{{ $topic }}</td>
-                            </tr>
-                          @endforeach
-                        </tbody>
-                      </table>
-                    </div>
-                    <div class="px-4 py-2 border-t text-xs text-slate-500">Chọn 1 hoặc nhiều sinh viên (click dòng để chọn).</div>
-                  </div>
-                </div>
-              </div>
-              <div class="px-5 py-4 border-t flex items-center justify-end gap-2">
-                <button class="px-3 py-1.5 rounded-lg border text-sm hover:bg-slate-50" data-close-assign>Đóng</button>
-                <button id="btnDoAssign"
-                        class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm">
-                  <i class="ph ph-check"></i> Phân công
-                </button>
-              </div>
-            </div>
-          </div>
+                   <div class="border rounded-xl overflow-hidden">
+                     <div class="px-4 py-3 border-b font-medium bg-slate-50">Sinh viên thuộc hội đồng</div>
+                     <div class="overflow-x-auto">
+                       <table class="w-full text-sm">
+                         <thead>
+                           <tr class="text-left text-slate-500 border-b">
+                             <th class="py-2 px-3 w-10"></th>
+                             <th class="py-2 px-3">MSSV</th>
+                             <th class="py-2 px-3">Họ tên</th>
+                             <th class="py-2 px-3">Đề tài</th>
+                           </tr>
+                         </thead>
+                         <tbody id="cpTbody" class="divide-y divide-slate-200">
+                           @foreach (($council->council_projects ?? collect()) as $cp)
+                             @php
+                               $cpId = $cp->id;
+                               $svCode = $cp->assignment->student->student_code ?? 'N/A';
+                               $svName = $cp->assignment->student->user->fullname ?? 'N/A';
+                               $topic  = $cp->assignment->project->name ?? 'N/A';
+                             @endphp
+                             <tr class="hover:bg-slate-50 cursor-pointer" data-cp-id="{{ $cpId }}">
+                               <td class="py-2 px-3">
+                                 <input type="checkbox" class="cp-check" value="{{ $cpId }}">
+                               </td>
+                               <td class="py-2 px-3 font-medium text-slate-800">{{ $svCode }}</td>
+                               <td class="py-2 px-3">{{ $svName }}</td>
+                               <td class="py-2 px-3 text-slate-600">{{ $topic }}</td>
+                             </tr>
+                           @endforeach
+                         </tbody>
+                       </table>
+                     </div>
+                     <div class="px-4 py-2 border-t text-xs text-slate-500">Chọn 1 hoặc nhiều sinh viên (click dòng để chọn).</div>
+                   </div>
+                 </div>
+               </div>
+              <div class="px-5 py-4 border-t flex items-center justify-end gap-2 flex-shrink-0 bg-white">
+                 <button class="px-3 py-1.5 rounded-lg border text-sm hover:bg-slate-50" data-close-assign>Đóng</button>
+                 <button id="btnDoAssign"
+                         class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm">
+                   <i class="ph ph-check"></i> Phân công
+                 </button>
+               </div>
+             </div>
+           </div>
         </div>
       </main>
     </div>

@@ -120,7 +120,7 @@
         </div>
       </header>
 
-      <main class="pt-20 px-4 md:px-6 pb-10 space-y-6">
+      <main class="flex-1 overflow-y-auto pt-20 px-4 md:px-6 pb-10 space-y-6">
         <div class="max-w-7xl mx-auto space-y-6">
           <section class="bg-white border rounded-xl p-5">
             <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4">
@@ -147,7 +147,7 @@
               </a>
             </div>
             <!-- Grid cards -->
-            <div id="rGrid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+            <div id="rGrid" class="flex flex-col gap-4">
               @foreach ($rows as $row)
                 @php
                   $code = $row->id;
@@ -165,78 +165,71 @@
                   ];
                   $statusClass = $statusMap[$status] ?? 'bg-slate-100 text-slate-600 ring-1 ring-slate-200';
                 @endphp
+
                 <div class="round-card relative flex flex-col rounded-xl border border-slate-200 bg-white shadow-sm hover:shadow-md hover:border-indigo-300 transition group"
-                     data-code="{{ $code }}"
-                     data-name="Năm học {{ $yearName }}"
-                     data-year="{{ $yearName }}"
-                     data-phase="{{ $phase }}"
-                     data-status="{{ $status }}">
+                    data-code="{{ $code }}"
+                    data-name="Năm học {{ $yearName }}"
+                    data-year="{{ $yearName }}"
+                    data-phase="{{ $phase }}"
+                    data-status="{{ $status }}">
                   <!-- Accent bar -->
                   <div class="h-1 w-full rounded-t bg-gradient-to-r from-indigo-500 via-sky-500 to-cyan-400"></div>
 
-                  <div class="p-5 flex-1 flex flex-col">
-                    <div class="flex items-start justify-between gap-4 mb-4">
-                      <div>
-                        <h3 class="font-semibold text-base group-hover:text-indigo-600 transition">
-                          {{ "Năm học " . $yearName }}
-                        </h3>
-                        <p class="text-xs text-slate-500 mt-0.5">Mã: <span class="font-medium">{{ $code }}</span></p>
-                        <p class="text-xs text-slate-500">Đợt: {{ $phase }}</p>
-                      </div>
-                      <span class="px-2 py-1 rounded-full text-[11px] font-medium {{ $statusClass }}">
-                        {{ $status }}
-                      </span>
+                  <div class="p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    <div>
+                      <h3 class="font-semibold text-base group-hover:text-indigo-600 transition">
+                        {{ "Năm học " . $yearName }}
+                      </h3>
+                      <p class="text-xs text-slate-500 mt-0.5">Mã: <span class="font-medium">{{ $code }}</span></p>
+                      <p class="text-xs text-slate-500">Đợt: {{ $phase }}</p>
                     </div>
+                    <span class="px-2 py-1 rounded-full text-[11px] font-medium {{ $statusClass }}">
+                      {{ $status }}
+                    </span>
+                  </div>
 
-                    <div class="grid grid-cols-3 gap-3 mb-5">
-                      <div class="text-center">
-                        <div class="text-sm font-semibold text-indigo-600">{{ $students }}</div>
-                        <div class="text-[10px] uppercase tracking-wide text-slate-500">SV</div>
-                      </div>
-                      <div class="text-center">
-                        <div class="text-sm font-medium text-slate-700">{{ $startDisp }}</div>
-                        <div class="text-[10px] uppercase tracking-wide text-slate-500">Bắt đầu</div>
-                      </div>
-                      <div class="text-center">
-                        <div class="text-sm font-medium text-slate-700">{{ $endDisp }}</div>
-                        <div class="text-[10px] uppercase tracking-wide text-slate-500">Kết thúc</div>
-                      </div>
+                  <div class="flex flex-wrap gap-6 px-5 pb-4">
+                    <div class="text-center">
+                      <div class="text-sm font-semibold text-indigo-600">{{ $students }}</div>
+                      <div class="text-[10px] uppercase tracking-wide text-slate-500">SV</div>
                     </div>
-
-                    <div class="mt-auto flex items-center justify-between">
-                      <div class="text-[11px] text-slate-400">Cập nhật: —</div>
-                      <div class="flex items-center gap-1">
-                        <a href="{{ route('web.head.thesis_round_detail', ['termId' => $code]) }}"
-                           class="inline-flex items-center gap-1 px-2 py-1 border border-slate-200 rounded text-xs hover:bg-slate-50">
-                          <i class="ph ph-info"></i> Chi tiết
-                        </a>
-                        <a href="{{ route('web.head.thesis_round_detail', ['termId' => $code]) }}#edit"
-                           class="inline-flex items-center gap-1 px-2 py-1 border border-slate-200 rounded text-xs hover:bg-slate-50">
-                          <i class="ph ph-pencil-simple"></i> Sửa
-                        </a>
-                        <form method="POST"
-                              action="{{ route('web.head.thesis_rounds') }}"
-                              onsubmit="return confirm('Xóa đợt {{ $code }}?')">
-                          @csrf
-                          @method('DELETE')
-                          <input type="hidden" name="code" value="{{ $code }}">
-                          <button class="inline-flex items-center gap-1 px-2 py-1 border border-rose-200 text-rose-600 rounded text-xs hover:bg-rose-50">
-                            <i class="ph ph-trash"></i> Xóa
-                          </button>
-                        </form>
-                      </div>
+                    <div class="text-center">
+                      <div class="text-sm font-medium text-slate-700">{{ $startDisp }}</div>
+                      <div class="text-[10px] uppercase tracking-wide text-slate-500">Bắt đầu</div>
+                    </div>
+                    <div class="text-center">
+                      <div class="text-sm font-medium text-slate-700">{{ $endDisp }}</div>
+                      <div class="text-[10px] uppercase tracking-wide text-slate-500">Kết thúc</div>
                     </div>
                   </div>
 
-                  <!-- Overlay link (click toàn card) -->
-                  <a href="{{ route('web.head.thesis_round_detail', ['termId' => $code]) }}"
-                     class="absolute inset-0 rounded-xl focus-visible:ring-2 ring-indigo-400 outline-none"
-                     aria-label="Xem chi tiết đợt {{ $code }}"></a>
-                  <!-- Ngăn overlay click vào vùng actions -->
-                  <div class="absolute inset-x-0 bottom-0 h-14 pointer-events-none"></div>
+                  <div class="flex items-center justify-between border-t px-5 py-3">
+                    <div class="text-[11px] text-slate-400">Cập nhật: —</div>
+                    <div class="flex items-center gap-1">
+                      <a href="{{ route('web.head.thesis_round_detail', ['termId' => $code]) }}"
+                        class="inline-flex items-center gap-1 px-2 py-1 border border-slate-200 rounded text-xs hover:bg-slate-50">
+                        <i class="ph ph-info"></i> Chi tiết
+                      </a>
+                      <a href="{{ route('web.head.thesis_round_detail', ['termId' => $code]) }}#edit"
+                        class="inline-flex items-center gap-1 px-2 py-1 border border-slate-200 rounded text-xs hover:bg-slate-50">
+                        <i class="ph ph-pencil-simple"></i> Sửa
+                      </a>
+                      <form method="POST"
+                            action="{{ route('web.head.thesis_rounds') }}"
+                            onsubmit="return confirm('Xóa đợt {{ $code }}?')">
+                        @csrf
+                        @method('DELETE')
+                        <input type="hidden" name="code" value="{{ $code }}">
+                        <button class="inline-flex items-center gap-1 px-2 py-1 border border-rose-200 text-rose-600 rounded text-xs hover:bg-rose-50">
+                          <i class="ph ph-trash"></i> Xóa
+                        </button>
+                      </form>
+                    </div>
+                  </div>
                 </div>
               @endforeach
             </div>
+
             <div id="emptyMsg" class="hidden py-8 text-center text-sm text-slate-500">Không có dữ liệu phù hợp.</div>
           </section>
         </div>

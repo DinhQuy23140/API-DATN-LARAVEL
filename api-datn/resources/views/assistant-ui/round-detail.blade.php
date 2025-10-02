@@ -159,7 +159,7 @@
               <div class="timeline-stage cursor-pointer" data-stage="1">
                 <div class="w-12 h-12 mx-auto bg-emerald-600 rounded-full flex items-center justify-center text-white font-medium text-sm relative z-10 hover:scale-110 transition-transform">1</div>
                 <div class="text-center mt-2">
-                  <div class="text-xs font-medium text-slate-900">Nhập DS SV</div>
+                  <div class="text-xs font-medium text-slate-900">Nhập liệu</div>
                   <div class="text-xs text-emerald-600 mt-1">Hoàn thành</div>
                 </div>
               </div>
@@ -258,98 +258,98 @@
                 <button id="btnCreateCommittee" class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 text-sm"><i class="ph ph-plus"></i> Tạo hội đồng</button>
               </div>
             </div>
-<div class="mt-6 overflow-hidden rounded-xl shadow ring-1 ring-slate-200">
-  <table class="w-full text-sm text-slate-700">
-    <thead class="bg-slate-100 text-slate-700 text-xs uppercase tracking-wide">
-      <tr>
-        <th class="py-3 px-4 text-left">Mã hội đồng</th>
-        <th class="py-3 px-4 text-left">Tên hội đồng</th>
-        <th class="py-3 px-4 text-left">Bộ môn</th>
-        <th class="py-3 px-4 text-left">Ngày bảo vệ</th>
-        <th class="py-3 px-4 text-left">Phòng</th>
-        <th class="py-3 px-4 text-left">Số thành viên</th>
-        <th class="py-3 px-4 text-left">Thành viên</th>
-        <th class="py-3 px-4 text-right">Hành động</th>
-      </tr>
-    </thead>
-    <tbody id="tableBody" class="divide-y divide-slate-200 bg-white">
-      @php
-        $councils = $round_detail->councils->sortByDesc('created_at') ?? collect();
-      @endphp
+            <div class="mt-6 overflow-hidden rounded-xl shadow ring-1 ring-slate-200">
+              <table class="w-full text-sm text-slate-700">
+                <thead class="bg-slate-100 text-slate-700 text-xs uppercase tracking-wide">
+                  <tr>
+                    <th class="py-3 px-4 text-left">Mã hội đồng</th>
+                    <th class="py-3 px-4 text-left">Tên hội đồng</th>
+                    <th class="py-3 px-4 text-left">Bộ môn</th>
+                    <th class="py-3 px-4 text-left">Ngày bảo vệ</th>
+                    <th class="py-3 px-4 text-left">Phòng</th>
+                    <th class="py-3 px-4 text-left">Số thành viên</th>
+                    <th class="py-3 px-4 text-left">Thành viên</th>
+                    <th class="py-3 px-4 text-right">Hành động</th>
+                  </tr>
+                </thead>
+                <tbody id="tableBody" class="divide-y divide-slate-200 bg-white">
+                  @php
+                    $councils = $round_detail->councils->sortByDesc('created_at') ?? collect();
+                  @endphp
 
-      @foreach ($councils as $council)
-      @php
-        $council_code = $council->code ?? 'N/A';
-        $council_name = $council->name ?? 'N/A';
-        $department = $council->department->name ?? 'N/A';
-        $defense_date = $council->date 
-            ? \Carbon\Carbon::parse($council->date)->format('d/m/Y') 
-            : 'N/A';
-        $address = $council->address ?? 'N/A';
-        $council_members = $council->council_members?->sortByDesc('role') ?? collect();
+                  @foreach ($councils as $council)
+                  @php
+                    $council_code = $council->code ?? 'N/A';
+                    $council_name = $council->name ?? 'N/A';
+                    $department = $council->department->name ?? 'N/A';
+                    $defense_date = $council->date 
+                        ? \Carbon\Carbon::parse($council->date)->format('d/m/Y') 
+                        : 'N/A';
+                    $address = $council->address ?? 'N/A';
+                    $council_members = $council->council_members?->sortByDesc('role') ?? collect();
 
-        // Map theo vai trò số: 5=Chủ tịch, 4=Thư ký, 3=UV1, 2=UV2, 1=UV3
-        $r5 = optional($council_members->firstWhere('role', 5))->supervisor_id; // Chủ tịch
-        $r4 = optional($council_members->firstWhere('role', 4))->supervisor_id; // Thư ký
-        $r3 = optional($council_members->firstWhere('role', 3))->supervisor_id; // Ủy viên 1
-        $r2 = optional($council_members->firstWhere('role', 2))->supervisor_id; // Ủy viên 2
-        $r1 = optional($council_members->firstWhere('role', 1))->supervisor_id; // Ủy viên 3
-      @endphp
-      <tr class="hover:bg-slate-50 transition">
-        <!-- Mã hội đồng -->
-        <td class="py-3 px-4 font-medium text-blue-600 hover:underline">
-          <a href="committee-detail.html">{{ $council_code }}</a>
-        </td>
-        <td class="py-3 px-4">{{ $council_name }}</td>
-        <td class="py-3 px-4">{{ $department }}</td>
-        <td class="py-3 px-4">{{ $defense_date }}</td>
-        <td class="py-3 px-4">{{ $address }}</td>
-        <td class="py-3 px-4 text-center">{{ $council_members->count() }}</td>
-        <td class="py-3 px-4">
-          <div class="flex flex-wrap gap-1">
-            @if ($council_members->isEmpty())
-              <span class="text-xs text-slate-400 italic">Chưa có thành viên</span>
-            @else
-              @foreach ($council_members->take(5) as $member)
-                <a class="px-2 py-1 rounded-full text-xs bg-blue-50 text-blue-700 font-medium hover:bg-blue-100 transition" 
-                   href="../lecturer-ui/profile.html">
-                  {{ $member?->supervisor->teacher->user->fullname ?? 'N/A' }}
-                </a>
-              @endforeach
-              @if ($council_members->count() > 5)
-                <span class="px-2 py-1 rounded-full text-xs bg-slate-200 text-slate-600">
-                  +{{ $council_members->count() - 5 }}
-                </span>
-              @endif
-            @endif
-          </div>
-        </td>
-        <td class="py-3 px-4 text-right space-x-2">
-          <button class="p-2 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-600 editCouncilBtn transition"
-                  data-id="{{ $council->id }}"
-                  data-code="{{ $council->code }}"
-                  data-name="{{ $council->name }}"
-                  data-dept-id="{{ $council->department_id }}"
-                  data-dept-name="{{ $council->department->name ?? '' }}"
-                  data-date="{{ $council->date }}"
-                  data-room="{{ $council->address }}"
-                  data-description="{{ $council->description }}"
-                  data-chutich="{{ $r5 ?? '' }}"
-                  data-thuki="{{ $r4 ?? '' }}"
-                  data-uyvien1="{{ $r3 ?? '' }}"
-                  data-uyvien2="{{ $r2 ?? '' }}"
-                  data-uyvien3="{{ $r1 ?? '' }}">
-            <i class="ph ph-pencil"></i>
-          </button>
-          <button class="p-2 rounded-lg border border-slate-200 hover:bg-rose-50 text-rose-600 transition">
-            <i class="ph ph-trash"></i>
-          </button>
-        </td>
-      </tr>
-      @endforeach
-    </tbody>
-  </table>
-</div>
+                    // Map theo vai trò số: 5=Chủ tịch, 4=Thư ký, 3=UV1, 2=UV2, 1=UV3
+                    $r5 = optional($council_members->firstWhere('role', 5))->supervisor_id; // Chủ tịch
+                    $r4 = optional($council_members->firstWhere('role', 4))->supervisor_id; // Thư ký
+                    $r3 = optional($council_members->firstWhere('role', 3))->supervisor_id; // Ủy viên 1
+                    $r2 = optional($council_members->firstWhere('role', 2))->supervisor_id; // Ủy viên 2
+                    $r1 = optional($council_members->firstWhere('role', 1))->supervisor_id; // Ủy viên 3
+                  @endphp
+                  <tr class="hover:bg-slate-50 transition">
+                    <!-- Mã hội đồng -->
+                    <td class="py-3 px-4 font-medium text-blue-600 hover:underline">
+                      <a href="committee-detail.html">{{ $council_code }}</a>
+                    </td>
+                    <td class="py-3 px-4">{{ $council_name }}</td>
+                    <td class="py-3 px-4">{{ $department }}</td>
+                    <td class="py-3 px-4">{{ $defense_date }}</td>
+                    <td class="py-3 px-4">{{ $address }}</td>
+                    <td class="py-3 px-4 text-center">{{ $council_members->count() }}</td>
+                    <td class="py-3 px-4">
+                      <div class="flex flex-wrap gap-1">
+                        @if ($council_members->isEmpty())
+                          <span class="text-xs text-slate-400 italic">Chưa có thành viên</span>
+                        @else
+                          @foreach ($council_members->take(5) as $member)
+                            <a class="px-2 py-1 rounded-full text-xs bg-blue-50 text-blue-700 font-medium hover:bg-blue-100 transition" 
+                              href="../lecturer-ui/profile.html">
+                              {{ $member?->supervisor->teacher->user->fullname ?? 'N/A' }}
+                            </a>
+                          @endforeach
+                          @if ($council_members->count() > 5)
+                            <span class="px-2 py-1 rounded-full text-xs bg-slate-200 text-slate-600">
+                              +{{ $council_members->count() - 5 }}
+                            </span>
+                          @endif
+                        @endif
+                      </div>
+                    </td>
+                    <td class="py-3 px-4 text-right space-x-2">
+                      <button class="p-2 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-600 editCouncilBtn transition"
+                              data-id="{{ $council->id }}"
+                              data-code="{{ $council->code }}"
+                              data-name="{{ $council->name }}"
+                              data-dept-id="{{ $council->department_id }}"
+                              data-dept-name="{{ $council->department->name ?? '' }}"
+                              data-date="{{ $council->date }}"
+                              data-room="{{ $council->address }}"
+                              data-description="{{ $council->description }}"
+                              data-chutich="{{ $r5 ?? '' }}"
+                              data-thuki="{{ $r4 ?? '' }}"
+                              data-uyvien1="{{ $r3 ?? '' }}"
+                              data-uyvien2="{{ $r2 ?? '' }}"
+                              data-uyvien3="{{ $r1 ?? '' }}">
+                        <i class="ph ph-pencil"></i>
+                      </button>
+                      <button class="p-2 rounded-lg border border-slate-200 hover:bg-rose-50 text-rose-600 transition">
+                        <i class="ph ph-trash"></i>
+                      </button>
+                    </td>
+                  </tr>
+                  @endforeach
+                </tbody>
+              </table>
+            </div>
 
           </section>
         </div>
@@ -624,6 +624,24 @@
                       </div>
                     </div>
                   </a>
+
+                  <!-- Xem danh sách sinh viên hoãn đồ án -->
+                   <a href="{{ route('web.assistant.deferred_students', [$round_detail->id]) }}" class="group border border-slate-200 hover:border-amber-400 rounded-xl p-4 bg-white hover:shadow-sm transition">
+                     <div class="flex items-start gap-3">
+                       <div class="h-10 w-10 rounded-lg grid place-items-center bg-amber-50 text-amber-600 group-hover:bg-amber-100">
+                         <i class="ph ph-hourglass"></i>
+                       </div>
+                       <div class="flex-1">
+                         <div class="font-medium">Sinh viên hoãn đồ án</div>
+                         <div class="text-xs text-slate-500 mt-0.5">Danh sách đã được duyệt</div>
+                         <div class="mt-3">
+                           <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-amber-600 text-white text-sm">
+                             <i class="ph ph-list-bullets"></i> Mở danh sách
+                           </span>
+                         </div>
+                       </div>
+                     </div>
+                   </a>
 
                 </div>
               </div>

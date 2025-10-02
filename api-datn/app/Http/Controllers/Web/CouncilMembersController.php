@@ -22,6 +22,19 @@ class CouncilMembersController extends Controller
         return view('lecturer-ui.my-committees', compact('coucilMenbers', 'supervisorId', 'termId', 'term'));
     }
 
+    public function myCouncilScoring($supervisorId, $termId)
+    {
+        $term = ProjectTerm::with(['academy_year'])->findOrFail($termId);
+        $coucilMenbers = CouncilMembers::with(['council.department', 'supervisor.teacher.user'])
+        ->where('supervisor_id', $supervisorId)
+        ->whereHas('council', function ($query) use ($termId) {
+            $query->where('project_term_id', $termId);
+        })
+        ->get();
+
+        return view('lecturer-ui.my_councils_scoring', compact('coucilMenbers', 'supervisorId', 'termId', 'term'));
+    }
+
     public function reviewCouncil($supervisorId, $termId)
     {
         $term = ProjectTerm::with(['academy_year'])->findOrFail($termId);

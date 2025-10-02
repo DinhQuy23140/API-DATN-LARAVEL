@@ -250,6 +250,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/teacher/review-assignments/supervisor/{supervisorId}/council/{councilId}/term/{termId}', [WebProjectTermsController::class, 'reviewAssignment'])->name('web.teacher.review_assignments');
     Route::get('/teacher/review-council/supervisor/{supervisorId}/term/{termId}', [WebCouncilMembersController::class, 'reviewCouncil'])->name('web.teacher.review_council');
     Route::get('/teacher/student-review/term/{termId}/supervisor/{supervisorId}', [WebProjectTermsController::class, 'studentReviews'])->name('web.teacher.student_review');
+
+
+    //stage 8 
+    Route::get('/teacher/my-council-scoring/supervisor/{supervisorId}/term/{termId}', [WebCouncilMembersController::class, 'myCouncilScoring'])->name('web.teacher.my_evaluations');
+    Route::get('/teacher/council-scoring-detail/supervisor/{supervisorId}/council/{councilId}/term/{termId}', [WebProjectTermsController::class, 'scoringCouncilDetail' ])->name('web.teacher.council_scoring_detail');
 });
 
 Route::middleware(['web','auth'])->group(function () {
@@ -284,4 +289,8 @@ Route::middleware(['auth','verified'])->prefix('assistant')->name('web.assistant
     Route::post('/majors', [MarjorController::class, 'store'])->name('majors.store');
     Route::patch('/majors/{id}', [MarjorController::class, 'update'])->name('majors.update');
     Route::delete('/majors/{id}', [MarjorController::class, 'delete'])->name('majors.destroy');
+    Route::get('/rounds/{termId}/deferments', function ($termId) {
+        return view('assistant-ui.deferments', ['termId' => $termId]);
+    })->name('deferred_students');
+    Route::patch('deferments.update', [WebAssignmentController::class, 'updateDeferment'])->name('deferments.update');
 });

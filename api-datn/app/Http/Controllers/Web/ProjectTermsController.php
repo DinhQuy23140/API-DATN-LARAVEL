@@ -248,24 +248,6 @@ class ProjectTermsController extends Controller
     }
 
     public function reviewAssignment($supervisorId, $councilId, $termId){
-        // $rows = ProjectTerm::with([
-        //     'academy_year',
-        //     'stageTimelines',
-        //     'assignments' => function ($query) use ($supervisorId) {
-        //         $query->whereHas('assignment_supervisors', function ($q) use ($supervisorId) {
-        //             $q->where('supervisor_id', $supervisorId);
-        //         })->with([
-        //             'student.user',
-        //             'project.progressLogs.attachments',
-        //             'project.reportFiles',
-        //             'council_project.council',
-        //             'council_project.council.council_members.supervisor.teacher.user',
-        //             'assignment_supervisors' => function ($q) use ($supervisorId) {
-        //                 $q->where('supervisor_id', $supervisorId);
-        //             }
-        //         ]);
-        //     }
-        // ])->findOrFail($termId);
         $projectTerm = ProjectTerm::with('academy_year')->findOrFail($termId);
         $council = $projectTerm->councils()->where('id', $councilId)->first();
         $council_projects = CouncilProjects::with(['assignment.student.user', 'assignment.project.reportFiles', 'assignment.assignment_supervisors.supervisor.teacher.user', 'council', 'council.council_members.supervisor.teacher.user'])
@@ -275,6 +257,18 @@ class ProjectTermsController extends Controller
         })
         ->get();
         return view('lecturer-ui.review-assignments', compact('council_projects', 'supervisorId', 'council', 'projectTerm', 'councilId'));
+    }
+
+    public function scoringCouncilDetail($supervisorId, $councilId, $termId) {
+        $projectTerm = ProjectTerm::with('academy_year')->findOrFail($termId);
+        $council = $projectTerm->councils()->where('id', $councilId)->first();
+        $council_projects = CouncilProjects::with(['assignment.student.user', 'assignment.project.reportFiles', 'assignment.assignment_supervisors.supervisor.teacher.user', 'council', 'council.council_members.supervisor.teacher.user'])
+        ->where('council_id', $councilId)
+        ->whereHas('council_member', function($q) use ($supervisorId) {
+            $q->where('supervisor_id', $supervisorId);
+        })
+        ->get();
+        return view('lecturer-ui.council-scoring-detail', compact('council_projects', 'supervisorId', 'council', 'projectTerm', 'councilId'));
     }
 
     public function studentCommitee($supervisorId, $termId)
