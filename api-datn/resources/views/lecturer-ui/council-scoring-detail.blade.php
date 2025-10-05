@@ -132,16 +132,19 @@
         </div>
         <div class="relative">
           <button id="profileBtn" class="flex items-center gap-3 px-2 py-1.5 rounded-lg hover:bg-slate-100">
-            <img class="h-9 w-9 rounded-full object-cover" src="https://i.pravatar.cc/100?img=20" alt="avatar" />
+            <img class="h-9 w-9 rounded-full object-cover" src="{{ $avatarUrl }}" alt="avatar" />
             <div class="hidden sm:block text-left">
-              <div class="text-sm font-semibold leading-4">TS. Nguyễn Văn A</div>
-              <div class="text-xs text-slate-500">lecturer@uni.edu</div>
+              <div class="text-sm font-semibold leading-4">{{ $userName }}</div>
+              <div class="text-xs text-slate-500">{{ $email }}</div>
             </div>
             <i class="ph ph-caret-down text-slate-500 hidden sm:block"></i>
           </button>
           <div id="profileMenu" class="hidden absolute right-0 mt-2 w-44 bg-white border border-slate-200 rounded-lg shadow-lg py-1 text-sm">
             <a href="#" class="flex items-center gap-2 px-3 py-2 hover:bg-slate-50"><i class="ph ph-user"></i>Xem thông tin</a>
             <a href="#" class="flex items-center gap-2 px-3 py-2 hover:bg-slate-50 text-rose-600"><i class="ph ph-sign-out"></i>Đăng xuất</a>
+            <form id="logout-form" action="{{ route('web.auth.logout') }}" method="POST" class="hidden">
+              @csrf
+            </form>
           </div>
         </div>
       </header>

@@ -310,13 +310,26 @@
                                            <span class="px-2 py-0.5 rounded-full text-xs {{ $statusOutlineColor }}">{{ $status ?? 'Chưa nộp' }}</span>
                                        </div>
                                    </div>
+                                  <!-- Actions: Outline -->
+                                  <div class="mt-3 flex items-center justify-end gap-2">
+                                      <button type="button"
+                                              class="px-3 py-1.5 rounded bg-emerald-600 hover:bg-emerald-700 text-white text-sm btn-approve-file"
+                                              data-file-id="{{ $finalOutline->id }}" data-file-type="outline">
+                                        <i class="ph ph-check"></i> Chấp nhận đề cương
+                                      </button>
+                                      <button type="button"
+                                              class="px-3 py-1.5 rounded border border-rose-200 text-rose-700 hover:bg-rose-50 text-sm btn-reject-file"
+                                              data-file-id="{{ $finalOutline->id }}" data-file-type="outline">
+                                        <i class="ph ph-x-circle"></i> Từ chối đề cương
+                                      </button>
+                                  </div>
                                    @if($countOutline > 0)
                                        <div class="mt-3">
                                            <div class="text-slate-600 text-sm mb-1">Các lần nộp</div>
                                            <div class="divide-y border rounded bg-white">
-                                                @php
-                                                $index = 0;
-                                                @endphp
+                                               @php
+                                               $index = 0;
+                                               @endphp
                                                @foreach($listOutline as $outline )
                                                     @if ($outline->type_report == 'outline')
                                                         @php
@@ -499,6 +512,21 @@
                                 <div class="text-3xl font-bold">{{ $current_assignment_supervisor?->score_report ?? '-'  }}</div>
                             </div>
                         </div>
+                        @if($finalReport)
+                          <!-- Actions: Report -->
+                          <div class="mt-3 flex items-center justify-end gap-2">
+                            <button type="button"
+                                    class="px-3 py-1.5 rounded bg-emerald-600 hover:bg-emerald-700 text-white text-sm btn-approve-file"
+                                    data-file-id="{{ $finalReport->id }}" data-file-type="report">
+                              <i class="ph ph-check"></i> Chấp nhận báo cáo
+                            </button>
+                            <button type="button"
+                                    class="px-3 py-1.5 rounded border border-rose-200 text-rose-700 hover:bg-rose-50 text-sm btn-reject-file"
+                                    data-file-id="{{ $finalReport->id }}" data-file-type="report">
+                              <i class="ph ph-x-circle"></i> Từ chối báo cáo
+                            </button>
+                          </div>
+                        @endif
                     </div>
                 </section>
 
@@ -702,5 +730,78 @@
           }
         });
     </script>
+     <!-- Modal: Từ chối tệp (đề cương/báo cáo) -->
+     <div id="fileRejectModal" class="fixed inset-0 z-50 hidden">
+       <div class="absolute inset-0 bg-black/40" data-close-fr></div>
+       <div class="relative bg-white w-full max-w-lg mx-auto mt-10 md:mt-24 rounded-2xl shadow-xl">
+         <div class="flex items-center justify-between px-5 py-4 border-b">
+           <h3 class="font-semibold">Từ chối tệp</h3>
+           <button class="text-slate-500 hover:text-slate-700" data-close-fr><i class="ph ph-x"></i></button>
+         </div>
+         <div class="p-5 space-y-3 text-sm">
+           <input type="hidden" id="frFileId">
+           <input type="hidden" id="frFileType">
+           <div>
+             <div class="text-slate-600">Lý do từ chối</div>
+             <textarea id="frReason" rows="4" class="mt-1 w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-rose-500/30 focus:border-rose-500" placeholder="Nhập lý do từ chối..."></textarea>
+           </div>
+         </div>
+         <div class="px-5 py-4 border-t flex items-center justify-end gap-2">
+           <button class="px-3 py-1.5 rounded-lg border text-sm hover:bg-slate-50" data-close-fr>Đóng</button>
+           <button id="frSubmit" class="px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white text-sm">
+             <i class="ph ph-x-circle"></i> Xác nhận từ chối
+           </button>
+         </div>
+       </div>
+     </div>
+ 
+     <script>
+       // Giao diện: duyệt/từ chối tệp đề cương và báo cáo (UI only)
+       const frModal = document.getElementById('fileRejectModal');
+       const openFr = ()=> { frModal.classList.remove('hidden'); document.body.classList.add('overflow-hidden'); };
+       const closeFr= ()=> { frModal.classList.add('hidden'); document.body.classList.remove('overflow-hidden'); };
+       frModal?.addEventListener('click', (e)=>{ if(e.target.closest('[data-close-fr]')) closeFr(); });
+ 
+       // Chấp nhận
+       document.addEventListener('click', (e)=>{
+         const btn = e.target.closest('.btn-approve-file');
+         if(!btn) return;
+         const id = btn.dataset.fileId, type = btn.dataset.fileType;
+         if(!id) return alert('Thiếu mã tệp.');
+         if(!confirm(`Xác nhận chấp nhận ${type === 'outline' ? 'đề cương' : 'báo cáo'} này?`)) return;
+         // TODO: Gọi API cập nhật status = approved
+         // Ví dụ: fetch(updateUrl, { method:'POST', body: JSON.stringify({ status:'approved' }) })
+         console.log('Approve file', { id, type });
+         alert('Đã gửi yêu cầu chấp nhận (demo).');
+         // location.reload(); // bật khi đã có backend
+       });
+ 
+       // Từ chối (mở modal lấy lý do)
+       document.addEventListener('click', (e)=>{
+         const btn = e.target.closest('.btn-reject-file');
+         if(!btn) return;
+         const id = btn.dataset.fileId, type = btn.dataset.fileType;
+         if(!id) return alert('Thiếu mã tệp.');
+         document.getElementById('frFileId').value = id;
+         document.getElementById('frFileType').value = type;
+         document.getElementById('frReason').value = '';
+         openFr();
+       });
+ 
+       // Submit từ chối
+       document.getElementById('frSubmit')?.addEventListener('click', async ()=>{
+         const id = document.getElementById('frFileId').value;
+         const type = document.getElementById('frFileType').value;
+         const reason = document.getElementById('frReason').value.trim();
+         if(!id) { alert('Thiếu mã tệp.'); return; }
+         if(!reason) { alert('Vui lòng nhập lý do.'); return; }
+         // TODO: Gọi API cập nhật status = rejected, note = reason
+         // Ví dụ: fetch(updateUrl, { method:'POST', body: JSON.stringify({ status:'rejected', note: reason }) })
+         console.log('Reject file', { id, type, reason });
+         alert('Đã gửi yêu cầu từ chối (demo).');
+         closeFr();
+         // location.reload(); // bật khi đã có backend
+       });
+     </script>
     </body>
 </html>

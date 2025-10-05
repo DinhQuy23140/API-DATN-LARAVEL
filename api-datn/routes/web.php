@@ -27,6 +27,7 @@ use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use App\Http\Controllers\Web\EmailVerificationController;
 use App\Http\Controllers\Web\DepartmentRolesController as WebDepartmentRolesController;
 use App\Http\Controllers\Web\CouncilProjectDefencesController as WebCouncilProjectDefencesController;
+use App\Http\Controllers\Web\ReportFilesController as WebReportFilesController;
 
 // Chỉ cho guest
 Route::middleware('guest')->group(function () {
@@ -238,6 +239,9 @@ Route::middleware('auth')->group(function () {
     Route::get('/teacher/supervised-outline-reports/{supervisorId}/term/{termId}', [WebProjectTermsController::class, 'getDetailProjectTermBySupervisorId'])->name('web.teacher.supervised_outline_reports');
     Route::get('/teacher/outline-review-assignments/term/{termId}/supervisor/{supervisorId}', [WebAssignmentController::class, 'outlineReviewAssignments'])->name('web.teacher.outline_review_assignments');
     Route::get('/teacher/supervised-student-detail/{studentId}/term/{termId}/supervisor/{supervisorId}', [WebAssignmentController::class, 'getAssignmentByStudentIdAndTermId'])->name('web.teacher.supervised_student_detail');
+
+    Route::patch('/report-files/{report_file}/status', [WebReportFilesController::class, 'update'])
+        ->name('web.teacher.report_files.update_status');
 
     //stage 5
 
