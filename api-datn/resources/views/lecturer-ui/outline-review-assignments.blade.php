@@ -28,7 +28,6 @@
     $degree = $user->teacher->degree ?? '';
     $expertise = $user->teacher->supervisor->expertise ?? 'null';
     $data_assignment_supervisors = $user->teacher->supervisor->assignment_supervisors ?? collect();
-    $supervisorId = $user->teacher->supervisor->id ?? 0;
     $teacherId = $user->teacher->id ?? 0;
     $avatarUrl = $user->avatar_url
       ?? $user->profile_photo_url
@@ -47,11 +46,9 @@
         </div>
       </div>
       @php
-        // Mở nhóm "Học phần tốt nghiệp" nếu vào các trang liên quan (kể cả trang chi tiết)
-        $isThesisOpen = request()->routeIs('web.teacher.thesis_internship')
-          || request()->routeIs('web.teacher.thesis_rounds')
-          || request()->routeIs('web.teacher.thesis_round_detail'); // thêm route detail nếu có
-        // Active item "Đồ án tốt nghiệp" trong submenu cho cả list + detail
+        // Luôn mở nhóm "Học phần tốt nghiệp"
+        $isThesisOpen = true;
+        // Active item "Đồ án tốt nghiệp" trong submenu (giữ logic cũ)
         $isThesisRoundsActive = request()->routeIs('web.teacher.thesis_rounds')
           || request()->routeIs('web.teacher.thesis_round_detail');
       @endphp
@@ -82,9 +79,7 @@
           <span class="text-slate-400">Chưa có supervisor</span>
         @endif
 
-        @php
-          $isThesisOpen = request()->routeIs('web.teacher.thesis_internship') || request()->routeIs('web.teacher.thesis_rounds');
-        @endphp
+        @php $isThesisOpen = true; @endphp
         <button type="button" id="toggleThesisMenu" aria-controls="thesisSubmenu"
           aria-expanded="{{ $isThesisOpen ? 'true' : 'false' }}"
           class="w-full flex items-center justify-between px-3 py-2 rounded-lg mt-3 {{ $isThesisOpen ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}">
@@ -95,7 +90,7 @@
           <i id="thesisCaret" class="ph ph-caret-down transition-transform {{ $isThesisOpen ? 'rotate-180' : '' }}"></i>
         </button>
 
-        <div id="thesisSubmenu" class="mt-1 pl-3 space-y-1 {{ $isThesisOpen ? '' : 'hidden' }}">
+        <div id="thesisSubmenu" class="mt-1 pl-3 space-y-1">
           <a href="{{ route('web.teacher.thesis_internship') }}"
             class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('web.teacher.thesis_internship') ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}"
             @if(request()->routeIs('web.teacher.thesis_internship')) aria-current="page" @endif>

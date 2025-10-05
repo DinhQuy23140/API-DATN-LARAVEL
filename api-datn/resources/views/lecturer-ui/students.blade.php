@@ -28,71 +28,86 @@
       $degree = $user->teacher->degree ?? '';
       $expertise = $user->teacher->supervisor->expertise ?? 'null';
       $data_assignment_supervisors = $user->teacher->supervisor->assignment_supervisors ?? "null";
-      $supervisorId = $user->teacher->supervisor->id ?? null;
       $teacherId = $user->teacher->id ?? null;
       $avatarUrl = $user->avatar_url
         ?? $user->profile_photo_url
         ?? 'https://ui-avatars.com/api/?name=' . urlencode($userName) . '&background=0ea5e9&color=ffffff';
     @endphp
     <div class="flex min-h-screen">
-      <aside id="sidebar" class="sidebar fixed inset-y-0 left-0 z-30 bg-white border-r border-slate-200 flex flex-col transition-all">
-        <div class="h-16 flex items-center gap-3 px-4 border-b border-slate-200">
-          <div class="h-9 w-9 grid place-items-center rounded-lg bg-blue-600 text-white"><i class="ph ph-chalkboard-teacher"></i></div>
-          <div class="sidebar-label">
-            <div class="font-semibold">Lecturer</div>
-            <div class="text-xs text-slate-500">Bảng điều khiển</div>
-          </div>
+    <aside class="sidebar fixed inset-y-0 left-0 z-30 bg-white border-r border-slate-200 flex flex-col transition-all"
+      id="sidebar">
+      <div class="h-16 flex items-center gap-3 px-4 border-b border-slate-200">
+        <div class="h-9 w-9 grid place-items-center rounded-lg bg-blue-600 text-white"><i
+            class="ph ph-chalkboard-teacher"></i></div>
+        <div class="sidebar-label">
+          <div class="font-semibold">Lecturer</div>
+          <div class="text-xs text-slate-500">Bảng điều khiển</div>
         </div>
-        @php
-          $isThesisOpen = request()->routeIs('web.teacher.thesis_internship') || request()->routeIs('web.teacher.thesis_rounds');
-        @endphp
-        <nav class="flex-1 overflow-y-auto p-3">
-          <a href="{{ route('web.teacher.overview') }}"
-             class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('web.teacher.overview') ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}">
-            <i class="ph ph-gauge"></i><span class="sidebar-label">Tổng quan</span>
-          </a>
-          <a href="{{ route('web.teacher.profile') }}"
-             class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('web.teacher.profile') ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}">
-            <i class="ph ph-user"></i><span class="sidebar-label">Hồ sơ</span>
-          </a>
-          <a href="{{ route('web.teacher.research') }}"
-             class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('web.teacher.research') ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}">
-            <i class="ph ph-flask"></i><span class="sidebar-label">Nghiên cứu</span>
-          </a>
+      </div>
+      @php
+        // Luôn mở nhóm "Học phần tốt nghiệp"
+        $isThesisOpen = true;
+        // Active item "Đồ án tốt nghiệp" trong submenu (giữ logic cũ)
+        $isThesisRoundsActive = request()->routeIs('web.teacher.thesis_rounds')
+          || request()->routeIs('web.teacher.thesis_round_detail');
+      @endphp
+      <nav class="flex-1 overflow-y-auto p-3">
+        <a href="{{ route('web.teacher.overview') }}"
+          class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('web.teacher.overview') ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}">
+          <i class="ph ph-gauge"></i><span class="sidebar-label">Tổng quan</span>
+        </a>
 
-        @if($user->teacher && $user->teacher->supervisor)
-            <a href="{{ route('web.teacher.students', ['supervisorId' => $supervisorId]) }}"
-               class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('web.teacher.students') ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}">
-              <i class="ph ph-student"></i><span class="sidebar-label">Sinh viên</span>
-            </a>
+        <a href="{{ route('web.teacher.profile') }}"
+          class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('web.teacher.profile') ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}">
+          <i class="ph ph-user"></i><span class="sidebar-label">Hồ sơ</span>
+        </a>
+
+        <a href="{{ route('web.teacher.research') }}"
+          class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('web.teacher.research') ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}">
+          <i class="ph ph-flask"></i><span class="sidebar-label">Nghiên cứu</span>
+        </a>
+
+        @if ($user->teacher && $user->teacher->supervisor)
+          <a id="menuStudents"
+            href="{{ route('web.teacher.students', ['supervisorId' => $user->teacher->supervisor->id]) }}"
+            class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"
+            data-skip-active="1">
+             <i class="ph ph-student"></i><span class="sidebar-label">Sinh viên</span>
+           </a>
         @else
-            <a href="#"
-               class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('web.teacher.students') ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}">
-              <i class="ph ph-student"></i><span class="sidebar-label">Sinh viên</span>
-            </a>
+          <span class="text-slate-400">Chưa có supervisor</span>
         @endif
 
-          <button type="button" id="toggleThesisMenu"
-                  class="w-full flex items-center justify-between px-3 py-2 rounded-lg mt-3
-                         {{ $isThesisOpen ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}">
-            <span class="flex items-center gap-3"><i class="ph ph-graduation-cap"></i><span class="sidebar-label">Học phần tốt nghiệp</span></span>
-            <i id="thesisCaret" class="ph ph-caret-down transition-transform {{ $isThesisOpen ? 'rotate-180' : '' }}"></i>
-          </button>
-          <div id="thesisSubmenu" class="mt-1 pl-3 space-y-1 {{ $isThesisOpen ? '' : 'hidden' }}">
-            <a href="{{ route('web.teacher.thesis_internship') }}"
-               class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('web.teacher.thesis_internship') ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}">
-              <i class="ph ph-briefcase"></i><span class="sidebar-label">Thực tập tốt nghiệp</span>
-            </a>
-            <a href="{{ route('web.teacher.thesis_rounds', ['teacherId' => $teacherId]) }}"
-               class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('web.teacher.thesis_rounds') ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}">
-              <i class="ph ph-calendar"></i><span class="sidebar-label">Học phần tốt nghiệp</span>
-            </a>
-          </div>
-        </nav>
-        <div class="p-3 border-t border-slate-200">
-          <button id="toggleSidebar" class="w-full flex items-center justify-center gap-2 px-3 py-2 text-slate-600 hover:bg-slate-100 rounded-lg"><i class="ph ph-sidebar"></i><span class="sidebar-label">Thu gọn</span></button>
+        @php $isThesisOpen = true; @endphp
+        <button type="button" id="toggleThesisMenu" aria-controls="thesisSubmenu"
+          aria-expanded="{{ $isThesisOpen ? 'true' : 'false' }}"
+          class="w-full flex items-center justify-between px-3 py-2 rounded-lg mt-3 {{ $isThesisOpen ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}">
+          <span class="flex items-center gap-3">
+            <i class="ph ph-graduation-cap"></i>
+            <span class="sidebar-label">Học phần tốt nghiệp</span>
+          </span>
+          <i id="thesisCaret" class="ph ph-caret-down transition-transform {{ $isThesisOpen ? 'rotate-180' : '' }}"></i>
+        </button>
+
+        <div id="thesisSubmenu" class="mt-1 pl-3 space-y-1">
+          <a href="{{ route('web.teacher.thesis_internship') }}"
+            class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('web.teacher.thesis_internship') ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}"
+            @if(request()->routeIs('web.teacher.thesis_internship')) aria-current="page" @endif>
+            <i class="ph ph-briefcase"></i><span class="sidebar-label">Thực tập tốt nghiệp</span>
+          </a>
+          <a href="{{ route('web.teacher.thesis_rounds', ['teacherId' => $teacherId]) }}"
+            class="flex items-center gap-3 px-3 py-2 rounded-lg bg-slate-100 font-semibold {{ $isThesisRoundsActive ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}"
+            @if($isThesisRoundsActive) aria-current="page" @endif>
+            <i class="ph ph-calendar"></i><span class="sidebar-label">Đồ án tốt nghiệp</span>
+          </a>
         </div>
-      </aside>
+      </nav>
+      <div class="p-3 border-t border-slate-200">
+        <button
+          class="w-full flex items-center justify-center gap-2 px-3 py-2 text-slate-600 hover:bg-slate-100 rounded-lg"
+          id="toggleSidebar"><i class="ph ph-sidebar"></i><span class="sidebar-label">Thu gọn</span></button>
+      </div>
+    </aside>
 
   <div class="flex-1">
         <header class="fixed left-0 md:left-[260px] right-0 top-0 h-16 bg-white border-b border-slate-200 flex items-center px-4 md:px-6 z-20">
