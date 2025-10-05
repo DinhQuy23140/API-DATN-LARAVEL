@@ -200,15 +200,21 @@
                 <div>
                   <div class="text-slate-500 text-sm">Tệp đính kèm</div>
                   @php
-                    $attachments = $progress_log->attachments ?? [];
-                    if(count($attachments) > 0) {
-                      foreach($attachments as $file) {
-                        echo '<div class="text-blue-600 hover:underline"><a href="#">' . htmlspecialchars($file) . '</a></div>';
-                      }
-                    } else {
-                      echo '<div class="text-slate-500">Chưa có tệp đính kèm.</div>';
-                    }
+                    // Điều chỉnh theo model thực tế của bạn.
+                    // Ưu tiên lấy attachment mới nhất có id/status
+                    $latestAttachment = $progress_log->attachments->last() ?? null; // nếu là Collection
+                    $latestAttachmentId = $latestAttachment->id ?? null;
+                    $latestAttachmentName = $latestAttachment->file_name ?? ($latestAttachment->name ?? 'Tệp đính kèm');
+                    $latestAttachmentUrl = $latestAttachment->file_url ?? ($latestAttachment->url ?? '#');
                   @endphp
+                  @if($latestAttachmentId)
+                    <div class="text-blue-600 hover:underline">
+                      <a href="{{ $latestAttachmentUrl }}" target="_blank">{{ $latestAttachmentName }}</a>
+                    </div>
+                    <input type="hidden" id="attachmentId" value="{{ $latestAttachmentId }}">
+                  @else
+                    <div class="text-slate-500">Chưa có tệp đính kèm.</div>
+                  @endif
                 </div>
               </div>
             </div>
@@ -250,17 +256,27 @@
             </div>
           </section>
 
-          <!-- Chấm điểm tuần -->
+          <!-- Đánh giá tuần -->
           <section class="bg-white shadow rounded-xl p-5">
             <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-3">
-              <h3 class="font-semibold text-lg">Chấm điểm tuần</h3>
+              <h3 class="font-semibold text-lg">Đánh giá tuần</h3>
               <div class="text-sm text-slate-600 mt-2 md:mt-0">Khoảng thời gian: <span id="weekRange">-</span></div>
             </div>
             <div class="flex flex-col sm:flex-row sm:items-center gap-3">
-              <input id="inpScore" type="number" min="0" max="10" step="0.1" class="px-4 py-2 border border-slate-200 rounded-lg w-32 focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Điểm" />
-              <button id="btnSave" class="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-500 transition text-sm"><i class="ph ph-check"></i> Lưu điểm</button>
+              <select id="selWeeklyStatus" class="px-4 py-2 border border-slate-200 rounded-lg w-full sm:w-64 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+                <option value="">— Chọn trạng thái —</option>
+                <option value="pass">Đạt</option>
+                <option value="fail">Chưa đạt</option>
+                <option value="needs_revision">Cần chỉnh sửa</option>
+              </select>
+              <button id="btnConfirmStatus" class="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-500 transition text-sm">
+                <i class="ph ph-check-circle"></i> Xác nhận
+              </button>
             </div>
-            <div class="mt-2 text-sm text-slate-500">Điểm hiện tại: <span id="currentScore">-</span></div>
+            <div class="mt-2 text-sm text-slate-500">
+              Trạng thái hiện tại:
+              <span id="currentStatus" class="inline-block px-2 py-0.5 rounded border border-slate-200 bg-slate-50 text-slate-700">-</span>
+            </div>
           </section>
 
         </div>
@@ -285,12 +301,65 @@
       profileBtn?.addEventListener('click', ()=> profileMenu.classList.toggle('hidden'));
       document.addEventListener('click', (e)=>{ if(!profileBtn?.contains(e.target) && !profileMenu?.contains(e.target)) profileMenu?.classList.add('hidden'); });
     })();
-
+ 
     function qs(k){ const p = new URLSearchParams(location.search); return p.get(k) || ''; }
     const studentId = qs('studentId');
     const name = decodeURIComponent(qs('name')) || 'Sinh viên';
     const weekNo = parseInt(qs('week'));
     const LS_KEY = `lecturer:student:${studentId}`;
+
+    // Đánh giá tuần: gọi API cập nhật status cho attachment
+    (function(){
+      const STATUS_MAP = {
+        pass: { label: 'Đạt', cls: 'border-emerald-200 bg-emerald-50 text-emerald-700' },
+        fail: { label: 'Chưa đạt', cls: 'border-rose-200 bg-rose-50 text-rose-700' },
+        needs_revision: { label: 'Cần chỉnh sửa', cls: 'border-amber-200 bg-amber-50 text-amber-700' }
+      };
+      const sel  = document.getElementById('selWeeklyStatus');
+      const btn  = document.getElementById('btnConfirmStatus');
+      const curr = document.getElementById('currentStatus');
+      const idEl = document.getElementById('attachmentId');
+
+      function render(val){
+        const m = STATUS_MAP[val];
+        curr.textContent = m ? m.label : '-';
+        curr.className = `inline-block px-2 py-0.5 rounded border ${m ? m.cls : 'border-slate-200 bg-slate-50 text-slate-700'}`;
+      }
+
+      btn?.addEventListener('click', async ()=>{
+        const attachmentId = idEl?.value || '';
+        const status = sel?.value || '';
+        if (!attachmentId) { alert('Không xác định được tệp đính kèm để cập nhật.'); return; }
+        if (!status) { alert('Vui lòng chọn trạng thái.'); return; }
+        const token = document.querySelector('meta[name="csrf-token"]')?.content || '';
+        const urlTpl = `{{ route('web.teacher.attachments.update_status', ['attachment' => '__ID__']) }}`;
+        const url = urlTpl.replace('__ID__', encodeURIComponent(attachmentId));
+        btn.disabled = true; const old = btn.innerHTML;
+        btn.innerHTML = '<i class="ph ph-spinner-gap animate-spin"></i> Đang cập nhật...';
+        try {
+          const res = await fetch(url, {
+            method: 'PATCH',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+              'X-Requested-With': 'XMLHttpRequest',
+              'X-CSRF-TOKEN': token
+            },
+            body: JSON.stringify({ status })
+          });
+          const js = await res.json().catch(()=> ({}));
+          if (!res.ok || js.ok === false) {
+            alert(js.message || 'Cập nhật thất bại.');
+            return;
+          }
+          render(status);
+        } catch (e) {
+          alert('Lỗi mạng, vui lòng thử lại.');
+        } finally {
+          btn.disabled = false; btn.innerHTML = old;
+        }
+      });
+    })();
   </script>
 </body>
 </html>

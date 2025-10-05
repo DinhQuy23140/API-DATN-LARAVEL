@@ -311,18 +311,20 @@
                                        </div>
                                    </div>
                                   <!-- Actions: Outline -->
-                                  <div class="mt-3 flex items-center justify-end gap-2">
-                                      <button type="button"
-                                              class="px-3 py-1.5 rounded bg-emerald-600 hover:bg-emerald-700 text-white text-sm btn-approve-file"
-                                              data-file-id="{{ $finalOutline->id }}" data-file-type="outline">
-                                        <i class="ph ph-check"></i> Chấp nhận đề cương
-                                      </button>
-                                      <button type="button"
-                                              class="px-3 py-1.5 rounded border border-rose-200 text-rose-700 hover:bg-rose-50 text-sm btn-reject-file"
-                                              data-file-id="{{ $finalOutline->id }}" data-file-type="outline">
-                                        <i class="ph ph-x-circle"></i> Từ chối đề cương
-                                      </button>
-                                  </div>
+                                   @if ($finalOutline->status === 'pending')
+                                    <div class="mt-3 flex items-center justify-end gap-2">
+                                        <button type="button"
+                                                class="px-3 py-1.5 rounded bg-emerald-600 hover:bg-emerald-700 text-white text-sm btn-approve-file"
+                                                data-file-id="{{ $finalOutline->id }}" data-file-type="outline">
+                                            <i class="ph ph-check"></i> Chấp nhận đề cương
+                                        </button>
+                                        <button type="button"
+                                                class="px-3 py-1.5 rounded border border-rose-200 text-rose-700 hover:bg-rose-50 text-sm btn-reject-file"
+                                                data-file-id="{{ $finalOutline->id }}" data-file-type="outline">
+                                            <i class="ph ph-x-circle"></i> Từ chối đề cương
+                                        </button>
+                                    </div>
+                                   @endif
                                    @if($countOutline > 0)
                                        <div class="mt-3">
                                            <div class="text-slate-600 text-sm mb-1">Các lần nộp</div>
@@ -763,17 +765,33 @@
        frModal?.addEventListener('click', (e)=>{ if(e.target.closest('[data-close-fr]')) closeFr(); });
  
        // Chấp nhận
-       document.addEventListener('click', (e)=>{
+       document.addEventListener('click', async (e)=>{
          const btn = e.target.closest('.btn-approve-file');
          if(!btn) return;
          const id = btn.dataset.fileId, type = btn.dataset.fileType;
          if(!id) return alert('Thiếu mã tệp.');
          if(!confirm(`Xác nhận chấp nhận ${type === 'outline' ? 'đề cương' : 'báo cáo'} này?`)) return;
-         // TODO: Gọi API cập nhật status = approved
-         // Ví dụ: fetch(updateUrl, { method:'POST', body: JSON.stringify({ status:'approved' }) })
-         console.log('Approve file', { id, type });
-         alert('Đã gửi yêu cầu chấp nhận (demo).');
-         // location.reload(); // bật khi đã có backend
+
+         const token = document.querySelector('meta[name="csrf-token"]')?.content || '';
+         const urlTpl = `{{ route('web.teacher.report_files.update_status', ['report_file' => '__ID__']) }}`;
+         const url = urlTpl.replace('__ID__', encodeURIComponent(id));
+         try {
+           const res = await fetch(url, {
+             method: 'PATCH',
+             headers: {
+               'Content-Type':'application/json',
+               'Accept':'application/json',
+               'X-Requested-With':'XMLHttpRequest',
+               'X-CSRF-TOKEN': token
+             },
+             body: JSON.stringify({ status: 'approved' })
+           });
+           const js = await res.json().catch(()=> ({}));
+           if (!res.ok || js.ok === false) return alert(js.message || 'Cập nhật thất bại.');
+           location.reload();
+         } catch (err) {
+           alert('Lỗi mạng, vui lòng thử lại.');
+         }
        });
  
        // Từ chối (mở modal lấy lý do)
@@ -795,12 +813,27 @@
          const reason = document.getElementById('frReason').value.trim();
          if(!id) { alert('Thiếu mã tệp.'); return; }
          if(!reason) { alert('Vui lòng nhập lý do.'); return; }
-         // TODO: Gọi API cập nhật status = rejected, note = reason
-         // Ví dụ: fetch(updateUrl, { method:'POST', body: JSON.stringify({ status:'rejected', note: reason }) })
-         console.log('Reject file', { id, type, reason });
-         alert('Đã gửi yêu cầu từ chối (demo).');
-         closeFr();
-         // location.reload(); // bật khi đã có backend
+         const token = document.querySelector('meta[name="csrf-token"]')?.content || '';
+         const urlTpl = `{{ route('web.teacher.report_files.update_status', ['report_file' => '__ID__']) }}`;
+         const url = urlTpl.replace('__ID__', encodeURIComponent(id));
+         try {
+           const res = await fetch(url, {
+             method: 'PATCH',
+             headers: {
+               'Content-Type':'application/json',
+               'Accept':'application/json',
+               'X-Requested-With':'XMLHttpRequest',
+               'X-CSRF-TOKEN': token
+             },
+             body: JSON.stringify({ status: 'rejected', note: reason })
+           });
+           const js = await res.json().catch(()=> ({}));
+           if (!res.ok || js.ok === false) return alert(js.message || 'Cập nhật thất bại.');
+           closeFr();
+           location.reload();
+         } catch (err) {
+           alert('Lỗi mạng, vui lòng thử lại.');
+         }
        });
      </script>
     </body>

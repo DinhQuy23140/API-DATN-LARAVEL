@@ -7,6 +7,7 @@ use App\Models\Attachment;
 use App\Models\ProgressLog;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\DB;
 
 class AttachmentController extends Controller
 {
@@ -58,5 +59,39 @@ class AttachmentController extends Controller
         $log = $attachment->progressLog;
         $attachment->delete();
         return redirect()->route('web.progress_logs.show', $log)->with('status','Đã xóa tệp');
+    }
+
+    public function updateStatus($attachment, Request $request)
+    {
+        $data = $request->validate([
+            'status' => 'required|in:pass,fail,needs_revision',
+            'note'   => 'nullable|string|max:2000',
+        ]);
+
+        // Gợi ý: đổi 'attachments' thành tên bảng thực tế nếu khác (vd: progress_log_attachments)
+        $row = DB::table('attachments')->where('id', $attachment)->first();
+        if (!$row) {
+            return response()->json(['ok' => false, 'message' => 'Không tìm thấy tệp đính kèm.'], 404);
+        }
+
+        // TODO: kiểm tra quyền theo giảng viên hiện tại nếu cần
+
+        DB::table('attachments')
+            ->where('id', $attachment)
+            ->update([
+                'status'     => $data['status'],
+                'note'       => $data['note'] ?? null,
+                'updated_at' => now(),
+            ]);
+
+        return response()->json([
+            'ok' => true,
+            'message' => 'Cập nhật trạng thái thành công.',
+            'data' => [
+                'id'     => (int) $attachment,
+                'status' => $data['status'],
+                'note'   => $data['note'] ?? null,
+            ],
+        ]);
     }
 }

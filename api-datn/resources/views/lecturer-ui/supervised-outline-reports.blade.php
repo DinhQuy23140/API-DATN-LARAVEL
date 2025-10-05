@@ -226,18 +226,20 @@
                               <i class="ph ph-eye text-slate-500"></i>
                               Xem
                             </a>
-                            <div class="flex gap-2">
-                              <button onclick="approveOutline('{{ $lastOutline->id }}', this)"
-                                class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium bg-emerald-600 text-white shadow-sm hover:bg-emerald-700 focus:ring-2 focus:ring-emerald-400 transition">
-                                <i class="ph ph-check-circle"></i>
-                                Phê duyệt
-                              </button>
-                              <button onclick="rejectOutline('{{ $lastOutline->id }}', this)"
-                                class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium bg-rose-600 text-white shadow-sm hover:bg-rose-700 focus:ring-2 focus:ring-rose-400 transition">
-                                <i class="ph ph-x-circle"></i>
-                                Từ chối
-                              </button>
-                            </div>
+                            @if ($status === 'submitted' || $status === 'pending')
+                              <div class="flex gap-2">
+                                <button onclick="approveOutline('{{ $lastOutline->id }}', this)"
+                                  class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium bg-emerald-600 text-white shadow-sm hover:bg-emerald-700 focus:ring-2 focus:ring-emerald-400 transition">
+                                  <i class="ph ph-check-circle"></i>
+                                  Phê duyệt
+                                </button>
+                                <button onclick="rejectOutline('{{ $lastOutline->id }}', this)"
+                                  class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg text-xs font-medium bg-rose-600 text-white shadow-sm hover:bg-rose-700 focus:ring-2 focus:ring-rose-400 transition">
+                                  <i class="ph ph-x-circle"></i>
+                                  Từ chối
+                                </button>
+                              </div>
+                            @endif
                           </div>
                         @endif
                       </td>

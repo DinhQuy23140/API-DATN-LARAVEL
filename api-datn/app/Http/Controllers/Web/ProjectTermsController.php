@@ -350,7 +350,7 @@ class ProjectTermsController extends Controller
             ])
             ->firstOrFail();
 
-        return view('lecturer-ui.supervised-outline-reports', compact('rows'));
+        return view('lecturer-ui.supervised-outline-reports', compact('rows', 'supervisorId'));
     }
 
     public function assignmentSupervisor($termId)

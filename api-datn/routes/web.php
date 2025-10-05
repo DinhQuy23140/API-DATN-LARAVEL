@@ -242,7 +242,8 @@ Route::middleware('auth')->group(function () {
 
     Route::patch('/report-files/{report_file}/status', [WebReportFilesController::class, 'update'])
         ->name('web.teacher.report_files.update_status');
-
+    Route::patch('/attachments/{attachment}/status', [WebAttachmentController::class, 'updateStatus'])
+        ->name('web.teacher.attachments.update_status');
     //stage 5
 
     Route::get('/teacher/my-committees/supervisor/{supervisorId}/term/{termId}', [WebCouncilMembersController::class, 'getCouncilMembersBySupervisorIdandTermId'])->name('web.teacher.my_committees');
