@@ -153,46 +153,95 @@
           </div>
 
           <!-- Thông tin đợt đồ án -->
-          <section class="bg-white rounded-xl border border-slate-200 p-4">
-            <h2 class="font-semibold text-lg mb-2">Thông tin đợt đồ án</h2>
+          <section class="bg-white rounded-xl border border-slate-200 p-6 space-y-5 shadow-sm hover:shadow-md transition">
+            <!-- Header -->
+            <div class="flex items-center justify-between border-b pb-3">
+              <h2 class="font-semibold text-lg flex items-center gap-2 text-slate-800">
+                <i class="ph ph-graduation-cap text-indigo-500"></i> Thông tin đợt đồ án
+              </h2>
+              <span class="text-xs text-slate-500">Mã hội đồng: {{ $council->code }}</span>
+            </div>
+
             @php
-              $council_code = $council->code;
               $term = $council->project_term ?? null;
               $termName = $term->stage ?? 'Chưa có';
               $year = $term->academy_year->year_name ?? 'N/A';
               $semester = $term->stage ?? 'N/A';
+              $termId = $term->id ?? 0;
               $start = $term->start_date ? \Carbon\Carbon::parse($term->start_date)->format('d/m/Y') : 'N/A';
               $end = $term->end_date ? \Carbon\Carbon::parse($term->end_date)->format('d/m/Y') : 'N/A';
             @endphp
-            <div class="text-slate-700 text-sm space-y-1">
-              <div><strong>Đợt:</strong> {{ $termName }}</div>
-              <div><strong>Năm học:</strong> {{ $year }}</div>
-              <div><strong>Học kỳ:</strong> {{ $semester }}</div>
-              <div><strong>Thời gian:</strong> {{ $start }} – {{ $end }}</div>
+
+            <!-- Grid thông tin -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+              <!-- Đợt -->
+              <div class="flex items-center gap-2">
+                <i class="ph ph-flag text-rose-500"></i>
+                <span class="text-slate-500 font-medium">Đợt:</span>
+                <span class="text-slate-700 font-semibold">{{ $termName }}</span>
+              </div>
+
+              <!-- Năm học -->
+              <div class="flex items-center gap-2">
+                <i class="ph ph-calendar-blank text-indigo-500"></i>
+                <span class="text-slate-500 font-medium">Năm học:</span>
+                <span class="text-indigo-600 font-semibold">{{ $year }}</span>
+              </div>
+
+              <!-- Học kỳ -->
+              <div class="flex items-center gap-2">
+                <i class="ph ph-books text-blue-500"></i>
+                <span class="text-slate-500 font-medium">Học kỳ:</span>
+                <span class="inline-block px-3 py-1 text-xs font-medium rounded-full bg-blue-50 text-blue-700 border border-blue-200">
+                  {{ $semester }}
+                </span>
+              </div>
+
+              <!-- Thời gian -->
+              <div class="flex items-center gap-2">
+                <i class="ph ph-clock text-emerald-500"></i>
+                <span class="text-slate-500 font-medium">Thời gian:</span>
+                <span class="text-emerald-700 font-semibold">{{ $start }} – {{ $end }}</span>
+              </div>
             </div>
           </section>
 
-          <section class="bg-white border rounded-xl p-6 space-y-5">
+          <section class="bg-white border rounded-2xl p-6 shadow-sm hover:shadow-md transition space-y-6">
             <!-- Header -->
-            <div class="flex items-center justify-between">
-              <h2 class="font-semibold text-lg">Thông tin hội đồng</h2>
-              <span class="text-xs text-slate-500">Mã hội đồng: {{ $council->code }}</span>
+            <div class="flex items-center justify-between border-b pb-3">
+              <h2 class="font-bold text-xl flex items-center gap-2 text-slate-800">
+                <i class="ph ph-users-three text-blue-500"></i> Thông tin hội đồng
+              </h2>
+              <span class="px-2 py-1 rounded-lg text-xs bg-sky-50 text-sky-700 border border-sky-200">
+                Mã: {{ $council->code }}
+              </span>
             </div>
 
             <!-- Thông tin chính -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <!-- Tên hội đồng -->
               <div>
-                <h3 class="text-sm font-semibold text-slate-700">Tên hội đồng</h3>
-                <p class="mt-1 text-slate-600">{{ $council->name }} ({{ $council->code }})</p>
+                <h3 class="text-sm font-semibold text-slate-500 flex items-center gap-1">
+                  <i class="ph ph-identification-badge text-indigo-500"></i> Tên hội đồng
+                </h3>
+                <p class="mt-1 text-lg font-semibold text-slate-800">{{ $council->name }} ({{ $council->code }})</p>
               </div>
 
               <!-- Trạng thái -->
               <div>
-                <h3 class="text-sm font-semibold text-slate-700">Trạng thái</h3>
+                <h3 class="text-sm font-semibold text-slate-500 flex items-center gap-1">
+                  <i class="ph ph-activity text-emerald-500"></i> Trạng thái
+                </h3>
                 <p class="mt-1">
-                  <span class="px-2 py-1 text-xs rounded-full
-                    {{ $council->status == 'active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700' }}">
+                  <span class="px-3 py-1 text-sm rounded-full font-medium
+                    @if($council->status == 'active')
+                      bg-emerald-50 text-emerald-700 border border-emerald-200
+                    @elseif($council->status == 'stopped')
+                      bg-slate-50 text-slate-600 border border-slate-200
+                    @else
+                      bg-rose-50 text-rose-700 border border-rose-200
+                    @endif
+                  ">
                     {{ ucfirst($council->status) }}
                   </span>
                 </p>
@@ -200,43 +249,56 @@
 
               <!-- Ngày -->
               <div>
-                <h3 class="text-sm font-semibold text-slate-700">Ngày tổ chức</h3>
-                <p class="mt-1 text-slate-600">{{ $council->date ?? '-' }}</p>
+                <h3 class="text-sm font-semibold text-slate-500 flex items-center gap-1">
+                  <i class="ph ph-calendar text-sky-500"></i> Ngày tổ chức
+                </h3>
+                <p class="mt-1 text-sky-700 font-medium">{{ $council->date ?? 'Chưa có ngày' }}</p>
               </div>
 
               <!-- Phòng -->
               <div>
-                <h3 class="text-sm font-semibold text-slate-700">Phòng bảo vệ</h3>
-                <p class="mt-1 text-slate-600">{{ $council->address ?? '-' }}</p>
+                <h3 class="text-sm font-semibold text-slate-500 flex items-center gap-1">
+                  <i class="ph ph-map-pin text-pink-500"></i> Phòng bảo vệ
+                </h3>
+                <p class="mt-1 text-pink-700 font-medium">{{ $council->address ?? 'Chưa có phòng' }}</p>
               </div>
 
               <!-- Khoa -->
               <div>
-                <h3 class="text-sm font-semibold text-slate-700">Khoa / Viện</h3>
-                <p class="mt-1 text-slate-600">{{ $council->department->name ?? '-' }}</p>
+                <h3 class="text-sm font-semibold text-slate-500 flex items-center gap-1">
+                  <i class="ph ph-buildings text-violet-500"></i> Khoa / Viện
+                </h3>
+                <p class="mt-1 text-violet-700 font-medium">{{ $council->department->name ?? 'Chưa có thông tin' }}</p>
               </div>
 
               <!-- Đợt đồ án -->
               <div>
-                <h3 class="text-sm font-semibold text-slate-700">Đợt đồ án</h3>
-                <p class="mt-1 text-slate-600">{{ $council->project_term->stage ?? '-' }}</p>
+                <h3 class="text-sm font-semibold text-slate-500 flex items-center gap-1">
+                  <i class="ph ph-books text-teal-500"></i> Đợt đồ án
+                </h3>
+                <p class="mt-1 text-teal-700 font-medium">{{ $council->project_term->stage ?? 'N/A' }}</p>
               </div>
             </div>
 
             <!-- Mô tả -->
             <div>
-              <h3 class="text-sm font-semibold text-slate-700">Mô tả</h3>
-              <p class="mt-1 text-slate-600">{{ $council->description ?? 'Không có mô tả' }}</p>
+              <h3 class="text-sm font-semibold text-slate-500 flex items-center gap-1">
+                <i class="ph ph-note text-amber-500"></i> Mô tả
+              </h3>
+              <p class="mt-1 text-slate-600 leading-snug">{{ $council->description ?? 'Không có mô tả' }}</p>
             </div>
 
             <!-- Sơ đồ phòng -->
             <div>
-              <h3 class="text-sm font-semibold text-slate-700">Sơ đồ phòng: Phòng {{ $council->address }}</h3>
-              <div class="mt-2 h-40 bg-slate-100 border border-dashed rounded grid place-items-center text-slate-500 text-sm">
-                Sơ đồ phòng (placeholder)
+              <h3 class="text-sm font-semibold text-slate-500 flex items-center gap-1">
+                <i class="ph ph-layout text-slate-500"></i> Sơ đồ phòng: Phòng {{ $council->address }}
+              </h3>
+              <div class="mt-3 h-44 bg-slate-50 border-2 border-dashed rounded-xl flex items-center justify-center text-slate-400 text-sm">
+                <i class="ph ph-layout text-lg mr-2"></i> Sơ đồ phòng (placeholder)
               </div>
             </div>
           </section>
+
           @php
           $council_members = $council->council_members->sortByDesc('role') ?? collect();
           @endphp
@@ -298,66 +360,87 @@
             </div>
           </section>
 
-          <section class="bg-white border rounded-xl p-4">
-            <div class="flex items-center justify-between mb-2">
-              <h3 class="font-semibold">Sinh viên thuộc hội đồng</h3>
-              <div class="flex items-center gap-3">
-                <div class="hidden md:block text-xs text-slate-500">Danh sách sinh viên bảo vệ tại hội đồng này</div>
-                <button id="btnOpenAssignModal"
-                        class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm">
-                  <i class="ph ph-user-switch"></i> Phân công sinh viên
-                </button>
-              </div>
-            </div>
+<section class="bg-white rounded-xl border border-slate-200 p-6 shadow-sm hover:shadow-md transition">
+  <!-- Header -->
+  <div class="flex items-center justify-between mb-4">
+    <div>
+      <h3 class="font-semibold text-lg text-slate-800 flex items-center gap-2">
+        <i class="ph ph-student text-indigo-500"></i> Sinh viên thuộc hội đồng
+      </h3>
+      <p class="text-xs text-slate-500 mt-1 hidden md:block">
+        Danh sách sinh viên bảo vệ tại hội đồng này
+      </p>
+    </div>
+    
+    @php
+      $supervisorExis = $council_members->where('supervisor_id', $supervisorId)->first();
+    @endphp
+    @if ($supervisorExis && $supervisorExis->role == 4)
+      <button id="btnOpenAssignModal"
+        class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium shadow-sm">
+        <i class="ph ph-user-switch"></i> Phân công sinh viên
+      </button>
+    @endif
+  </div>
 
-            @php
-            $council_projects = $council->council_projects ?? collect();
-            @endphp
-            <div class="overflow-x-auto">
-              <table class="w-full text-sm">
-                <thead>
-                  <tr class="text-left text-slate-500 border-b">
-                    <th class="py-3 px-3">Sinh viên</th>
-                    <th class="py-3 px-3">MSSV</th>
-                    <th class="py-3 px-3">Đề tài</th>
-                    <th class="py-3 px-3">Giảng viên hướng dẫn</th>
-                    <th class="py-3 px-3">Thời gian</th>
-                    <th class="py-3 px-3">Hành động</th>
-                  </tr>
-                </thead>
-                <tbody id="studentRows">
-                  @foreach ($council_projects as $council_project)
-                    @php
-                    $name = $council_project->assignment->student->user->fullname?? 'N/A';
-                    $id = $council_project->assignment->student->student_code;
-                    $topic = $council_project->assignment->project->name?? 'N/A';
-                    $time = $council_project->time?? 'N/A';
-                    @endphp
-                    <tr class='border-b hover:bg-slate-50'>
-                      <td class='py-3 px-3'><a class='text-blue-600 hover:underline' href='supervised-student-detail.html?id=${encodeURIComponent(s.id)}&name=${encodeURIComponent(s.name)}'>{{ $name }}</a></td>
-                      <td class='py-3 px-3'>{{ $id }}</td>
-                      <td class='py-3 px-3'>{{ $topic }}</td>
-                      <td class='py-3 px-3'>
-                        @php
-                          $assignment_supervisors = $council_project->assignment->assignment_supervisors ?? collect();
-                        @endphp
-                        @foreach ($assignment_supervisors as $assignment_supervisor)
-                          <div>{{ $assignment_supervisor->supervisor->teacher->user->fullname }}</div>
-                        @endforeach
-                      </td>
-                      <td class='py-3 px-3'>{{ $time }}</td>
-                      <td class='py-3 px-3'>
-                        <div class="flex items-center gap-1">
-                          <a class='px-2 py-1 border border-slate-200 rounded text-xs hover:bg-slate-50' href='supervised-student-detail.html?id=${encodeURIComponent(s.id)}&name=${encodeURIComponent(s.name)}'>Xem SV</a>
-                          <a class='px-2 py-1 border border-slate-200 rounded text-xs hover:bg-slate-50' href='defense-student.html?studentId=${encodeURIComponent(s.id)}&name=${encodeURIComponent(s.name)}&committeeId=${encodeURIComponent(c.id)}'>Chấm bảo vệ</a>
-                        </div>
-                      </td>
-                    </tr>
-                  @endforeach
-                </tbody>
-              </table>
-            </div>
-          </section>
+  @php
+    $council_projects = $council->council_projects ?? collect();
+  @endphp
+
+  <!-- Table -->
+  <div class="overflow-x-auto border rounded-lg">
+    <table class="w-full text-sm">
+      <thead>
+        <tr class="bg-slate-50 text-slate-600 border-b">
+          <th class="py-3 px-4 text-left font-medium"><i class="ph ph-user text-slate-400"></i> Sinh viên</th>
+          <th class="py-3 px-4 text-left font-medium"><i class="ph ph-identification-badge text-slate-400"></i> MSSV</th>
+          <th class="py-3 px-4 text-left font-medium"><i class="ph ph-book text-slate-400"></i> Lớp</th>
+          <th class="py-3 px-4 text-left font-medium"><i class="ph ph-book text-slate-400"></i> Đề tài</th>
+          <th class="py-3 px-4 text-left font-medium"><i class="ph ph-chalkboard-teacher text-slate-400"></i> Giảng viên hướng dẫn</th>
+          <th class="py-3 px-4 text-left font-medium"><i class="ph ph-gear text-slate-400"></i> Hành động</th>
+        </tr>
+      </thead>
+      <tbody id="studentRows">
+        @foreach ($council_projects as $council_project)
+          @php
+            $student = $council_project->assignment->student ?? null;
+            $name = $student->user->fullname ?? 'N/A';
+            $class = $student->class_code ?? 'N/A';
+            $id = $student->student_code ?? 'N/A';
+            $topic = $council_project->assignment->project->name ?? 'N/A';
+            $time = $council_project->time ?? 'N/A';
+            $assignment_supervisors = $council_project->assignment->assignment_supervisors ?? collect();
+          @endphp
+          <tr class="border-b last:border-0 hover:bg-slate-50 transition">
+            <td class="py-3 px-4">
+              <a href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $student->id, 'termId' => $termId, 'supervisorId' => $supervisorId])}}"
+                 class="text-blue-600 font-medium hover:underline">
+                {{ $name }}
+              </a>
+            </td>
+            <td class="py-3 px-4 text-slate-700">{{ $class }}</td>
+            <td class="py-3 px-4 text-slate-700">{{ $id }}</td>
+            <td class="py-3 px-4 text-slate-700">{{ $topic }}</td>
+            <td class="py-3 px-4 text-slate-700 space-y-1">
+              @foreach ($assignment_supervisors as $assignment_supervisor)
+                <span class="block">{{ $assignment_supervisor->supervisor->teacher->user->fullname }}</span>
+              @endforeach
+            </td>
+            <td class="py-3 px-4">
+              <div class="flex items-center gap-2">
+                <a href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $student->id, 'termId' => $termId, 'supervisorId' => $supervisorId])}}"
+                   class="px-2 py-1 rounded-lg text-xs font-medium border border-slate-200 text-slate-600 hover:bg-slate-100 flex items-center gap-1">
+                  <i class="ph ph-eye"></i> Xem SV
+                </a>
+              </div>
+            </td>
+          </tr>
+        @endforeach
+      </tbody>
+    </table>
+  </div>
+</section>
+
 
           <!-- Modal: Phân công sinh viên -->
           <div id="assignModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 md:p-6" role="dialog" aria-modal="true">

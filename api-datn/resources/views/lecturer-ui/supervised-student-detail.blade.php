@@ -173,21 +173,21 @@
                                 <div class="text-sm text-slate-700">Trạng thái</div>
                                 @php
                                     $status = $assignment->status ?? null;
-                                    $statusClass = match($status){
-                                        'pending' => 'bg-amber-50 text-amber-700',
-                                        'submitted' => 'bg-amber-50 text-amber-700',
-                                        'active' => 'bg-emerald-50 text-emerald-700',
-                                        'approved' => 'bg-emerald-50 text-emerald-700',
-                                        'rejected' => 'bg-rose-50 text-rose-700',
-                                        default => 'bg-slate-100 text-slate-700'
+                                    $statusClass = match($status) {
+                                        'pending'   => 'bg-amber-50 text-amber-700',
+                                        'actived'   => 'bg-emerald-50 text-emerald-700',
+                                        'cancelled' => 'bg-rose-50 text-rose-700',
+                                        'stopped'   => 'bg-slate-50 text-slate-700',
+                                        default     => 'bg-slate-100 text-slate-700',
                                     };
+
                                     $statusText = [
-                                        'pending' => 'Chờ duyệt',
-                                        'submitted' => 'Đã nộp',
-                                        'active' => 'Đã duyệt',
-                                        'approved' => 'Đã duyệt',
-                                        'rejected' => 'Bị từ chối'
+                                        'pending'   => 'Chờ xử lý',
+                                        'actived'   => 'Đang hoạt động',
+                                        'cancelled' => 'Đã hủy',
+                                        'stopped'   => 'Đã dừng',
                                     ];
+
                                     $status = $statusText[$status] ?? null;
                                 @endphp
                                  <span class="px-2 py-0.5 rounded-full text-xs {{ $statusClass }}">{{ $status ?? 'Chưa nộp' }}</span>

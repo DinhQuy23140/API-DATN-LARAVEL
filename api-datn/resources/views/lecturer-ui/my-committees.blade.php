@@ -109,56 +109,69 @@
           <div id="committeesWrap" class="grid grid-cols-1 lg:grid-cols-2 gap-4">
             @foreach ($coucilMenbers as $coucilMenber)
               @php
-                $name = $coucilMenber->council->name;
-                $code = $coucilMenber->council->code;
-                $date = $coucilMenber->council->date;
-                $room = $coucilMenber->council->address;
+                $name = $coucilMenber->council->name ?? 'N/A';
+                $code = $coucilMenber->council->code ?? 'N/A';
+                $date = $coucilMenber->council->date ?? 'Chưa có lịch';
+                $room = $coucilMenber->council->address ?? 'Chưa có phòng';
                 $listRole = [5 => 'Chủ tịch', 4 => 'Thư ký', 3 => 'Ủy viên 1', 2 => 'Ủy viên 2', 1 => 'Ủy viên 3'];
                 $role = $listRole[$coucilMenber->role];
                 $department = $coucilMenber->council->department->name ?? 'N/A';
                 $faculty = "Công nghệ thông tin"; // Placeholder, replace with actual faculty if available
                 $description = $coucilMenber->council->description;
               @endphp
-              <div class="bg-white border rounded-xl p-4 shadow-sm hover:shadow-md transition">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <!-- Thông tin hội đồng -->
-                  <div class="space-y-2">
-                    <div class="text-sm text-slate-500">
-                      Mã hội đồng: <span class="font-medium text-slate-700">{{ $code }}</span>
-                    </div>
-                    <h2 class="font-semibold text-lg text-slate-800">{{ $name }}</h2>
-                    <div class="text-sm text-slate-600 flex flex-wrap gap-3">
-                      <span class="inline-flex items-center gap-1">
-                        <i class="ph ph-calendar text-slate-400"></i> {{ $date }}
-                      </span>
-                      <span class="inline-flex items-center gap-1">
-                        <i class="ph ph-map-pin text-slate-400"></i> {{ $room }}
-                      </span>
-                    </div>
-                    <div class="text-sm text-slate-600 flex items-center gap-1">
-                      <i class="ph ph-buildings text-slate-400"></i>
-                      <span>Khoa: {{ $faculty ?? 'N/A' }}</span>
-                    </div>
-                    <div class="text-sm text-slate-600 flex items-center gap-1">
-                      <i class="ph ph-chalkboard-teacher text-slate-400"></i>
-                      <span>Bộ môn: {{ $department ?? 'N/A' }}</span>
-                    </div>
-                    <p class="text-sm text-slate-500 mt-2 leading-snug">
-                      {{ $description ?? 'Không có mô tả' }}
-                    </p>
+              <div class="bg-white border rounded-2xl p-5 shadow-sm hover:shadow-md transition flex flex-col justify-between h-full">
+                <div class="space-y-3">
+                  <!-- Mã hội đồng -->
+                  <div class="flex items-center gap-2 text-sm text-slate-600">
+                    <i class="ph ph-identification-badge text-slate-400"></i>
+                    <span>Mã hội đồng: <span class="font-semibold text-slate-800">{{ $code }}</span></span>
                   </div>
 
-                  <!-- Vai trò và hành động -->
-                  <div class="flex flex-col items-start md:items-end justify-between">
-                    <div class="bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-lg text-sm font-medium border border-emerald-200 mb-2">
-                      Vai trò: {{ $role }}
-                    </div>
-                    <a href="{{ route('web.teacher.committee_detail', ['councilId' => $coucilMenber->council_id, 'termId'=>$termId]) }}"
-                      class="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition flex items-center gap-2">
-                      <i class="ph ph-eye"></i> Xem chi tiết
-                    </a>
+                  <!-- Tên hội đồng -->
+                  <h2 class="font-bold text-lg text-slate-900">{{ $name }}</h2>
+
+                  <!-- Ngày -->
+                  <div class="flex items-center gap-2 text-sm">
+                    <i class="ph ph-calendar text-sky-500"></i>
+                    <span class="text-sky-600 font-semibold">{{ $date }}</span>
                   </div>
 
+                  <!-- Phòng -->
+                  <div class="flex items-center gap-2 text-sm">
+                    <i class="ph ph-map-pin text-pink-500"></i>
+                    <span class="text-pink-600 font-semibold">{{ $room }}</span>
+                  </div>
+
+                  <!-- Khoa -->
+                  <div class="flex items-center gap-2 text-sm">
+                    <i class="ph ph-buildings text-violet-500"></i>
+                    <span>Khoa: <span class="font-semibold text-violet-600">{{ $faculty ?? 'N/A' }}</span></span>
+                  </div>
+
+                  <!-- Bộ môn -->
+                  <div class="flex items-center gap-2 text-sm">
+                    <i class="ph ph-chalkboard-teacher text-teal-500"></i>
+                    <span>Bộ môn: <span class="font-semibold text-teal-600">{{ $department ?? 'N/A' }}</span></span>
+                  </div>
+
+                  <!-- Mô tả -->
+                  <p class="text-sm text-slate-500 leading-snug">
+                    {{ $description ?? 'Không có mô tả' }}
+                  </p>
+                </div>
+
+                <!-- Vai trò & hành động -->
+                <div class="flex items-center justify-between mt-5">
+                  <div class="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium 
+                              bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    <i class="ph ph-user-circle"></i>
+                    <span>Vai trò: {{ $role }}</span>
+                  </div>
+
+                  <a href="{{ route('web.teacher.committee_detail', ['councilId' => $coucilMenber->council_id, 'termId'=>$termId, 'supervisorId' => $supervisorId]) }}"
+                    class="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition flex items-center gap-2 shadow-sm">
+                    <i class="ph ph-eye"></i> Xem chi tiết
+                  </a>
                 </div>
               </div>
             @endforeach

@@ -425,10 +425,10 @@
  
       // GỌI API: chỉ giữ 1 listener (xóa listener cũ reset UI)
       btnAddSelected?.addEventListener('click', async () => {
-          if (selected.size === 0) return;
-         const termId = {{ $projectTerm->id ?? ($round->id ?? ($term->id ?? 'null')) }};
-          if (!termId) { toast('Thiếu thông tin đợt đồ án'); return; }
-          const students = [...selectedData.values()].map(s => s.id); // id hoặc student_code
+        if (selected.size === 0) return;
+        const termId = {{ $projectTerm->id ?? ($round->id ?? ($term->id ?? 'null')) }};
+        if (!termId) { toast('Thiếu thông tin đợt đồ án'); return; }
+        const students = [...selectedData.values()].map(s => s.id); // id hoặc student_code
 
          // UI loading
         const prevText = btnAddSelected.textContent;
@@ -437,14 +437,18 @@
 
         try {
           const res = await fetch(`{{ route('web.assistant.batch_students.bulk_store') }}`, {
-             method: 'POST',
-             headers: {
-               'Content-Type': 'application/json',
-               'Accept': 'application/json',
-               'X-CSRF-TOKEN': `{{ csrf_token() }}`
-             },
-             body: JSON.stringify({ project_term_id: termId, students })
-           });
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+              'X-CSRF-TOKEN': `{{ csrf_token() }}`
+            },
+            body: JSON.stringify({
+              project_term_id: termId,
+              students,
+              status: 'actived' // gửi đúng giá trị yêu cầu
+            })
+          });
           const data = await res.json().catch(()=>({}));
           if (!res.ok) {
             toast(data?.message || 'Thêm thất bại');

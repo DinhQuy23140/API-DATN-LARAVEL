@@ -84,18 +84,37 @@
           </div>
 
           <section class="bg-white rounded-xl border border-slate-200 p-4">
-            <h2 class="font-semibold text-lg mb-2">Thông tin đợt đồ án</h2>
-            <div class="text-slate-700 text-sm space-y-1">
-              @php
-              $stage = $term->stage;
+            <h2 class="font-semibold text-lg mb-3 text-slate-800">Thông tin đợt đồ án</h2>
+            @php
+              $stage = $term->stage ?? 'Chưa có';
               $academicYear = $term->academy_year->year_name ?? 'N/A';
-              $semester = $term->stage;
-              $date = date('d/m/Y', strtotime($term->start_date)) . ' - ' . date('d/m/Y', strtotime($term->end_date));
-              @endphp
-              <div><strong>Đợt:</strong> {{ $stage }} </div>
-              <div><strong>Năm học:</strong> {{ $academicYear }} </div>
-              <div><strong>Học kỳ:</strong> {{ $semester }} </div>
-              <div><strong>Thời gian:</strong> {{ $date }} </div>
+              $semester = $term->stage ?? 'N/A';
+              $date = ($term->start_date && $term->end_date)
+                        ? date('d/m/Y', strtotime($term->start_date)) . ' - ' . date('d/m/Y', strtotime($term->end_date))
+                        : 'N/A';
+            @endphp
+
+            <div class="text-sm space-y-3">
+              <div class="flex items-center">
+                <i class="ph ph-flag text-red-500 mr-2"></i>
+                <span class="w-32 text-slate-500">Đợt:</span>
+                <span class="font-semibold text-slate-800">{{ $stage }}</span>
+              </div>
+              <div class="flex items-center">
+                <i class="ph ph-calendar-blank text-indigo-500 mr-2"></i>
+                <span class="w-32 text-slate-500">Năm học:</span>
+                <span class="font-semibold text-indigo-600">{{ $academicYear }}</span>
+              </div>
+              <div class="flex items-center">
+                <i class="ph ph-graduation-cap text-green-500 mr-2"></i>
+                <span class="w-32 text-slate-500">Học kỳ:</span>
+                <span class="font-semibold text-green-600">{{ $semester }}</span>
+              </div>
+              <div class="flex items-center">
+                <i class="ph ph-clock text-amber-500 mr-2"></i>
+                <span class="w-32 text-slate-500">Thời gian:</span>
+                <span class="font-semibold text-emerald-600">{{ $date }}</span>
+              </div>
             </div>
           </section>
 
@@ -119,46 +138,64 @@
                 $faculty = "Công nghệ thông tin"; // Placeholder, replace with actual faculty if available
                 $description = $coucilMenber->council->description;
               @endphp
-              <div class="bg-white border rounded-xl p-4 shadow-sm hover:shadow-md transition">
+              <div class="bg-white border rounded-xl p-5 shadow-sm hover:shadow-md transition flex flex-col justify-between h-full">
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  
                   <!-- Thông tin hội đồng -->
-                  <div class="space-y-2">
-                    <div class="text-sm text-slate-500">
-                      Mã hội đồng: <span class="font-medium text-slate-700">{{ $code }}</span>
+                  <div class="space-y-3">
+                    <div class="text-sm flex items-center gap-2">
+                      <i class="ph ph-identification-card text-indigo-500"></i>
+                      <span class="text-slate-500">Mã hội đồng:</span>
+                      <span class="font-semibold text-slate-800">{{ $code }}</span>
                     </div>
-                    <h2 class="font-semibold text-lg text-slate-800">{{ $name }}</h2>
-                    <div class="text-sm text-slate-600 flex flex-wrap gap-3">
+
+                    <h2 class="font-semibold text-lg text-slate-900 flex items-center gap-2">
+                      <i class="ph ph-users-four text-blue-600"></i>
+                      {{ $name }}
+                    </h2>
+
+                    <div class="text-sm text-slate-600 flex flex-wrap gap-4">
                       <span class="inline-flex items-center gap-1">
-                        <i class="ph ph-calendar text-slate-400"></i> {{ $date }}
+                        <i class="ph ph-calendar text-emerald-500"></i> 
+                        <span class="font-medium">{{ $date }}</span>
                       </span>
                       <span class="inline-flex items-center gap-1">
-                        <i class="ph ph-map-pin text-slate-400"></i> {{ $room }}
+                        <i class="ph ph-map-pin text-red-500"></i> 
+                        <span class="font-medium">{{ $room }}</span>
                       </span>
                     </div>
-                    <div class="text-sm text-slate-600 flex items-center gap-1">
-                      <i class="ph ph-buildings text-slate-400"></i>
-                      <span>Khoa: {{ $faculty ?? 'N/A' }}</span>
+
+                    <div class="text-sm flex items-center gap-2 text-slate-700">
+                      <i class="ph ph-buildings text-amber-500"></i>
+                      <span>Khoa:</span>
+                      <span class="font-medium text-amber-700">{{ $faculty ?? 'N/A' }}</span>
                     </div>
-                    <div class="text-sm text-slate-600 flex items-center gap-1">
-                      <i class="ph ph-chalkboard-teacher text-slate-400"></i>
-                      <span>Bộ môn: {{ $department ?? 'N/A' }}</span>
+
+                    <div class="text-sm flex items-center gap-2 text-slate-700">
+                      <i class="ph ph-chalkboard-teacher text-purple-500"></i>
+                      <span>Bộ môn:</span>
+                      <span class="font-medium text-purple-700">{{ $department ?? 'N/A' }}</span>
                     </div>
+
                     <p class="text-sm text-slate-500 mt-2 leading-snug">
                       {{ $description ?? 'Không có mô tả' }}
                     </p>
                   </div>
 
-                  <!-- Vai trò và hành động -->
-                  <div class="flex flex-col items-start md:items-end justify-between">
-                    <div class="bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-lg text-sm font-medium border border-emerald-200 mb-2">
-                      Vai trò: {{ $role }}
+                  <!-- Vai trò -->
+                  <div class="flex flex-col items-start md:items-end">
+                    <div class="bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-lg text-sm font-semibold border border-emerald-200 mb-3 inline-flex items-center gap-2">
+                      <i class="ph ph-user-circle"></i> Vai trò: {{ $role }}
                     </div>
-                    <a href="{{ route('web.teacher.council_scoring_detail', ['supervisorId' =>$supervisorId, 'councilId' => $coucilMenber->council_id, 'termId'=>$termId]) }}"
-                      class="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition flex items-center gap-2">
-                      <i class="ph ph-eye"></i> Xem chi tiết
-                    </a>
                   </div>
+                </div>
 
+                <!-- Button hành động (cố định cuối card) -->
+                <div class="flex justify-end mt-6">
+                  <a href="{{ route('web.teacher.council_scoring_detail', ['supervisorId' =>$supervisorId, 'councilId' => $coucilMenber->council_id, 'termId'=>$termId]) }}"
+                    class="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition flex items-center gap-2">
+                    <i class="ph ph-eye"></i> Xem chi tiết
+                  </a>
                 </div>
               </div>
             @endforeach

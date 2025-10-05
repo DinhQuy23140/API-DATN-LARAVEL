@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Models\Council;
+use App\Models\CouncilProjects;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -121,6 +122,84 @@ class CouncilProjectsController extends Controller
             'ok'      => true,
             'message' => 'Đã lưu điểm phản biện.',
             'data'    => ['council_project_id' => $council_project, 'review_score' => $updates['review_score']],
+        ]);
+    }
+
+public function show(CouncilProjects $council_project)
+    {
+        $cp = $council_project->load([
+            // SV, lớp, đề tài
+            'assignment.student.user',
+            'assignment.student.classroom',
+            'assignment.project',
+            // GV hướng dẫn
+            'assignment.assignment_supervisors.supervisor.teacher.user',
+            // Hội đồng + thành viên để map vai trò
+            'council.council_members.supervisor.teacher.user',
+            // Điểm/nhận xét theo từng thành viên (nếu có)
+            'reviews.council_member.supervisor.teacher.user',
+        ]);
+
+        $student     = optional(optional($cp->assignment)->student);
+        $studentUser = optional($student->user);
+        $project     = optional(optional($cp->assignment)->project);
+
+        $data = [
+            'student_code' => $student->student_code ?? null,
+            'student_name' => $studentUser->fullname ?? null,
+            'class_name'   => $student->classroom->name ?? ($student->class_name ?? null),
+            'topic'        => $project->name ?? null,
+            'advisors'     => optional(optional($cp->assignment)->assignment_supervisors)
+                                ->map(function ($asv) {
+                                    return optional(optional(optional($asv->supervisor)->teacher)->user)->fullname;
+                                })
+                                ->filter()
+                                ->values()
+                                ->all(),
+        ];
+
+        // Chuẩn bị khung điểm/nhận xét theo vai trò
+        $scores = [
+            'chair'     => ['name' => null, 'score' => null, 'comment' => null],
+            'secretary' => ['name' => null, 'score' => null, 'comment' => null],
+            'member1'   => ['name' => null, 'score' => null, 'comment' => null],
+            'member2'   => ['name' => null, 'score' => null, 'comment' => null],
+            'member3'   => ['name' => null, 'score' => null, 'comment' => null],
+        ];
+        $roleKey = function ($role) {
+            return match ((string)$role) {
+                '5' => 'chair',
+                '4' => 'secretary',
+                '3' => 'member1',
+                '2' => 'member2',
+                '1' => 'member3',
+                default => null,
+            };
+        };
+
+        // Gắn tên theo thành viên hội đồng
+        foreach (optional(optional($cp->council)->council_members) ?? [] as $cm) {
+            $key = $roleKey($cm->role);
+            if (!$key) continue;
+            $scores[$key]['name'] = optional(optional(optional($cm->supervisor)->teacher)->user)->fullname;
+        }
+
+        // Gắn điểm/nhận xét nếu có quan hệ reviews
+        $reviews = collect($cp->reviews ?? []);
+        if ($reviews->isNotEmpty()) {
+            foreach ($reviews as $rev) {
+                $cm = optional($rev->council_member);
+                $key = $roleKey($cm->role ?? null);
+                if (!$key) continue;
+                $scores[$key]['name']    = $scores[$key]['name'] ?: optional(optional(optional($cm->supervisor)->teacher)->user)->fullname;
+                $scores[$key]['score']   = $rev->score ?? null;
+                $scores[$key]['comment'] = $rev->comment ?? null;
+            }
+        }
+
+        return response()->json([
+            'ok'   => true,
+            'data' => array_merge($data, ['scores' => $scores]),
         ]);
     }
 }

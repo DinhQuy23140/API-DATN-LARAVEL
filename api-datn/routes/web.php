@@ -26,6 +26,7 @@ use App\Http\Controllers\Web\MarjorController;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use App\Http\Controllers\Web\EmailVerificationController;
 use App\Http\Controllers\Web\DepartmentRolesController as WebDepartmentRolesController;
+use App\Http\Controllers\Web\CouncilProjectDefencesController as WebCouncilProjectDefencesController;
 
 // Chỉ cho guest
 Route::middleware('guest')->group(function () {
@@ -242,7 +243,7 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/teacher/my-committees/supervisor/{supervisorId}/term/{termId}', [WebCouncilMembersController::class, 'getCouncilMembersBySupervisorIdandTermId'])->name('web.teacher.my_committees');
     Route::get('/teacher/student-committee/supervisor/{supervisorId}/term/{termId}', [WebProjectTermsController::class, 'studentCommitee'])->name('web.teacher.student_committee');
-    Route::get('/teacher/committee-detail/{councilId}/term/{termId}', [WebCouncilController::class, 'getCouncilDetail' ])->name('web.teacher.committee_detail');
+    Route::get('/teacher/committee-detail/{councilId}/term/{termId}/supervisor/{supervisorId}', [WebCouncilController::class, 'getCouncilDetail' ])->name('web.teacher.committee_detail');
     Route::post('/teacher/councils/{council}/assign-reviewer', [CouncilProjectsController::class, 'assign'])
         ->name('web.teacher.councils.assign_reviewer');
 
@@ -255,6 +256,11 @@ Route::middleware('auth')->group(function () {
     //stage 8 
     Route::get('/teacher/my-council-scoring/supervisor/{supervisorId}/term/{termId}', [WebCouncilMembersController::class, 'myCouncilScoring'])->name('web.teacher.my_evaluations');
     Route::get('/teacher/council-scoring-detail/supervisor/{supervisorId}/council/{councilId}/term/{termId}', [WebProjectTermsController::class, 'scoringCouncilDetail' ])->name('web.teacher.council_scoring_detail');
+    Route::get('/council-projects/{council_project}', [WebCouncilProjectController::class, 'show'])
+            ->name('web.teacher.council_projects.show');
+    Route::get('/teacher/student-council/term/{termId}/supervisor/{supervisorId}', [WebProjectTermsController::class, 'studentCouncil'])->name('web.teacher.student_council');
+    Route::post('/council-projects/{council_project}/defences', [WebCouncilProjectDefencesController::class, 'store'])
+            ->name('web.teacher.councile_project_defences.store');
 });
 
 Route::middleware(['web','auth'])->group(function () {

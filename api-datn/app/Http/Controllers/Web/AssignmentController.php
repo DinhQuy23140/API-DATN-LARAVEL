@@ -79,10 +79,17 @@ class AssignmentController extends Controller
             'status'          => 'nullable|string|max:100',
         ]);
 
-        $termId      = (int) $data['project_term_id'];
+        $termId   = (int) $data['project_term_id'];
         $projectId = $data['project_id'] ?? null;
-        $status      = $data['status'] ?? 'inactive';
-        $inputs      = collect($data['students'])->filter()->values();
+
+        // Chuẩn hoá status và đổi 'active' -> 'actived'
+        $statusRaw = $data['status'] ?? 'inactive';
+        $status = is_string($statusRaw) ? strtolower(trim($statusRaw)) : 'inactive';
+        if ($status === 'active') {
+            $status = 'actived';
+        }
+
+        $inputs = collect($data['students'])->filter()->values();
 
         // Chuẩn hoá danh sách sinh viên: chấp nhận id hoặc student_code
         $idList   = $inputs->filter(fn($v) => is_numeric($v))->map(fn($v) => (int) $v)->values();

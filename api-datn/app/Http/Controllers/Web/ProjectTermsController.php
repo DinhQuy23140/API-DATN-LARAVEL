@@ -247,6 +247,30 @@ class ProjectTermsController extends Controller
         return view('lecturer-ui.student-reviews', compact('rows', 'supervisorId'));
     }
 
+    public function studentCouncil($termId, $supervisorId)
+    {
+        $rows = ProjectTerm::with([
+            'academy_year',
+            'stageTimelines',
+            'assignments' => function ($query) use ($supervisorId) {
+                $query->whereHas('assignment_supervisors', function ($q) use ($supervisorId) {
+                    $q->where('supervisor_id', $supervisorId);
+                })->with([
+                    'student.user',
+                    'project.progressLogs.attachments',
+                    'project.reportFiles',
+                    'council_project.council',
+                    'council_project.council.council_members.supervisor.teacher.user',
+                    'assignment_supervisors' => function ($q) use ($supervisorId) {
+                        $q->where('supervisor_id', $supervisorId);
+                    }
+                ]);
+            }
+        ])->findOrFail($termId);
+
+        return view('lecturer-ui.student_council', compact('rows', 'supervisorId'));
+    }
+
     public function reviewAssignment($supervisorId, $councilId, $termId){
         $projectTerm = ProjectTerm::with('academy_year')->findOrFail($termId);
         $council = $projectTerm->councils()->where('id', $councilId)->first();
@@ -261,8 +285,8 @@ class ProjectTermsController extends Controller
 
     public function scoringCouncilDetail($supervisorId, $councilId, $termId) {
         $projectTerm = ProjectTerm::with('academy_year')->findOrFail($termId);
-        $council = $projectTerm->councils()->where('id', $councilId)->first();
-        $council_projects = CouncilProjects::with(['assignment.student.user', 'assignment.project.reportFiles', 'assignment.assignment_supervisors.supervisor.teacher.user', 'council', 'council.council_members.supervisor.teacher.user'])
+        $council = $projectTerm->councils()->where('id', $councilId)->with('council_members.supervisor.teacher.user')->first();
+        $council_projects = CouncilProjects::with(['assignment.student.user', 'assignment.project.reportFiles', 'assignment.assignment_supervisors.supervisor.teacher.user', 'council', 'council.council_members.supervisor.teacher.user', 'council_project_defences'])
         ->where('council_id', $councilId)
         ->whereHas('council_member', function($q) use ($supervisorId) {
             $q->where('supervisor_id', $supervisorId);

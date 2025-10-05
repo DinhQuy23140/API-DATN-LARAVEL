@@ -209,7 +209,7 @@
                         data-last-outline-id="{{ $lastOutline?->id }}">
                       <td class="py-3 px-4">
                         <a class="text-blue-600 hover:underline font-medium"
-                          href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $assignment->student->id, 'termId' => $rows->id]) }}">
+                          href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $assignment->student->id, 'termId' => $rows->id, 'supervisorId'=>$supervisorId]) }}">
                           {{ $assignment->student->user->fullname }}
                         </a>
                       </td>

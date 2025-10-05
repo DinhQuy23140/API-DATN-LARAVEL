@@ -148,7 +148,7 @@
                   <i class="ph ph-user text-sm"></i> SV
                 </a>
                 @if ($councilId)
-                <a href="{{ route('web.teacher.committee_detail', ['councilId'=>$councilId, 'termId'=>$rows->id]) }}"
+                <a href="{{ route('web.teacher.committee_detail', ['councilId'=>$councilId, 'termId'=>$rows->id, 'supervisorId' => $supervisorId]) }}"
                   class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-slate-50 text-slate-600 hover:bg-slate-100 text-xs font-medium transition">
                   <i class="ph ph-chalkboard-teacher text-sm"></i> Hội đồng
                 </a>

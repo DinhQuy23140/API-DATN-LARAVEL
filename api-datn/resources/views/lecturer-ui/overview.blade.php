@@ -256,16 +256,38 @@
                             $yearName  = data_get($assignment_supervisor, 'assignment.project_term.academy_year.year_name', '');
                             $topic     = data_get($assignment_supervisor, 'assignment.project.name', '');
                             $status    = data_get($assignment_supervisor, 'assignment.status', '');
+                            $statusKey = strtolower((string) $status);
 
-                            $statusLower = strtolower((string) $status);
+                            // Default
                             $statusClass = 'bg-slate-100 text-slate-700';
-                            if (in_array($statusLower, ['approved', 'đã duyệt', 'accepted'])) {
-                              $statusClass = 'bg-emerald-50 text-emerald-700';
-                            } elseif (in_array($statusLower, ['pending', 'chưa duyệt', 'đang xử lý'])) {
-                              $statusClass = 'bg-amber-50 text-amber-700';
-                            } elseif (in_array($statusLower, ['rejected', 'từ chối'])) {
-                              $statusClass = 'bg-rose-50 text-rose-700';
+                            $statusLabel = 'Không xác định';
+
+                            // Mapping trạng thái
+                            $statusMap = [
+                                'pending' => [
+                                    'class' => 'bg-amber-50 text-amber-700',
+                                    'label' => 'Chờ duyệt',
+                                ],
+                                'actived' => [
+                                    'class' => 'bg-emerald-50 text-emerald-700',
+                                    'label' => 'Đang hoạt động',
+                                ],
+                                'stopped' => [
+                                    'class' => 'bg-rose-50 text-rose-700',
+                                    'label' => 'Đã dừng',
+                                ],
+                                'cancelled' => [
+                                    'class' => 'bg-slate-200 text-slate-600',
+                                    'label' => 'Đã hủy',
+                                ],
+                            ];
+
+                            // Gán nếu match
+                            if (array_key_exists($statusKey, $statusMap)) {
+                                $statusClass = $statusMap[$statusKey]['class'];
+                                $statusLabel = $statusMap[$statusKey]['label'];
                             }
+
                           @endphp
                           <tr class="hover:bg-slate-50"
                               data-name="{{ $name }}"
@@ -290,7 +312,7 @@
                               <div class="truncate max-w-[320px]" title="{{ $topic }}">{{ $topic ?: '—' }}</div>
                             </td>
                             <td class="px-4 py-3">
-                              <span class="px-2 py-1 rounded-full text-xs {{ $statusClass }}">{{ $status ?: '—' }}</span>
+                              <span class="px-2 py-1 rounded-full text-xs {{ $statusClass }}">{{ $statusLabel ?: '—' }}</span>
                             </td>
                           </tr>
                         @empty

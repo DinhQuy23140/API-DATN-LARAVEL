@@ -115,30 +115,37 @@
 
                     // Gom nhóm trạng thái
                     switch ($statusRaw) {
-                      case 'active':
-                      case 'approved':
-                        $statusText = 'Đã duyệt';
-                        $statusClass = 'bg-emerald-100 text-emerald-700';
-                        break;
-                      case 'pending':
-                      case 'submitted':
-                        $statusText = 'Đang chờ';
-                        $statusClass = 'bg-amber-100 text-amber-700';
-                        break;
-                      case 'rejected':
-                        $statusText = 'Từ chối';
-                        $statusClass = 'bg-rose-100 text-rose-700';
-                        break;
-                      default:
-                        $statusText = 'Chưa xác định';
-                        $statusClass = 'bg-slate-100 text-slate-600';
+                        case 'actived':
+                            $statusText  = 'Đang hoạt động';
+                            $statusClass = 'bg-emerald-100 text-emerald-700';
+                            break;
+
+                        case 'pending':
+                            $statusText  = 'Chờ xử lý';
+                            $statusClass = 'bg-amber-100 text-amber-700';
+                            break;
+
+                        case 'cancelled':
+                            $statusText  = 'Đã hủy';
+                            $statusClass = 'bg-rose-100 text-rose-700';
+                            break;
+
+                        case 'stopped':
+                            $statusText  = 'Đã dừng';
+                            $statusClass = 'bg-slate-100 text-slate-700';
+                            break;
+
+                        default:
+                            $statusText  = 'Chưa xác định';
+                            $statusClass = 'bg-slate-100 text-slate-600';
+                            break;
                     }
                   @endphp
 
                   <tr class="hover:bg-slate-50 transition-colors">
                     <td class="py-3 px-3">
                       <a class="text-blue-600 hover:underline font-medium"
-                        href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $termId]) }}">
+                        href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $termId, 'supervisorId' => $supervisorId]) }}">
                         {{ $name }}
                       </a>
                     </td>
@@ -154,7 +161,7 @@
                     <td class="py-3 px-3 text-center">
                       <div class="flex items-center justify-center gap-2">
                         <a class="px-3 py-1.5 border border-slate-200 rounded-lg text-xs font-medium text-slate-700 hover:bg-slate-50 transition"
-                          href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $termId]) }}">
+                          href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $termId, 'supervisorId' => $supervisorId]) }}">
                           Xem chi tiết
                         </a>
                         <button class="px-3 py-1.5 bg-rose-600 text-white rounded-lg text-xs font-medium hover:bg-rose-700 transition">

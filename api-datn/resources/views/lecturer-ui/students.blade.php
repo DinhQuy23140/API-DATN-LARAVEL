@@ -200,19 +200,20 @@
         @php
           $stage     = data_get($assignmentSupervisor, 'assignment.project_term.stage', '');
           $yearName  = data_get($assignmentSupervisor, 'assignment.project_term.academy_year.year_name', '');
-          $statusRaw = $assignmentSupervisor->status ?? 'pending';
+          $statusRaw = $assignmentSupervisor?->assignment?->status ?? 'pending';
 
           $statusColors = [
-            'approved' => 'bg-green-100 text-green-800',
-            'pending'  => 'bg-yellow-100 text-yellow-800',
-            'accepted' => 'bg-green-100 text-green-800',
-            'rejected' => 'bg-red-100 text-red-800',
+              'pending'   => 'bg-yellow-100 text-yellow-800',
+              'cancelled' => 'bg-red-100 text-red-800',
+              'actived'   => 'bg-green-100 text-green-800',
+              'stopped'   => 'bg-gray-100 text-gray-800',
           ];
+
           $statusLabels = [
-            'approved' => 'Đã duyệt',
-            'pending'  => 'Chờ duyệt',
-            'accepted' => 'Đã chấp nhận',
-            'rejected' => 'Từ chối',
+              'pending'   => 'Chờ xử lý',
+              'cancelled' => 'Đã hủy',
+              'actived'   => 'Đang hoạt động',
+              'stopped'   => 'Đã dừng',
           ];
 
           $statusClass = $statusColors[$statusRaw] ?? 'bg-slate-100 text-slate-800';
@@ -225,7 +226,7 @@
           <td class="py-3 px-4 text-slate-700">{{ $assignmentSupervisor->assignment->project->name ?? 'Chưa có đề tài' }}</td>
           <td class="py-3 px-4 text-left">{{ $stage }}</td>
           <td class="py-3 px-4 text-left">{{ $yearName }}</td>
-          <td class="py-3 px-4 text-left">
+          <td class="py-3 px-4 text-center">
             <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium {{ $statusClass }}">
               @if ($statusRaw === 'approved' || $statusRaw === 'accepted')
                 <i class="ph ph-check-circle"></i>

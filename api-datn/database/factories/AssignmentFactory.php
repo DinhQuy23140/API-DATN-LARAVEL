@@ -23,7 +23,7 @@ class AssignmentFactory extends Factory
             'student_id' => Student::inRandomOrder()->first()->id ?? Student::factory(),
             'project_id' => Project::inRandomOrder()->first()->id ?? Project::factory(),
             'project_term_id' => ProjectTerm::inRandomOrder()->first()->id ?? null,
-            'status' => $this->faker->randomElement(['pending', 'approved', 'rejected']),
+            'status' => $this->faker->randomElement(['pending', 'cancelled', 'actived', 'stopped']),
             'role' => $this->faker->randomElement(['leader', 'member', null]),
         ];
     }

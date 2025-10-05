@@ -845,7 +845,7 @@
                           <i class="ph ph-user"></i> SV
                         </a>
                         @if($councilId !== null)
-                            <a href="{{ route('web.teacher.committee_detail', ['councilId'=>$councilId, 'termId'=>$rows->id]) }}"
+                            <a href="{{ route('web.teacher.committee_detail', ['councilId'=>$councilId, 'termId'=>$rows->id, 'supervisorId'=>$supervisorId]) }}"
                               class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-indigo-600 hover:bg-indigo-50 transition">
                               <i class="ph ph-users-three"></i> Hội đồng
                             </a>
@@ -989,7 +989,7 @@
                           <i class="ph ph-user"></i> SV
                         </a>
                         @if($councilId !== null)
-                            <a href="{{ route('web.teacher.committee_detail', ['councilId'=>$councilId, 'termId'=>$rows->id]) }}"
+                            <a href="{{ route('web.teacher.committee_detail', ['councilId'=>$councilId, 'termId'=>$rows->id, 'supervisorId' => $supervisorId]) }}"
                               class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-indigo-600 hover:bg-indigo-50 transition">
                               <i class="ph ph-users-three"></i> Hội đồng
                             </a>
@@ -1090,7 +1090,7 @@
                           <i class="ph ph-user"></i> SV
                         </a>
                         @if($councilId !== null)
-                            <a href="{{ route('web.teacher.committee_detail', ['councilId'=>$councilId, 'termId'=>$rows->id]) }}"
+                            <a href="{{ route('web.teacher.committee_detail', ['councilId'=>$councilId, 'termId'=>$rows->id, 'supervisorId' => $supervisorId]) }}"
                               class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-indigo-600 hover:bg-indigo-50 transition">
                               <i class="ph ph-users-three"></i> Hội đồng
                             </a>
@@ -1110,7 +1110,7 @@
           contentBox.innerHTML = `
         <h3 class="text-lg font-semibold mb-3">Giai đoạn 08: Bảo vệ đồ án</h3>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
-          <a href="supervised-defense-results.html" class="group rounded-xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md hover:border-blue-300 transition">
+          <a href="{{ route('web.teacher.student_council', ['termId' => $rows->id, 'supervisorId' => $supervisorId]) }}" class="group rounded-xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md hover:border-blue-300 transition">
             <div class="flex items-start gap-3">
               <div class="h-10 w-10 rounded-lg grid place-items-center bg-gradient-to-br from-emerald-50 to-emerald-100 text-emerald-600 group-hover:from-emerald-100 group-hover:to-emerald-200">
                 <i class="ph ph-graduation-cap"></i>
@@ -1225,7 +1225,7 @@
                           <i class="ph ph-user"></i> SV
                         </a>
                         @if($councilId !== null)
-                            <a href="{{ route('web.teacher.committee_detail', ['councilId'=>$councilId, 'termId'=>$rows->id]) }}"
+                            <a href="{{ route('web.teacher.committee_detail', ['councilId'=>$councilId, 'termId'=>$rows->id, 'supervisorId' => $supervisorId]) }}"
                               class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-indigo-600 hover:bg-indigo-50 transition">
                               <i class="ph ph-users-three"></i> Hội đồng
                             </a>

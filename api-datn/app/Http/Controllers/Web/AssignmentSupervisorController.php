@@ -66,7 +66,7 @@ public function getRequestManagementPage($supervisorId, $termId)
             })
             ->get();
 
-        return view('lecturer-ui.supervised-students', compact('items', 'termId'));
+        return view('lecturer-ui.supervised-students', compact('items', 'termId', 'supervisorId'));
     }
 
 
@@ -196,7 +196,7 @@ public function getRequestManagementPage($supervisorId, $termId)
             // Cập nhật status cho các Assignment vừa gán
             Assignment::whereIn('id', $toInsert)
                 ->update([
-                    'status' => 'active',
+                    'status' => 'actived',
                     'updated_at' => $now
                 ]);
         });

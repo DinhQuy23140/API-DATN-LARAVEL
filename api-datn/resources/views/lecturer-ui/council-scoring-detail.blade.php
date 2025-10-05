@@ -147,7 +147,9 @@
               <input id="search" class="pl-8 pr-3 py-2 border border-slate-200 rounded text-sm w-80" placeholder="Tìm theo tên/MSSV/hội đồng" />
             </div>
           </div>
-
+          @php
+            $council_member_id = $council->council_members->where('supervisor_id', $supervisorId)->first()->id ?? null;
+          @endphp
           <div class="bg-white border rounded-xl p-4 shadow-sm">
             <div class="overflow-x-auto">
               <table id="studentTable" class="w-full text-sm table-fixed border-collapse">
@@ -158,12 +160,10 @@
                     <th class="py-3 px-3 font-medium w-64">Đề tài</th>
                     <th class="py-3 px-3 font-medium w-40">Báo cáo</th>
                     <th class="py-3 px-3 font-medium w-28 text-center">Thứ tự</th>
-                    <th class="py-3 px-3 font-medium w-32">Điểm</th>
-                    <th class="py-3 px-3 font-medium w-40">Thời gian</th>
+                    <th class="py-3 px-3 font-medium w-32 text-center">Điểm</th>
                     <th class="py-3 px-3 font-medium w-44 text-center">Thao tác</th>
                   </tr>
                 </thead>
-
                 <tbody id="rows">
                   @foreach ($council_projects as $council_project)
                     @php
@@ -176,17 +176,46 @@
                                     ?? $council_project->assignment->reportFiles?->sortByDesc('created_at')->first()?->file_path
                                     ?? '#';
                       $index = $loop->index + 1;
-                      $scoreReview = $council_project->review_score
-                                    ?? $council_project->assignment->council_project?->review_score
-                                    ?? 'Chưa chấm';
-                      $status = $scoreReview !== 'Chưa chấm' ? 'Đã chấm' : 'Chưa chấm';
-                      $statusColor = $scoreReview !== 'Chưa chấm'
+
+                      // Lấy điểm và nhận xét theo từng thành viên trong hội đồng cho dòng hiện tại
+                      $listCouncilMember = $council_project->council_project_defences;
+                      $review = $listCouncilMember->where('council_member_id', $council_member_id)->first();
+                      $scoreCouncilMember = $review->score ?? 'Chưa chấm';
+                      $comment = $review->comment ?? $review->comments ?? '';
+
+                      $statusColor = $scoreCouncilMember !== 'Chưa chấm'
                                     ? 'bg-green-50 text-green-700 border-green-200'
                                     : 'bg-rose-50 text-rose-700 border-rose-200';
                       $time = $council_project->time ?? 'N/A';
                       $councilId = $council_project->council_id ?? null;
+                      $className = $student->classroom->name ?? ($student->class_name ?? 'N/A');
+                      $advisorNames = ($council_project->assignment->assignment_supervisors ?? collect())
+                        ->map(fn($a) => $a->supervisor->teacher->user->fullname)
+                        ->values();
+
+                      // Map role -> member + score/comment
+                      $roleMap = ['chair'=>5,'secretary'=>4,'member1'=>3,'member2'=>2,'member3'=>1];
+                      $membersByRole = ($council?->council_members ?? collect())->keyBy('role');
+                      $scoresMap = [];
+                      foreach ($roleMap as $key => $role) {
+                        $mem = $membersByRole->get($role);
+                        $name = $mem?->supervisor?->teacher?->user?->fullname;
+                        $def  = $mem ? $listCouncilMember->firstWhere('council_member_id', $mem->id) : null;
+                        $scoresMap[$key] = [
+                          'name'    => $name,
+                          'score'   => $def->score ?? null,
+                          'comment' => ($def->comment ?? $def->comments ?? null),
+                        ];
+                      }
                     @endphp
-                    <tr class="border-b hover:bg-slate-50 hover:shadow-sm transition">
+                     <tr class="rowStudent border-b hover:bg-slate-50 hover:shadow-sm transition cursor-pointer"
+                         data-cp-id="{{ $council_project->id }}"
+                         data-student-name="{{ $studentName }}"
+                         data-student-code="{{ $studentCode }}"
+                         data-class="{{ $className }}"
+                         data-topic="{{ $topic }}"
+                         data-advisors='@json($advisorNames)'
+                         data-scores='@json($scoresMap)'>
                       <td class="py-3 px-3 truncate max-w-[150px]" title="{{ $studentName }}">{{ $studentName }}</td>
                       <td class="py-3 px-3 whitespace-nowrap">{{ $studentCode }}</td>
                       <td class="py-3 px-3 truncate max-w-[250px]" title="{{ $topic }}">{{ $topic }}</td>
@@ -200,12 +229,11 @@
                         @endif
                       </td>
                       <td class="py-3 px-3 text-center">{{ $index }}</td>
-                      <td class="py-3 px-3">
+                      <td class="py-3 px-3 text-center">
                         <span class="px-2 py-1 text-xs font-medium rounded-full border {{ $statusColor }}">
-                          {{ $scoreReview }}
+                          {{ $scoreCouncilMember }}
                         </span>
                       </td>
-                      <td class="py-3 px-3 whitespace-nowrap">{{ $time }}</td>
                       <td class="py-3 px-3">
                         <div class="flex items-center justify-center gap-2">
                            <button type="button"
@@ -216,12 +244,13 @@
                                    data-topic="{{ $topic }}"
                                    data-advisor='@json($advisor->map(fn($a) => $a->supervisor->teacher->user->fullname))'
                                    data-report="{{ $reportUrl }}"
-                                   data-current-score="{{ is_numeric($scoreReview) ? $scoreReview : '' }}">
+                                   data-current-score="{{ is_numeric($scoreCouncilMember) ? $scoreCouncilMember : '' }}"
+                                   data-current-comment="{{ $comment }}">
                              <i class="ph ph-pen"></i> Chấm
                            </button>
                           @if ($councilId)
                             <a class="min-w-[90px] text-center inline-flex items-center justify-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-md border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 transition" 
-                              href="{{ route('web.teacher.committee_detail', ['councilId' => $councilId, 'termId' => $projectTerm->id]) }}">
+                              href="{{ route('web.teacher.committee_detail', ['councilId' => $councilId, 'termId' => $projectTerm->id, 'supervisorId'=> $supervisorId]) }}">
                               <i class="ph ph-eye"></i> Hội đồng
                             </a>
                           @endif
@@ -232,13 +261,71 @@
                 </tbody>
               </table>
             </div>
-          </div>
-
+          </div> 
         </div>
       </main>
     </div>
-  </div>
-
+  </div> 
+   <!-- Modal: Thông tin sinh viên -->
+   <div id="studentInfoModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
+     <div class="absolute inset-0 bg-black/40" data-close-si></div>
+     <div class="relative z-10 bg-white w-full max-w-3xl rounded-2xl shadow-xl flex flex-col max-h-[calc(100vh-4rem)]">
+       <div class="flex items-center justify-between px-5 py-4 border-b">
+         <h3 class="font-semibold">Thông tin sinh viên</h3>
+         <button class="text-slate-500 hover:text-slate-700" data-close-si><i class="ph ph-x"></i></button>
+       </div>
+       <div class="p-5 overflow-y-auto">
+         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+           <div>
+             <div class="text-slate-500">Mã sinh viên</div>
+             <div id="siCode" class="font-medium text-slate-800">—</div>
+           </div>
+           <div>
+             <div class="text-slate-500">Tên sinh viên</div>
+             <div id="siName" class="font-medium text-slate-800">—</div>
+           </div>
+           <div>
+             <div class="text-slate-500">Lớp</div>
+             <div id="siClass" class="font-medium text-slate-800">—</div>
+           </div>
+           <div class="md:col-span-2">
+             <div class="text-slate-500">Đề tài</div>
+             <div id="siTopic" class="font-medium text-slate-800">—</div>
+           </div>
+           <div class="md:col-span-2">
+             <div class="text-slate-500">Giảng viên hướng dẫn</div>
+             <div id="siAdvisors" class="font-medium text-slate-800">—</div>
+           </div>
+         </div>
+         <hr class="my-4">
+         <div>
+           <div class="font-semibold mb-2">Điểm và nhận xét theo vai trò</div>
+           <div class="overflow-x-auto">
+             <table class="w-full text-sm border border-slate-200 rounded-lg overflow-hidden">
+               <thead class="bg-slate-50 text-slate-600">
+                 <tr>
+                   <th class="text-left px-3 py-2 w-40">Thành viên</th>
+                   <th class="text-left px-3 py-2 w-56">Họ tên</th>
+                   <th class="text-left px-3 py-2 w-24">Điểm</th>
+                   <th class="text-left px-3 py-2">Nhận xét</th>
+                 </tr>
+               </thead>
+               <tbody id="siScores" class="divide-y divide-slate-100">
+                 <tr><td class="px-3 py-2">Chủ tịch</td><td id="siChairName" class="px-3 py-2">—</td><td id="siChairScore" class="px-3 py-2">—</td><td id="siChairComment" class="px-3 py-2">—</td></tr>
+                 <tr><td class="px-3 py-2">Thư ký</td><td id="siSecName" class="px-3 py-2">—</td><td id="siSecScore" class="px-3 py-2">—</td><td id="siSecComment" class="px-3 py-2">—</td></tr>
+                 <tr><td class="px-3 py-2">Ủy viên 1</td><td id="siM1Name" class="px-3 py-2">—</td><td id="siM1Score" class="px-3 py-2">—</td><td id="siM1Comment" class="px-3 py-2">—</td></tr>
+                 <tr><td class="px-3 py-2">Ủy viên 2</td><td id="siM2Name" class="px-3 py-2">—</td><td id="siM2Score" class="px-3 py-2">—</td><td id="siM2Comment" class="px-3 py-2">—</td></tr>
+                 <tr><td class="px-3 py-2">Ủy viên 3</td><td id="siM3Name" class="px-3 py-2">—</td><td id="siM3Score" class="px-3 py-2">—</td><td id="siM3Comment" class="px-3 py-2">—</td></tr>
+               </tbody>
+             </table>
+           </div>
+         </div>
+       </div>
+       <div class="px-5 py-4 border-t flex items-center justify-end gap-2">
+         <button class="px-3 py-1.5 rounded-lg border text-sm hover:bg-slate-50" data-close-si>Đóng</button>
+       </div>
+     </div>
+   </div> 
   <!-- Modal: Chấm phản biện -->
   <div id="gradeModal" class="fixed inset-0 z-50 hidden">
     <div class="absolute inset-0 bg-black/40" data-close-grade></div>
@@ -315,7 +402,7 @@
       document.addEventListener('click', (e)=>{ if(!profileBtn?.contains(e.target) && !profileMenu?.contains(e.target)) profileMenu?.classList.add('hidden'); });
     })();
 
-    document.getElementById('search').addEventListener('input', function() {
+    document.getElementById('search')?.addEventListener('input', function() {
       const filter = this.value.toLowerCase();
       const rows = document.querySelectorAll('#studentTable tbody tr');
       rows.forEach(row => {
@@ -324,13 +411,68 @@
       });
     });
 
+    // ===== Modal Thông tin sinh viên =====
+    const siModal = document.getElementById('studentInfoModal');
+    function openSI(){ siModal.classList.remove('hidden'); document.body.classList.add('overflow-hidden'); }
+    function closeSI(){ siModal.classList.add('hidden'); document.body.classList.remove('overflow-hidden'); }
+    siModal?.addEventListener('click', (e)=>{ if(e.target.closest('[data-close-si]')) closeSI(); });
+    document.addEventListener('keydown', (e)=>{ if(e.key==='Escape' && !siModal.classList.contains('hidden')) closeSI(); });
+
+    function setTxt(id, val){ const el=document.getElementById(id); if(el) el.textContent = (val ?? '')!=='' ? val : '—'; }
+    function renderSIScores(scores){
+      // scores: { chair:{name,score,comment}, secretary:{...}, member1:{...}, member2:{...}, member3:{...} }
+      const map = [
+        ['chair','siChairName','siChairScore','siChairComment'],
+        ['secretary','siSecName','siSecScore','siSecComment'],
+        ['member1','siM1Name','siM1Score','siM1Comment'],
+        ['member2','siM2Name','siM2Score','siM2Comment'],
+        ['member3','siM3Name','siM3Score','siM3Comment'],
+      ];
+      map.forEach(([k,n,s,c])=>{
+        const it = (scores && scores[k]) || {};
+        setTxt(n, it.name || '—');
+        setTxt(s, (it.score ?? '') === '' ? '—' : it.score);
+        setTxt(c, it.comment || '—');
+      });
+    }
+
+    // Click hàng -> mở modal thông tin SV và hiển thị điểm các thành viên từ dataset
+    document.getElementById('rows')?.addEventListener('click', async (e)=>{
+      if (e.target.closest('button, a, input, textarea, select, label')) return;
+      const tr = e.target.closest('tr.rowStudent');
+      if(!tr) return;
+      const cpId = tr.dataset.cpId;
+      const name = tr.dataset.studentName || 'N/A';
+      const code = tr.dataset.studentCode || 'N/A';
+      const cls  = tr.dataset.class || 'N/A';
+      const topic= tr.dataset.topic || 'N/A';
+      let advisors = [];
+      try { advisors = JSON.parse(tr.dataset.advisors || '[]'); } catch { advisors = []; }
+
+      setTxt('siName', name);
+      setTxt('siCode', code);
+      setTxt('siClass', cls);
+      setTxt('siTopic', topic);
+      setTxt('siAdvisors', advisors.length ? advisors.join(', ') : '—');
+
+      // Đổ điểm/nhận xét của các thành viên hội đồng từ dataset
+      let scoresDs = {};
+      try { scoresDs = JSON.parse(tr.dataset.scores || '{}'); } catch { scoresDs = {}; }
+      renderSIScores(scoresDs);
+
+      openSI();
+
+      // (Tuỳ chọn) nếu có API thì có thể fetch cập nhật chi tiết sau đó
+      // ...
+    });
+
     // Grade modal helpers
     const gradeModal = document.getElementById('gradeModal');
     function openGrade(){ gradeModal.classList.remove('hidden'); document.body.classList.add('overflow-hidden'); }
     function closeGrade(){ gradeModal.classList.add('hidden'); document.body.classList.remove('overflow-hidden'); }
     gradeModal?.addEventListener('click', (e)=>{ if(e.target.closest('[data-close-grade]')) closeGrade(); });
 
-    // Open modal with row data
+    // Open modal chấm: điền sẵn score/comment hiện tại
     document.querySelectorAll('.btnGrade').forEach(btn => {
       btn.addEventListener('click', () => {
         const cpId = btn.dataset.cpId || '';
@@ -338,52 +480,95 @@
         const stCode = btn.dataset.studentCode || 'N/A';
         const topic = btn.dataset.topic || 'N/A';
         let advisor = [];
-        try {
-          advisor = JSON.parse(btn.dataset.advisor || '[]');
-        } catch {
-          advisor = [];
-        }
+        try { advisor = JSON.parse(btn.dataset.advisor || '[]'); } catch { advisor = []; }
         const report = btn.dataset.report || '#';
-        const current = btn.dataset.currentScore || '';
+        const currentScore = btn.dataset.currentScore || '';
+        const currentComment = btn.dataset.currentComment || '';
+
         document.getElementById('gCpId').value = cpId;
         document.getElementById('gStudent').textContent = stName;
-        document.getElementById('gCode').textContent = stCode;
-        document.getElementById('gTopic').textContent = topic;
+        document.getElementById('gCode').textContent   = stCode;
+        document.getElementById('gTopic').textContent  = topic;
         document.getElementById('gAdvisor').textContent = advisor.join(', ');
         const link = document.getElementById('gReportLink');
         link.href = report && report !== '' ? report : '#';
         link.classList.toggle('pointer-events-none', !report || report === '#');
         link.classList.toggle('text-slate-400', !report || report === '#');
-        document.getElementById('gScore').value = current;
-        document.getElementById('gComment').value = '';
+
+        // Prefill điểm và nhận xét
+        document.getElementById('gScore').value = currentScore;
+        document.getElementById('gComment').value = currentComment;
+
         openGrade();
       });
     });
 
-    // Submit grade (AJAX placeholder - cập nhật URL phù hợp backend của bạn)
+    // council_member_id lấy từ Blade (ưu tiên)
+    const councilMemberId = @json($council_member_id ?? null);
+    // (Tuỳ chọn) giữ supervisorId nếu cần dùng nơi khác
+    const supervisorId = @json($supervisorId ?? null);
+
+    // Submit grade -> POST web.teacher.reviews.store
     document.getElementById('btnSubmitGrade')?.addEventListener('click', async ()=>{
-      const cpId = document.getElementById('gCpId').value;
-      const score = document.getElementById('gScore').value;
-      const comment = document.getElementById('gComment').value;
-      if (!cpId) { alert('Thiếu mã bản ghi.'); return; }
-      if (score === '' || isNaN(parseFloat(score))) { alert('Vui lòng nhập điểm hợp lệ.'); return; }
+      const cpId = document.getElementById('gCpId').value?.trim();
+      const score = document.getElementById('gScore').value?.trim();
+      const comment = document.getElementById('gComment').value?.trim() || '';
+
+      if (!cpId) { alert('Thiếu council_project_id.'); return; }
+      if (score === '' || isNaN(Number(score))) { alert('Vui lòng nhập điểm hợp lệ (0 - 10).'); return; }
+      if (!councilMemberId) { alert('Thiếu council_member_id.'); return; }
+
       const token = document.querySelector('meta[name="csrf-token"]')?.content || '';
-      // TODO: thay route này theo hệ thống của bạn
-      const url = `{{ route('web.teacher.reviews.store', ['council_project' => 0]) ?? '' }}`.replace('/0','/'+cpId);
-      if (!url || url.includes('route(')) { console.log({cpId, score, comment}); alert('Đã nhập điểm (demo). Hãy nối route lưu điểm ở backend).'); closeGrade(); return; }
+      const urlTpl = `{{ route('web.teacher.councile_project_defences.store', ['council_project' => '__ID__']) }}`;
+      const url = urlTpl.replace('__ID__', encodeURIComponent(cpId));
+
       const btn = document.getElementById('btnSubmitGrade');
-      const old = btn.innerHTML; btn.disabled = true; btn.innerHTML = '<i class="ph ph-spinner-gap animate-spin"></i> Đang lưu...';
+      const old = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<i class="ph ph-spinner-gap animate-spin"></i> Đang lưu...';
+
       try {
         const res = await fetch(url, {
           method: 'POST',
-          headers: {'Content-Type':'application/json','Accept':'application/json','X-CSRF-TOKEN': token,'X-Requested-With':'XMLHttpRequest'},
-          body: JSON.stringify({ score: parseFloat(score), comment })
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRF-TOKEN': token
+          },
+          body: JSON.stringify({
+            score: Number(score),
+            comment,
+            council_member_id: councilMemberId
+          })
         });
         const data = await res.json().catch(()=> ({}));
-        if (!res.ok || data.ok === false) { alert(data.message || 'Lưu điểm thất bại.'); btn.disabled=false; btn.innerHTML=old; return; }
-        closeGrade(); location.reload();
+        if (!res.ok || data.ok === false) {
+          alert(data.message || 'Lưu điểm thất bại.');
+          return;
+        }
+
+        // Cập nhật UI trên hàng tương ứng
+        const row = document.querySelector(`tr.rowStudent[data-cp-id="${cpId}"]`);
+        if (row) {
+          const scoreCell = row.children[5];
+          const pill = scoreCell?.querySelector('span');
+          if (pill) {
+            pill.textContent = String(Number(score));
+            pill.className = 'px-2 py-1 text-xs font-medium rounded-full border bg-green-50 text-green-700 border-green-200';
+          }
+          // Đồng bộ điểm hiện tại cho nút "Chấm"
+          row.querySelector('.btnGrade')?.setAttribute('data-current-score', String(Number(score)));
+        }
+
+        // Đóng modal
+        typeof closeGrade === 'function' && closeGrade();
       } catch (e) {
-        alert('Lỗi mạng.'); btn.disabled=false; btn.innerHTML=old;
+        console.error(e);
+        alert('Lỗi mạng khi lưu điểm.');
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = old;
       }
     });
   </script>

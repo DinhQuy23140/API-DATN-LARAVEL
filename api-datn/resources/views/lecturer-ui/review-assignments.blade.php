@@ -221,7 +221,7 @@
                            </button>
                           @if ($councilId)
                             <a class="min-w-[90px] text-center inline-flex items-center justify-center gap-1 px-2.5 py-1.5 text-xs font-medium rounded-md border border-slate-200 bg-slate-50 text-slate-700 hover:bg-slate-100 transition" 
-                              href="{{ route('web.teacher.committee_detail', ['councilId' => $councilId, 'termId' => $projectTerm->id]) }}">
+                              href="{{ route('web.teacher.committee_detail', ['councilId' => $councilId, 'termId' => $projectTerm->id, 'supervisorId' => $supervisorId]) }}">
                               <i class="ph ph-eye"></i> Hội đồng
                             </a>
                           @endif
