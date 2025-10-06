@@ -457,7 +457,7 @@ class CouncilController extends Controller
         return response()->json(['ok'=>true,'message'=>'Đã cập nhật vai trò hội đồng.']);
     }
 
-    public function getCouncilDetail($councilId, $supervisorId) {
+    public function getCouncilDetail($councilId, $termId, $supervisorId) {
         $council = Council::with('project_term.academy_year', 'council_members.supervisor.teacher.user', 'council_projects.council_project_defences', 'council_projects.assignment.project', 'council_projects.assignment.student.user', 'council_projects.assignment.assignment_supervisors.supervisor.teacher.user')->find($councilId);
         return view ('lecturer-ui.committee-detail', compact('council', 'supervisorId'));
     }

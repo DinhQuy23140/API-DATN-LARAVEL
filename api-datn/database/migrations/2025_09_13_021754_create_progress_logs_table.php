@@ -21,8 +21,8 @@ return new class extends Migration
             $table->dateTime('start_date_time')->nullable();
             $table->dateTime('end_date_time')->nullable();
             $table->text('instructor_comment')->nullable();
-            $table->string('student_status')->default('chua_bat_dau');     // Enum-like string
-            $table->string('instructor_status')->default('chua_danh_gia'); // Enum-like string
+            $table->string('student_status')->default('in_progress');     // Enum-like string
+            $table->string('instructor_status')->default('pending'); // Enum-like string
             $table->timestamps();
 
             $table->foreign('project_id')->references('id')->on('projects')->onDelete('cascade');

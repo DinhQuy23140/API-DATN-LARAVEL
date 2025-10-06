@@ -204,6 +204,7 @@ class ProjectTermsController extends Controller
         $rows = ProjectTerm::with([
             'academy_year',
             'stageTimelines',
+            'assignments.council_project.council_project_defences',
             'assignments' => function ($query) use ($supervisorId) {
                 $query->whereHas('assignment_supervisors', function ($q) use ($supervisorId) {
                     $q->where('supervisor_id', $supervisorId);

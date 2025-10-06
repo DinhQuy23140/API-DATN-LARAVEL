@@ -28,8 +28,8 @@ class ProgressLogFactory extends Factory
                 'start_date_time' => $start,
                 'end_date_time' => $end,
                 'instructor_comment' => $this->faker->optional()->sentence(),
-                'student_status' => $this->faker->randomElement(['chua_bat_dau', 'dang_thuc_hien', 'chua_hoan_thanh', 'da_hoan_thanh']),
-                'instructor_status' => $this->faker->randomElement(['chua_danh_gia', 'dat', 'chua_dat', 'can_chinh_sua']),
+                'student_status' => $this->faker->randomElement(['in_progress', 'not_completed', 'completed']),
+                'instructor_status' => $this->faker->randomElement(['pending', 'approved', 'need_editing', 'not_achieved']),
             ];
     }
 }

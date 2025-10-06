@@ -153,7 +153,14 @@ class AssignmentController extends Controller
 
     public function getAssignmentByStudentIdAndTermId($studentId, $termId, $supervisorId)
     {
-        $assignment = Assignment::with(['student.user','assignment_supervisors.supervisor.teacher.user','project.progressLogs.attachments','project.reportFiles'])
+        $assignment = Assignment::with([
+        'student.user',
+        'assignment_supervisors.supervisor.teacher.user',
+        'project.progressLogs.attachments',
+        'project.reportFiles',
+        'council_project.council_project_defences',
+        'council_project.council.council_members'
+        ])
                         ->where('student_id', $studentId)
                         ->where('project_term_id', $termId)
                         ->first();

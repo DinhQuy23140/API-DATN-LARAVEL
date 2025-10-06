@@ -1046,8 +1046,20 @@
                     $topic = $assignment->project->title ?? 'Chưa có đề tài';
                     $councilId = $assignment->council_project?->council_id;
                     $committee = $assignment->council_project?->council?->name ?? 'Chưa có hội đồng'; // ví dụ
-                    $result    = "Đạt";     // ví dụ
-                    $resultClass = "bg-emerald-100 text-emerald-700"; // ví dụ
+                    $score = $assignment->council_project?->review_score ?? null; // ví dụ
+                    if ($score !== null) {
+                      $resultClass = "bg-emerald-100 text-emerald-700"; // ví dụ
+                      if ($score >= 5) {
+                        $result = 'Đạt';
+                        $resultClass = 'bg-emerald-100 text-emerald-700';
+                      } else {
+                        $result = 'Không đạt';
+                        $resultClass = 'bg-rose-100 text-rose-700';
+                      }
+                    } else {
+                      $result = 'Chưa có';
+                      $resultClass = 'bg-slate-100 text-slate-600';
+                    }
                     $order     = $loop->index + 1; // ví dụ
                     $time      = $assignment->council_project?->council?->date ?? 'Chưa có lịch';
                   @endphp
@@ -1181,10 +1193,25 @@
                     $studentId = $student->id;
                     $councilId = $assignment->council_project?->council_id;
                     $committee = $assignment->council_project?->council?->name ?? 'Chưa có hội đồng';
-                    $score     = 8.5;
-                    $result    = "Đạt";
-                    $comment   = "Trình bày tốt, trả lời câu hỏi rõ ràng.";
-                    $resultClass = "bg-emerald-100 text-emerald-700";
+                    $list_score_defences = $assignment->council_project?->council_project_defences ?? [];
+                    if(count($list_score_defences) > 0) {
+                      $totalScore = 0;
+                      $countScores = 0;
+                      foreach ($list_score_defences as $score_defence) {
+                        if ($score_defence->score !== null) {
+                          $totalScore += $score_defence->score;
+                          $countScores++;
+                        }
+                      }
+                      $score = $countScores > 0 ? round($totalScore / $countScores, 2) : null;
+                      $comment = "Trình bày tốt, trả lời câu hỏi rõ ràng.";
+                      $resultClass = "bg-emerald-100 text-emerald-700";
+                    } else {
+                      $score     = "Chưa có";
+                      $result    = "Chưa có";
+                      $comment      = "Chưa có";
+                      $resultClass = "bg-slate-100 text-slate-600";
+                    }
                   @endphp
 
                   <tr class="hover:bg-slate-50 transition">

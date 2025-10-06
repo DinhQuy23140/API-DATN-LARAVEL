@@ -71,7 +71,7 @@
 
         @if ($user->teacher && $user->teacher->supervisor)
           <a id="menuStudents"
-            href="{{ route('web.teacher.students', ['supervisorId' => $user->teacher->supervisor->id]) }}"
+            href="{{ route('web.teacher.students', ['supervisorId' => $user->teacher->id]) }}"
             class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"
             data-skip-active="1">
              <i class="ph ph-student"></i><span class="sidebar-label">Sinh viên</span>
@@ -375,7 +375,7 @@
     @php
       $supervisorExis = $council_members->where('supervisor_id', $supervisorId)->first();
     @endphp
-    @if ($supervisorExis && $supervisorExis->role == 4)
+    @if ($supervisorExis && $supervisorExis->role === "4")
       <button id="btnOpenAssignModal"
         class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium shadow-sm">
         <i class="ph ph-user-switch"></i> Phân công sinh viên

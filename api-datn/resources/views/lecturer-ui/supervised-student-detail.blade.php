@@ -401,238 +401,467 @@
                     </section>
                 </div>
 
-                <section class="bg-white border rounded-xl p-4 mt-4">
-                    <h2 class="font-semibold mb-3">Nhật ký theo tuần</h2>
-                   <div class="text-sm">
-                       @if($weeklyLogs->isEmpty())
-                           <div class="text-slate-500">Chưa có nhật ký tuần.</div>
-                       @else
-                           <div class="overflow-x-auto border rounded-xl bg-white">
-                               <table class="w-full text-sm">
-                                   <thead>
-                                       <tr class="text-left text-slate-500 border-b">
-                                           <th class="py-2 px-3">Tuần</th>
-                                           <th class="py-2 px-3">Tiêu đề</th>
-                                           <th class="py-2 px-3">Thời gian</th>
-                                           <th class="py-2 px-3">Trạng thái</th>
-                                           <th class="py-2 px-3">Điểm</th>
-                                           <th class="py-2 px-3">Hành động</th>
-                                       </tr>
-                                   </thead>
-                                   
-                                   <tbody>
-                                       @foreach($weeklyLogs as $w)
-                                           @php
+<section class="bg-white border rounded-2xl p-5 mt-6 shadow-sm hover:shadow-md transition-all duration-200">
+  <!-- Header -->
+  <div class="flex items-center gap-2 mb-4">
+    <i class="ph ph-notebook text-indigo-600 text-xl"></i>
+    <h2 class="font-semibold text-lg text-slate-800">Nhật ký theo tuần</h2>
+  </div>
 
-                                                $listStatus = [
-                                                    'chua_nop' => 'Chưa nộp',
-                                                    'da_nop' => 'Đã nộp',
-                                                    'dat' => 'Đạt',
-                                                    'chua_dat' => 'Chưa đạt',
-                                                    'can_chinh_sua' => 'Cần chỉnh sửa',
-                                                    'chua_danh_gia' => 'Chưa đánh giá',
-                                                ];
+  <div class="text-sm">
+    @if($weeklyLogs->isEmpty())
+      <div class="text-slate-500 flex items-center gap-2 p-4 border border-dashed rounded-xl bg-slate-50/50">
+        <i class="ph ph-calendar-x text-slate-400 text-lg"></i>
+        Chưa có nhật ký tuần.
+      </div>
+    @else
+      <div class="overflow-x-auto border border-slate-100 rounded-xl bg-white shadow-sm">
+        <table class="w-full text-sm border-collapse">
+          <thead class="bg-slate-50/70 text-slate-600">
+            <tr class="text-left">
+              <th class="py-2.5 px-4 font-medium text-center">Tuần</th>
+              <th class="py-2.5 px-4 font-medium text-center">Tiêu đề</th>
+              <th class="py-2.5 px-4 font-medium text-center">Thời gian</th>
+              <th class="py-2.5 px-4 font-medium text-center">Trạng thái</th>
+              <th class="py-2.5 px-4 font-medium text-center">Hành động</th>
+            </tr>
+          </thead>
 
-                                                $listColor = [
-                                                    'chua_nop' => 'bg-slate-50 text-slate-700',
-                                                    'da_nop' => 'bg-blue-50 text-blue-700',
-                                                    'dat' => 'bg-emerald-50 text-emerald-700',
-                                                    'chua_dat' => 'bg-rose-50 text-rose-700',
-                                                    'can_chinh_sua' => 'bg-amber-50 text-amber-700',
-                                                    'chua_danh_gia' => 'bg-slate-100 text-slate-700',
-                                                ];
-                                           @endphp
-                                           <tr class="border-b hover:bg-slate-50">
-                                               <td class="py-2 px-3">Tuần {{ $loop->index + 1 ?? '-' }}</td>
-                                               <td class="py-2 px-3"><a class="text-blue-600 hover:underline" href="weekly-log-detail.html?studentId=20210001&amp;name=Nguy%E1%BB%85n%20V%C4%83n%20A&amp;week=1">{{ $w->title ?? '-' }}</a></td>
-                                               <td class="py-2 px-3">{{ $w->created_at->format('H:i:s d/m/Y') ?? '-' }}</td>
-                                               <td class="py-2 px-3"><span class="px-2 py-0.5 rounded-full text-xs {{ $listColor[$w->instructor_status] }}">{{ $listStatus[$w->instructor_status] ?? 'Chưa nộp' }}</span></td>
-                                               <td class="py-2 px-3">{{ $w->score ?? '-' }}</td>
-                                               <td class="py-2 px-3"><a class="text-blue-600 hover:underline" href="{{ route('web.teacher.weekly_log_detail', ['progressLogId' => $w->id]) }}">Xem chi tiết</a></td>
-                                           </tr>
-                                       @endforeach
-                                   </tbody>
-                               </table>
-                           </div>
-                       @endif
-                   </div>
-                </section>
+          <tbody>
+            @foreach($weeklyLogs as $w)
+              @php
+                $listStatus = [
+                    'pending'       => 'Chờ xử lý',
+                    'approved'      => 'Đã duyệt',
+                    'need_editing'  => 'Cần chỉnh sửa',
+                    'not_achieved'  => 'Chưa đạt',
+                ];
 
-                <section class="bg-white border rounded-xl p-4 mt-4">
-                    <div class="flex items-center justify-between mb-3">
-                        <h2 class="font-semibold">Báo cáo cuối đồ án</h2>
-                       <button id="btnGradeFinal"
-                                class="px-3 py-1.5 bg-emerald-600 text-white rounded text-sm"
-                                data-as-id="{{ $asId }}"
-                                data-student="{{ $studentUser->fullname ?? 'Sinh viên' }}"
-                                data-project="{{ $project->name ?? ($project->title ?? 'Đề tài') }}"
-                                data-current-score="{{ $currentScoreReport }}">
-                          <i class="ph ph-check-circle"></i> Chấm điểm
-                        </button>
+                $listColor = [
+                    'pending'       => 'bg-slate-100 text-slate-700',
+                    'approved'      => 'bg-emerald-100 text-emerald-700',
+                    'need_editing'  => 'bg-amber-100 text-amber-700',
+                    'not_achieved'  => 'bg-rose-100 text-rose-700',
+                ];
+              @endphp
+
+              <tr class="border-b border-slate-100 hover:bg-slate-50/70 transition-colors">
+                <td class="py-3 px-4 font-medium text-slate-700">
+                  <div class="flex items-center gap-1.5">
+                    <i class="ph ph-calendar text-indigo-500"></i>
+                    Tuần {{ $loop->index + 1 ?? '-' }}
+                  </div>
+                </td>
+
+                <td class="py-3 px-4">
+                  <a href="{{ route('web.teacher.weekly_log_detail', ['progressLogId' => $w->id]) }}"
+                     class="text-blue-600 hover:underline font-medium">
+                    {{ $w->title ?? '-' }}
+                  </a>
+                </td>
+
+                <td class="py-3 px-4 text-slate-600 text-center">
+                  {{ $w->created_at->format('H:i:s d/m/Y') ?? '-' }}
+                </td>
+
+                <td class="py-3 px-4 text-center">
+                  <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium {{ $listColor[$w->instructor_status] ?? 'bg-slate-100 text-slate-700' }}">
+                    @switch($w->instructor_status)
+                      @case('approved')
+                        <i class="ph ph-check-circle text-emerald-600"></i>
+                        @break
+                      @case('need_editing')
+                        <i class="ph ph-pencil-simple text-amber-600"></i>
+                        @break
+                      @case('not_achieved')
+                        <i class="ph ph-x-circle text-rose-600"></i>
+                        @break
+                      @default
+                        <i class="ph ph-hourglass text-slate-500"></i>
+                    @endswitch
+                    {{ $listStatus[$w->instructor_status] ?? 'Chưa nộp' }}
+                  </span>
+                </td>
+
+                <td class="py-3 px-4 text-center">
+                  <a href="{{ route('web.teacher.weekly_log_detail', ['progressLogId' => $w->id]) }}"
+                     class="inline-flex items-center gap-1 text-indigo-600 hover:text-indigo-800 font-medium transition">
+                    <i class="ph ph-eye text-base"></i> Xem chi tiết
+                  </a>
+                </td>
+              </tr>
+            @endforeach
+          </tbody>
+        </table>
+      </div>
+    @endif
+  </div>
+</section>
+
+                <section class="bg-white border rounded-2xl p-5 mt-6 shadow-sm hover:shadow-md transition-all duration-200">
+                  <!-- Header -->
+                  <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center gap-2">
+                      <i class="ph ph-file-text text-emerald-600 text-xl"></i>
+                      <h2 class="font-semibold text-lg text-slate-800">Báo cáo cuối đồ án</h2>
                     </div>
-                   <div id="finalReport" class="text-sm text-slate-700"></div>
-<!-- +                   <div class="text-sm text-slate-700">
-+                       @if(!$finalReport)
-+                           <div class="text-slate-500">Chưa có báo cáo cuối.</div>
-+                       @else
-+                           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-+                               <div class="border rounded-lg p-3 bg-slate-50">
-+                                   <div class="font-medium">{{ $finalReport->title ?? 'Báo cáo cuối' }}</div>
-+                                   <div class="text-slate-600">
-+                                       Tệp:
-+                                       @if(!empty($finalReport->file_url))
-+                                           <a href="{{ $finalReport->file_url }}" class="text-blue-600 hover:underline" target="_blank">{{ $finalReport->file_name ?? 'Tệp báo cáo' }}</a>
-+                                       @else
-+                                           <span class="text-slate-500">-</span>
-+                                       @endif
-+                                   </div>
-+                                   <div class="text-slate-500">Nộp lúc: {{ $finalReport->submitted_at ?? '-' }}</div>
-+                                   @if(!empty($finalReport->similarity))
-+                                       <div class="text-slate-500">Tương đồng: {{ $finalReport->similarity }}</div>
-+                                   @endif
-+                               </div>
-+                               <div class="border rounded-lg p-3">
-+                                   <div class="text-slate-600">Điểm GVHD</div>
-+                                   <div class="text-3xl font-bold">{{ $finalReport->supervisor_score ?? '-' }}</div>
-+                               </div>
-+                           </div>
-+                       @endif
-+                   </div> -->
-                    <div class="text-sm text-slate-700">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div class="border rounded-lg p-3 bg-slate-50">
-                                <div class="font-medium">Báo cáo đồ án tốt nghiệp</div>
-                                <div class="text-slate-600">
-                                    Tệp:
-                                    <a href="{{ $finalReport?->file_url ?? '#' }}" class="text-blue-600 hover:underline" target="_blank">{{ $finalReport->file_name ?? 'Chưa có' }}</a>
-                                </div>
-                                <div class="text-slate-500">Nộp lúc: {{ $finalReport?->created_at->format('H:m:i d/m/Y') ?? '-' }}</div>
-                                <div class="text-slate-500">Tương đồng: {{ $finalReport?->similarity ?? '-' }}</div>
-                            </div>
-                            <div class="border rounded-lg p-3">
-                                <div class="text-slate-600">Điểm GVHD</div>
-                                <div class="text-3xl font-bold">{{ $current_assignment_supervisor?->score_report ?? '-'  }}</div>
-                            </div>
+
+                    <button id="btnGradeFinal"
+                            class="flex items-center gap-1 px-3 py-1.5 bg-emerald-600 text-white rounded-lg text-sm hover:bg-emerald-700 transition"
+                            data-as-id="{{ $asId }}"
+                            data-student="{{ $studentUser->fullname ?? 'Sinh viên' }}"
+                            data-project="{{ $project->name ?? ($project->title ?? 'Đề tài') }}"
+                            data-current-score="{{ $currentScoreReport }}">
+                      <i class="ph ph-check-circle text-base"></i>
+                      Chấm điểm
+                    </button>
+                  </div>
+
+                  <!-- Main Content -->
+                  <div id="finalReport" class="text-sm text-slate-700"></div>
+
+                  <div class="text-sm text-slate-700">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                      <!-- Report Info -->
+                      <div class="border border-slate-100 rounded-xl p-4 bg-slate-50/70">
+                        <div class="flex items-center gap-2 mb-2">
+                          <i class="ph ph-file-arrow-down text-slate-600"></i>
+                          <div class="font-medium text-slate-800">Báo cáo đồ án tốt nghiệp</div>
                         </div>
-                        @if($finalReport)
-                          <!-- Actions: Report -->
-                          <div class="mt-3 flex items-center justify-end gap-2">
-                            <button type="button"
-                                    class="px-3 py-1.5 rounded bg-emerald-600 hover:bg-emerald-700 text-white text-sm btn-approve-file"
-                                    data-file-id="{{ $finalReport->id }}" data-file-type="report">
-                              <i class="ph ph-check"></i> Chấp nhận báo cáo
-                            </button>
-                            <button type="button"
-                                    class="px-3 py-1.5 rounded border border-rose-200 text-rose-700 hover:bg-rose-50 text-sm btn-reject-file"
-                                    data-file-id="{{ $finalReport->id }}" data-file-type="report">
-                              <i class="ph ph-x-circle"></i> Từ chối báo cáo
-                            </button>
+
+                        <div class="space-y-1 text-slate-600">
+                          <div>
+                            <span class="font-medium text-slate-700">Tệp:</span>
+                            <a href="{{ $finalReport?->file_url ?? '#' }}" 
+                              class="text-blue-600 hover:underline" 
+                              target="_blank">{{ $finalReport->file_name ?? 'Chưa có' }}</a>
                           </div>
-                        @endif
+
+                          <div>
+                            <span class="font-medium text-slate-700">Nộp lúc:</span>
+                            {{ $finalReport?->created_at->format('H:i:s d/m/Y') ?? '-' }}
+                          </div>
+
+                          <div>
+                            <span class="font-medium text-slate-700">Tương đồng:</span>
+                            {{ $finalReport?->similarity ?? '-' }}
+                          </div>
+                        </div>
+
+                        {{-- Hiển thị trạng thái --}}
+                        @php
+                          $listStatus = [
+                              'pending' => 'Pending',
+                              'approved' => 'Approved',
+                              'need_editing' => 'Need Editing',
+                              'not_achieved' => 'Not Achieved',
+                          ];
+
+                          $listColor = [
+                              'pending' => 'bg-slate-100 text-slate-700',
+                              'approved' => 'bg-emerald-100 text-emerald-700',
+                              'need_editing' => 'bg-amber-100 text-amber-700',
+                              'not_achieved' => 'bg-rose-100 text-rose-700',
+                          ];
+                        @endphp
+
+                        <div class="mt-3">
+                          <span class="px-3 py-1 rounded-full text-xs font-medium {{ $listColor[$finalReport->status ?? 'pending'] ?? 'bg-slate-100 text-slate-700' }}">
+                            <i class="ph ph-circle-wavy text-xs"></i>
+                            {{ $listStatus[$finalReport->status ?? 'pending'] ?? 'Pending' }}
+                          </span>
+                        </div>
+                      </div>
+
+                      <!-- Score Info -->
+                      <div class="border border-slate-100 rounded-xl p-4 bg-white">
+                        <div class="flex items-center gap-2 mb-1">
+                          <i class="ph ph-graduation-cap text-indigo-600"></i>
+                          <div class="text-slate-700 font-medium">Điểm GVHD</div>
+                        </div>
+                        <div class="text-4xl font-bold text-slate-800">
+                          {{ $current_assignment_supervisor?->score_report ?? '-'  }}
+                        </div>
+                        <p class="text-slate-500 text-xs mt-1">Điểm đánh giá cuối cùng của giảng viên hướng dẫn</p>
+                      </div>
                     </div>
+
+                    @if($finalReport)
+                      <!-- Actions -->
+                      <div class="mt-4 flex items-center justify-end gap-3">
+                        <button type="button"
+                                class="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm transition btn-approve-file"
+                                data-file-id="{{ $finalReport->id }}" data-file-type="report">
+                          <i class="ph ph-check text-base"></i> Chấp nhận báo cáo
+                        </button>
+
+                        <button type="button"
+                                class="flex items-center gap-1 px-3 py-1.5 rounded-lg border border-rose-200 text-rose-700 hover:bg-rose-50 text-sm transition btn-reject-file"
+                                data-file-id="{{ $finalReport->id }}" data-file-type="report">
+                          <i class="ph ph-x-circle text-base"></i> Từ chối báo cáo
+                        </button>
+                      </div>
+                    @endif
+                  </div>
                 </section>
 
-                <section class="bg-white border rounded-xl p-4 mt-4">
-                    <div class="flex items-center justify-between mb-3">
-                        <h2 class="font-semibold">Hội đồng & điểm số</h2>
-                       <button id="btnUpdateScores" class="px-3 py-1.5 border border-slate-200 rounded text-sm"><i class="ph ph-pencil"></i> Cập nhật điểm</button>
-                       <button class="px-3 py-1.5 border border-slate-200 rounded text-sm" disabled><i class="ph ph-pencil"></i> Cập nhật điểm</button>
-                   </div>
-                   <div id="committee" class="text-sm text-slate-700"></div>
-<!-- +                   <div class="text-sm text-slate-700">
-+                       @if(!$committee)
-+                           <div class="text-slate-500">Chưa có thông tin hội đồng.</div>
-+                       @else
-+                           <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-+                               <div class="lg:col-span-2 border rounded-lg p-3 bg-slate-50">
-+                                   <div class="font-medium mb-1">{{ $committee->name ?? 'Hội đồng' }}</div>
-+                                   <div class="text-slate-600">Thời gian: {{ $committee->date ?? '-' }} {{ $committee->time ?? '' }} • Phòng: {{ $committee->room ?? '-' }}</div>
-+                                   <div class="mt-2">
-+                                       <div class="text-slate-600 mb-1">Thành viên:</div>
-+                                       <ul class="list-disc pl-5 space-y-0.5">
-+                                           @foreach(($committee->members ?? []) as $m)
-+                                               <li><span class="text-slate-500">{{ $m['role'] ?? $m->role ?? '-' }}:</span> {{ $m['name'] ?? $m->name ?? '-' }}</li>
-+                                           @endforeach
-+                                       </ul>
-+                                   </div>
-+                               </div>
-+                               <div class="border rounded-lg p-3">
-+                                   <div class="font-medium mb-2">Phản biện</div>
-+                                   <div class="text-slate-600">GV phản biện: {{ data_get($committee, 'reviewer.name', '-') }}</div>
-+                                   <div class="text-slate-600">Chức vụ: <span class="font-medium">Phản biện</span></div>
-+                                   <div class="text-slate-600">Hội đồng: <span class="font-medium">{{ $committee->code ?? '-' }}</span></div>
-+                                   <div class="text-slate-600">Số thứ tự PB: <span class="font-medium">{{ $committee->review_order ?? '—' }}</span></div>
-+                                   <div class="text-slate-600">Thời gian: {{ $committee->date ?? '-' }} • {{ $committee->student_time ?? ($committee->time ?? '-') }}</div>
-+                                   <div class="text-slate-600 mt-2">Điểm phản biện: <span class="font-semibold">{{ data_get($committee, 'reviewer.score', '-') }}</span></div>
-+                                   <div class="text-slate-500">Nhận xét: {{ data_get($committee, 'reviewer.note', '-') }}</div>
-+                               </div>
-+                           </div>
-+                           @if($defenseScores->isNotEmpty())
-+                               <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3">
-+                                   @foreach($defenseScores as $s)
-+                                       <div class="border rounded-lg p-3 bg-white">
-+                                           <div class="text-slate-500">{{ $s['by'] ?? $s->by ?? '-' }}</div>
-+                                           <div class="text-2xl font-bold">{{ $s['score'] ?? $s->score ?? '-' }}</div>
-+                                       </div>
-+                                   @endforeach
-+                                   <div class="border rounded-lg p-3 bg-emerald-50">
-+                                       <div class="text-emerald-700">Trung bình bảo vệ</div>
-+                                       <div class="text-3xl font-bold text-emerald-700">{{ $avg }}</div>
-+                                   </div>
-+                               </div>
-+                           @endif
-+                       @endif
-+                   </div> -->
-<div class="text-sm text-slate-700">
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        <div class="lg:col-span-2 border rounded-lg p-3 bg-slate-50">
-            <div class="font-medium mb-1">Hội đồng CNTT-01</div>
-            <div class="text-slate-600">Thời gian: 20/08/2025 08:00 • Phòng: P.A203</div>
-            <div class="mt-2">
-                <div class="text-slate-600 mb-1">Thành viên:</div>
-                <ul class="list-disc pl-5 space-y-0.5">
-                    <li><span class="text-slate-500">Chủ tịch:</span> PGS.TS. Trần Văn B</li>
-                    <li><span class="text-slate-500">Ủy viên 1:</span> TS. Lê Thị C</li>
-                    <li><span class="text-slate-500">Ủy viên 2:</span> TS. Phạm Văn D</li>
-                    <li><span class="text-slate-500">Ủy viên 3:</span> ThS. Trần Thị F</li>
-                    <li><span class="text-slate-500">Thư ký:</span> ThS. Nguyễn Văn G</li>
-                    <li><span class="text-slate-500">Phản biện:</span> TS. Nguyễn Thị E</li>
-                </ul>
-            </div>
-        </div>
-        <div class="border rounded-lg p-3">
-            <div class="font-medium mb-2">Phản biện</div>
-            <div class="text-slate-600">GV phản biện: TS. Nguyễn Thị E</div>
-            <div class="text-slate-600">Chức vụ: <span class="font-medium">Phản biện</span></div>
-            <div class="text-slate-600">Hội đồng: <span class="font-medium">CNTT-01</span></div>
-            <div class="text-slate-600">Số thứ tự PB: <span class="font-medium">01</span></div>
-            <div class="text-slate-600">Thời gian: 20/08/2025 • 08:00</div>
-            <div class="text-slate-600 mt-2">Điểm phản biện: <span class="font-semibold">8.7</span></div>
-            <div class="text-slate-500">Nhận xét: Nhận xét tốt, cần bổ sung kiểm thử.</div>
-        </div>
-    </div>
+                <section class="bg-white border rounded-2xl p-6 shadow-sm mt-6">
+                  <!-- Header -->
+                  <div class="flex items-center justify-between mb-5">
+                    <h2 class="font-semibold text-lg flex items-center gap-2 text-slate-800">
+                      <i class="ph ph-users-three text-emerald-600 text-xl"></i>
+                      Hội đồng & Điểm số
+                    </h2>
+                    <button id="btnUpdateScores"
+                            class="flex items-center gap-1.5 px-3 py-1.5 border border-slate-300 rounded-lg text-sm text-slate-700 hover:bg-emerald-50 hover:border-emerald-400 transition">
+                      <i class="ph ph-pencil-simple text-emerald-600"></i>
+                      Cập nhật điểm
+                    </button>
+                  </div>
 
-    <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-3">
-        <div class="border rounded-lg p-3 bg-white">
-            <div class="text-slate-500">Chủ tịch</div>
-            <div class="text-2xl font-bold">8.5</div>
-        </div>
-        <div class="border rounded-lg p-3 bg-white">
-            <div class="text-slate-500">Ủy viên</div>
-            <div class="text-2xl font-bold">8.0</div>
-        </div>
-        <div class="border rounded-lg p-3 bg-white">
-            <div class="text-slate-500">Phản biện</div>
-            <div class="text-2xl font-bold">8.7</div>
-        </div>
-        <div class="border rounded-lg p-3 bg-emerald-50">
-            <div class="text-emerald-700">Trung bình bảo vệ</div>
-            <div class="text-3xl font-bold text-emerald-700">8.4</div>
-        </div>
-    </div>
-</div>
+                  <div class="text-sm text-slate-700 space-y-6">
+                    @php
+                      $listMember = $assignment?->council_project?->council?->council_members ?? collect();
+                      $listPosition = [
+                        5 => 'Chủ tịch',
+                        4 => 'Thư ký',
+                        3 => 'Ủy viên 1',
+                        2 => 'Ủy viên 2',
+                        1 => 'Ủy viên 3',
+                      ];
+                      $council_project_id = $assignment?->council_project?->id ?? null;
+                      $chair = $listMember->where('role', 5)->first();
+                      $secretary = $listMember->where('role', 4)->first() ?? null;
+                      $members1 = $listMember->where('role', 3)->first() ?? null;
+                      $members2 = $listMember->where('role', 2)->first() ?? null;
+                      $members3 = $listMember->where('role', 1)->first() ?? null;
+                      $reviewer = $assignment->council_project->council_member ?? null;
+                      $time =  $assignment->council_project->time;
+                      $date =  $assignment->council_project->date;
+                      $timeAndDate = ($date ? date('d/m/Y', strtotime($date)) : '') . ($time ? ' • ' . date('H:i', strtotime($time)) : 'Chưa có');
+                      $room = $assignment->council_project->room ?? 'Chưa có';
+                      $reviewScore = $assignment->council_project->review_score ?? 'Chưa có';
+                    @endphp
 
+                  <!-- Hội đồng -->
+                  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+                    <!-- 🧑‍🏫 Thông tin hội đồng -->
+                    <div class="border border-slate-200 rounded-2xl bg-white p-6 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between">
+                      <div>
+                        <div class="flex items-center justify-between border-b pb-3 mb-4">
+                          <div class="font-semibold text-slate-800 flex items-center gap-2 text-lg">
+                            <i class="ph ph-chalkboard-teacher text-emerald-600 text-xl"></i>
+                            Hội đồng CNTT-01
+                          </div>
+                          <span class="text-sm text-slate-500 flex items-center gap-1">
+                            <i class="ph ph-map-pin-line text-slate-400"></i>{{ $room }}
+                            <i class="ph ph-clock text-slate-400 ml-2"></i>{{ $timeAndDate }}
+                          </span>
+                        </div>
+
+                        <div class="text-slate-700 font-medium mb-3 flex items-center gap-2">
+                          <i class="ph ph-users-three text-emerald-600"></i>
+                          Thành viên hội đồng
+                        </div>
+
+                        <div class="grid sm:grid-cols-2 gap-x-6 gap-y-4">
+                          <div class="flex items-start gap-3">
+                            <i class="ph ph-crown text-indigo-600 text-lg mt-1"></i>
+                            <div>
+                              <div class="text-sm text-slate-500">Chủ tịch</div>
+                              <div class="font-semibold text-slate-800">{{ $chair?->supervisor?->teacher?->user?->fullname ?? 'Chưa có' }}</div>
+                            </div>
+                          </div>
+
+                          <div class="flex items-start gap-3">
+                            <i class="ph ph-user-circle text-blue-600 text-lg mt-1"></i>
+                            <div>
+                              <div class="text-sm text-slate-500">Ủy viên 1</div>
+                              <div class="font-semibold text-slate-800">{{ $members1?->supervisor?->teacher?->user?->fullname ?? 'Chưa có' }}</div>
+                            </div>
+                          </div>
+
+                          <div class="flex items-start gap-3">
+                            <i class="ph ph-user-circle text-blue-600 text-lg mt-1"></i>
+                            <div>
+                              <div class="text-sm text-slate-500">Ủy viên 2</div>
+                              <div class="font-semibold text-slate-800">{{ $members2?->supervisor?->teacher?->user?->fullname ?? 'Chưa có' }}</div>
+                            </div>
+                          </div>
+
+                          <div class="flex items-start gap-3">
+                            <i class="ph ph-user-circle text-blue-600 text-lg mt-1"></i>
+                            <div>
+                              <div class="text-sm text-slate-500">Ủy viên 3</div>
+                              <div class="font-semibold text-slate-800">{{ $members3?->supervisor?->teacher?->user?->fullname ?? 'Chưa có' }}</div>
+                            </div>
+                          </div>
+
+                          <div class="flex items-start gap-3">
+                            <i class="ph ph-file-text text-amber-600 text-lg mt-1"></i>
+                            <div>
+                              <div class="text-sm text-slate-500">Thư ký</div>
+                              <div class="font-semibold text-slate-800">{{ $secretary?->supervisor?->teacher?->user?->fullname ?? 'Chưa có' }}</div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <!-- 📋 Phản biện -->
+                    <div class="border border-slate-200 rounded-2xl bg-white p-6 shadow-sm hover:shadow-md transition-all duration-300 flex flex-col justify-between">
+                      <div>
+                        <div class="flex items-center gap-2 mb-4 border-b pb-3">
+                          <i class="ph ph-clipboard-text text-blue-600 text-xl"></i>
+                          <div class="font-semibold text-slate-800 text-lg">Phản biện</div>
+                        </div>
+
+                        <div class="space-y-2 text-slate-700">
+                          <div class="flex items-center justify-between">
+                            <span class="font-medium text-slate-600">GV phản biện:</span>
+                            <span class="text-slate-800 font-semibold">{{ $reviewer?->supervisor?->teacher?->user?->fullname ?? 'Chưa có' }}</span>
+                          </div>
+
+                          <div class="flex items-center justify-between">
+                            <span class="font-medium text-slate-600">Chức vụ:</span>
+                            <span class="text-slate-800">{{ $listPosition[$reviewer->role] ?? '—' }}</span>
+                          </div>
+
+                          <div class="flex items-center justify-between">
+                            <span class="font-medium text-slate-600">Số thứ tự PB:</span>
+                            <span class="text-slate-800">01</span>
+                          </div>
+
+                          <div class="flex items-center justify-between">
+                            <span class="font-medium text-slate-600">Thời gian:</span>
+                            <span class="text-slate-800">{{ $timeAndDate }}</span>
+                          </div>
+
+                          <div class="flex items-center justify-between">
+                            <span class="font-medium text-slate-600">Địa điểm:</span>
+                            <span class="text-slate-800">{{ $room }}</span>
+                          </div>
+
+                          <div class="mt-4 p-3 rounded-xl bg-gradient-to-r from-emerald-50 to-emerald-100 border border-emerald-200 flex items-center justify-between">
+                            <span class="font-semibold text-emerald-700 flex items-center gap-2">
+                              <i class="ph ph-seal-check text-emerald-700"></i>Điểm phản biện
+                            </span>
+                            <span class="text-2xl font-bold text-emerald-700">{{ $reviewScore }}</span>
+                          </div>
+
+                          <div class="text-slate-500 text-sm italic mt-3 bg-slate-50 rounded-md p-3 flex items-start gap-2">
+                            <i class="ph ph-quotes text-slate-400 text-lg"></i>
+                            <span>Nhận xét: Nhận xét tốt, cần bổ sung kiểm thử.</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                  </div>
+
+                  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-5 mt-6">
+
+                    @php
+                      // Tạo danh sách thành viên hội đồng
+                      $councilMembers = [
+                          [
+                              'title' => 'Chủ tịch',
+                              'icon' => 'ph-user-circle',
+                              'color' => 'indigo',
+                              'member' => $chair ?? null
+                          ],
+                          [
+                              'title' => 'Ủy viên 1',
+                              'icon' => 'ph-user-circle',
+                              'color' => 'blue',
+                              'member' => $members1 ?? null
+                          ],
+                          [
+                              'title' => 'Ủy viên 2',
+                              'icon' => 'ph-user-circle',
+                              'color' => 'blue',
+                              'member' => $members2 ?? null
+                          ],
+                          [
+                              'title' => 'Ủy viên 3',
+                              'icon' => 'ph-user-circle',
+                              'color' => 'blue',
+                              'member' => $members3 ?? null
+                          ],
+                          [
+                              'title' => 'Thư ký',
+                              'icon' => 'ph-user-circle',
+                              'color' => 'amber',
+                              'member' => $secretary ?? null
+                          ],
+                      ];
+
+                      $scores = [];
+                    @endphp
+
+                    @foreach ($councilMembers as $member)
+                      @php
+                        $defence = $member['member']?->council_project_defences
+                          ->where('council_project_id', $council_project_id)
+                          ->first();
+
+                        $score = $defence?->score ?? null;
+                        if (is_numeric($score)) $scores[] = $score;
+
+                        $bgColor = "bg-{$member['color']}-100";
+                        $textColor = "text-{$member['color']}-600";
+                      @endphp
+
+                      <div class="border rounded-2xl p-5 bg-white hover:shadow-xl hover:-translate-y-1 transition-all duration-300 text-center">
+                        <div class="flex flex-col items-center">
+                          <div class="w-12 h-12 flex items-center justify-center rounded-full {{ $bgColor }} {{ $textColor }} mb-3">
+                            <i class="ph {{ $member['icon'] }} text-2xl"></i>
+                          </div>
+                          <div class="text-sm text-slate-500 font-medium">{{ $member['title'] }}</div>
+                          <div class="text-base font-semibold text-slate-800 mt-1">
+                            {{ $member['member']?->supervisor?->teacher?->user?->fullname ?? 'Chưa có' }}
+                          </div>
+                          <div class="mt-3 text-3xl font-extrabold text-slate-900">
+                            {{ $score ?? '—' }}
+                          </div>
+                          @if($defence?->status)
+                            <span class="mt-2 text-xs px-2 py-0.5 rounded-full
+                              @switch($defence->status)
+                                @case('approved') bg-emerald-50 text-emerald-700 @break
+                                @case('need_editing') bg-amber-50 text-amber-700 @break
+                                @case('not_achieved') bg-rose-50 text-rose-700 @break
+                                @default bg-slate-50 text-slate-600
+                              @endswitch
+                            ">
+                              {{ ucfirst(str_replace('_', ' ', $defence->status)) }}
+                            </span>
+                          @endif
+                        </div>
+                      </div>
+                    @endforeach
+
+                    <!-- Trung bình bảo vệ -->
+                    <div class="border-2 border-emerald-500 rounded-2xl p-5 bg-gradient-to-b from-emerald-50 to-emerald-100 text-center shadow-md hover:shadow-lg transition-all duration-300">
+                      <div class="flex flex-col items-center">
+                        <div class="w-12 h-12 flex items-center justify-center rounded-full bg-emerald-600 text-white mb-3">
+                          <i class="ph ph-chart-line text-2xl"></i>
+                        </div>
+                        <div class="text-sm text-emerald-700 font-semibold uppercase tracking-wide">Điểm trung bình bảo vệ</div>
+                        <div class="mt-2 text-4xl font-extrabold text-emerald-700 drop-shadow-sm">
+                          @php
+                            $averageScore = count($scores) > 0 ? round(array_sum($scores) / count($scores), 2) : '—';
+                          @endphp
+                          {{ $averageScore }}
+                        </div>
+                      </div>
+                    </div>
+
+                  </div>
+
+                  </div>
                 </section>
+
             </div>
 
     <script>
