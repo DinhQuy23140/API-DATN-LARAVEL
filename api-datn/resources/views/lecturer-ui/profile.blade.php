@@ -78,7 +78,7 @@
         </a>
 
         @if($user->teacher && $user->teacher->supervisor)
-            <a href="{{ route('web.teacher.students', ['supervisorId' => $supervisorId]) }}"
+            <a href="{{ route('web.teacher.students', ['teacherId' => $teacherId]) }}"
                class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('web.teacher.students') ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}">
               <i class="ph ph-student"></i><span class="sidebar-label">Sinh viên</span>
             </a>

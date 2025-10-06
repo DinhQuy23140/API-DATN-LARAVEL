@@ -44,7 +44,24 @@ class SupervisorController extends Controller
     public function destroy(Supervisor $supervisor){$supervisor->delete(); return redirect()->route('web.supervisors.index')->with('status','Đã xóa');}
 
 // WebSupervisorController.php
-    public function getStudentBySupervisor($supervisorId)
+    // public function getStudentBySupervisor($supervisorId)
+    // {
+    //     $idUser = Auth::id();
+    //     $user = User::with('teacher.supervisor')
+    //     ->with('teacher.supervisor.assignment_supervisors.assignment.student.marjor')
+    //     ->findOrFail(Auth::id());
+    //     $years = AcademyYear::orderBy('year_name', 'desc')->get();
+
+    //     $terms = ProjectTerm::select('stage')->distinct()->pluck('stage');
+
+    //     $assignmentSupervisors = AssignmentSupervisor::with(['assignment.student.marjor', 'assignment.project', 'assignment.project_term'])
+    //         ->whereHas('assignment', function($query) use ($supervisorId) {
+    //             $query->where('supervisor_id', $supervisorId);
+    //         })
+    //         ->get();
+    //     return view('lecturer-ui.students', compact( 'user', 'years', 'terms', 'assignmentSupervisors'));
+    // }
+    public function getStudentBySupervisor($teacherId)
     {
         $idUser = Auth::id();
         $user = User::with('teacher.supervisor')
@@ -55,8 +72,8 @@ class SupervisorController extends Controller
         $terms = ProjectTerm::select('stage')->distinct()->pluck('stage');
 
         $assignmentSupervisors = AssignmentSupervisor::with(['assignment.student.marjor', 'assignment.project', 'assignment.project_term'])
-            ->whereHas('assignment', function($query) use ($supervisorId) {
-                $query->where('supervisor_id', $supervisorId);
+            ->whereHas('supervisor', function($query) use ($teacherId) {
+                $query->where('teacher_id', $teacherId);
             })
             ->get();
         return view('lecturer-ui.students', compact( 'user', 'years', 'terms', 'assignmentSupervisors'));

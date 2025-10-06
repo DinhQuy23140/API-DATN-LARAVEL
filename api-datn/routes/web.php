@@ -215,7 +215,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/teacher/overview', [WebUserController::class, 'showOverView'])->name('web.teacher.overview'); // trang tổng quan
     Route::get('/teacher/profile', [WebUserController::class, 'showProfile'])->name('web.teacher.profile');
     Route::get('/teacher/research', fn () => view('lecturer-ui.research'))->name('web.teacher.research');
-    Route::get('/teacher/students/{supervisorId}', [WebSupervisorController::class, 'getStudentBySupervisor'])->name('web.teacher.students');
+    Route::get('/teacher/students/{teacherId}', [WebSupervisorController::class, 'getStudentBySupervisor'])->name('web.teacher.students');
     Route::get('/teacher/thesis-internship', fn () => view('lecturer-ui.thesis-internship'))->name('web.teacher.thesis_internship');
     Route::get('/teacher/thesis-rounds/{teacherId}', [WebProjectTermsController::class, 'getProjectTermByTeacherId'])->name('web.teacher.thesis_rounds');
     Route::get('/teacher/thesis-round-detail/{termId}/supervisor/{supervisorId}', [WebProjectTermsController::class, 'getDetailProjectTermByTeacherId'])->name('web.teacher.thesis_round_detail');
