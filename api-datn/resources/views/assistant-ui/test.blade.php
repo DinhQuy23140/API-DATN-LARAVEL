@@ -170,7 +170,7 @@
               <div class="timeline-stage cursor-pointer" data-stage="2">
                 <div class="w-12 h-12 mx-auto bg-blue-600 rounded-full flex items-center justify-center text-white font-medium text-sm relative z-10 hover:scale-110 transition-transform">2</div>
                 <div class="text-center mt-2">
-                  <div class="text-xs font-medium text-slate-900">Đề cương đồ án</div>
+                  <div class="text-xs font-medium text-slate-900">Đề cương</div>
                   <div class="text-xs text-blue-600 mt-1">Đang diễn ra</div>
                 </div>
               </div>
@@ -179,7 +179,7 @@
               <div class="timeline-stage cursor-pointer" data-stage="3">
                 <div class="w-12 h-12 mx-auto bg-slate-300 rounded-full flex items-center justify-center text-white font-medium text-sm relative z-10 hover:scale-110 transition-transform">3</div>
                 <div class="text-center mt-2">
-                  <div class="text-xs font-medium text-slate-900">Nhật ký đồ án</div>
+                  <div class="text-xs font-medium text-slate-900">Thực hiện</div>
                   <div class="text-xs text-slate-600 mt-1">Sắp tới</div>
                 </div>
               </div>
@@ -188,7 +188,7 @@
               <div class="timeline-stage cursor-pointer" data-stage="4">
                 <div class="w-12 h-12 mx-auto bg-slate-300 rounded-full flex items-center justify-center text-white font-medium text-sm relative z-10 hover:scale-110 transition-transform">4</div>
                 <div class="text-center mt-2">
-                  <div class="text-xs font-medium text-slate-900">Báo cáo đồ án</div>
+                  <div class="text-xs font-medium text-slate-900">Nộp báo cáo</div>
                   <div class="text-xs text-slate-600 mt-1">Sắp tới</div>
                 </div>
               </div>
@@ -197,7 +197,7 @@
               <div class="timeline-stage cursor-pointer" data-stage="5">
                 <div class="w-12 h-12 mx-auto bg-slate-300 rounded-full flex items-center justify-center text-white font-medium text-sm relative z-10 hover:scale-110 transition-transform">5</div>
                 <div class="text-center mt-2">
-                  <div class="text-xs font-medium text-slate-900">Hội đồng bảo vệ</div>
+                  <div class="text-xs font-medium text-slate-900">Hội đồng</div>
                   <div class="text-xs text-slate-600 mt-1">Sắp tới</div>
                 </div>
               </div>
@@ -215,7 +215,7 @@
               <div class="timeline-stage cursor-pointer" data-stage="7">
                 <div class="w-12 h-12 mx-auto bg-slate-300 rounded-full flex items-center justify-center text-white font-medium text-sm relative z-10 hover:scale-110 transition-transform">7</div>
                 <div class="text-center mt-2">
-                  <div class="text-xs font-medium text-slate-900">Kết quả phản biện</div>
+                  <div class="text-xs font-medium text-slate-900">Công bố</div>
                   <div class="text-xs text-slate-600 mt-1">Sắp tới</div>
                 </div>
               </div>
@@ -249,6 +249,110 @@
           </div>
         </section>
 
+          <section class="bg-white rounded-xl border border-slate-200 p-5">
+            <div class="flex items-center justify-between">
+              <h3 class="font-semibold">Danh sách hội đồng</h3>
+              <div class="flex items-center gap-3">
+                <div class="relative">
+                  <input id="searchInput" class="pl-9 pr-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 text-sm" placeholder="Tìm theo tên hội đồng" />
+                  <i class="ph ph-magnifying-glass absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                </div>
+                <button id="btnCreateCommittee" class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 text-sm"><i class="ph ph-plus"></i> Tạo hội đồng</button>
+              </div>
+            </div>
+            <div class="mt-6 overflow-hidden rounded-xl shadow ring-1 ring-slate-200">
+              <table class="w-full text-sm text-slate-700">
+                <thead class="bg-slate-100 text-slate-700 text-xs uppercase tracking-wide">
+                  <tr>
+                    <th class="py-3 px-4 text-left">Mã hội đồng</th>
+                    <th class="py-3 px-4 text-left">Tên hội đồng</th>
+                    <th class="py-3 px-4 text-left">Bộ môn</th>
+                    <th class="py-3 px-4 text-left">Ngày bảo vệ</th>
+                    <th class="py-3 px-4 text-left">Phòng</th>
+                    <th class="py-3 px-4 text-left">Số thành viên</th>
+                    <th class="py-3 px-4 text-left">Thành viên</th>
+                    <th class="py-3 px-4 text-right">Hành động</th>
+                  </tr>
+                </thead>
+                <tbody id="tableBody" class="divide-y divide-slate-200 bg-white">
+                  @php
+                    $councils = $round_detail->councils->sortByDesc('created_at') ?? collect();
+                  @endphp
+
+                  @foreach ($councils as $council)
+                  @php
+                    $council_code = $council->code ?? 'N/A';
+                    $council_name = $council->name ?? 'N/A';
+                    $department = $council->department->name ?? 'N/A';
+                    $defense_date = $council->date 
+                        ? \Carbon\Carbon::parse($council->date)->format('d/m/Y') 
+                        : 'N/A';
+                    $address = $council->address ?? 'N/A';
+                    $council_members = $council->council_members?->sortByDesc('role') ?? collect();
+
+                    // Map theo vai trò số: 5=Chủ tịch, 4=Thư ký, 3=UV1, 2=UV2, 1=UV3
+                    $r5 = optional($council_members->firstWhere('role', 5))->supervisor_id; // Chủ tịch
+                    $r4 = optional($council_members->firstWhere('role', 4))->supervisor_id; // Thư ký
+                    $r3 = optional($council_members->firstWhere('role', 3))->supervisor_id; // Ủy viên 1
+                    $r2 = optional($council_members->firstWhere('role', 2))->supervisor_id; // Ủy viên 2
+                    $r1 = optional($council_members->firstWhere('role', 1))->supervisor_id; // Ủy viên 3
+                  @endphp
+                  <tr class="hover:bg-slate-50 transition">
+                    <!-- Mã hội đồng -->
+                    <td class="py-3 px-4 font-medium text-blue-600 hover:underline">
+                      <a href="committee-detail.html">{{ $council_code }}</a>
+                    </td>
+                    <td class="py-3 px-4">{{ $council_name }}</td>
+                    <td class="py-3 px-4">{{ $department }}</td>
+                    <td class="py-3 px-4">{{ $defense_date }}</td>
+                    <td class="py-3 px-4">{{ $address }}</td>
+                    <td class="py-3 px-4 text-center">{{ $council_members->count() }}</td>
+                    <td class="py-3 px-4">
+                      <div class="flex flex-wrap gap-1">
+                        @if ($council_members->isEmpty())
+                          <span class="text-xs text-slate-400 italic">Chưa có thành viên</span>
+                        @else
+                          @foreach ($council_members->take(5) as $member)
+                            <a class="px-2 py-1 rounded-full text-xs bg-blue-50 text-blue-700 font-medium hover:bg-blue-100 transition" 
+                              href="../lecturer-ui/profile.html">
+                              {{ $member?->supervisor->teacher->user->fullname ?? 'N/A' }}
+                            </a>
+                          @endforeach
+                          @if ($council_members->count() > 5)
+                            <span class="px-2 py-1 rounded-full text-xs bg-slate-200 text-slate-600">
+                              +{{ $council_members->count() - 5 }}
+                            </span>
+                          @endif
+                        @endif
+                      </div>
+                    </td>
+                    <td class="py-3 px-4 text-right space-x-2">
+                      <button class="p-2 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-600 editCouncilBtn transition"
+                              data-id="{{ $council->id }}"
+                              data-code="{{ $council->code }}"
+                              data-name="{{ $council->name }}"
+                              data-dept-id="{{ $council->department_id }}"
+                              data-dept-name="{{ $council->department->name ?? '' }}"
+                              data-date="{{ $council->date }}"
+                              data-room="{{ $council->address }}"
+                              data-description="{{ $council->description }}"
+                              data-chutich="{{ $r5 ?? '' }}"
+                              data-thuki="{{ $r4 ?? '' }}"
+                              data-uyvien1="{{ $r3 ?? '' }}"
+                              data-uyvien2="{{ $r2 ?? '' }}"
+                              data-uyvien3="{{ $r1 ?? '' }}">
+                        <i class="ph ph-pencil"></i>
+                      </button>
+                      <button class="p-2 rounded-lg border border-slate-200 hover:bg-rose-50 text-rose-600 transition">
+                        <i class="ph ph-trash"></i>
+                      </button>
+                    </td>
+                  </tr>
+                  @endforeach
+                </tbody>
+              </table>
+            </div>
+          </section>
         </div>
         </main>
       </div>
@@ -298,7 +402,6 @@
           const yy = d.getFullYear();
           return `${dd}/${mm}/${yy}`;
         }
-        
         function getRoundDates() {
           // Ưu tiên lấy từ data-* để đảm bảo định dạng
           const meta = document.getElementById('roundMeta');
@@ -446,233 +549,230 @@
             stageContent.innerHTML = `
               <!-- HTML panel Timeline 1 (tabs + 2 bảng) -->
               <div class="space-y-6">
-              <!-- Header -->
-              <div>
-                <h3 class="font-semibold text-lg flex items-center gap-2">
-                  <i class="ph ph-database text-emerald-600"></i>
-                  Nhập danh sách sinh viên đủ điều kiện
-                </h3>
-                <p class="text-sm text-slate-600">Chuẩn bị dữ liệu cho kỳ đồ án: SV đủ điều kiện và giảng viên hướng dẫn.</p>
-                ${timeHtml}
-              </div>
+  <!-- Header -->
+  <div>
+    <h3 class="font-semibold text-lg flex items-center gap-2">
+      <i class="ph ph-database text-emerald-600"></i>
+      Nhập danh sách sinh viên đủ điều kiện
+    </h3>
+    <p class="text-sm text-slate-600">Chuẩn bị dữ liệu cho kỳ đồ án: SV đủ điều kiện và giảng viên hướng dẫn.</p>
+    ${timeHtml}
+  </div>
 
-              <!-- Actions -->
-              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-<!-- Card cơ bản -->
-<a href="{{ route('web.assistant.students_import', [$round_detail->id]) }}"
-  class="group relative flex flex-col border border-slate-200 rounded-2xl bg-gradient-to-br from-white to-slate-50 p-5 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 min-h-[230px] overflow-hidden">
-  
-  <!-- Hiệu ứng mờ góc trên -->
-  <div class="absolute top-0 right-0 w-20 h-20 bg-emerald-100/30 rounded-bl-[100%] opacity-0 group-hover:opacity-100 transition-opacity"></div>
+  <!-- Actions -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    <!-- Thêm sinh viên -->
+    <a href="{{ route('web.assistant.students_import', [$round_detail->id]) }}"
+      class="group border border-slate-200 hover:border-emerald-300 rounded-xl p-4 bg-white hover:shadow-sm transition">
+      <div class="flex items-start gap-3">
+        <div class="h-10 w-10 rounded-lg grid place-items-center bg-emerald-50 text-emerald-600 group-hover:bg-emerald-100">
+          <i class="ph ph-user-plus"></i>
+        </div>
+        <div class="flex-1">
+          <div class="font-medium">Thêm sinh viên</div>
+          <div class="text-xs text-slate-500 mt-0.5">Tạo mới/nhập danh sách sinh viên</div>
+          <div class="mt-3">
+            <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-sm">
+              <i class="ph ph-plus"></i> Thêm
+            </span>
+          </div>
+        </div>
+      </div>
+    </a>
 
-  <div class="flex items-start gap-3 z-10">
-    <div class="h-12 w-12 rounded-xl grid place-items-center bg-emerald-50 text-emerald-600 group-hover:bg-emerald-100 transition-transform duration-300 group-hover:scale-110 shadow-inner">
-      <i class="ph ph-user-plus text-lg"></i>
+    <!-- Thêm giảng viên hướng dẫn -->
+    <a href="{{ route('web.assistant.supervisors_import', [$round_detail->id]) }}"
+      class="group border border-slate-200 hover:border-emerald-300 rounded-xl p-4 bg-white hover:shadow-sm transition">
+      <div class="flex items-start gap-3">
+        <div class="h-10 w-10 rounded-lg grid place-items-center bg-lime-50 text-lime-600 group-hover:bg-lime-100">
+          <i class="ph ph-users-three"></i>
+        </div>
+        <div class="flex-1">
+          <div class="font-medium">Thêm giảng viên hướng dẫn</div>
+          <div class="text-xs text-slate-500 mt-0.5">Tạo mới/nhập danh sách giảng viên</div>
+          <div class="mt-3">
+            <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-lime-600 text-white text-sm">
+              <i class="ph ph-plus"></i> Thêm
+            </span>
+          </div>
+        </div>
+      </div>
+    </a>
+
+    <!-- Xem danh sách sinh viên hoãn đồ án -->
+    <a href="{{ route('web.assistant.deferred_students', [$round_detail->id]) }}" class="group border border-slate-200 hover:border-amber-400 rounded-xl p-4 bg-white hover:shadow-sm transition">
+      <div class="flex items-start gap-3">
+        <div class="h-10 w-10 rounded-lg grid place-items-center bg-amber-50 text-amber-600 group-hover:bg-amber-100">
+          <i class="ph ph-hourglass"></i>
+        </div>
+        <div class="flex-1">
+          <div class="font-medium">Sinh viên hoãn đồ án</div>
+          <div class="text-xs text-slate-500 mt-0.5">Danh sách đã được duyệt</div>
+          <div class="mt-3">
+            <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-amber-600 text-white text-sm">
+              <i class="ph ph-list-bullets"></i> Mở danh sách
+            </span>
+          </div>
+        </div>
+      </div>
+    </a>
+
+    <!-- Xem danh sách -->
+    <a href="#!" id="btnToggleTables"
+      class="group border border-slate-200 hover:border-emerald-300 rounded-xl p-4 bg-white hover:shadow-sm transition">
+      <div class="flex items-start gap-3">
+        <div class="h-10 w-10 rounded-lg grid place-items-center bg-green-50 text-green-600 group-hover:bg-green-100">
+          <i class="ph ph-list-bullets"></i>
+        </div>
+        <div class="flex-1">
+          <div class="font-medium">Xem danh sách</div>
+          <div class="text-xs text-slate-500 mt-0.5">Sinh viên & Giảng viên</div>
+          <div class="mt-3">
+            <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-green-600 text-white text-sm">
+              <i class="ph ph-list-checks"></i> Mở bảng
+            </span>
+          </div>
+        </div>
+      </div>
+    </a>
+  </div>
+
+  <!-- Tabs -->
+<div class="mt-6">
+  <!-- Tabs -->
+  <div class="flex items-center gap-2 border-b border-slate-200">
+    <button id="tabStudents" class="tab-btn px-4 py-2 font-medium text-sm text-emerald-700 border-b-2 border-emerald-600">
+      <i class="ph ph-student text-emerald-600"></i> Sinh viên
+    </button>
+    <button id="tabLecturers" class="tab-btn px-4 py-2 font-medium text-sm text-slate-500 hover:text-emerald-700">
+      <i class="ph ph-chalkboard-teacher text-emerald-600"></i> Giảng viên
+    </button>
+  </div>
+
+  <!-- Table Sinh viên -->
+  <div id="tableStudents" class="mt-4">
+    <!-- Header: Search + count -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-3 px-2">
+      <div class="flex items-center gap-2">
+        <i class="ph ph-student text-emerald-600 text-xl"></i>
+        <p class="text-slate-600">
+          Tổng số sinh viên:
+          <span id="studentCount" class="font-semibold text-emerald-600">{{ $assignments->count() }}</span>
+        </p>
+      </div>
+
+      <div class="relative">
+        <i class="ph ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+        <input
+          id="searchInputStudent"
+          type="text"
+          placeholder="Tìm kiếm sinh viên..."
+          class="pl-9 pr-3 py-2 border border-slate-300 rounded-lg text-sm w-full md:w-64 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400"
+        />
+      </div>
     </div>
-    <div class="flex-1">
-      <h3 class="font-semibold text-slate-800 text-base mb-1">Nhập danh sách sinh viên</h3>
-      <p class="text-sm text-slate-500 leading-snug">
-        Tạo mới hoặc nhập danh sách sinh viên tham gia đợt đồ án tốt nghiệp.
-      </p>
+
+    <!-- Table -->
+    <div class="overflow-x-auto">
+      <table class="min-w-full border border-slate-200 rounded-lg text-sm">
+        <thead class="bg-emerald-50 text-emerald-700">
+          <tr>
+            <th class="px-4 py-2 text-left">MSSV</th>
+            <th class="px-4 py-2 text-left">Họ tên</th>
+            <th class="px-4 py-2 text-left">Ngành</th>
+            <th class="px-4 py-2 text-left">Đề tài</th>
+          </tr>
+        </thead>
+        <tbody id="studentTableBody" class="divide-y divide-slate-100">
+          @if ($assignments->isEmpty())
+            <tr>
+              <td colspan="4" class="px-4 py-6 text-center text-sm text-slate-400 italic">
+                Chưa có sinh viên nào được phân công.
+              </td>
+            </tr>
+          @else
+            @foreach ($assignments as $a)
+              @php
+                $student_id = $a->student->student_code ?? 'N/A';
+                $name = $a->student->user->fullname ?? 'N/A';
+                $topic = $a->project->name ?? 'Chưa có đề tài';
+                $marjor = $a->student->marjor->name ?? 'N/A';
+              @endphp
+              <tr class="student-row">
+                <td class="px-4 py-2">{{ $student_id }}</td>
+                <td class="px-4 py-2">{{ $name }}</td>
+                <td class="px-4 py-2">{{ $marjor }}</td>
+                <td class="px-4 py-2 text-emerald-600 font-medium">{{ $topic }}</td>
+              </tr>
+            @endforeach
+          @endif
+        </tbody>
+      </table>
     </div>
   </div>
 
-  <!-- Button cố định -->
-  <div class="absolute bottom-4 left-5">
-    <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-sm shadow-sm hover:bg-emerald-700 hover:shadow-md transition">
-      <i class="ph ph-plus text-sm"></i> Thêm
-    </span>
-  </div>
-</a>
+  <!-- Table Giảng viên -->
+  <div id="tableLecturers" class="mt-4 hidden">
+    <!-- Header: Search + count -->
+    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-3 px-2">
+      <div class="flex items-center gap-2">
+        <i class="ph ph-chalkboard-teacher text-lime-600 text-xl"></i>
+        <p class="text-slate-600">
+          Tổng số giảng viên:
+          <span id="lecturerCount" class="font-semibold text-lime-600">{{ $supervisors->count() }}</span>
+        </p>
+      </div>
 
-<!-- Giảng viên hướng dẫn -->
-<a href="{{ route('web.assistant.supervisors_import', [$round_detail->id]) }}"
-  class="group relative flex flex-col border border-slate-200 rounded-2xl bg-gradient-to-br from-white to-lime-50/40 p-5 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 min-h-[230px] overflow-hidden">
-  
-  <div class="absolute top-0 right-0 w-20 h-20 bg-lime-100/30 rounded-bl-[100%] opacity-0 group-hover:opacity-100 transition-opacity"></div>
-
-  <div class="flex items-start gap-3 z-10">
-    <div class="h-12 w-12 rounded-xl grid place-items-center bg-lime-50 text-lime-600 group-hover:bg-lime-100 transition-transform duration-300 group-hover:scale-110 shadow-inner">
-      <i class="ph ph-users-three text-lg"></i>
+      <div class="relative">
+        <i class="ph ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+        <input
+          id="searchInputLecturer"
+          type="text"
+          placeholder="Tìm kiếm giảng viên..."
+          class="pl-9 pr-3 py-2 border border-slate-300 rounded-lg text-sm w-full md:w-64 focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-400"
+        />
+      </div>
     </div>
-    <div class="flex-1">
-      <h3 class="font-semibold text-slate-800 text-base mb-1">Nhập danh sách giảng viên hướng dẫn</h3>
-      <p class="text-sm text-slate-500 leading-snug">
-        Tạo mới hoặc nhập danh sách giảng viên hướng dẫn cho sinh viên.
-      </p>
+
+    <!-- Table -->
+    <div class="overflow-x-auto">
+      <table class="min-w-full border border-slate-200 rounded-lg text-sm">
+        <thead class="bg-lime-50 text-lime-700">
+          <tr>
+            <th class="px-4 py-2 text-left">Mã GV</th>
+            <th class="px-4 py-2 text-left">Họ tên</th>
+            <th class="px-4 py-2 text-left">Bộ môn</th>
+            <th class="px-4 py-2 text-left">Số SV hướng dẫn</th>
+          </tr>
+        </thead>
+        <tbody id="lecturerTableBody" class="divide-y divide-slate-100">
+          @if ($supervisors->isEmpty())
+            <tr>
+              <td colspan="4" class="px-4 py-6 text-center text-sm text-slate-400 italic">
+                Chưa có giảng viên hướng dẫn nào.
+              </td>
+            </tr>
+          @else
+            @foreach ($supervisors as $s)
+              @php
+                $teacherCode = $s->teacher->teacher_code ?? 'N/A';
+                $teacherName = $s->teacher->user->fullname ?? 'N/A';
+                $department = $s->teacher->department->name ?? 'N/A';
+                $studentCount = $s->assignment_supervisors->where('round_id', $round_detail->id)->count() ?? 0;
+              @endphp
+              <tr class="lecturer-row">
+                <td class="px-4 py-2">{{ $teacherCode }}</td>
+                <td class="px-4 py-2">{{ $teacherName }}</td>
+                <td class="px-4 py-2">{{ $department }}</td>
+                <td class="px-4 py-2 text-lime-700 font-medium">{{ $studentCount }}</td>
+              </tr>
+            @endforeach
+          @endif
+        </tbody>
+      </table>
     </div>
   </div>
-
-  <div class="absolute bottom-4 left-5">
-    <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-lime-600 text-white text-sm shadow-sm hover:bg-lime-700 hover:shadow-md transition">
-      <i class="ph ph-plus text-sm"></i> Thêm
-    </span>
-  </div>
-</a>
-
-<!-- Sinh viên hoãn -->
-<a href="{{ route('web.assistant.deferred_students', [$round_detail->id]) }}"
-  class="group relative flex flex-col border border-slate-200 rounded-2xl bg-gradient-to-br from-white to-amber-50/40 p-5 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 min-h-[230px] overflow-hidden">
-  
-  <div class="absolute top-0 right-0 w-20 h-20 bg-amber-100/30 rounded-bl-[100%] opacity-0 group-hover:opacity-100 transition-opacity"></div>
-
-  <div class="flex items-start gap-3 z-10">
-    <div class="h-12 w-12 rounded-xl grid place-items-center bg-amber-50 text-amber-600 group-hover:bg-amber-100 transition-transform duration-300 group-hover:scale-110 shadow-inner">
-      <i class="ph ph-hourglass text-lg"></i>
-    </div>
-    <div class="flex-1">
-      <h3 class="font-semibold text-slate-800 text-base mb-1">Danh sách sinh viên hoãn đồ án</h3>
-      <p class="text-sm text-slate-500 leading-snug">
-        Xem danh sách sinh viên đã được duyệt hoãn tham gia đợt đồ án.
-      </p>
-    </div>
-  </div>
-
-  <div class="absolute bottom-4 left-5">
-    <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-amber-600 text-white text-sm shadow-sm hover:bg-amber-700 hover:shadow-md transition">
-      <i class="ph ph-list-bullets text-sm"></i> Mở danh sách
-    </span>
-  </div>
-</a>
-
-              </div>
-
-              <!-- Tabs -->
-            <div class="mt-6">
-              <!-- Tabs -->
-              <div class="flex items-center gap-2 border-b border-slate-200">
-                <button id="tabStudents" class="tab-btn px-4 py-2 font-medium text-sm text-emerald-700 border-b-2 border-emerald-600">
-                  <i class="ph ph-student text-emerald-600"></i> Sinh viên
-                </button>
-                <button id="tabLecturers" class="tab-btn px-4 py-2 font-medium text-sm text-slate-500 hover:text-emerald-700">
-                  <i class="ph ph-chalkboard-teacher text-emerald-600"></i> Giảng viên
-                </button>
-              </div>
-
-              <!-- Table Sinh viên -->
-              <div id="tableStudents" class="mt-4">
-                <!-- Header: Search + count -->
-                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-3 px-2">
-                  <div class="flex items-center gap-2">
-                    <i class="ph ph-student text-emerald-600 text-xl"></i>
-                    <p class="text-slate-600">
-                      Tổng số sinh viên:
-                      <span id="studentCount" class="font-semibold text-emerald-600">{{ $assignments->count() }}</span>
-                    </p>
-                  </div>
-
-                  <div class="relative">
-                    <i class="ph ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                    <input
-                      id="searchInputStudent"
-                      type="text"
-                      placeholder="Tìm kiếm sinh viên..."
-                      class="pl-9 pr-3 py-2 border border-slate-300 rounded-lg text-sm w-full md:w-64 focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400"
-                    />
-                  </div>
-                </div>
-
-                <!-- Table -->
-                <div class="overflow-x-auto">
-                  <table class="min-w-full border border-slate-200 rounded-lg text-sm">
-                    <thead class="bg-emerald-50 text-emerald-700">
-                      <tr>
-                        <th class="px-4 py-2 text-left">MSSV</th>
-                        <th class="px-4 py-2 text-left">Họ tên</th>
-                        <th class="px-4 py-2 text-left">Ngành</th>
-                        <th class="px-4 py-2 text-left">Đề tài</th>
-                      </tr>
-                    </thead>
-                    <tbody id="studentTableBody" class="divide-y divide-slate-100">
-                      @if ($assignments->isEmpty())
-                        <tr>
-                          <td colspan="4" class="px-4 py-6 text-center text-sm text-slate-400 italic">
-                            Chưa có sinh viên nào được phân công.
-                          </td>
-                        </tr>
-                      @else
-                        @foreach ($assignments as $a)
-                          @php
-                            $student_id = $a->student->student_code ?? 'N/A';
-                            $name = $a->student->user->fullname ?? 'N/A';
-                            $topic = $a->project->name ?? 'Chưa có đề tài';
-                            $marjor = $a->student->marjor->name ?? 'N/A';
-                          @endphp
-                          <tr class="student-row">
-                            <td class="px-4 py-2">{{ $student_id }}</td>
-                            <td class="px-4 py-2">{{ $name }}</td>
-                            <td class="px-4 py-2">{{ $marjor }}</td>
-                            <td class="px-4 py-2 text-emerald-600 font-medium">{{ $topic }}</td>
-                          </tr>
-                        @endforeach
-                      @endif
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              <!-- Table Giảng viên -->
-              <div id="tableLecturers" class="mt-4 hidden">
-                <!-- Header: Search + count -->
-                <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 mb-3 px-2">
-                  <div class="flex items-center gap-2">
-                    <i class="ph ph-chalkboard-teacher text-lime-600 text-xl"></i>
-                    <p class="text-slate-600">
-                      Tổng số giảng viên:
-                      <span id="lecturerCount" class="font-semibold text-lime-600">{{ $supervisors->count() }}</span>
-                    </p>
-                  </div>
-
-                  <div class="relative">
-                    <i class="ph ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                    <input
-                      id="searchInputLecturer"
-                      type="text"
-                      placeholder="Tìm kiếm giảng viên..."
-                      class="pl-9 pr-3 py-2 border border-slate-300 rounded-lg text-sm w-full md:w-64 focus:outline-none focus:ring-2 focus:ring-lime-400 focus:border-lime-400"
-                    />
-                  </div>
-                </div>
-
-                <!-- Table -->
-                <div class="overflow-x-auto">
-                  <table class="min-w-full border border-slate-200 rounded-lg text-sm">
-                    <thead class="bg-lime-50 text-lime-700">
-                      <tr>
-                        <th class="px-4 py-2 text-left">Mã GV</th>
-                        <th class="px-4 py-2 text-left">Họ tên</th>
-                        <th class="px-4 py-2 text-left">Bộ môn</th>
-                        <th class="px-4 py-2 text-left">Số SV hướng dẫn</th>
-                      </tr>
-                    </thead>
-                    <tbody id="lecturerTableBody" class="divide-y divide-slate-100">
-                      @if ($supervisors->isEmpty())
-                        <tr>
-                          <td colspan="4" class="px-4 py-6 text-center text-sm text-slate-400 italic">
-                            Chưa có giảng viên hướng dẫn nào.
-                          </td>
-                        </tr>
-                      @else
-                        @foreach ($supervisors as $s)
-                          @php
-                            $teacherCode = $s->teacher->teacher_code ?? 'N/A';
-                            $teacherName = $s->teacher->user->fullname ?? 'N/A';
-                            $department = $s->teacher->department->name ?? 'N/A';
-                            $studentCount = $s->assignment_supervisors->where('round_id', $round_detail->id)->count() ?? 0;
-                          @endphp
-                          <tr class="lecturer-row">
-                            <td class="px-4 py-2">{{ $teacherCode }}</td>
-                            <td class="px-4 py-2">{{ $teacherName }}</td>
-                            <td class="px-4 py-2">{{ $department }}</td>
-                            <td class="px-4 py-2 text-lime-700 font-medium">{{ $studentCount }}</td>
-                          </tr>
-                        @endforeach
-                      @endif
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
+</div>
             `;
 
             // Tabs
@@ -745,778 +845,6 @@
             return;
           }
 
-          // Panel tĩnh cho Stage 2: Xác nhận GVHD
-          if (stageNum === 2) {
-            stageContent.innerHTML = `
-              <div class="space-y-6">
-                <!-- Header -->
-                <div>
-                  <h3 class="font-semibold text-lg flex items-center gap-2">
-                    <i class="ph ph-user-check text-blue-600"></i>
-                    Xác nhận giảng viên hướng dẫn
-                  </h3>
-                  <p class="text-sm text-slate-600">Danh sách sinh viên, đề tài đăng ký và trạng thái xác nhận của giảng viên.</p>
-                  ${timeHtml}
-                </div>
-
-                <!-- Search -->
-                <div class="flex items-center gap-3">
-                  <div class="relative w-full sm:max-w-md">
-                    <i class="ph ph-magnifying-glass absolute left-3 top-2.5 text-slate-400"></i>
-                    <input id="searchStage2" class="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm" placeholder="Tìm mã SV, họ tên, lớp, giảng viên, đề tài..." />
-                  </div>
-                </div>
-
-                <!-- Table -->
-                <div class="overflow-x-auto">
-                  <table class="min-w-full border border-slate-200 rounded-lg overflow-hidden">
-                    <thead class="bg-emerald-50 text-emerald-700 text-sm">
-                      <tr>
-                        <th class="px-3 py-2 text-left">Mã SV</th>
-                        <th class="px-3 py-2 text-left">Họ tên</th>
-                        <th class="px-3 py-2 text-left">Lớp</th>
-                        <th class="px-3 py-2 text-left">Email</th>
-                        <th class="px-3 py-2 text-left">Đề tài đăng ký</th>
-                        <th class="px-3 py-2 text-left">GV hướng dẫn</th>
-                        <th class="px-3 py-2 text-left">Trạng thái</th>
-                        <th class="px-3 py-2 text-left">Cập nhật</th>
-                      </tr>
-                    </thead>
-                    <tbody id="stage2TableBody" class="divide-y divide-slate-200 text-sm">
-                    @if ($assignments->isEmpty())
-                      <tr>
-                        <td colspan="8" class="px-4 py-6 text-center text-sm text-slate-400 italic">
-                          Chưa có sinh viên nào được phân công.
-                        </td>
-                      </tr>
-                    @else
-                    @foreach ($assignments as $assignment)
-                      @php
-                        $student = $assignment->student;
-                        $student_id = $student->student_code ?? 'N/A';
-                        $name = $student->user->fullname ?? 'N/A';
-                        $marjor = $student->marjor->name ?? 'N/A';
-                        $email = $student->user->email ?? 'N/A';
-                        $topic = $assignment->project->name ?? 'Chưa có đề tài';
-                        $assignment_supervisors = $assignment->assignment_supervisors;
-                        $lastedOutline = $assignment?->project?->reportfiles->where('type', 'outline')->sortByDesc('created_at')->first() ?? null;
-                        $lastedOutlineStatus = $lastedOutline?->status ?? 'none';
-                      @endphp
-                        <tr class="stage2-row hover:bg-slate-50">
-                          <td class="px-3 py-2 font-medium text-slate-800">{{ $student_id }}</td>
-                          <td class="px-3 py-2">{{ $name }}</td>
-                          <td class="px-3 py-2">{{ $marjor }}</td>
-                          <td class="px-3 py-2 text-slate-600">{{ $email }}</td>
-                          <td class="px-3 py-2">{{ $topic }}</td>
-                          <td class="px-3 py-2">
-                            @if ($supervisors->isEmpty())
-                              <div class="text-slate-700">Chưa có GVHD</div>
-                            @else
-                              @foreach ($assignment_supervisors as $as)
-                                @php
-                                  $teacher = $as->supervisor->teacher;
-                                  $teacherName = $teacher->user->fullname ?? 'N/A';
-                                @endphp
-                                <div class="text-slate-700">{{ $teacherName }}</div>
-                              @endforeach
-                            @endif
-                          </td>
-                          <td class="px-3 py-2"><span class="px-2 py-1 text-xs rounded-full bg-emerald-50 text-emerald-700">{{ $lastedOutlineStatus }}</span></td>
-                          <td class="px-3 py-2">{{ $lastedOutline?->created_at?->format('d/m/Y') ?? 'N/A' }}</td>
-                        </tr>
-                      @endforeach
-                    @endif
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            `;
-
-            // Search filtering for Stage 2
-            const s2Input = stageContent.querySelector('#searchStage2');
-            const s2Rows = Array.from(stageContent.querySelectorAll('#stage2TableBody tr.stage2-row'));
-            function s2Filter(){
-              const q = (s2Input?.value || '').toLowerCase();
-              s2Rows.forEach(tr => {
-                const ok = tr.innerText.toLowerCase().includes(q);
-                tr.style.display = ok ? '' : 'none';
-              });
-            }
-            s2Input?.addEventListener('input', s2Filter);
-            s2Filter();
-
-            return;
-          }
-
-          // Panel tĩnh cho Stage 3: Bảng theo dõi tiến độ
-          if (stageNum === 3) {
-            stageContent.innerHTML = `
-              <div class="space-y-6">
-                <!-- Header -->
-                <div>
-                  <h3 class="font-semibold text-lg flex items-center gap-2">
-                    <i class="ph ph-chart-line-up"></i>
-                    Theo dõi tiến độ
-                  </h3>
-                  <p class="text-sm text-slate-600">Bảng tĩnh hiển thị danh sách sinh viên và trạng thái tiến độ gần đây.</p>
-                  ${timeHtml}
-                </div>
-
-                <!-- Search -->
-                <div class="flex items-center gap-3">
-                  <div class="relative flex-1 max-w-lg">
-                    <i class="ph ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                    <input id="searchStage3" class="w-full pl-9 pr-3 py-2 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Tìm kiếm theo mã, tên, lớp hoặc GVHD..."/>
-                  </div>
-                </div>
-
-                <!-- Table -->
-                <div class="overflow-x-auto">
-                  <table id="tableStage3" class="w-full text-sm">
-                    <thead>
-                      <tr class="text-left text-emerald-700 border-b bg-emerald-50">
-                        <th class="py-2 px-3">Mã SV</th>
-                        <th class="py-2 px-3">Họ tên</th>
-                        <th class="py-2 px-3">Lớp</th>
-                        <th class="py-2 px-3">GVHD</th>
-                        <th class="py-2 px-3">Tiến độ</th>
-                        <th class="py-2 px-3">Cập nhật</th>
-                      </tr>
-                    </thead>
-                    <tbody id="stage3TableBody" class="divide-y divide-slate-200">
-                      <tr class="stage3-row">
-                        <td class="py-2 px-3 font-medium">20123456</td>
-                        <td class="py-2 px-3">Nguyễn Văn A</td>
-                        <td class="py-2 px-3">KTPM2025</td>
-                        <td class="py-2 px-3">TS. Đặng Hữu T</td>
-                        <td class="py-2 px-3">75%</td>
-                        <td class="py-2 px-3 text-slate-500">2 ngày trước</td>
-                      </tr>
-                      <tr class="stage3-row">
-                        <td class="py-2 px-3 font-medium">20124567</td>
-                        <td class="py-2 px-3">Trần Thị B</td>
-                        <td class="py-2 px-3">KTPM2025</td>
-                        <td class="py-2 px-3">ThS. Lưu Lan</td>
-                        <td class="py-2 px-3">45%</td>
-                        <td class="py-2 px-3 text-slate-500">5 ngày trước</td>
-                      </tr>
-                      <tr class="stage3-row">
-                        <td class="py-2 px-3 font-medium">20125678</td>
-                        <td class="py-2 px-3">Lê Văn C</td>
-                        <td class="py-2 px-3">HTTT2025</td>
-                        <td class="py-2 px-3">TS. Nguyễn Văn A</td>
-                        <td class="py-2 px-3">90%</td>
-                        <td class="py-2 px-3 text-slate-500">1 ngày trước</td>
-                      </tr>
-                      <tr class="stage3-row">
-                        <td class="py-2 px-3 font-medium">20126789</td>
-                        <td class="py-2 px-3">Phạm D</td>
-                        <td class="py-2 px-3">CNTT2025</td>
-                        <td class="py-2 px-3">ThS. Trần Minh</td>
-                        <td class="py-2 px-3">60%</td>
-                        <td class="py-2 px-3 text-slate-500">3 ngày trước</td>
-                      </tr>
-                      <tr class="stage3-row">
-                        <td class="py-2 px-3 font-medium">20127890</td>
-                        <td class="py-2 px-3">Vũ E</td>
-                        <td class="py-2 px-3">KTPM2025</td>
-                        <td class="py-2 px-3">TS. Lê Anh</td>
-                        <td class="py-2 px-3">30%</td>
-                        <td class="py-2 px-3 text-slate-500">7 ngày trước</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            `;
-
-            // Search filtering for Stage 3
-            const s3Input = stageContent.querySelector('#searchStage3');
-            const s3Rows = Array.from(stageContent.querySelectorAll('#stage3TableBody tr.stage3-row'));
-            function s3Filter(){
-              const q = (s3Input?.value || '').toLowerCase();
-              s3Rows.forEach(tr => {
-                const ok = tr.innerText.toLowerCase().includes(q);
-                tr.style.display = ok ? '' : 'none';
-              });
-            }
-            s3Input?.addEventListener('input', s3Filter);
-            s3Filter();
-
-            return;
-          }
-
-          // Panel tĩnh cho Stage 4: Báo cáo định kỳ
-          if (stageNum === 4) {
-            stageContent.innerHTML = `
-              <div class="space-y-6">
-                <!-- Header -->
-                <div>
-                  <h3 class="font-semibold text-lg flex items-center gap-2 text-slate-800">
-                    <i class="ph ph-file-text text-blue-600"></i>
-                    Báo cáo định kỳ
-                  </h3>
-                  <p class="text-sm text-slate-600">
-                    Quản lý và theo dõi các báo cáo hàng tuần của sinh viên trong quá trình thực hiện đồ án tốt nghiệp.
-                  </p>
-                  ${timeHtml}
-                </div>
-
-                <!-- Toolbar -->
-                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-                  <div class="relative flex-1 max-w-md">
-                    <i class="ph ph-magnifying-glass absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                    <input
-                      id="searchStage4"
-                      type="text"
-                      placeholder="Tìm kiếm theo mã SV, họ tên, lớp hoặc tiêu đề..."
-                      class="w-full pl-9 pr-3 py-2 border border-slate-300 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                    />
-                  </div>
-                </div>
-
-                <!-- Table -->
-                <div class="overflow-x-auto border border-slate-200 rounded-xl shadow-sm">
-                  <table id="tableStage4" class="w-full text-sm border-collapse">
-                    <thead class="bg-emerald-50 text-emerald-700 border-b border-slate-200">
-                      <tr>
-                        <th class="py-2.5 px-3 text-left">Mã SV</th>
-                        <th class="py-2.5 px-3 text-left">Họ tên</th>
-                        <th class="py-2.5 px-3 text-left">Lớp</th>
-                        <th class="py-2.5 px-3 text-left">Tiêu đề</th>
-                        <th class="py-2.5 px-3 text-left">Trạng thái</th>
-                        <th class="py-2.5 px-3 text-left">Cập nhật</th>
-                      </tr>
-                    </thead>
-                    <tbody id="stage4TableBody" class="divide-y divide-slate-100">
-                      <tr class="stage4-row odd:bg-white even:bg-slate-50 hover:bg-blue-50 transition-colors">
-                        <td class="py-2.5 px-3 font-medium text-slate-800">20123456</td>
-                        <td class="py-2.5 px-3">Nguyễn Văn A</td>
-                        <td class="py-2.5 px-3">KTPM2025</td>
-                        <td class="py-2.5 px-3">Báo cáo tuần 1: Phân tích yêu cầu</td>
-                        <td class="py-2.5 px-3">
-                          <span class="text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-lg text-xs font-medium">Đã nộp</span>
-                        </td>
-                        <td class="py-2.5 px-3 text-slate-500">10/08/2025</td>
-                      </tr>
-                      <tr class="stage4-row odd:bg-white even:bg-slate-50 hover:bg-blue-50 transition-colors">
-                        <td class="py-2.5 px-3 font-medium text-slate-800">20124567</td>
-                        <td class="py-2.5 px-3">Trần Thị B</td>
-                        <td class="py-2.5 px-3">KTPM2025</td>
-                        <td class="py-2.5 px-3">Báo cáo tuần 1: Giao diện trang chính</td>
-                        <td class="py-2.5 px-3">
-                          <span class="text-rose-600 bg-rose-50 px-2 py-0.5 rounded-lg text-xs font-medium">Chưa nộp</span>
-                        </td>
-                        <td class="py-2.5 px-3 text-slate-500">-</td>
-                      </tr>
-                      <tr class="stage4-row odd:bg-white even:bg-slate-50 hover:bg-blue-50 transition-colors">
-                        <td class="py-2.5 px-3 font-medium text-slate-800">20125678</td>
-                        <td class="py-2.5 px-3">Lê Văn C</td>
-                        <td class="py-2.5 px-3">HTTT2025</td>
-                        <td class="py-2.5 px-3">Báo cáo tuần 1: Tối ưu hiệu năng</td>
-                        <td class="py-2.5 px-3">
-                          <span class="text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-lg text-xs font-medium">Đã nộp</span>
-                        </td>
-                        <td class="py-2.5 px-3 text-slate-500">11/08/2025</td>
-                      </tr>
-                      <tr class="stage4-row odd:bg-white even:bg-slate-50 hover:bg-blue-50 transition-colors">
-                        <td class="py-2.5 px-3 font-medium text-slate-800">20126789</td>
-                        <td class="py-2.5 px-3">Phạm D</td>
-                        <td class="py-2.5 px-3">CNTT2025</td>
-                        <td class="py-2.5 px-3">Báo cáo tuần 1: Thiết kế CSDL</td>
-                        <td class="py-2.5 px-3">
-                          <span class="text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-lg text-xs font-medium">Đã nộp</span>
-                        </td>
-                        <td class="py-2.5 px-3 text-slate-500">09/08/2025</td>
-                      </tr>
-                      <tr class="stage4-row odd:bg-white even:bg-slate-50 hover:bg-blue-50 transition-colors">
-                        <td class="py-2.5 px-3 font-medium text-slate-800">20127890</td>
-                        <td class="py-2.5 px-3">Vũ E</td>
-                        <td class="py-2.5 px-3">KTPM2025</td>
-                        <td class="py-2.5 px-3">Báo cáo tuần 1: Kết nối API</td>
-                        <td class="py-2.5 px-3">
-                          <span class="text-rose-600 bg-rose-50 px-2 py-0.5 rounded-lg text-xs font-medium">Chưa nộp</span>
-                        </td>
-                        <td class="py-2.5 px-3 text-slate-500">-</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            `;
-
-            // Search filtering for Stage 4
-            const s4Input = stageContent.querySelector('#searchStage4');
-            const s4Rows = Array.from(stageContent.querySelectorAll('#stage4TableBody tr.stage4-row'));
-            function s4Filter() {
-              const q = (s4Input?.value || '').toLowerCase();
-              s4Rows.forEach(tr => {
-                const ok = tr.innerText.toLowerCase().includes(q);
-                tr.style.display = ok ? '' : 'none';
-              });
-            }
-            s4Input?.addEventListener('input', s4Filter);
-            s4Filter();
-
-            return;
-          }
-
-          if (stageNum === 5) {
-            stageContent.innerHTML = `
-              <div class="space-y-6">
-                <!-- Header -->
-                <div>
-                  <h3 class="font-semibold text-lg flex items-center gap-2">
-                    <i class="ph ph-file-text"></i>
-                    Thành lập hội đồng chấm
-                  </h3>
-                  <p class="text-sm text-slate-600">Tạo hội đồng, phân công vai trò và phân sinh viên vào hội đồng.</p>
-                  ${timeHtml}
-                </div>
-                <!-- Actions -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  <!-- Tạo hội đồng -->
-                  <a href="#!" data-action="createCouncil" class="group border border-slate-200 hover:border-blue-300 rounded-xl p-4 bg-white hover:shadow-sm transition">
-                    <div class="flex items-start gap-3">
-                      <div class="h-10 w-10 rounded-lg grid place-items-center bg-fuchsia-50 text-fuchsia-600 group-hover:bg-fuchsia-100">
-                        <i class="ph ph-users-three"></i>
-                      </div>
-                      <div class="flex-1">
-                        <div class="font-medium">Tạo hội đồng</div>
-                        <div class="text-xs text-slate-500 mt-0.5">Mở modal tạo hội đồng chấm</div>
-                        <div class="mt-3">
-                          <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-600 text-white text-sm">
-                            <i class="ph ph-plus"></i> Tạo
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </a>
-
-                  <!-- Phân công vai trò -->
-                  <a href="{{ route('web.assistant.councils.roles', [$round_detail->id]) }}" class="group border border-slate-200 hover:border-blue-300 rounded-xl p-4 bg-white hover:shadow-sm transition">
-                    <div class="flex items-start gap-3">
-                      <div class="h-10 w-10 rounded-lg grid place-items-center bg-indigo-50 text-indigo-600 group-hover:bg-indigo-100">
-                        <i class="ph ph-user-gear"></i>
-                      </div>
-                      <div class="flex-1">
-                        <div class="font-medium">Phân công vai trò</div>
-                        <div class="text-xs text-slate-500 mt-0.5">Gán Chủ tịch, Thư ký, Ủy viên</div>
-                        <div class="mt-3">
-                          <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-600 text-white text-sm">
-                            <i class="ph ph-arrow-right"></i> Mở
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </a>
-
-                  <!-- Phân sinh viên -->
-                  <a href="{{ route('web.assistant.council_assign_students', ['termId' => $round_detail->id]) }}" class="group border border-slate-200 hover:border-blue-300 rounded-xl p-4 bg-white hover:shadow-sm transition">
-                    <div class="flex items-start gap-3">
-                      <div class="h-10 w-10 rounded-lg grid place-items-center bg-emerald-50 text-emerald-600 group-hover:bg-emerald-100">
-                        <i class="ph ph-list-checks"></i>
-                      </div>
-                      <div class="flex-1">
-                        <div class="font-medium">Phân sinh viên</div>
-                        <div class="text-xs text-slate-500 mt-0.5">Gán sinh viên vào các hội đồng</div>
-                        <div class="mt-3">
-                          <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-600 text-white text-sm">
-                            <i class="ph ph-arrow-right"></i> Mở
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  </a>
-                </div>
-
-                <section class="bg-white rounded-xl border border-slate-200 p-5">
-                  <div class="flex items-center justify-between">
-                    <h3 class="font-semibold">Danh sách hội đồng</h3>
-                    <div class="flex items-center gap-3">
-                      <div class="relative">
-                        <input id="searchInput" class="pl-9 pr-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 text-sm" placeholder="Tìm theo tên hội đồng" />
-                        <i class="ph ph-magnifying-glass absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                      </div>
-                      <button id="btnCreateCommittee" class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 text-sm"><i class="ph ph-plus"></i> Tạo hội đồng</button>
-                    </div>
-                  </div>
-                  <div class="mt-6 overflow-hidden rounded-xl shadow ring-1 ring-slate-200">
-                    <table class="w-full text-sm text-slate-700">
-                      <thead class="bg-slate-100 text-slate-700 text-xs uppercase tracking-wide">
-                        <tr>
-                          <th class="py-3 px-4 text-left">Mã hội đồng</th>
-                          <th class="py-3 px-4 text-left">Tên hội đồng</th>
-                          <th class="py-3 px-4 text-left">Bộ môn</th>
-                          <th class="py-3 px-4 text-left">Ngày bảo vệ</th>
-                          <th class="py-3 px-4 text-left">Phòng</th>
-                          <th class="py-3 px-4 text-left">Số thành viên</th>
-                          <th class="py-3 px-4 text-left">Thành viên</th>
-                          <th class="py-3 px-4 text-right">Hành động</th>
-                        </tr>
-                      </thead>
-                      <tbody id="tableBody" class="divide-y divide-slate-200 bg-white">
-                        @php
-                          $councils = $round_detail->councils->sortByDesc('created_at') ?? collect();
-                        @endphp
-
-                        @foreach ($councils as $council)
-                        @php
-                          $council_code = $council->code ?? 'N/A';
-                          $council_name = $council->name ?? 'N/A';
-                          $department = $council->department->name ?? 'N/A';
-                          $defense_date = $council->date 
-                              ? \Carbon\Carbon::parse($council->date)->format('d/m/Y') 
-                              : 'N/A';
-                          $address = $council->address ?? 'N/A';
-                          $council_members = $council->council_members?->sortByDesc('role') ?? collect();
-
-                          // Map theo vai trò số: 5=Chủ tịch, 4=Thư ký, 3=UV1, 2=UV2, 1=UV3
-                          $r5 = optional($council_members->firstWhere('role', 5))->supervisor_id; // Chủ tịch
-                          $r4 = optional($council_members->firstWhere('role', 4))->supervisor_id; // Thư ký
-                          $r3 = optional($council_members->firstWhere('role', 3))->supervisor_id; // Ủy viên 1
-                          $r2 = optional($council_members->firstWhere('role', 2))->supervisor_id; // Ủy viên 2
-                          $r1 = optional($council_members->firstWhere('role', 1))->supervisor_id; // Ủy viên 3
-                        @endphp
-                        <tr class="hover:bg-slate-50 transition">
-                          <!-- Mã hội đồng -->
-                          <td class="py-3 px-4 font-medium text-blue-600 hover:underline">
-                            <a href="committee-detail.html">{{ $council_code }}</a>
-                          </td>
-                          <td class="py-3 px-4">{{ $council_name }}</td>
-                          <td class="py-3 px-4">{{ $department }}</td>
-                          <td class="py-3 px-4">{{ $defense_date }}</td>
-                          <td class="py-3 px-4">{{ $address }}</td>
-                          <td class="py-3 px-4 text-center">{{ $council_members->count() }}</td>
-                          <td class="py-3 px-4">
-                            <div class="flex flex-wrap gap-1">
-                              @if ($council_members->isEmpty())
-                                <span class="text-xs text-slate-400 italic">Chưa có thành viên</span>
-                              @else
-                                @foreach ($council_members->take(5) as $member)
-                                  <a class="px-2 py-1 rounded-full text-xs bg-blue-50 text-blue-700 font-medium hover:bg-blue-100 transition" 
-                                    href="../lecturer-ui/profile.html">
-                                    {{ $member?->supervisor->teacher->user->fullname ?? 'N/A' }}
-                                  </a>
-                                @endforeach
-                                @if ($council_members->count() > 5)
-                                  <span class="px-2 py-1 rounded-full text-xs bg-slate-200 text-slate-600">
-                                    +{{ $council_members->count() - 5 }}
-                                  </span>
-                                @endif
-                              @endif
-                            </div>
-                          </td>
-                          <td class="py-3 px-4 text-right space-x-2">
-                            <button class="p-2 rounded-lg border border-slate-200 hover:bg-slate-100 text-slate-600 editCouncilBtn transition"
-                                    data-id="{{ $council->id }}"
-                                    data-code="{{ $council->code }}"
-                                    data-name="{{ $council->name }}"
-                                    data-dept-id="{{ $council->department_id }}"
-                                    data-dept-name="{{ $council->department->name ?? '' }}"
-                                    data-date="{{ $council->date }}"
-                                    data-room="{{ $council->address }}"
-                                    data-description="{{ $council->description }}"
-                                    data-chutich="{{ $r5 ?? '' }}"
-                                    data-thuki="{{ $r4 ?? '' }}"
-                                    data-uyvien1="{{ $r3 ?? '' }}"
-                                    data-uyvien2="{{ $r2 ?? '' }}"
-                                    data-uyvien3="{{ $r1 ?? '' }}">
-                              <i class="ph ph-pencil"></i>
-                            </button>
-                            <button class="p-2 rounded-lg border border-slate-200 hover:bg-rose-50 text-rose-600 transition">
-                              <i class="ph ph-trash"></i>
-                            </button>
-                          </td>
-                        </tr>
-                        @endforeach
-                      </tbody>
-                    </table>
-                  </div>
-                </section>
-
-              </div>
-            `;
-            return;
-          }
-
-          if (stageNum === 6) {
-            stageContent.innerHTML = `
-              <div class="space-y-6">
-                <!-- Header -->
-                <div>
-                  <h3 class="font-semibold text-lg flex items-center gap-2">
-                    <i class="ph ph-seal-check text-emerald-600"></i>
-                    Phản biện
-                  </h3>
-                  <p class="text-sm text-slate-600">
-                    Quản lý quá trình phản biện đồ án
-                  </p>
-                  ${timeHtml}
-                </div>
-
-                <!-- Search -->
-                <div class="flex items-center gap-3">
-                  <div class="relative w-full sm:max-w-md">
-                    <i class="ph ph-magnifying-glass absolute left-3 top-2.5 text-slate-400"></i>
-                    <input id="searchStage6" class="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 shadow-sm" placeholder="Tìm MSSV, họ tên, hội đồng, giảng viên..." />
-                  </div>
-                </div>
-
-                <!-- Table -->
-                <div class="overflow-x-auto">
-                  <table class="min-w-full border border-slate-200 rounded-lg overflow-hidden">
-                    <thead class="bg-emerald-50 text-emerald-700 text-sm">
-                      <tr>
-                        <th class="px-3 py-2 text-left">Mã SV</th>
-                        <th class="px-3 py-2 text-left">Họ tên</th>
-                        <th class="px-3 py-2 text-left">Ngành</th>
-                        <th class="px-3 py-2 text-left">Hội đồng</th>
-                        <th class="px-3 py-2 text-left">Điểm TB</th>
-                        <th class="px-3 py-2 text-left">Xếp loại</th>
-                        <th class="px-3 py-2 text-left">Ngày chấm</th>
-                      </tr>
-                    </thead>
-                    <tbody id="stage6TableBody" class="divide-y divide-slate-200 text-sm">
-                      <tr class="stage6-row hover:bg-slate-50">
-                        <td class="px-3 py-2 font-medium text-slate-800">20123456</td>
-                        <td class="px-3 py-2">Nguyễn Văn A</td>
-                        <td class="px-3 py-2">KTPM2025</td>
-                        <td class="px-3 py-2 text-slate-700">Hội đồng 01</td>
-                        <td class="px-3 py-2 text-emerald-700 font-semibold">8.5</td>
-                        <td class="px-3 py-2"><span class="px-2 py-1 text-xs rounded-full bg-emerald-50 text-emerald-700">Giỏi</span></td>
-                        <td class="px-3 py-2">22/09/2025</td>
-                      </tr>
-                      <tr class="stage6-row hover:bg-slate-50">
-                        <td class="px-3 py-2 font-medium text-slate-800">20124567</td>
-                        <td class="px-3 py-2">Trần Thị B</td>
-                        <td class="px-3 py-2">HTTT2025</td>
-                        <td class="px-3 py-2 text-slate-700">Hội đồng 02</td>
-                        <td class="px-3 py-2 text-emerald-700 font-semibold">7.8</td>
-                        <td class="px-3 py-2"><span class="px-2 py-1 text-xs rounded-full bg-lime-50 text-lime-700">Khá</span></td>
-                        <td class="px-3 py-2">22/09/2025</td>
-                      </tr>
-                      <tr class="stage6-row hover:bg-slate-50">
-                        <td class="px-3 py-2 font-medium text-slate-800">20125678</td>
-                        <td class="px-3 py-2">Lê Văn C</td>
-                        <td class="px-3 py-2">ATTT2025</td>
-                        <td class="px-3 py-2 text-slate-700">Hội đồng 01</td>
-                        <td class="px-3 py-2 text-emerald-700 font-semibold">6.5</td>
-                        <td class="px-3 py-2"><span class="px-2 py-1 text-xs rounded-full bg-amber-50 text-amber-700">Trung bình</span></td>
-                        <td class="px-3 py-2">21/09/2025</td>
-                      </tr>
-                      <tr class="stage6-row hover:bg-slate-50">
-                        <td class="px-3 py-2 font-medium text-slate-800">20126789</td>
-                        <td class="px-3 py-2">Phạm Dũng D</td>
-                        <td class="px-3 py-2">CNTT2025</td>
-                        <td class="px-3 py-2 text-slate-700">Hội đồng 03</td>
-                        <td class="px-3 py-2 text-emerald-700 font-semibold">9.1</td>
-                        <td class="px-3 py-2"><span class="px-2 py-1 text-xs rounded-full bg-sky-50 text-sky-700">Xuất sắc</span></td>
-                        <td class="px-3 py-2">22/09/2025</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            `;
-
-            // Search filter for Stage 6
-            const s6Input = stageContent.querySelector('#searchStage6');
-            const s6Rows = Array.from(stageContent.querySelectorAll('#stage6TableBody tr.stage6-row'));
-
-            function s6Filter() {
-              const q = (s6Input?.value || '').toLowerCase();
-              s6Rows.forEach(tr => {
-                const ok = tr.innerText.toLowerCase().includes(q);
-                tr.style.display = ok ? '' : 'none';
-              });
-            }
-
-            s6Input?.addEventListener('input', s6Filter);
-            s6Filter();
-
-            return;
-          }
-
-          if (stageNum === 7) {
-            stageContent.innerHTML = `
-              <div class="space-y-6">
-                <!-- Header -->
-                <div>
-                  <h3 class="font-semibold text-lg flex items-center gap-2">
-                    <i class="ph ph-clipboard-check text-emerald-600"></i>
-                    Công bố kết quả
-                  </h3>
-                  <p class="text-sm text-slate-600">Công bố kết quả phản biện đồ án tốt nghiệp.</p>
-                  ${timeHtml}
-                </div>
-
-                <!-- Search -->
-                <div class="flex items-center gap-3">
-                  <div class="relative w-full sm:max-w-md">
-                    <i class="ph ph-magnifying-glass absolute left-3 top-2.5 text-slate-400"></i>
-                    <input id="searchStage7" class="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 shadow-sm" placeholder="Tìm mã SV, họ tên, lớp, giảng viên, kết quả..." />
-                  </div>
-                </div>
-
-                <!-- Table -->
-                <div class="overflow-x-auto">
-                  <table class="min-w-full border border-slate-200 rounded-lg overflow-hidden">
-                    <thead class="bg-emerald-50 text-emerald-700 text-sm">
-                      <tr>
-                        <th class="px-3 py-2 text-left">Mã SV</th>
-                        <th class="px-3 py-2 text-left">Họ tên</th>
-                        <th class="px-3 py-2 text-left">Lớp</th>
-                        <th class="px-3 py-2 text-left">Đề tài</th>
-                        <th class="px-3 py-2 text-left">GV phản biện</th>
-                        <th class="px-3 py-2 text-left">Điểm</th>
-                        <th class="px-3 py-2 text-left">Xếp loại</th>
-                        <th class="px-3 py-2 text-left">Ngày công bố</th>
-                      </tr>
-                    </thead>
-                    <tbody id="stage7TableBody" class="divide-y divide-slate-200 text-sm">
-                      <tr class="stage7-row hover:bg-slate-50">
-                        <td class="px-3 py-2 font-medium text-slate-800">20123456</td>
-                        <td class="px-3 py-2">Nguyễn Văn A</td>
-                        <td class="px-3 py-2">KTPM2025</td>
-                        <td class="px-3 py-2">Hệ thống quản lý thư viện</td>
-                        <td class="px-3 py-2">TS. Đặng Hữu T</td>
-                        <td class="px-3 py-2 text-emerald-700 font-semibold">9.0</td>
-                        <td class="px-3 py-2"><span class="px-2 py-1 text-xs rounded-full bg-emerald-50 text-emerald-700">Xuất sắc</span></td>
-                        <td class="px-3 py-2">15/08/2025</td>
-                      </tr>
-                      <tr class="stage7-row hover:bg-slate-50">
-                        <td class="px-3 py-2 font-medium text-slate-800">20124567</td>
-                        <td class="px-3 py-2">Trần Thị B</td>
-                        <td class="px-3 py-2">KTPM2025</td>
-                        <td class="px-3 py-2">Ứng dụng mobile bán hàng</td>
-                        <td class="px-3 py-2">ThS. Lưu Lan</td>
-                        <td class="px-3 py-2 text-amber-700 font-semibold">7.5</td>
-                        <td class="px-3 py-2"><span class="px-2 py-1 text-xs rounded-full bg-amber-50 text-amber-700">Khá</span></td>
-                        <td class="px-3 py-2">15/08/2025</td>
-                      </tr>
-                      <tr class="stage7-row hover:bg-slate-50">
-                        <td class="px-3 py-2 font-medium text-slate-800">20125678</td>
-                        <td class="px-3 py-2">Lê Văn C</td>
-                        <td class="px-3 py-2">HTTT2025</td>
-                        <td class="px-3 py-2">Website thương mại điện tử</td>
-                        <td class="px-3 py-2">TS. Nguyễn Văn A</td>
-                        <td class="px-3 py-2 text-rose-700 font-semibold">6.0</td>
-                        <td class="px-3 py-2"><span class="px-2 py-1 text-xs rounded-full bg-rose-50 text-rose-700">Trung bình</span></td>
-                        <td class="px-3 py-2">15/08/2025</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            `;
-
-            // Search filtering for Stage 7
-            const s7Input = stageContent.querySelector('#searchStage7');
-            const s7Rows = Array.from(stageContent.querySelectorAll('#stage7TableBody tr.stage7-row'));
-            function s7Filter(){
-              const q = (s7Input?.value || '').toLowerCase();
-              s7Rows.forEach(tr => {
-                const ok = tr.innerText.toLowerCase().includes(q);
-                tr.style.display = ok ? '' : 'none';
-              });
-            }
-            s7Input?.addEventListener('input', s7Filter);
-            s7Filter();
-
-            return;
-          }
-
-          if (stageNum === 8) {
-            stageContent.innerHTML = `
-              <div class="space-y-6">
-                <!-- Header -->
-                <div>
-                  <h3 class="font-semibold text-lg flex items-center gap-2">
-                    <i class="ph ph-graduation-cap text-emerald-600"></i>
-                    Bảo vệ đồ án
-                  </h3>
-                  <p class="text-sm text-slate-600">Quản lý quá trình bảo vệ đồ án tốt nghiệp.</p>
-                  ${timeHtml}
-                </div>
-
-                <!-- Search -->
-                <div class="flex items-center gap-3">
-                  <div class="relative w-full sm:max-w-md">
-                    <i class="ph ph-magnifying-glass absolute left-3 top-2.5 text-slate-400"></i>
-                    <input id="searchStage8" class="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-300 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 shadow-sm" placeholder="Tìm mã SV, họ tên, lớp, đề tài, hội đồng..." />
-                  </div>
-                </div>
-
-                <!-- Table -->
-                <div class="overflow-x-auto">
-                  <table class="min-w-full border border-slate-200 rounded-lg overflow-hidden">
-                    <thead class="bg-emerald-50 text-emerald-700 text-sm">
-                      <tr>
-                        <th class="px-3 py-2 text-left">Mã SV</th>
-                        <th class="px-3 py-2 text-left">Họ tên</th>
-                        <th class="px-3 py-2 text-left">Lớp</th>
-                        <th class="px-3 py-2 text-left">Đề tài</th>
-                        <th class="px-3 py-2 text-left">Hội đồng</th>
-                        <th class="px-3 py-2 text-left">Ngày bảo vệ</th>
-                        <th class="px-3 py-2 text-left">Địa điểm</th>
-                        <th class="px-3 py-2 text-left">Kết quả</th>
-                      </tr>
-                    </thead>
-                    <tbody id="stage8TableBody" class="divide-y divide-slate-200 text-sm">
-                      <tr class="stage8-row hover:bg-slate-50">
-                        <td class="px-3 py-2 font-medium text-slate-800">20123456</td>
-                        <td class="px-3 py-2">Nguyễn Văn A</td>
-                        <td class="px-3 py-2">KTPM2025</td>
-                        <td class="px-3 py-2">Hệ thống quản lý thư viện</td>
-                        <td class="px-3 py-2">Hội đồng 1</td>
-                        <td class="px-3 py-2">20/08/2025</td>
-                        <td class="px-3 py-2">Phòng B203</td>
-                        <td class="px-3 py-2"><span class="px-2 py-1 text-xs rounded-full bg-emerald-50 text-emerald-700">Đạt</span></td>
-                      </tr>
-                      <tr class="stage8-row hover:bg-slate-50">
-                        <td class="px-3 py-2 font-medium text-slate-800">20124567</td>
-                        <td class="px-3 py-2">Trần Thị B</td>
-                        <td class="px-3 py-2">KTPM2025</td>
-                        <td class="px-3 py-2">Ứng dụng mobile bán hàng</td>
-                        <td class="px-3 py-2">Hội đồng 2</td>
-                        <td class="px-3 py-2">21/08/2025</td>
-                        <td class="px-3 py-2">Phòng B205</td>
-                        <td class="px-3 py-2"><span class="px-2 py-1 text-xs rounded-full bg-amber-50 text-amber-700">Bảo vệ lại</span></td>
-                      </tr>
-                      <tr class="stage8-row hover:bg-slate-50">
-                        <td class="px-3 py-2 font-medium text-slate-800">20125678</td>
-                        <td class="px-3 py-2">Lê Văn C</td>
-                        <td class="px-3 py-2">HTTT2025</td>
-                        <td class="px-3 py-2">Website thương mại điện tử</td>
-                        <td class="px-3 py-2">Hội đồng 3</td>
-                        <td class="px-3 py-2">22/08/2025</td>
-                        <td class="px-3 py-2">Phòng A104</td>
-                        <td class="px-3 py-2"><span class="px-2 py-1 text-xs rounded-full bg-rose-50 text-rose-700">Không đạt</span></td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            `;
-
-            // Search filtering for Stage 8
-            const s8Input = stageContent.querySelector('#searchStage8');
-            const s8Rows = Array.from(stageContent.querySelectorAll('#stage8TableBody tr.stage8-row'));
-            function s8Filter(){
-              const q = (s8Input?.value || '').toLowerCase();
-              s8Rows.forEach(tr => {
-                const ok = tr.innerText.toLowerCase().includes(q);
-                tr.style.display = ok ? '' : 'none';
-              });
-            }
-            s8Input?.addEventListener('input', s8Filter);
-            s8Filter();
-
-            return;
-          }
-
-
           // Mặc định: các stage khác render cùng layout card như stage 1
           if (data) {
             const cards = (data.actions || []).map(actionCard).join('');
@@ -1540,7 +868,14 @@
               </div>`;
           }
 
-          // No per-stage click shim needed; creation modal is opened via delegated handler
+          // Sau khi stageContent.innerHTML được set trong renderStage(...)
+          if (stageNum === 5) {
+            const createCard = stageContent.querySelector('[data-action="createCouncil"]');
+            createCard?.addEventListener('click', (e)=>{
+              e.preventDefault();
+              document.getElementById('btnCreateCommittee')?.click();
+            });
+          }
         }
 
         // Bind click
@@ -1991,8 +1326,8 @@
         document.querySelectorAll('#tableBody tr').forEach(tr=> tr.style.display = tr.innerText.toLowerCase().includes(q)?'':'none');
       });
 
-      // Create Committee modal (extracted to a reusable function)
-      function openCreateCouncilModal() {
+      // Create Committee modal
+      document.getElementById('btnCreateCommittee')?.addEventListener('click', ()=>{
         const content = `
 <form id="createCommitteeForm" class="space-y-6">
   <!-- Thông tin chung -->
@@ -2140,9 +1475,9 @@
   </div>
 </form>
 
-  `;
-  const modal = createModal('Tạo hội đồng', content);
-  document.body.appendChild(modal);
+        `;
+        const modal = createModal('Tạo hội đồng', content);
+        document.body.appendChild(modal);
 
         // Đồng bộ các select vai trò: không cho chọn trùng giảng viên
         const roleSelects = Array.from(
@@ -2196,15 +1531,6 @@
           // TODO: cập nhật bảng danh sách bằng data trả về
           e.target.closest('.fixed')?.remove();
         })
-      }
-
-      // Event delegation: open create council modal for both the action card and the button
-      document.addEventListener('click', (e) => {
-        const trigger = e.target.closest('#btnCreateCommittee, [data-action="createCouncil"]');
-        if (trigger) {
-          e.preventDefault();
-          openCreateCouncilModal();
-        }
       });
 
 

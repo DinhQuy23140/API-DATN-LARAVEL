@@ -97,7 +97,18 @@ class ProjectTermsController extends Controller
     }
 
     public function loadRoundDetail($round_id) {
-        $round_detail = ProjectTerm::with('academy_year', 'stageTimelines', 'councils.department', 'councils.council_members.supervisor.teacher.user', 'supervisors')->findOrFail($round_id);
+        $round_detail = ProjectTerm::with(
+ 'academy_year', 
+            'stageTimelines', 
+            'councils.department', 
+            'councils.council_members.supervisor.teacher.user', 
+            'supervisors.assignment_supervisors',
+            'assignments.student.user',
+            'assignments.student.marjor',
+            'assignments.project.reportFiles',
+            'assignments.assignment_supervisors.supervisor.teacher.user',
+            'assignments.project.progressLogs.attachments'
+            )->findOrFail($round_id);
         $departments = Department::get();
         return view('assistant-ui.round-detail', compact('round_detail', 'departments'));
     }

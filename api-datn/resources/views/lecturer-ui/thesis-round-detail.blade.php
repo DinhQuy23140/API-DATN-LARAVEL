@@ -45,6 +45,7 @@
 
 <body class="bg-slate-50 text-slate-800">
   @php
+    use Carbon\Carbon;
     $user = auth()->user();
     $userName = $user->fullname ?? $user->name ?? 'Giảng viên';
     $email = $user->email ?? '';
@@ -60,6 +61,7 @@
       ?? $user->profile_photo_url
       ?? 'https://ui-avatars.com/api/?name=' . urlencode($userName) . '&background=0ea5e9&color=ffffff';
     $assignments = $rows->assignments;
+    $stage = $rows->stagetimelines->sortBy('number_of_rounds');
   @endphp
 
   @php
@@ -331,6 +333,7 @@
       </main>
     </div>
   </div>
+
   <script></script>
   <script>
     function showStageDetails(stageNum) {
@@ -339,62 +342,89 @@
       switch (stageNum) {
         case 1:
           contentBox.innerHTML = `
-        <h3 class="text-lg font-semibold mb-3">Giai đoạn 01</h3>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          <a href="{{ route('web.teacher.requests_management', ['supervisorId' => $supervisorId, 'termId' => $rows->id]) }}" class="group rounded-xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md hover:border-blue-300 transition">
-            <div class="flex items-start gap-3">
-              <div class="h-10 w-10 rounded-lg grid place-items-center bg-gradient-to-br from-emerald-50 to-emerald-100 text-emerald-600 group-hover:from-emerald-100 group-hover:to-emerald-200">
-                <i class="ph ph-inbox"></i>
-              </div>
-              <div class="flex-1">
-                <div class="font-medium">Tiếp nhận yêu cầu sinh viên</div>
-                <div class="text-xs text-slate-500 mt-0.5">Xem, lọc và duyệt các yêu cầu xin hướng dẫn.</div>
-                <div class="mt-3">
-                  <span class="inline-flex items-center gap-1.5 text-emerald-700 text-sm group-hover:gap-2 transition-all">
-                    Mở <i class="ph ph-arrow-right"></i>
-                  </span>
-                </div>
-              </div>
-            </div>
-          </a>
-          <a href="{{ route('web.teacher.proposed_topic', ['supervisorId' => $supervisorId, 'termId' => $rows->id]) }}" class="group rounded-xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md hover:border-blue-300 transition">
-            <div class="flex items-start gap-3">
-              <div class="h-10 w-10 rounded-lg grid place-items-center bg-gradient-to-br from-indigo-50 to-indigo-100 text-indigo-600 group-hover:from-indigo-100 group-hover:to-indigo-200">
-                <i class="ph ph-notebook"></i>
-              </div>
-              <div class="flex-1">
-                <div class="font-medium">Đề xuất danh sách đề tài</div>
-                <div class="text-xs text-slate-500 mt-0.5">Tạo, chỉnh sửa, đóng/mở đề tài để SV đăng ký.</div>
-                <div class="mt-3">
-                  <span class="inline-flex items-center gap-1.5 text-indigo-700 text-sm group-hover:gap-2 transition-all">
-                    Mở <i class="ph ph-arrow-right"></i>
-                  </span>
-                </div>
-              </div>
-            </div>
-          </a>
-            <a href="{{ route('web.teacher.student_supervisor_term', ['supervisorId' => $supervisorId, 'termId' => $rows->id]) }}" class="group rounded-xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md hover:border-blue-300 transition">
+          <h3 class="text-lg font-semibold mb-1">Giai đoạn 01</h3>
+          <div class="mt-2 mb-3 p-3 bg-gradient-to-r from-emerald-50 to-green-50 rounded-xl border border-emerald-100 shadow-sm inline-block">
+            <p class="text-base font-semibold text-emerald-700 flex items-center gap-2">
+              <span class="text-lg">📅</span>
+              Thời gian:
+              <span class="ml-1 font-medium text-green-700">
+                {{ Carbon::parse($stage[0]->start_date)->format('d/m/Y') }}
+                —
+                {{ Carbon::parse($stage[0]->end_date)->format('d/m/Y') }}
+              </span>
+            </p>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <a href="{{ route('web.teacher.requests_management', ['supervisorId' => $supervisorId, 'termId' => $rows->id]) }}" 
+              class="group rounded-xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md hover:border-blue-300 transition">
               <div class="flex items-start gap-3">
-              <div class="h-10 w-10 rounded-lg grid place-items-center bg-gradient-to-br from-blue-50 to-blue-100 text-blue-600 group-hover:from-blue-100 group-hover:to-blue-200">
-                <i class="ph ph-users-three"></i>
-              </div>
-              <div class="flex-1">
-                <div class="font-medium">Danh sách sinh viên hướng dẫn</div>
-                <div class="text-xs text-slate-500 mt-0.5">Quản lý danh sách SV, cập nhật tiến độ và trạng thái.</div>
-                <div class="mt-3">
-                  <span class="inline-flex items-center gap-1.5 text-blue-700 text-sm group-hover:gap-2 transition-all">
-                    Mở <i class="ph ph-arrow-right"></i>
-                  </span>
+                <div class="h-10 w-10 rounded-lg grid place-items-center bg-gradient-to-br from-emerald-50 to-emerald-100 text-emerald-600 group-hover:from-emerald-100 group-hover:to-emerald-200">
+                  <i class="ph ph-inbox"></i>
+                </div>
+                <div class="flex-1">
+                  <div class="font-medium">Tiếp nhận yêu cầu sinh viên</div>
+                  <div class="text-xs text-slate-500 mt-0.5">Xem, lọc và duyệt các yêu cầu xin hướng dẫn.</div>
+                  <div class="mt-3">
+                    <span class="inline-flex items-center gap-1.5 text-emerald-700 text-sm group-hover:gap-2 transition-all">
+                      Mở <i class="ph ph-arrow-right"></i>
+                    </span>
+                  </div>
                 </div>
               </div>
-            </div>
-          </a>
-        </div>
+            </a>
+
+            <a href="{{ route('web.teacher.proposed_topic', ['supervisorId' => $supervisorId, 'termId' => $rows->id]) }}" 
+              class="group rounded-xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md hover:border-blue-300 transition">
+              <div class="flex items-start gap-3">
+                <div class="h-10 w-10 rounded-lg grid place-items-center bg-gradient-to-br from-indigo-50 to-indigo-100 text-indigo-600 group-hover:from-indigo-100 group-hover:to-indigo-200">
+                  <i class="ph ph-notebook"></i>
+                </div>
+                <div class="flex-1">
+                  <div class="font-medium">Đề xuất danh sách đề tài</div>
+                  <div class="text-xs text-slate-500 mt-0.5">Tạo, chỉnh sửa, đóng/mở đề tài để SV đăng ký.</div>
+                  <div class="mt-3">
+                    <span class="inline-flex items-center gap-1.5 text-indigo-700 text-sm group-hover:gap-2 transition-all">
+                      Mở <i class="ph ph-arrow-right"></i>
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </a>
+
+            <a href="{{ route('web.teacher.student_supervisor_term', ['supervisorId' => $supervisorId, 'termId' => $rows->id]) }}" 
+              class="group rounded-xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md hover:border-blue-300 transition">
+              <div class="flex items-start gap-3">
+                <div class="h-10 w-10 rounded-lg grid place-items-center bg-gradient-to-br from-blue-50 to-blue-100 text-blue-600 group-hover:from-blue-100 group-hover:to-blue-200">
+                  <i class="ph ph-users-three"></i>
+                </div>
+                <div class="flex-1">
+                  <div class="font-medium">Danh sách sinh viên hướng dẫn</div>
+                  <div class="text-xs text-slate-500 mt-0.5">Quản lý danh sách SV, cập nhật tiến độ và trạng thái.</div>
+                  <div class="mt-3">
+                    <span class="inline-flex items-center gap-1.5 text-blue-700 text-sm group-hover:gap-2 transition-all">
+                      Mở <i class="ph ph-arrow-right"></i>
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </a>
+          </div>
       `;
           break;
         case 2:
           contentBox.innerHTML = `
         <h3 class="text-lg font-semibold mb-3">Giai đoạn 02: Đề cương sinh viên</h3>
+        <div class="mt-2 mb-3 p-3 bg-gradient-to-r from-emerald-50 to-green-50 rounded-xl border border-emerald-100 shadow-sm inline-block">
+          <p class="text-base font-semibold text-emerald-700 flex items-center gap-2">
+            <span class="text-lg">📅</span>
+            Thời gian:
+            <span class="ml-1 font-medium text-green-700">
+              {{ Carbon::parse($stage[1]->start_date)->format('d/m/Y') }}
+              —
+              {{ Carbon::parse($stage[1]->end_date)->format('d/m/Y') }}
+            </span>
+          </p>
+        </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
           <a href="{{ route('web.teacher.supervised_outline_reports', ['supervisorId' => $supervisorId, 'termId' => $rows->id]) }}" class="group rounded-xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md hover:border-blue-300 transition">
             <div class="flex items-start gap-3">
@@ -526,6 +556,17 @@
         case 3:
           contentBox.innerHTML = `
         <h3 class="text-lg font-semibold mb-3">Giai đoạn 03: Nhật ký tuần của sinh viên</h3>
+        <div class="mt-2 mb-3 p-3 bg-gradient-to-r from-emerald-50 to-green-50 rounded-xl border border-emerald-100 shadow-sm inline-block">
+          <p class="text-base font-semibold text-emerald-700 flex items-center gap-2">
+            <span class="text-lg">📅</span>
+            Thời gian:
+            <span class="ml-1 font-medium text-green-700">
+              {{ Carbon::parse($stage[2]->start_date)->format('d/m/Y') }}
+              —
+              {{ Carbon::parse($stage[2]->end_date)->format('d/m/Y') }}
+            </span>
+          </p>
+        </div>
         <div class="bg-white border rounded-xl p-4">
           <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-3">
             <div class="relative">
@@ -626,6 +667,17 @@
         case 4:
           contentBox.innerHTML = `
         <h3 class="text-lg font-semibold mb-3">Giai đoạn 04: Báo cáo cuối</h3>
+        <div class="mt-2 mb-3 p-3 bg-gradient-to-r from-emerald-50 to-green-50 rounded-xl border border-emerald-100 shadow-sm inline-block">
+          <p class="text-base font-semibold text-emerald-700 flex items-center gap-2">
+            <span class="text-lg">📅</span>
+            Thời gian:
+            <span class="ml-1 font-medium text-green-700">
+              {{ Carbon::parse($stage[3]->start_date)->format('d/m/Y') }}
+              —
+              {{ Carbon::parse($stage[3]->end_date)->format('d/m/Y') }}
+            </span>
+          </p>
+        </div>
         <div class="bg-white border rounded-xl p-4">
           <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-3">
             <div class="relative">
@@ -728,6 +780,17 @@
         case 5:
           contentBox.innerHTML = `
         <h3 class="text-lg font-semibold mb-3">Giai đoạn 05: Hội đồng</h3>
+        <div class="mt-2 mb-3 p-3 bg-gradient-to-r from-emerald-50 to-green-50 rounded-xl border border-emerald-100 shadow-sm inline-block">
+          <p class="text-base font-semibold text-emerald-700 flex items-center gap-2">
+            <span class="text-lg">📅</span>
+            Thời gian:
+            <span class="ml-1 font-medium text-green-700">
+              {{ Carbon::parse($stage[4]->start_date)->format('d/m/Y') }}
+              —
+              {{ Carbon::parse($stage[4]->end_date)->format('d/m/Y') }}
+            </span>
+          </p>
+        </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
           <a href="{{ route('web.teacher.student_committee', ['supervisorId' => $supervisorId, 'termId' => $rows->id]) }}" class="group rounded-xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md hover:border-blue-300 transition">
             <div class="flex items-start gap-3">
@@ -864,6 +927,17 @@
         case 6:
           contentBox.innerHTML = `
         <h3 class="text-lg font-semibold mb-3">Giai đoạn 06: Phản biện</h3>
+        <div class="mt-2 mb-3 p-3 bg-gradient-to-r from-emerald-50 to-green-50 rounded-xl border border-emerald-100 shadow-sm inline-block">
+          <p class="text-base font-semibold text-emerald-700 flex items-center gap-2">
+            <span class="text-lg">📅</span>
+            Thời gian:
+            <span class="ml-1 font-medium text-green-700">
+              {{ Carbon::parse($stage[5]->start_date)->format('d/m/Y') }}
+              —
+              {{ Carbon::parse($stage[5]->end_date)->format('d/m/Y') }}
+            </span>
+          </p>
+        </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
           <a href="{{ route('web.teacher.student_review', ['termId' => $rows->id, 'supervisorId' => $supervisorId]) }}" class="group rounded-xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md hover:border-blue-300 transition">
             <div class="flex items-start gap-3">
@@ -1008,6 +1082,17 @@
         case 7:
           contentBox.innerHTML = `
         <h3 class="text-lg font-semibold mb-3">Giai đoạn 07: Kết quả phản biện & thứ tự bảo vệ</h3>
+        <div class="mt-2 mb-3 p-3 bg-gradient-to-r from-emerald-50 to-green-50 rounded-xl border border-emerald-100 shadow-sm inline-block">
+          <p class="text-base font-semibold text-emerald-700 flex items-center gap-2">
+            <span class="text-lg">📅</span>
+            Thời gian:
+            <span class="ml-1 font-medium text-green-700">
+              {{ Carbon::parse($stage[6]->start_date)->format('d/m/Y') }}
+              —
+              {{ Carbon::parse($stage[6]->end_date)->format('d/m/Y') }}
+            </span>
+          </p>
+        </div>
         <div class="bg-white border rounded-xl p-4">
           <div class="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-3">
             <div class="relative">
@@ -1121,6 +1206,17 @@
         case 8:
           contentBox.innerHTML = `
         <h3 class="text-lg font-semibold mb-3">Giai đoạn 08: Bảo vệ đồ án</h3>
+        <div class="mt-2 mb-3 p-3 bg-gradient-to-r from-emerald-50 to-green-50 rounded-xl border border-emerald-100 shadow-sm inline-block">
+          <p class="text-base font-semibold text-emerald-700 flex items-center gap-2">
+            <span class="text-lg">📅</span>
+            Thời gian:
+            <span class="ml-1 font-medium text-green-700">
+              {{ Carbon::parse($stage[7]->start_date)->format('d/m/Y') }}
+              —
+              {{ Carbon::parse($stage[7]->end_date)->format('d/m/Y') }}
+            </span>
+          </p>
+        </div>
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
           <a href="{{ route('web.teacher.student_council', ['termId' => $rows->id, 'supervisorId' => $supervisorId]) }}" class="group rounded-xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md hover:border-blue-300 transition">
             <div class="flex items-start gap-3">
