@@ -1618,158 +1618,132 @@ function openEditCouncilModal(data){
           @endforeach
         </select>
       </div>
+     </div>
+        </div>
+        </main>
+      </div>
     </div>
-    <p class="mt-4 text-xs text-slate-500">Thành phần: 1 Chủ tịch, 1 Thư kí, 3 Ủy viên.</p>
-  </div>
 
-  <!-- Buttons -->
-  <div class="flex items-center justify-end gap-3">
-    <button type="button" 
-            class="px-4 py-2 rounded-xl border text-sm text-slate-600 hover:bg-slate-100 transition" 
-            onclick="this.closest('.fixed').remove()">Hủy</button>
-    <button id="confirmUpdateCouncil" type="submit" 
-            class="px-4 py-2 rounded-xl bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 shadow-sm transition">Lưu</button>
-  </div>
-</form>`;
-  const modal = createModal('Cập nhật hội đồng', content);
-  document.body.appendChild(modal);
-
-  // Prefill selects
-  const deptSel = modal.querySelector('select[name="dept"]');
-  if (deptSel && data.deptId) deptSel.value = String(data.deptId);
-
-  const roleSelects = Array.from(
-    modal.querySelectorAll('select[name="chutich"], select[name="thuki"], select[name="uyvien1"], select[name="uyvien2"], select[name="uyvien3"]')
-  );
-  const roleValues = {
-    chutich: data.chutich || '',
-    thuki: data.thuki || '',
-    uyvien1: data.uyvien1 || '',
-    uyvien2: data.uyvien2 || '',
-    uyvien3: data.uyvien3 || '',
-  };
-  roleSelects.forEach(sel => { const k = sel.name; if (roleValues[k]) sel.value = String(roleValues[k]); });
-
-  // Đồng bộ các select vai trò
-  function syncRoleSelects(){
-    const chosen = new Set(roleSelects.map(s => s.value).filter(Boolean));
-    roleSelects.forEach(sel => {
-      Array.from(sel.options).forEach(opt => {
-        if (!opt.value) return;
-        const duplicate = chosen.has(opt.value) && sel.value !== opt.value;
-        opt.disabled = duplicate;
-        opt.hidden = duplicate;
-      });
-    });
-  }
-  roleSelects.forEach(sel => sel.addEventListener('change', syncRoleSelects));
-  syncRoleSelects();
-
-  // Submit update
-  modal.querySelector('#editCouncilForm')?.addEventListener('submit', async (e)=>{
-    e.preventDefault();
-    // Validate trùng GV
-    const picked = roleSelects.map(s => s.value).filter(Boolean);
-    if (new Set(picked).size !== picked.length) { alert('Các vai trò không được trùng giảng viên.'); return; }
-
-    const fd = new FormData(e.currentTarget);
-    const payload = {
-      code: (fd.get('code')||'').toString().trim(),
-      name: (fd.get('name')||'').toString().trim(),
-      dept: (fd.get('dept')||'').toString().trim() || null,
-      room: (fd.get('room')||'').toString().trim(),
-      date: (fd.get('date')||'').toString().trim(),
-      description: (fd.get('description')||'').toString().trim(),
-    };
-    if (!payload.code) { alert('Mã hội đồng là bắt buộc.'); return; }
-
-    const token = document.querySelector('meta[name="csrf-token"]')?.content || '';
-    // 1) Update council info
-    const urlTpl = `{{ route('web.assistant.councils.update', ['council' => 0]) }}`;
-    const url = urlTpl.replace('/0', '/' + data.id);
-    const res = await fetch(url, {
-      method: 'PATCH',
-      headers: { 'Content-Type':'application/json','X-CSRF-TOKEN': token,'Accept':'application/json' },
-      body: JSON.stringify(payload)
-    });
-    if(!res.ok){ alert('Cập nhật hội đồng thất bại'); return; }
-    const json = await res.json().catch(()=>({}));
-
-    // 2) Lưu vai trò (nếu có chọn)
-    const rolesBody = {
-      chairman:  fd.get('chutich') || null,
-      secretary: fd.get('thuki') || null,
-      member1:   fd.get('uyvien1') || null,
-      member2:   fd.get('uyvien2') || null,
-      member3:   fd.get('uyvien3') || null,
-    };
-    const hasAnyRole = Object.values(rolesBody).some(v=>!!v);
-    if (hasAnyRole) {
-      const urlRolesTpl = `{{ route('web.assistant.councils.members.save', ['council' => 0]) }}`;
-      const urlRoles = urlRolesTpl.replace('/0/','/'+data.id+'/');
-      const res2 = await fetch(urlRoles, {
-        method: 'POST',
-        headers: { 'Content-Type':'application/json','X-CSRF-TOKEN': token,'Accept':'application/json' },
-        body: JSON.stringify(rolesBody)
-      });
-      if(!res2.ok){ alert('Lưu vai trò thất bại'); return; }
-    }
-
-    // Cập nhật UI hàng tương ứng
-    const tr = document.querySelector(`.editCouncilBtn[data-id="${data.id}"]`)?.closest('tr');
-    if (tr) {
-      const td = tr.querySelectorAll('td');
-      td[0].querySelector('a').textContent = json?.data?.code || payload.code;
-      td[1].textContent = json?.data?.name || payload.name || 'N/A';
-      td[2].textContent = json?.data?.department?.name || td[2].textContent;
-      // Định dạng dd/mm/yyyy
-      const d = payload.date;
-      const dateFmt = d && /^\d{4}-\d{2}-\d{2}$/.test(d) ? `${d.slice(8,10)}/${d.slice(5,7)}/${d.slice(0,4)}` : (d || 'N/A');
-      td[3].textContent = dateFmt || 'N/A';
-      td[4].textContent = payload.room || 'N/A';
-      // cập nhật data-* cho nút
-      const btn = tr.querySelector('.editCouncilBtn');
-      if (btn) {
-        btn.dataset.code = json?.data?.code || payload.code;
-        btn.dataset.name = json?.data?.name || payload.name || '';
-        btn.dataset.deptId = json?.data?.department?.id || (payload.dept || '');
-        btn.dataset.date = payload.date || '';
-        btn.dataset.room = payload.room || '';
-        btn.dataset.description = payload.description || '';
-        // vai trò nếu vừa chọn
-        btn.dataset.chutich = rolesBody.chairman || '';
-        btn.dataset.thuki   = rolesBody.secretary || '';
-        btn.dataset.uyvien1 = rolesBody.member1 || '';
-        btn.dataset.uyvien2 = rolesBody.member2 || '';
-        btn.dataset.uyvien3 = rolesBody.member3 || '';
+    <script>
+      const html=document.documentElement, sidebar=document.getElementById('sidebar');
+      function setCollapsed(c){
+        const mainArea = document.querySelector('.flex-1');
+        if(c){
+          html.classList.add('sidebar-collapsed');
+          mainArea.classList.add('md:pl-[72px]');
+          mainArea.classList.remove('md:pl-[260px]');
+        } else {
+          html.classList.remove('sidebar-collapsed');
+          mainArea.classList.remove('md:pl-[72px]');
+          mainArea.classList.add('md:pl-[260px]');
+        }
       }
-    }
+      document.getElementById('toggleSidebar')?.addEventListener('click',()=>{const c=!html.classList.contains('sidebar-collapsed');setCollapsed(c);localStorage.setItem('assistant_sidebar',''+(c?1:0));});
+      document.getElementById('openSidebar')?.addEventListener('click',()=>sidebar.classList.toggle('-translate-x-full'));
+      if(localStorage.getItem('assistant_sidebar')==='1') setCollapsed(true);
+      sidebar.classList.add('md:translate-x-0','-translate-x-full','md:static');
 
-    modal.remove();
-  });
-}
+      // Ensure the script runs after the DOM is fully loaded
+      document.addEventListener('DOMContentLoaded', () => {
+        // Timeline interaction
+        const timelineStages = document.querySelectorAll('.timeline-stage');
+        const stageContent = document.getElementById('stageContent');
 
-// Event delegation: mở modal khi click nút sửa (đã có, bổ sung lấy dữ liệu vai trò nếu có)
-document.addEventListener('click', (e)=>{
-  const btn = e.target.closest('.editCouncilBtn');
-  if(!btn) return;
-  e.preventDefault();
-  const d = btn.dataset;
-  openEditCouncilModal({
-    id: Number(d.id),
-    code: d.code || '',
-    name: d.name || '',
-    deptId: d.deptId || '',
-    date: d.date || '',
-    room: d.room || '',
-    description: d.description || '',
-    chutich: d.chutich || '',
-    thuki: d.thuki || '',
-    uyvien1: d.uyvien1 || '',
-    uyvien2: d.uyvien2 || '',
-    uyvien3: d.uyvien3 || '',
-  });
-});
-    </script>
-  </body>
-</html>
+        // Helpers: parse ngày linh hoạt và format ngày
+        function toDateAny(s) {
+          s = (s || '').trim();
+          // dd/mm/yyyy
+          let m = s.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+          if (m) return new Date(+m[3], +m[2] - 1, +m[1]);
+          // yyyy-mm-dd
+          m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+          if (m) return new Date(+m[1], +m[2] - 1, +m[3]);
+          const d = new Date(s);
+          return isNaN(d) ? null : d;
+        }
+        function formatVN(d) {
+          if (!(d instanceof Date) || isNaN(d)) return '';
+          const dd = String(d.getDate()).padStart(2, '0');
+          const mm = String(d.getMonth() + 1).padStart(2, '0');
+          const yy = d.getFullYear();
+          return `${dd}/${mm}/${yy}`;
+        }
+        function getRoundDates() {
+          // Ưu tiên lấy từ data-* để đảm bảo định dạng
+          const meta = document.getElementById('roundMeta');
+          let a = meta?.dataset.start || '';
+          let b = meta?.dataset.end || '';
+          // Fallback từ text nếu thiếu
+          if (!a || !b) {
+            const rangeEl = document.querySelector('main section:first-of-type .text-sm.text-slate-600');
+            const txt = (rangeEl?.textContent || '').trim();
+            [a, b] = txt.split('-').map(s => (s || '').trim());
+          }
+          const start = toDateAny(a);
+          const end = toDateAny(b);
+          return { start, end };
+        }
+        function getStagePeriod(stageNum, totalStages = 8) {
+          const { start, end } = getRoundDates();
+          if (!start || !end || end < start) return null;
+          const totalMs = end.getTime() - start.getTime();
+          const slice = Math.floor(totalMs / totalStages);
+          const segStart = new Date(start.getTime() + slice * (stageNum - 1));
+          // segEnd: nếu là stage cuối dùng end, ngược lại lấy mốc trước của stage tiếp theo
+          const segEnd = stageNum === totalStages
+            ? end
+            : new Date(start.getTime() + slice * stageNum - 1);
+          return { start: segStart, end: segEnd };
+        }
+
+        const stageData = {
+          1: {
+            title: 'Nhập danh sách sinh viên đủ điều kiện',
+            description: 'Import danh sách sinh viên đủ điều kiện tham gia đồ án tốt nghiệp',
+            actions: [
+              { label: 'Import SV', href: 'students-import.html' },
+              { label: 'Xem danh sách', href: 'students-detail.html' }
+            ]
+          },
+          2: {
+            title: 'Quản lý đề cương đồ án',
+            description: 'Quản lý danh sách sinh viên nộp đề cương và đề tài đồ án',
+            actions: [
+              { label: 'Quản lý đề cương', href: 'outline-management.html' },
+              { label: 'Danh sách đề tài', href: '#' }
+            ]
+          },
+          3: {
+            title: 'Thực hiện đồ án',
+            description: 'Quản lý quá trình sinh viên thực hiện đồ án và báo cáo tiến độ',
+            actions: [
+              { label: 'Theo dõi tiến độ', href: 'progress-tracking.html' },
+              { label: 'Báo cáo định kỳ', href: '#' },
+            ]
+          },
+          4: {
+            title: 'Nộp báo cáo cuối kỳ',
+            description: 'Quản lý việc sinh viên nộp báo cáo và tài liệu cuối kỳ',
+            actions: [
+              { label: 'Quản lý báo cáo', href: 'report-management.html' },
+              { label: 'Danh sách nộp bài', href: '#' }
+            ]
+          },
+          5: {
+            title: 'Thành lập hội đồng chấm',
+            description: 'Tạo hội đồng, phân công vai trò và phân sinh viên vào hội đồng',
+            actions: [
+              { label: 'Tạo hội đồng', href: '#', action: 'createCouncil' },
+              { label: 'Phân công vai trò', href: "{{ route('web.assistant.councils.roles', [$round_detail->id]) }}" },
+              { label: 'Phân sinh viên', href: '{{ route('web.assistant.council_assign_students', ['termId' => $round_detail->id]) }}' }
+            ]
+          },
+          6: {
+            title: 'Phản biện',
+            description: 'Quản lý quá trình phản biện đồ án',
+            actions: [
+              { label: 'Danh sách giáo viên phản biện', href: 'reviewers.html' },
+              { label: 'Danh sách sinh viên phản biện', href: '#' }
+            ]
+          },
+          7:
