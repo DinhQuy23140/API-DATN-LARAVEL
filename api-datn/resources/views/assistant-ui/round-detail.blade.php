@@ -38,6 +38,7 @@
   </head>
   <body class="bg-slate-50 text-slate-800">
     @php
+      use Carbon\Carbon;
       $user = auth()->user();
       $userName = $user->fullname ?? $user->name ?? 'Giảng viên';
       $email = $user->email ?? '';
@@ -90,7 +91,6 @@
           <button id="toggleSidebar" class="w-full flex items-center justify-center gap-2 px-3 py-2 text-slate-600 hover:bg-slate-100 rounded-lg"><i class="ph ph-sidebar"></i><span class="sidebar-label">Thu gọn</span></button>
         </div>
       </aside>
-
       <div class="flex-1 h-screen overflow-hidden flex flex-col">
         <header class="h-16 bg-white border-b border-slate-200 flex items-center px-4 md:px-6 flex-shrink-0">
           <div class="flex items-center gap-3 flex-1">
@@ -118,7 +118,6 @@
             </div>
           </div>
         </header>
-
         <main class="flex-1 overflow-y-auto px-4 md:px-6 py-6 space-y-6">
           <div class="max-w-6xl mx-auto space-y-6">
           <section id="roundMeta" class="bg-white rounded-xl border border-slate-200 p-5"
@@ -458,82 +457,82 @@
 
               <!-- Actions -->
               <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-<!-- Card cơ bản -->
-<a href="{{ route('web.assistant.students_import', [$round_detail->id]) }}"
-  class="group relative flex flex-col border border-slate-200 rounded-2xl bg-gradient-to-br from-white to-slate-50 p-5 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 min-h-[230px] overflow-hidden">
-  
-  <!-- Hiệu ứng mờ góc trên -->
-  <div class="absolute top-0 right-0 w-20 h-20 bg-emerald-100/30 rounded-bl-[100%] opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <!-- Card cơ bản -->
+                <a href="{{ route('web.assistant.students_import', [$round_detail->id]) }}"
+                  class="group relative flex flex-col border border-slate-200 rounded-2xl bg-gradient-to-br from-white to-slate-50 p-5 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 min-h-[230px] overflow-hidden">
+                  
+                  <!-- Hiệu ứng mờ góc trên -->
+                  <div class="absolute top-0 right-0 w-20 h-20 bg-emerald-100/30 rounded-bl-[100%] opacity-0 group-hover:opacity-100 transition-opacity"></div>
 
-  <div class="flex items-start gap-3 z-10">
-    <div class="h-12 w-12 rounded-xl grid place-items-center bg-emerald-50 text-emerald-600 group-hover:bg-emerald-100 transition-transform duration-300 group-hover:scale-110 shadow-inner">
-      <i class="ph ph-user-plus text-lg"></i>
-    </div>
-    <div class="flex-1">
-      <h3 class="font-semibold text-slate-800 text-base mb-1">Nhập danh sách sinh viên</h3>
-      <p class="text-sm text-slate-500 leading-snug">
-        Tạo mới hoặc nhập danh sách sinh viên tham gia đợt đồ án tốt nghiệp.
-      </p>
-    </div>
-  </div>
+                  <div class="flex items-start gap-3 z-10">
+                    <div class="h-12 w-12 rounded-xl grid place-items-center bg-emerald-50 text-emerald-600 group-hover:bg-emerald-100 transition-transform duration-300 group-hover:scale-110 shadow-inner">
+                      <i class="ph ph-user-plus text-lg"></i>
+                    </div>
+                    <div class="flex-1">
+                      <h3 class="font-semibold text-slate-800 text-base mb-1">Nhập danh sách sinh viên</h3>
+                      <p class="text-sm text-slate-500 leading-snug">
+                        Tạo mới hoặc nhập danh sách sinh viên tham gia đợt đồ án tốt nghiệp.
+                      </p>
+                    </div>
+                  </div>
 
-  <!-- Button cố định -->
-  <div class="absolute bottom-4 left-5">
-    <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-sm shadow-sm hover:bg-emerald-700 hover:shadow-md transition">
-      <i class="ph ph-plus text-sm"></i> Thêm
-    </span>
-  </div>
-</a>
+                  <!-- Button cố định -->
+                  <div class="absolute bottom-4 left-5">
+                    <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-sm shadow-sm hover:bg-emerald-700 hover:shadow-md transition">
+                      <i class="ph ph-plus text-sm"></i> Thêm
+                    </span>
+                  </div>
+                </a>
 
-<!-- Giảng viên hướng dẫn -->
-<a href="{{ route('web.assistant.supervisors_import', [$round_detail->id]) }}"
-  class="group relative flex flex-col border border-slate-200 rounded-2xl bg-gradient-to-br from-white to-lime-50/40 p-5 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 min-h-[230px] overflow-hidden">
-  
-  <div class="absolute top-0 right-0 w-20 h-20 bg-lime-100/30 rounded-bl-[100%] opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <!-- Giảng viên hướng dẫn -->
+                <a href="{{ route('web.assistant.supervisors_import', [$round_detail->id]) }}"
+                  class="group relative flex flex-col border border-slate-200 rounded-2xl bg-gradient-to-br from-white to-lime-50/40 p-5 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 min-h-[230px] overflow-hidden">
+                  
+                  <div class="absolute top-0 right-0 w-20 h-20 bg-lime-100/30 rounded-bl-[100%] opacity-0 group-hover:opacity-100 transition-opacity"></div>
 
-  <div class="flex items-start gap-3 z-10">
-    <div class="h-12 w-12 rounded-xl grid place-items-center bg-lime-50 text-lime-600 group-hover:bg-lime-100 transition-transform duration-300 group-hover:scale-110 shadow-inner">
-      <i class="ph ph-users-three text-lg"></i>
-    </div>
-    <div class="flex-1">
-      <h3 class="font-semibold text-slate-800 text-base mb-1">Nhập danh sách giảng viên hướng dẫn</h3>
-      <p class="text-sm text-slate-500 leading-snug">
-        Tạo mới hoặc nhập danh sách giảng viên hướng dẫn cho sinh viên.
-      </p>
-    </div>
-  </div>
+                  <div class="flex items-start gap-3 z-10">
+                    <div class="h-12 w-12 rounded-xl grid place-items-center bg-lime-50 text-lime-600 group-hover:bg-lime-100 transition-transform duration-300 group-hover:scale-110 shadow-inner">
+                      <i class="ph ph-users-three text-lg"></i>
+                    </div>
+                    <div class="flex-1">
+                      <h3 class="font-semibold text-slate-800 text-base mb-1">Nhập danh sách giảng viên hướng dẫn</h3>
+                      <p class="text-sm text-slate-500 leading-snug">
+                        Tạo mới hoặc nhập danh sách giảng viên hướng dẫn cho sinh viên.
+                      </p>
+                    </div>
+                  </div>
 
-  <div class="absolute bottom-4 left-5">
-    <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-lime-600 text-white text-sm shadow-sm hover:bg-lime-700 hover:shadow-md transition">
-      <i class="ph ph-plus text-sm"></i> Thêm
-    </span>
-  </div>
-</a>
+                  <div class="absolute bottom-4 left-5">
+                    <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-lime-600 text-white text-sm shadow-sm hover:bg-lime-700 hover:shadow-md transition">
+                      <i class="ph ph-plus text-sm"></i> Thêm
+                    </span>
+                  </div>
+                </a>
 
-<!-- Sinh viên hoãn -->
-<a href="{{ route('web.assistant.deferred_students', [$round_detail->id]) }}"
-  class="group relative flex flex-col border border-slate-200 rounded-2xl bg-gradient-to-br from-white to-amber-50/40 p-5 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 min-h-[230px] overflow-hidden">
-  
-  <div class="absolute top-0 right-0 w-20 h-20 bg-amber-100/30 rounded-bl-[100%] opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                <!-- Sinh viên hoãn -->
+                <a href="{{ route('web.assistant.deferred_students', [$round_detail->id]) }}"
+                  class="group relative flex flex-col border border-slate-200 rounded-2xl bg-gradient-to-br from-white to-amber-50/40 p-5 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 min-h-[230px] overflow-hidden">
+                  
+                  <div class="absolute top-0 right-0 w-20 h-20 bg-amber-100/30 rounded-bl-[100%] opacity-0 group-hover:opacity-100 transition-opacity"></div>
 
-  <div class="flex items-start gap-3 z-10">
-    <div class="h-12 w-12 rounded-xl grid place-items-center bg-amber-50 text-amber-600 group-hover:bg-amber-100 transition-transform duration-300 group-hover:scale-110 shadow-inner">
-      <i class="ph ph-hourglass text-lg"></i>
-    </div>
-    <div class="flex-1">
-      <h3 class="font-semibold text-slate-800 text-base mb-1">Danh sách sinh viên hoãn đồ án</h3>
-      <p class="text-sm text-slate-500 leading-snug">
-        Xem danh sách sinh viên đã được duyệt hoãn tham gia đợt đồ án.
-      </p>
-    </div>
-  </div>
+                  <div class="flex items-start gap-3 z-10">
+                    <div class="h-12 w-12 rounded-xl grid place-items-center bg-amber-50 text-amber-600 group-hover:bg-amber-100 transition-transform duration-300 group-hover:scale-110 shadow-inner">
+                      <i class="ph ph-hourglass text-lg"></i>
+                    </div>
+                    <div class="flex-1">
+                      <h3 class="font-semibold text-slate-800 text-base mb-1">Danh sách sinh viên hoãn đồ án</h3>
+                      <p class="text-sm text-slate-500 leading-snug">
+                        Xem danh sách sinh viên đã được duyệt hoãn tham gia đợt đồ án.
+                      </p>
+                    </div>
+                  </div>
 
-  <div class="absolute bottom-4 left-5">
-    <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-amber-600 text-white text-sm shadow-sm hover:bg-amber-700 hover:shadow-md transition">
-      <i class="ph ph-list-bullets text-sm"></i> Mở danh sách
-    </span>
-  </div>
-</a>
+                  <div class="absolute bottom-4 left-5">
+                    <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-amber-600 text-white text-sm shadow-sm hover:bg-amber-700 hover:shadow-md transition">
+                      <i class="ph ph-list-bullets text-sm"></i> Mở danh sách
+                    </span>
+                  </div>
+                </a>
 
               </div>
 
@@ -599,8 +598,8 @@
                             $marjor = $a->student->marjor->name ?? 'N/A';
                           @endphp
                           <tr class="student-row">
-                            <td class="px-4 py-2">{{ $student_id }}</td>
-                            <td class="px-4 py-2">{{ $name }}</td>
+                            <td class="px-4 py-2 font-semibold text-emerald-700">{{ $student_id }}</td>
+                            <td class="px-4 py-2 font-medium text-slate-800">{{ $name }}</td>
                             <td class="px-4 py-2">{{ $marjor }}</td>
                             <td class="px-4 py-2 text-emerald-600 font-medium">{{ $topic }}</td>
                           </tr>
@@ -658,11 +657,11 @@
                             $teacherCode = $s->teacher->teacher_code ?? 'N/A';
                             $teacherName = $s->teacher->user->fullname ?? 'N/A';
                             $department = $s->teacher->department->name ?? 'N/A';
-                            $studentCount = $s->assignment_supervisors->where('round_id', $round_detail->id)->count() ?? 0;
+                            $studentCount = $s->assignment_supervisors->where('assignment.project_term_id', $round_detail->id)->count() ?? 0;
                           @endphp
                           <tr class="lecturer-row">
-                            <td class="px-4 py-2">{{ $teacherCode }}</td>
-                            <td class="px-4 py-2">{{ $teacherName }}</td>
+                            <td class="px-4 py-2 font-semibold text-lime-700">{{ $teacherCode }}</td>
+                            <td class="px-4 py-2 font-medium text-slate-800">{{ $teacherName }}</td>
                             <td class="px-4 py-2">{{ $department }}</td>
                             <td class="px-4 py-2 text-lime-700 font-medium">{{ $studentCount }}</td>
                           </tr>
@@ -768,67 +767,104 @@
                 </div>
 
                 <!-- Table -->
-                <div class="overflow-x-auto">
-                  <table class="min-w-full border border-slate-200 rounded-lg overflow-hidden">
-                    <thead class="bg-emerald-50 text-emerald-700 text-sm">
-                      <tr>
-                        <th class="px-3 py-2 text-left">Mã SV</th>
-                        <th class="px-3 py-2 text-left">Họ tên</th>
-                        <th class="px-3 py-2 text-left">Lớp</th>
-                        <th class="px-3 py-2 text-left">Email</th>
-                        <th class="px-3 py-2 text-left">Đề tài đăng ký</th>
-                        <th class="px-3 py-2 text-left">GV hướng dẫn</th>
-                        <th class="px-3 py-2 text-left">Trạng thái</th>
-                        <th class="px-3 py-2 text-left">Cập nhật</th>
-                      </tr>
-                    </thead>
-                    <tbody id="stage2TableBody" class="divide-y divide-slate-200 text-sm">
-                    @if ($assignments->isEmpty())
-                      <tr>
-                        <td colspan="8" class="px-4 py-6 text-center text-sm text-slate-400 italic">
-                          Chưa có sinh viên nào được phân công.
-                        </td>
-                      </tr>
-                    @else
-                    @foreach ($assignments as $assignment)
-                      @php
-                        $student = $assignment->student;
-                        $student_id = $student->student_code ?? 'N/A';
-                        $name = $student->user->fullname ?? 'N/A';
-                        $marjor = $student->marjor->name ?? 'N/A';
-                        $email = $student->user->email ?? 'N/A';
-                        $topic = $assignment->project->name ?? 'Chưa có đề tài';
-                        $assignment_supervisors = $assignment->assignment_supervisors;
-                        $lastedOutline = $assignment?->project?->reportfiles->where('type', 'outline')->sortByDesc('created_at')->first() ?? null;
-                        $lastedOutlineStatus = $lastedOutline?->status ?? 'none';
-                      @endphp
-                        <tr class="stage2-row hover:bg-slate-50">
-                          <td class="px-3 py-2 font-medium text-slate-800">{{ $student_id }}</td>
-                          <td class="px-3 py-2">{{ $name }}</td>
-                          <td class="px-3 py-2">{{ $marjor }}</td>
-                          <td class="px-3 py-2 text-slate-600">{{ $email }}</td>
-                          <td class="px-3 py-2">{{ $topic }}</td>
-                          <td class="px-3 py-2">
-                            @if ($supervisors->isEmpty())
-                              <div class="text-slate-700">Chưa có GVHD</div>
-                            @else
-                              @foreach ($assignment_supervisors as $as)
-                                @php
-                                  $teacher = $as->supervisor->teacher;
-                                  $teacherName = $teacher->user->fullname ?? 'N/A';
-                                @endphp
-                                <div class="text-slate-700">{{ $teacherName }}</div>
-                              @endforeach
-                            @endif
-                          </td>
-                          <td class="px-3 py-2"><span class="px-2 py-1 text-xs rounded-full bg-emerald-50 text-emerald-700">{{ $lastedOutlineStatus }}</span></td>
-                          <td class="px-3 py-2">{{ $lastedOutline?->created_at?->format('d/m/Y') ?? 'N/A' }}</td>
-                        </tr>
-                      @endforeach
-                    @endif
-                    </tbody>
-                  </table>
-                </div>
+  <div class="overflow-x-auto">
+  <table class="min-w-full border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+    <thead class="bg-gradient-to-r from-emerald-50 to-emerald-100 text-emerald-700 text-sm uppercase font-semibold tracking-wide">
+      <tr>
+        <th class="px-4 py-3 text-left">Mã SV</th>
+        <th class="px-4 py-3 text-left">Họ tên</th>
+        <th class="px-4 py-3 text-left">Lớp</th>
+        <th class="px-4 py-3 text-left">Đề tài đăng ký</th>
+        <th class="px-4 py-3 text-left">GV hướng dẫn</th>
+        <th class="px-4 py-3 text-left">Đề cương</th>
+        <th class="px-4 py-3 text-left">Cập nhật</th>
+      </tr>
+    </thead>
+    <tbody id="stage2TableBody" class="divide-y divide-slate-200 text-sm bg-white">
+      @if ($assignments->isEmpty())
+        <tr>
+          <td colspan="8" class="px-4 py-6 text-center text-slate-400 italic">
+            Chưa có sinh viên nào được phân công.
+          </td>
+        </tr>
+      @else
+        @foreach ($assignments as $assignment)
+          @php
+            $student = $assignment->student;
+            $student_id = $student->student_code ?? 'N/A';
+            $name = $student->user->fullname ?? 'N/A';
+            $marjor = $student->marjor->name ?? 'N/A';
+            $topic = $assignment->project->name ?? 'Chưa có đề tài';
+            $assignment_supervisors = $assignment->assignment_supervisors;
+            $lastedOutline = $assignment?->project
+                ? $assignment->project->reportFiles()
+                    ->where('type_report', 'outline')
+                    ->latest('created_at')
+                    ->first()
+                : null;
+            $fileUrl = $lastedOutline?->file_url ?? "#";
+            $lastedOutlineStatus = $lastedOutline?->status ?? 'none';
+          @endphp
+          <tr class="hover:bg-emerald-50 transition">
+            <!-- Mã SV -->
+            <td class="px-4 py-3 font-semibold text-emerald-700">{{ $student_id }}</td>
+
+            <!-- Họ tên -->
+            <td class="px-4 py-3 font-medium text-slate-800">{{ $name }}</td>
+
+            <!-- Lớp -->
+            <td class="px-4 py-3 text-slate-700">{{ $marjor }}</td>
+
+            <!-- Đề tài -->
+            <td class="px-4 py-3 text-slate-700 max-w-[250px] truncate" title="{{ $topic }}">
+              {{ $topic }}
+            </td>
+
+            <!-- GV hướng dẫn -->
+            <td class="px-4 py-3">
+              @if ($assignment_supervisors->isEmpty())
+                <span class="text-slate-400 italic">Chưa có GVHD</span>
+              @else
+                @foreach ($assignment_supervisors as $as)
+                  @php
+                    $teacher = $as->supervisor->teacher;
+                    $teacherName = $teacher->user->fullname ?? 'N/A';
+                  @endphp
+                  <div class="text-slate-700">{{ $teacherName }}</div>
+                @endforeach
+              @endif
+            </td>
+
+            <!-- Đề cương -->
+            <td class="px-4 py-3">
+              @if ($lastedOutline)
+                <a href="{{ $fileUrl }}" target="_blank"
+                  class="text-emerald-600 font-medium hover:underline hover:text-emerald-700 flex items-center gap-1">
+                  <i class="ph ph-file-text text-emerald-500"></i> {{ $lastedOutline->file_name }}
+                </a>
+              @else
+                <span class="text-slate-400 italic">Chưa nộp</span>
+              @endif
+            </td>
+
+            <!-- Cập nhật -->
+            <td class="px-4 py-3">
+              @if ($lastedOutline)
+                <span class="inline-flex items-center gap-1 text-xs text-slate-600">
+                  <i class="ph ph-clock text-emerald-500"></i>
+                  {{ $lastedOutline?->created_at?->format('d/m/Y') }}
+                </span>
+              @else
+                <span class="text-slate-400 italic text-sm">Chưa nộp</span>
+              @endif
+            </td>
+          </tr>
+        @endforeach
+      @endif
+    </tbody>
+  </table>
+</div>
+
               </div>
             `;
 
@@ -872,58 +908,77 @@
 
                 <!-- Table -->
                 <div class="overflow-x-auto">
-                  <table id="tableStage3" class="w-full text-sm">
-                    <thead>
-                      <tr class="text-left text-emerald-700 border-b bg-emerald-50">
-                        <th class="py-2 px-3">Mã SV</th>
-                        <th class="py-2 px-3">Họ tên</th>
-                        <th class="py-2 px-3">Lớp</th>
-                        <th class="py-2 px-3">GVHD</th>
-                        <th class="py-2 px-3">Tiến độ</th>
-                        <th class="py-2 px-3">Cập nhật</th>
+                  <table id="tableStage3" class="min-w-full border border-slate-200 rounded-xl overflow-hidden shadow-sm text-sm">
+                    <thead class="bg-gradient-to-r from-emerald-50 to-emerald-100 text-emerald-700 uppercase font-semibold tracking-wide">
+                      <tr class="text-left">
+                        <th class="py-3 px-4">Mã SV</th>
+                        <th class="py-3 px-4">Họ tên</th>
+                        <th class="py-3 px-4">Lớp</th>
+                        <th class="py-3 px-4">Đề tài</th>
+                        <th class="py-3 px-4">Nhật ký đồ án</th>
+                        <th class="py-3 px-4">Báo cáo</th>
+                        <th class="py-3 px-4">Cập nhật</th>
                       </tr>
                     </thead>
-                    <tbody id="stage3TableBody" class="divide-y divide-slate-200">
-                      <tr class="stage3-row">
-                        <td class="py-2 px-3 font-medium">20123456</td>
-                        <td class="py-2 px-3">Nguyễn Văn A</td>
-                        <td class="py-2 px-3">KTPM2025</td>
-                        <td class="py-2 px-3">TS. Đặng Hữu T</td>
-                        <td class="py-2 px-3">75%</td>
-                        <td class="py-2 px-3 text-slate-500">2 ngày trước</td>
-                      </tr>
-                      <tr class="stage3-row">
-                        <td class="py-2 px-3 font-medium">20124567</td>
-                        <td class="py-2 px-3">Trần Thị B</td>
-                        <td class="py-2 px-3">KTPM2025</td>
-                        <td class="py-2 px-3">ThS. Lưu Lan</td>
-                        <td class="py-2 px-3">45%</td>
-                        <td class="py-2 px-3 text-slate-500">5 ngày trước</td>
-                      </tr>
-                      <tr class="stage3-row">
-                        <td class="py-2 px-3 font-medium">20125678</td>
-                        <td class="py-2 px-3">Lê Văn C</td>
-                        <td class="py-2 px-3">HTTT2025</td>
-                        <td class="py-2 px-3">TS. Nguyễn Văn A</td>
-                        <td class="py-2 px-3">90%</td>
-                        <td class="py-2 px-3 text-slate-500">1 ngày trước</td>
-                      </tr>
-                      <tr class="stage3-row">
-                        <td class="py-2 px-3 font-medium">20126789</td>
-                        <td class="py-2 px-3">Phạm D</td>
-                        <td class="py-2 px-3">CNTT2025</td>
-                        <td class="py-2 px-3">ThS. Trần Minh</td>
-                        <td class="py-2 px-3">60%</td>
-                        <td class="py-2 px-3 text-slate-500">3 ngày trước</td>
-                      </tr>
-                      <tr class="stage3-row">
-                        <td class="py-2 px-3 font-medium">20127890</td>
-                        <td class="py-2 px-3">Vũ E</td>
-                        <td class="py-2 px-3">KTPM2025</td>
-                        <td class="py-2 px-3">TS. Lê Anh</td>
-                        <td class="py-2 px-3">30%</td>
-                        <td class="py-2 px-3 text-slate-500">7 ngày trước</td>
-                      </tr>
+
+                    <tbody id="stage3TableBody" class="divide-y divide-slate-200 bg-white">
+                      @if ($assignments->isEmpty())
+                        <tr>
+                          <td colspan="6" class="px-4 py-6 text-center text-slate-400 italic">
+                            Chưa có sinh viên nào được phân công.
+                          </td>
+                        </tr>
+                      @else
+                        @foreach ($assignments as $assignment)
+                          @php
+                            $student = $assignment->student;
+                            $student_id = $student->student_code ?? 'N/A';
+                            $name = $student->user->fullname ?? 'N/A';
+                            $class_name = $student->marjor->name ?? 'N/A';
+                            $topic = $assignment->project->name ?? 'Chưa có đề tài';
+                            $progressLogs = $assignment->project ? $assignment->project->progressLogs()->latest()->first() : null;
+                            $logTitle = $progressLogs?->title ?? 'Chưa có nhật ký';
+                            $reportUrls = $progressLogs?->attachments ?? [];
+                          @endphp
+
+                          <tr class="hover:bg-emerald-50 transition">
+                            <td class="py-3 px-4 font-semibold text-emerald-700">{{ $student_id }}</td>
+                            <td class="py-3 px-4 font-medium text-slate-800">{{ $name }}</td>
+                            <td class="py-3 px-4 text-slate-700">{{ $class_name }}</td>
+                            <td class="py-3 px-4 text-slate-700 max-w-[250px] truncate" title="{{ $topic }}">
+                              {{ $topic }}
+                            </td>
+                            <td class="py-3 px-4 text-slate-700">
+                              @if ($progressLogs)
+                                <a href="#"
+                                  class="text-emerald-600 font-medium hover:text-emerald-700 hover:underline flex items-center gap-1">
+                                  <i class="ph ph-notebook text-emerald-500"></i> {{ $logTitle }}
+                                </a>
+                              @else
+                                <span class="text-slate-400 italic">Chưa có nhật ký</span>
+                              @endif
+                            </td>
+                            <td class="py-3 px-4 text-slate-100">
+                              @if ($reportUrls && $reportUrls->count() > 0)
+                                @foreach ($reportUrls as $url)
+                                  <a href="{{ $url->file_url }}" target="_blank"
+                                    class="text-emerald-600 font-medium hover:underline hover:text-emerald-700 flex items-center gap-1">
+                                    <i class="ph ph-file-text text-emerald-500"></i> {{ $url->file_name }}
+                                  </a>
+                                @endforeach
+                              @else
+                                <span class="text-slate-400 italic">Chưa có báo cáo</span>
+                              @endif
+                            </td>
+                            <td class="py-3 px-4 text-slate-600">
+                              <span class="inline-flex items-center gap-1 text-xs">
+                                <i class="ph ph-clock text-emerald-500"></i>
+                                {{ $assignment->created_at?->format('d/m/Y') ?? '—' }}
+                              </span>
+                            </td>
+                          </tr>
+                        @endforeach
+                      @endif
                     </tbody>
                   </table>
                 </div>
@@ -976,72 +1031,84 @@
                 </div>
 
                 <!-- Table -->
-                <div class="overflow-x-auto border border-slate-200 rounded-xl shadow-sm">
-                  <table id="tableStage4" class="w-full text-sm border-collapse">
-                    <thead class="bg-emerald-50 text-emerald-700 border-b border-slate-200">
-                      <tr>
-                        <th class="py-2.5 px-3 text-left">Mã SV</th>
-                        <th class="py-2.5 px-3 text-left">Họ tên</th>
-                        <th class="py-2.5 px-3 text-left">Lớp</th>
-                        <th class="py-2.5 px-3 text-left">Tiêu đề</th>
-                        <th class="py-2.5 px-3 text-left">Trạng thái</th>
-                        <th class="py-2.5 px-3 text-left">Cập nhật</th>
-                      </tr>
-                    </thead>
-                    <tbody id="stage4TableBody" class="divide-y divide-slate-100">
-                      <tr class="stage4-row odd:bg-white even:bg-slate-50 hover:bg-blue-50 transition-colors">
-                        <td class="py-2.5 px-3 font-medium text-slate-800">20123456</td>
-                        <td class="py-2.5 px-3">Nguyễn Văn A</td>
-                        <td class="py-2.5 px-3">KTPM2025</td>
-                        <td class="py-2.5 px-3">Báo cáo tuần 1: Phân tích yêu cầu</td>
-                        <td class="py-2.5 px-3">
-                          <span class="text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-lg text-xs font-medium">Đã nộp</span>
-                        </td>
-                        <td class="py-2.5 px-3 text-slate-500">10/08/2025</td>
-                      </tr>
-                      <tr class="stage4-row odd:bg-white even:bg-slate-50 hover:bg-blue-50 transition-colors">
-                        <td class="py-2.5 px-3 font-medium text-slate-800">20124567</td>
-                        <td class="py-2.5 px-3">Trần Thị B</td>
-                        <td class="py-2.5 px-3">KTPM2025</td>
-                        <td class="py-2.5 px-3">Báo cáo tuần 1: Giao diện trang chính</td>
-                        <td class="py-2.5 px-3">
-                          <span class="text-rose-600 bg-rose-50 px-2 py-0.5 rounded-lg text-xs font-medium">Chưa nộp</span>
-                        </td>
-                        <td class="py-2.5 px-3 text-slate-500">-</td>
-                      </tr>
-                      <tr class="stage4-row odd:bg-white even:bg-slate-50 hover:bg-blue-50 transition-colors">
-                        <td class="py-2.5 px-3 font-medium text-slate-800">20125678</td>
-                        <td class="py-2.5 px-3">Lê Văn C</td>
-                        <td class="py-2.5 px-3">HTTT2025</td>
-                        <td class="py-2.5 px-3">Báo cáo tuần 1: Tối ưu hiệu năng</td>
-                        <td class="py-2.5 px-3">
-                          <span class="text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-lg text-xs font-medium">Đã nộp</span>
-                        </td>
-                        <td class="py-2.5 px-3 text-slate-500">11/08/2025</td>
-                      </tr>
-                      <tr class="stage4-row odd:bg-white even:bg-slate-50 hover:bg-blue-50 transition-colors">
-                        <td class="py-2.5 px-3 font-medium text-slate-800">20126789</td>
-                        <td class="py-2.5 px-3">Phạm D</td>
-                        <td class="py-2.5 px-3">CNTT2025</td>
-                        <td class="py-2.5 px-3">Báo cáo tuần 1: Thiết kế CSDL</td>
-                        <td class="py-2.5 px-3">
-                          <span class="text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-lg text-xs font-medium">Đã nộp</span>
-                        </td>
-                        <td class="py-2.5 px-3 text-slate-500">09/08/2025</td>
-                      </tr>
-                      <tr class="stage4-row odd:bg-white even:bg-slate-50 hover:bg-blue-50 transition-colors">
-                        <td class="py-2.5 px-3 font-medium text-slate-800">20127890</td>
-                        <td class="py-2.5 px-3">Vũ E</td>
-                        <td class="py-2.5 px-3">KTPM2025</td>
-                        <td class="py-2.5 px-3">Báo cáo tuần 1: Kết nối API</td>
-                        <td class="py-2.5 px-3">
-                          <span class="text-rose-600 bg-rose-50 px-2 py-0.5 rounded-lg text-xs font-medium">Chưa nộp</span>
-                        </td>
-                        <td class="py-2.5 px-3 text-slate-500">-</td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
+<div class="overflow-x-auto border border-slate-200 rounded-xl shadow-sm">
+  <table id="tableStage4" class="w-full text-sm border-collapse">
+    <thead>
+      <tr class="text-left text-emerald-700 border-b bg-emerald-50">
+        <th class="py-2.5 px-3">Mã SV</th>
+        <th class="py-2.5 px-3">Họ tên</th>
+        <th class="py-2.5 px-3">Lớp</th>
+        <th class="py-2.5 px-3">Đề tài</th>
+        <th class="py-2.5 px-3">Giảng viên hướng dẫn</th>
+        <th class="py-2.5 px-3">Báo cáo</th>
+        <th class="py-2.5 px-3">Cập nhật</th>
+      </tr>
+    </thead>
+
+    <tbody id="stage4TableBody" class="divide-y divide-slate-100">
+      @if ($assignments->isEmpty())
+        <tr>
+          <td colspan="7" class="px-4 py-6 text-center text-slate-400 italic">
+            Chưa có sinh viên nào được phân công.
+          </td>
+        </tr>
+      @else
+        @foreach ($assignments as $assignment)
+          @php
+            $student = $assignment->student;
+            $topic = $assignment->project->name ?? 'Chưa có đề tài';
+            $assignment_supervisors = $assignment->assignment_supervisors;
+            $lastedReport = $assignment?->project
+                ? $assignment->project->reportFiles()
+                    ->where('type_report', 'report')
+                    ->latest('created_at')
+                    ->first()
+                : null;
+          @endphp
+
+          <tr class="stage4-row odd:bg-white even:bg-emerald-50/30 hover:bg-emerald-50 transition-colors">
+            <td class="py-2.5 px-3 font-semibold text-emerald-700">{{ $student->student_code }}</td>
+            <td class="py-2.5 px-3 font-medium text-slate-800">{{ $student->user->fullname }}</td>
+            <td class="py-2.5 px-3 text-slate-700">{{ $student->class_code }}</td>
+            <td class="py-2.5 px-3 text-slate-700">{{ $topic }}</td>
+            <td class="py-2.5 px-3 text-slate-700">
+              @if ($assignment_supervisors->isEmpty())
+                <span class="text-slate-400 italic">Chưa có GVHD</span>
+              @else
+                @foreach ($assignment_supervisors as $as)
+                  @php
+                    $teacher = $as->supervisor->teacher;
+                    $teacherName = $teacher->user->fullname ?? 'N/A';
+                  @endphp
+                  <div class="flex items-center gap-1 text-emerald-700">
+                    <i class="ph ph-user text-emerald-500"></i>
+                    <span>{{ $teacherName }}</span>
+                  </div>
+                @endforeach
+              @endif
+            </td>
+
+            <td class="py-2.5 px-3">
+              @if ($lastedReport)
+                <a href="{{ $lastedReport->file_url }}" target="_blank"
+                  class="text-emerald-600 font-medium hover:underline hover:text-emerald-700 flex items-center gap-1">
+                  <i class="ph ph-file-text text-emerald-500"></i>
+                  {{ $lastedReport->file_name }}
+                </a>
+              @else
+                <span class="text-slate-400 italic">Chưa nộp</span>
+              @endif
+            </td>
+
+            <td class="py-2.5 px-3 text-slate-600">
+              {{ $assignment->created_at->format('d/m/Y H:i') }}
+            </td>
+          </tr>
+        @endforeach
+      @endif
+    </tbody>
+  </table>
+</div>
               </div>
             `;
 
@@ -1264,56 +1331,150 @@
                 </div>
 
                 <!-- Table -->
-                <div class="overflow-x-auto">
-                  <table class="min-w-full border border-slate-200 rounded-lg overflow-hidden">
-                    <thead class="bg-emerald-50 text-emerald-700 text-sm">
-                      <tr>
-                        <th class="px-3 py-2 text-left">Mã SV</th>
-                        <th class="px-3 py-2 text-left">Họ tên</th>
-                        <th class="px-3 py-2 text-left">Ngành</th>
-                        <th class="px-3 py-2 text-left">Hội đồng</th>
-                        <th class="px-3 py-2 text-left">Điểm TB</th>
-                        <th class="px-3 py-2 text-left">Xếp loại</th>
-                        <th class="px-3 py-2 text-left">Ngày chấm</th>
+                <div class="overflow-x-auto border border-slate-200 rounded-xl shadow-sm">
+                  <table id="tableStage6" class="w-full text-sm border-collapse">
+                    <thead>
+                      <tr class="text-left text-emerald-700 border-b bg-emerald-50">
+                        <th class="py-2.5 px-3 text-center">
+                          <i class="ph ph-identification-card mr-1 text-emerald-600"></i>Mã SV
+                        </th>
+                        <th class="py-2.5 px-3 text-center">
+                          <i class="ph ph-user mr-1 text-emerald-600"></i>Họ tên
+                        </th>
+                        <th class="py-2.5 px-3 text-center">
+                          <i class="ph ph-graduation-cap mr-1 text-emerald-600"></i>Lớp
+                        </th>
+                        <th class="py-2.5 px-3 text-center">
+                          <i class="ph ph-book mr-1 text-emerald-600"></i>Đề tài
+                        </th>
+                        <th class="py-2.5 px-3 text-center">
+                          <i class="ph ph-chalkboard-teacher mr-1 text-emerald-600"></i>GV phản biện
+                        </th>
+                        <th class="py-2.5 px-3 text-center">
+                          <i class="ph ph-users-three mr-1 text-emerald-600"></i>Hội đồng
+                        </th>
+                        <th class="py-2.5 px-3 text-center">
+                          <i class="ph ph-calendar-check mr-1 text-emerald-600"></i>Ngày phản biện
+                        </th>
+                        <th class="py-2.5 px-3 text-center">
+                          <i class="ph ph-map-pin mr-1 text-emerald-600"></i>Phòng
+                        </th>
                       </tr>
                     </thead>
-                    <tbody id="stage6TableBody" class="divide-y divide-slate-200 text-sm">
-                      <tr class="stage6-row hover:bg-slate-50">
-                        <td class="px-3 py-2 font-medium text-slate-800">20123456</td>
-                        <td class="px-3 py-2">Nguyễn Văn A</td>
-                        <td class="px-3 py-2">KTPM2025</td>
-                        <td class="px-3 py-2 text-slate-700">Hội đồng 01</td>
-                        <td class="px-3 py-2 text-emerald-700 font-semibold">8.5</td>
-                        <td class="px-3 py-2"><span class="px-2 py-1 text-xs rounded-full bg-emerald-50 text-emerald-700">Giỏi</span></td>
-                        <td class="px-3 py-2">22/09/2025</td>
-                      </tr>
-                      <tr class="stage6-row hover:bg-slate-50">
-                        <td class="px-3 py-2 font-medium text-slate-800">20124567</td>
-                        <td class="px-3 py-2">Trần Thị B</td>
-                        <td class="px-3 py-2">HTTT2025</td>
-                        <td class="px-3 py-2 text-slate-700">Hội đồng 02</td>
-                        <td class="px-3 py-2 text-emerald-700 font-semibold">7.8</td>
-                        <td class="px-3 py-2"><span class="px-2 py-1 text-xs rounded-full bg-lime-50 text-lime-700">Khá</span></td>
-                        <td class="px-3 py-2">22/09/2025</td>
-                      </tr>
-                      <tr class="stage6-row hover:bg-slate-50">
-                        <td class="px-3 py-2 font-medium text-slate-800">20125678</td>
-                        <td class="px-3 py-2">Lê Văn C</td>
-                        <td class="px-3 py-2">ATTT2025</td>
-                        <td class="px-3 py-2 text-slate-700">Hội đồng 01</td>
-                        <td class="px-3 py-2 text-emerald-700 font-semibold">6.5</td>
-                        <td class="px-3 py-2"><span class="px-2 py-1 text-xs rounded-full bg-amber-50 text-amber-700">Trung bình</span></td>
-                        <td class="px-3 py-2">21/09/2025</td>
-                      </tr>
-                      <tr class="stage6-row hover:bg-slate-50">
-                        <td class="px-3 py-2 font-medium text-slate-800">20126789</td>
-                        <td class="px-3 py-2">Phạm Dũng D</td>
-                        <td class="px-3 py-2">CNTT2025</td>
-                        <td class="px-3 py-2 text-slate-700">Hội đồng 03</td>
-                        <td class="px-3 py-2 text-emerald-700 font-semibold">9.1</td>
-                        <td class="px-3 py-2"><span class="px-2 py-1 text-xs rounded-full bg-sky-50 text-sky-700">Xuất sắc</span></td>
-                        <td class="px-3 py-2">22/09/2025</td>
-                      </tr>
+
+                    <tbody id="stage6TableBody" class="divide-y divide-slate-100">
+                      @if ($assignments->isEmpty())
+                        <tr>
+                          <td colspan="8" class="px-4 py-6 text-center text-slate-400 italic">
+                            Chưa có sinh viên nào được phân công.
+                          </td>
+                        </tr>
+                      @else
+                        @foreach ($assignments as $assignment)
+                          @php
+                              $student = $assignment->student ?? null;
+                              $topic = $assignment->project->name ?? 'Chưa có đề tài';
+                              $student_id = $student->student_code ?? 'N/A';
+                              $name = $student?->user?->fullname ?? 'N/A';
+                              $class_code = $student->class_code ?? 'N/A';
+
+                              $review_supervisors = $assignment?->council_project?->council_member ?? null;
+                              $council = $assignment?->council_project?->council?->name ?? null;
+                              $room = $assignment?->council_project?->room ?? null;
+
+                              // --- Ngày & giờ ---
+                              $rawDate = $assignment?->council_project?->date;
+                              $rawTime = $assignment?->council_project?->time;
+
+                              $formattedDate = $rawDate ? Carbon::parse($rawDate)->format('d/m/Y') : null;
+                              $formattedTime = $rawTime ? substr($rawTime, 0, 5) : null;
+
+                              if ($formattedDate && $formattedTime) {
+                                  $format = "$formattedTime - $formattedDate";
+                              } elseif ($formattedDate) {
+                                  $format = $formattedDate;
+                              } elseif ($formattedTime) {
+                                  $format = $formattedTime;
+                              } else {
+                                  $format = null;
+                              }
+                          @endphp
+
+                          <tr class="stage6-row odd:bg-white even:bg-emerald-50/30 hover:bg-emerald-50 transition-colors">
+                            <!-- Mã SV -->
+                            <td class="py-2.5 px-3 font-semibold text-emerald-700 text-center">
+                              <i class="ph ph-identification-card mr-1 text-gray-400 align-middle"></i>
+                              <span class="align-middle">{{ $student_id }}</span>
+                            </td>
+
+                            <!-- Họ tên -->
+                            <td class="py-2.5 px-3 font-semibold text-slate-800 text-center">
+                              <i class="ph ph-user mr-1 text-gray-400 align-middle"></i>
+                              <span class="align-middle">{{ $name }}</span>
+                            </td>
+
+                            <!-- Lớp -->
+                            <td class="py-2.5 px-3 text-slate-700 text-center">
+                              <i class="ph ph-graduation-cap mr-1 text-gray-400 align-middle"></i>
+                              <span class="align-middle">{{ $class_code }}</span>
+                            </td>
+
+                            <!-- Đề tài -->
+                            <td class="py-2.5 px-3 text-slate-700 text-center">
+                              <i class="ph ph-book mr-1 text-gray-400 align-middle"></i>
+                              <span class="align-middle">{{ $topic }}</span>
+                            </td>
+
+                            <!-- GV phản biện -->
+                            <td class="py-2.5 px-3 text-center">
+                              @if ($review_supervisors)
+                                <div class="inline-flex items-center justify-center px-3 py-1 rounded-full text-sky-700 font-medium">
+                                  <i class="ph ph-user-circle text-sky-500 mr-1"></i>
+                                  <span class="text-sm">{{ $review_supervisors->supervisor->teacher->user->fullname ?? 'N/A' }}</span>
+                                </div>
+                              @else
+                                <span class="text-slate-400 italic">Chưa có giảng viên</span>
+                              @endif
+                            </td>
+
+                            <!-- Hội đồng -->
+                            <td class="py-2.5 px-3 text-center">
+                              @if ($council)
+                                <div class="inline-flex items-center justify-center px-3 py-1 rounded-full text-amber-700 font-medium">
+                                  <i class="ph ph-users-three mr-1 text-amber-500"></i>
+                                  <span class="text-sm">{{ $council }}</span>
+                                </div>
+                              @else
+                                <span class="text-slate-400 italic">Chưa có hội đồng</span>
+                              @endif
+                            </td>
+
+                            <!-- Ngày phản biện -->
+                            <td class="py-2.5 px-3 text-center">
+                              @if ($format)
+                                <div class="inline-flex items-center justify-center px-3 py-1 rounded-full text-violet-700 font-medium">
+                                  <i class="ph ph-calendar-check mr-1"></i>
+                                  <span class="text-sm">{{ $format }}</span>
+                                </div>
+                              @else
+                                <span class="text-slate-400 italic">Chưa có</span>
+                              @endif
+                            </td>
+
+                            <!-- Phòng -->
+                            <td class="py-2.5 px-3 text-center">
+                              @if ($room)
+                                <div class="inline-flex items-center justify-center px-3 py-1 rounded-full text-emerald-700 font-medium">
+                                  <i class="ph ph-map-pin mr-1"></i>
+                                  <span class="text-sm">{{ $room }}</span>
+                                </div>
+                              @else
+                                <span class="text-slate-400 italic">Chưa có</span>
+                              @endif
+                            </td>
+                          </tr>
+                        @endforeach
+                      @endif
                     </tbody>
                   </table>
                 </div>
@@ -1361,53 +1522,124 @@
 
                 <!-- Table -->
                 <div class="overflow-x-auto">
-                  <table class="min-w-full border border-slate-200 rounded-lg overflow-hidden">
-                    <thead class="bg-emerald-50 text-emerald-700 text-sm">
-                      <tr>
-                        <th class="px-3 py-2 text-left">Mã SV</th>
-                        <th class="px-3 py-2 text-left">Họ tên</th>
-                        <th class="px-3 py-2 text-left">Lớp</th>
-                        <th class="px-3 py-2 text-left">Đề tài</th>
-                        <th class="px-3 py-2 text-left">GV phản biện</th>
-                        <th class="px-3 py-2 text-left">Điểm</th>
-                        <th class="px-3 py-2 text-left">Xếp loại</th>
-                        <th class="px-3 py-2 text-left">Ngày công bố</th>
-                      </tr>
-                    </thead>
-                    <tbody id="stage7TableBody" class="divide-y divide-slate-200 text-sm">
-                      <tr class="stage7-row hover:bg-slate-50">
-                        <td class="px-3 py-2 font-medium text-slate-800">20123456</td>
-                        <td class="px-3 py-2">Nguyễn Văn A</td>
-                        <td class="px-3 py-2">KTPM2025</td>
-                        <td class="px-3 py-2">Hệ thống quản lý thư viện</td>
-                        <td class="px-3 py-2">TS. Đặng Hữu T</td>
-                        <td class="px-3 py-2 text-emerald-700 font-semibold">9.0</td>
-                        <td class="px-3 py-2"><span class="px-2 py-1 text-xs rounded-full bg-emerald-50 text-emerald-700">Xuất sắc</span></td>
-                        <td class="px-3 py-2">15/08/2025</td>
-                      </tr>
-                      <tr class="stage7-row hover:bg-slate-50">
-                        <td class="px-3 py-2 font-medium text-slate-800">20124567</td>
-                        <td class="px-3 py-2">Trần Thị B</td>
-                        <td class="px-3 py-2">KTPM2025</td>
-                        <td class="px-3 py-2">Ứng dụng mobile bán hàng</td>
-                        <td class="px-3 py-2">ThS. Lưu Lan</td>
-                        <td class="px-3 py-2 text-amber-700 font-semibold">7.5</td>
-                        <td class="px-3 py-2"><span class="px-2 py-1 text-xs rounded-full bg-amber-50 text-amber-700">Khá</span></td>
-                        <td class="px-3 py-2">15/08/2025</td>
-                      </tr>
-                      <tr class="stage7-row hover:bg-slate-50">
-                        <td class="px-3 py-2 font-medium text-slate-800">20125678</td>
-                        <td class="px-3 py-2">Lê Văn C</td>
-                        <td class="px-3 py-2">HTTT2025</td>
-                        <td class="px-3 py-2">Website thương mại điện tử</td>
-                        <td class="px-3 py-2">TS. Nguyễn Văn A</td>
-                        <td class="px-3 py-2 text-rose-700 font-semibold">6.0</td>
-                        <td class="px-3 py-2"><span class="px-2 py-1 text-xs rounded-full bg-rose-50 text-rose-700">Trung bình</span></td>
-                        <td class="px-3 py-2">15/08/2025</td>
-                      </tr>
-                    </tbody>
-                  </table>
+  <table class="min-w-full border border-slate-200 rounded-lg overflow-hidden">
+    <thead class="bg-emerald-50 text-emerald-700 text-sm font-semibold">
+      <tr>
+        <th class="px-3 py-2 text-center">
+          <i class="ph ph-identification-card mr-1 text-emerald-600"></i>Mã SV
+        </th>
+        <th class="px-3 py-2 text-center">
+          <i class="ph ph-user mr-1 text-emerald-600"></i>Họ tên
+        </th>
+        <th class="px-3 py-2 text-center">
+          <i class="ph ph-graduation-cap mr-1 text-emerald-600"></i>Lớp
+        </th>
+        <th class="px-3 py-2 text-center">
+          <i class="ph ph-book mr-1 text-emerald-600"></i>Đề tài
+        </th>
+        <th class="px-3 py-2 text-center">
+          <i class="ph ph-chalkboard-teacher mr-1 text-emerald-600"></i>GV phản biện
+        </th>
+        <th class="px-3 py-2 text-center">
+          <i class="ph ph-star mr-1 text-emerald-600"></i>Điểm
+        </th>
+        <th class="px-3 py-2 text-center">
+          <i class="ph ph-calendar-check mr-1 text-emerald-600"></i>Ngày chấm phản biện
+        </th>
+      </tr>
+    </thead>
+
+    <tbody id="stage7TableBody" class="divide-y divide-slate-200 text-sm text-gray-700">
+      @if ($assignments->isEmpty())
+        <tr>
+          <td colspan="7" class="px-4 py-6 text-center text-slate-400 italic">
+            Chưa có sinh viên nào được phân công.
+          </td>
+        </tr>
+      @else
+        @foreach ($assignments as $assignment)
+          @php
+            $student = $assignment->student;
+            $topic = $assignment->project->name ?? 'Chưa có đề tài';
+            $student_id = $student->student_code ?? 'N/A';
+            $name = $student->user->fullname ?? 'N/A';
+            $class_code = $student->class_code ?? 'N/A';
+
+            $review_supervisors = $assignment?->council_project?->council_member ?? null;
+            $score = $assignment?->council_project?->review_score;
+            $hasScore = is_numeric($score);
+            $displayScore = $hasScore ? number_format((float) $score, 2) : 'Chưa có';
+            $time = $hasScore
+                ? $assignment?->council_project?->updated_at?->format('d/m/Y')
+                : 'Chưa có';
+          @endphp
+
+          <tr class="hover:bg-slate-50 transition-colors duration-150">
+            <!-- Mã SV -->
+            <td class="px-3 py-2 text-center text-emerald-700 font-semibold">
+              <i class="ph ph-identification-card mr-1 text-gray-400 align-middle"></i>
+              <span class="align-middle">{{ $student_id }}</span>
+            </td>
+
+            <!-- Họ tên -->
+            <td class="px-3 py-2 text-center font-semibold text-slate-800">
+              <i class="ph ph-user mr-1 text-gray-400 align-middle"></i>
+              <span class="align-middle">{{ $name }}</span>
+            </td>
+
+            <!-- Lớp -->
+            <td class="px-3 py-2 text-center">
+              <i class="ph ph-graduation-cap mr-1 text-gray-400 align-middle"></i>
+              <span class="align-middle">{{ $class_code }}</span>
+            </td>
+
+            <!-- Đề tài -->
+            <td class="px-3 py-2 text-center">
+              <i class="ph ph-book mr-1 text-gray-400 align-middle"></i>
+              <span class="align-middle">{{ $topic }}</span>
+            </td>
+
+            <!-- GV phản biện -->
+            <td class="px-3 py-2 text-center">
+              @if ($review_supervisors)
+                <div class="inline-flex items-center justify-center px-3 py-1 rounded-full bg-sky-100 text-sky-700 font-medium">
+                  <i class="ph ph-user-circle text-sky-500 mr-1"></i>
+                  <span class="text-sm">{{ $review_supervisors->supervisor->teacher->user->fullname }}</span>
                 </div>
+              @else
+                <span class="text-slate-400 italic">Chưa có giảng viên</span>
+              @endif
+            </td>
+
+            <!-- Điểm -->
+            <td class="px-3 py-2 text-center">
+              @if ($hasScore)
+                <div class="inline-flex items-center justify-center px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 font-semibold">
+                  <i class="ph ph-star text-amber-500 mr-1"></i>
+                  <span class="text-sm">{{ $displayScore }}</span>
+                </div>
+              @else
+                <span class="text-slate-400 italic">Chưa có</span>
+              @endif
+            </td>
+
+            <!-- Ngày chấm -->
+            <td class="px-3 py-2 text-center">
+              @if ($hasScore)
+                <div class="inline-flex items-center justify-center px-3 py-1 rounded-full bg-violet-100 text-violet-700 font-medium">
+                  <i class="ph ph-calendar-check mr-1"></i>
+                  <span class="text-sm">{{ $time }}</span>
+                </div>
+              @else
+                <span class="text-slate-400 italic">Chưa có</span>
+              @endif
+            </td>
+          </tr>
+        @endforeach
+      @endif
+    </tbody>
+  </table>
+</div>
               </div>
             `;
 
@@ -1451,49 +1683,115 @@
                 <!-- Table -->
                 <div class="overflow-x-auto">
                   <table class="min-w-full border border-slate-200 rounded-lg overflow-hidden">
-                    <thead class="bg-emerald-50 text-emerald-700 text-sm">
+                    <thead class="bg-emerald-50 text-emerald-700 text-sm font-semibold">
                       <tr>
-                        <th class="px-3 py-2 text-left">Mã SV</th>
-                        <th class="px-3 py-2 text-left">Họ tên</th>
-                        <th class="px-3 py-2 text-left">Lớp</th>
-                        <th class="px-3 py-2 text-left">Đề tài</th>
-                        <th class="px-3 py-2 text-left">Hội đồng</th>
-                        <th class="px-3 py-2 text-left">Ngày bảo vệ</th>
-                        <th class="px-3 py-2 text-left">Địa điểm</th>
-                        <th class="px-3 py-2 text-left">Kết quả</th>
+                        <th class="px-3 py-2 text-center"><i class="ph ph-identification-card mr-1 text-emerald-600"></i>Mã SV</th>
+                        <th class="px-3 py-2 text-center"><i class="ph ph-user mr-1 text-emerald-600"></i>Họ tên</th>
+                        <th class="px-3 py-2 text-center"><i class="ph ph-graduation-cap mr-1 text-emerald-600"></i>Lớp</th>
+                        <th class="px-3 py-2 text-center"><i class="ph ph-book mr-1 text-emerald-600"></i>Đề tài</th>
+                        <th class="px-3 py-2 text-center"><i class="ph ph-chalkboard-teacher mr-1 text-emerald-600"></i>Hội đồng</th>
+                        <th class="px-3 py-2 text-center"><i class="ph ph-calendar mr-1 text-emerald-600"></i>Ngày bảo vệ</th>
+                        <th class="px-3 py-2 text-center"><i class="ph ph-map-pin mr-1 text-emerald-600"></i>Địa điểm</th>
+                        <th class="px-3 py-2 text-center"><i class="ph ph-star mr-1 text-emerald-600"></i>Điểm số</th>
                       </tr>
                     </thead>
-                    <tbody id="stage8TableBody" class="divide-y divide-slate-200 text-sm">
-                      <tr class="stage8-row hover:bg-slate-50">
-                        <td class="px-3 py-2 font-medium text-slate-800">20123456</td>
-                        <td class="px-3 py-2">Nguyễn Văn A</td>
-                        <td class="px-3 py-2">KTPM2025</td>
-                        <td class="px-3 py-2">Hệ thống quản lý thư viện</td>
-                        <td class="px-3 py-2">Hội đồng 1</td>
-                        <td class="px-3 py-2">20/08/2025</td>
-                        <td class="px-3 py-2">Phòng B203</td>
-                        <td class="px-3 py-2"><span class="px-2 py-1 text-xs rounded-full bg-emerald-50 text-emerald-700">Đạt</span></td>
-                      </tr>
-                      <tr class="stage8-row hover:bg-slate-50">
-                        <td class="px-3 py-2 font-medium text-slate-800">20124567</td>
-                        <td class="px-3 py-2">Trần Thị B</td>
-                        <td class="px-3 py-2">KTPM2025</td>
-                        <td class="px-3 py-2">Ứng dụng mobile bán hàng</td>
-                        <td class="px-3 py-2">Hội đồng 2</td>
-                        <td class="px-3 py-2">21/08/2025</td>
-                        <td class="px-3 py-2">Phòng B205</td>
-                        <td class="px-3 py-2"><span class="px-2 py-1 text-xs rounded-full bg-amber-50 text-amber-700">Bảo vệ lại</span></td>
-                      </tr>
-                      <tr class="stage8-row hover:bg-slate-50">
-                        <td class="px-3 py-2 font-medium text-slate-800">20125678</td>
-                        <td class="px-3 py-2">Lê Văn C</td>
-                        <td class="px-3 py-2">HTTT2025</td>
-                        <td class="px-3 py-2">Website thương mại điện tử</td>
-                        <td class="px-3 py-2">Hội đồng 3</td>
-                        <td class="px-3 py-2">22/08/2025</td>
-                        <td class="px-3 py-2">Phòng A104</td>
-                        <td class="px-3 py-2"><span class="px-2 py-1 text-xs rounded-full bg-rose-50 text-rose-700">Không đạt</span></td>
-                      </tr>
+
+                    <tbody id="stage8TableBody" class="divide-y divide-slate-200 text-sm text-gray-700">
+                      @if ($assignments->isEmpty())
+                        <tr>
+                          <td colspan="8" class="px-4 py-6 text-center text-slate-400 italic">
+                            Chưa có sinh viên nào được phân công.
+                          </td>
+                        </tr>
+                      @else
+                        @foreach ($assignments as $assignment)
+                          @php
+                            $student = $assignment->student;
+                            $topic = $assignment->project->name ?? 'Chưa có đề tài';
+                            $student_id = $student->student_code ?? 'N/A';
+                            $name = $student->user->fullname ?? 'N/A';
+                            $class_code = $student->class_code ?? 'N/A';
+
+                            $council = $assignment?->council_project?->council?->name ?? 'Chưa có hội đồng';
+                            $room = $assignment?->council_project?->council?->address ?? null;
+                            $rawDate = $assignment?->council_project?->council?->date;
+                            $formattedDate = $rawDate ? Carbon::parse($rawDate)->format('d/m/Y') : null;
+
+                            // Điểm số
+                            $council_member_defences = $assignment?->council_project?->council_project_defences ?? null;
+                            $score = 0; $count = 0;
+                            if ($council_member_defences) {
+                              foreach ($council_member_defences as $council_member_defence) {
+                                if (is_numeric($council_member_defence->score)) {
+                                  $score += (float)$council_member_defence->score;
+                                  $count++;
+                                }
+                              }
+                            }
+                            $avg_score = $count > 0 ? $score / $count : null;
+                            $hasScore = is_numeric($avg_score);
+                          @endphp
+
+                          <tr class="hover:bg-slate-50 transition-colors duration-150">
+                            <td class="px-3 py-2 text-center text-emerald-700 font-semibold">
+                              <i class="ph ph-identification-card mr-1 text-gray-400 align-middle"></i>
+                              {{ $student_id }}
+                            </td>
+                            <td class="px-3 py-2 text-center font-semibold text-slate-800">
+                              <i class="ph ph-user mr-1 text-gray-400 align-middle"></i>
+                              {{ $name }}
+                            </td>
+                            <td class="px-3 py-2 text-center">
+                              <i class="ph ph-graduation-cap mr-1 text-gray-400 align-middle"></i>
+                              {{ $class_code }}
+                            </td>
+                            <td class="px-3 py-2 text-center">
+                              <i class="ph ph-book mr-1 text-gray-400 align-middle"></i>
+                              {{ $topic }}
+                            </td>
+                            <td class="px-3 py-2 text-center">
+                              <i class="ph ph-chalkboard-teacher mr-1 text-gray-400 align-middle"></i>
+                              {{ $council }}
+                            </td>
+
+                            {{-- Ngày bảo vệ --}}
+                            <td class="px-3 py-2 text-center">
+                              @if ($formattedDate)
+                                <div class="inline-flex items-center justify-center px-3 py-1 rounded-full bg-blue-50 text-blue-700 font-semibold">
+                                  <i class="ph ph-calendar text-blue-500 mr-1 align-middle"></i>
+                                  <span class="text-sm">{{ $formattedDate }}</span>
+                                </div>
+                              @else
+                                <span class="text-slate-400 italic">Chưa có</span>
+                              @endif
+                            </td>
+
+                            {{-- Địa điểm --}}
+                            <td class="px-3 py-2 text-center">
+                              @if ($room)
+                                <div class="inline-flex items-center justify-center px-3 py-1 rounded-full text-amber-700 font-semibold">
+                                  <i class="ph ph-map-pin text-amber-500 mr-1 align-middle"></i>
+                                  <span class="text-sm">{{ $room }}</span>
+                                </div>
+                              @else
+                                <span class="text-slate-400 italic">Chưa có</span>
+                              @endif
+                            </td>
+
+                            {{-- Điểm số --}}
+                            <td class="px-3 py-2 text-center">
+                              @if ($hasScore)
+                                <div class="inline-flex items-center justify-center px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 font-semibold">
+                                  <i class="ph ph-star text-amber-500 mr-1 align-middle"></i>
+                                  <span class="text-sm">{{ number_format($avg_score, 2) }}</span>
+                                </div>
+                              @else
+                                <span class="text-slate-400 italic">Chưa có</span>
+                              @endif
+                            </td>
+                          </tr>
+                        @endforeach
+                      @endif
                     </tbody>
                   </table>
                 </div>

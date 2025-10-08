@@ -102,7 +102,7 @@ class ProjectTermsController extends Controller
             'stageTimelines', 
             'councils.department', 
             'councils.council_members.supervisor.teacher.user', 
-            'supervisors.assignment_supervisors',
+            'supervisors.assignment_supervisors.assignment',
             'assignments.student.user',
             'assignments.student.marjor',
             'assignments.project.reportFiles',
