@@ -17,6 +17,21 @@
       .submenu.open { display: block; }
     </style>
   </head>
+    @php
+      $user = auth()->user();
+      $userName = $user->fullname ?? $user->name ?? 'Giảng viên';
+      $email = $user->email ?? '';
+      // Tùy mô hình dữ liệu, thay các field bên dưới cho khớp
+      $dept = $user->department_name ?? optional($user->teacher)->department ?? '';
+      $faculty = $user->faculty_name ?? optional($user->teacher)->faculty ?? '';
+      $subtitle = trim(($dept ? "Bộ môn $dept" : '') . (($dept && $faculty) ? ' • ' : '') . ($faculty ? "Khoa $faculty" : ''));
+      $degree = $user->teacher->degree ?? '';
+      $expertise = $user->teacher->supervisor->expertise ?? 'null';
+      $data_assignment_supervisors = $user->teacher->supervisor->assignment_supervisors ?? collect();;
+      $avatarUrl = $user->avatar_url
+        ?? $user->profile_photo_url
+        ?? 'https://ui-avatars.com/api/?name=' . urlencode($userName) . '&background=0ea5e9&color=ffffff';
+    @endphp
   <body class="bg-slate-50 text-slate-800">
     <div class="min-h-screen flex">
       <!-- Sidebar -->
@@ -34,16 +49,21 @@
           <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-book-open-text"></i><span class="sidebar-label">Ngành</span></a>
           <a href="{{ route('web.assistant.manage_staffs') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-chalkboard-teacher"></i><span class="sidebar-label">Giảng viên</span></a>
           <a href="assign-head.html" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-user-switch"></i><span class="sidebar-label">Gán trưởng bộ môn</span></a>
-          <div class="mt-3 px-3 sidebar-label text-xs uppercase text-slate-400">Học phần tốt nghiệp</div>
-          <button id="gradToggle" class="w-full flex items-center justify-between px-3 py-2 rounded-lg hover:bg-slate-100">
-            <span class="flex items-center gap-3"><i class="ph ph-folder"></i><span class="sidebar-label">Học phần tốt nghiệp</span></span>
-            <i class="ph ph-caret-down"></i>
-          </button>
-          <div id="gradMenu" class="submenu pl-6">
-            <a href="#" class="block px-3 py-2 rounded hover:bg-slate-100">Thực tập tốt nghiệp</a>
-            <a href="{{ route('web.assistant.rounds') }}"
-               class="block px-3 py-2 rounded hover:bg-slate-100 bg-slate-100 font-semibold"
-               aria-current="page">Đồ án tốt nghiệp</a>
+
+          <div class="graduation-item">
+            <div class="flex items-center justify-between px-3 py-2 cursor-pointer toggle-button bg-slate-100 font-semibold">
+              <span class="flex items-center gap-3">
+                <i class="ph ph-graduation-cap"></i>
+                <span class="sidebar-label">Học phần tốt nghiệp</span>
+              </span>
+              <i class="ph ph-caret-down"></i>
+            </div>
+            <div id="gradMenu" class="submenu pl-6">
+              <a href="#" class="block px-3 py-2 rounded hover:bg-slate-100"><i class="ph ph-briefcase"></i> Thực tập tốt nghiệp</a>
+              <a href="{{ route('web.assistant.rounds') }}"
+                 class="block px-3 py-2 rounded hover:bg-slate-100 bg-slate-100 font-semibold"
+                 aria-current="page"><i class="ph ph-calendar"></i> Đồ án tốt nghiệp</a>
+            </div>
           </div>
         </nav>
         <div class="p-3 border-t border-slate-200">
@@ -72,14 +92,23 @@
                 <p class="text-xs text-slate-500 mt-0.5">Trang chủ / Trợ lý khoa / Học phần tốt nghiệp / Đồ án tốt nghiệp / Thêm giảng viên</p>
               </div>
             </div>
+          <div class="relative">
             <button id="profileBtn" class="flex items-center gap-3 px-2 py-1.5 rounded-lg hover:bg-slate-100">
-              <img class="h-9 w-9 rounded-full object-cover" src="https://i.pravatar.cc/100?img=8" alt="avatar">
-              <span class="hidden sm:block text-left">
-                <span class="text-sm font-semibold leading-4">Assistant</span>
-                <span class="block text-xs text-slate-500">assistant@uni.edu</span>
-              </span>
+              <img class="h-9 w-9 rounded-full object-cover" src="{{ $avatarUrl }}" alt="avatar" />
+              <div class="hidden sm:block text-left">
+                <div class="text-sm font-semibold leading-4">{{ $userName }}</div>
+                <div class="text-xs text-slate-500">{{ $email }}</div>
+              </div>
               <i class="ph ph-caret-down text-slate-500 hidden sm:block"></i>
             </button>
+            <div id="profileMenu" class="hidden absolute right-0 mt-2 w-44 bg-white border border-slate-200 rounded-lg shadow-lg py-1 text-sm">
+              <a href="#" class="flex items-center gap-2 px-3 py-2 hover:bg-slate-50"><i class="ph ph-user"></i>Xem thông tin</a>
+              <a href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();" class="flex items-center gap-2 px-3 py-2 hover:bg-slate-50 text-rose-600"><i class="ph ph-sign-out"></i>Đăng xuất</a>
+              <form id="logout-form" action="{{ route('web.auth.logout') }}" method="POST" class="hidden">
+                @csrf
+              </form>
+            </div>
+          </div>
           </div>
         </header>
         <main class="pt-20 px-4 md:px-6 pb-10 md:pl-[260px] space-y-6">
@@ -408,6 +437,12 @@
         const thesisLink = menu?.querySelector('a[href*="rounds"]');
         thesisLink?.classList.add('bg-slate-100','font-semibold');
       });
+
+      // profile dropdown
+      const profileBtn=document.getElementById('profileBtn');
+      const profileMenu=document.getElementById('profileMenu');
+      profileBtn?.addEventListener('click', ()=> profileMenu.classList.toggle('hidden'));
+      document.addEventListener('click', (e)=>{ if(!profileBtn?.contains(e.target) && !profileMenu?.contains(e.target)) profileMenu?.classList.add('hidden'); });
     </script>
   </body>
 </html>

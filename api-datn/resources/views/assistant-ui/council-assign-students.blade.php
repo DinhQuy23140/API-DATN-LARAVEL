@@ -13,10 +13,25 @@
   </style>
   <meta name="csrf-token" content="{{ csrf_token() }}">
 </head>
+    @php
+      $user = auth()->user();
+      $userName = $user->fullname ?? $user->name ?? 'Giảng viên';
+      $email = $user->email ?? '';
+      // Tùy mô hình dữ liệu, thay các field bên dưới cho khớp
+      $dept = $user->department_name ?? optional($user->teacher)->department ?? '';
+      $faculty = $user->faculty_name ?? optional($user->teacher)->faculty ?? '';
+      $subtitle = trim(($dept ? "Bộ môn $dept" : '') . (($dept && $faculty) ? ' • ' : '') . ($faculty ? "Khoa $faculty" : ''));
+      $degree = $user->teacher->degree ?? '';
+      $expertise = $user->teacher->supervisor->expertise ?? 'null';
+      $data_assignment_supervisors = $user->teacher->supervisor->assignment_supervisors ?? collect();;
+      $avatarUrl = $user->avatar_url
+        ?? $user->profile_photo_url
+        ?? 'https://ui-avatars.com/api/?name=' . urlencode($userName) . '&background=0ea5e9&color=ffffff';
+    @endphp
 <body class="bg-slate-50 text-slate-800">
   <div class="flex min-h-screen">
     <!-- Sidebar -->
-    <aside id="sidebar" class="sidebar fixed inset-y-0 left-0 z-30 bg-white border-r border-slate-200 flex flex-col">
+    <aside id="sidebar" class="sidebar fixed inset-y-0 left-0 z-30 bg-white border-r border-slate-200 flex flex-col transition-all">
       <div class="h-16 flex items-center gap-3 px-4 border-b border-slate-200">
         <div class="h-9 w-9 grid place-items-center rounded-lg bg-blue-600 text-white"><i class="ph ph-buildings"></i></div>
         <div class="sidebar-label">
@@ -25,15 +40,27 @@
         </div>
       </div>
       <nav class="flex-1 overflow-y-auto p-3">
-        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-gauge"></i><span class="sidebar-label">Bảng điều khiển</span></a>
-        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-buildings"></i><span class="sidebar-label">Bộ môn</span></a>
-        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-book-open-text"></i><span class="sidebar-label">Ngành</span></a>
-        <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-chalkboard-teacher"></i><span class="sidebar-label">Giảng viên</span></a>
-        <div class="sidebar-label text-xs uppercase text-slate-400 px-3 mt-3">Học phần tốt nghiệp</div>
-        <div class="pl-6">
-          <a href="#" class="block px-3 py-2 rounded hover:bg-slate-100">Thực tập tốt nghiệp</a>
-          <a href="#" class="block px-3 py-2 rounded hover:bg-slate-100 bg-slate-100 font-semibold" aria-current="page">Đồ án tốt nghiệp</a>
-        </div>
+        <a href="{{ route('web.assistant.dashboard') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-gauge"></i><span class="sidebar-label">Bảng điều khiển</span></a>
+        <a href="{{ route('web.assistant.manage_departments') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-buildings"></i><span class="sidebar-label">Bộ môn</span></a>
+        <a href="{{ route('web.assistant.manage_majors') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-book-open-text"></i><span class="sidebar-label">Ngành</span></a>
+        <a href="{{ route('web.assistant.manage_staffs') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-chalkboard-teacher"></i><span class="sidebar-label">Giảng viên</span></a>
+        <a href="{{ route('web.assistant.assign_head') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-user-switch"></i><span class="sidebar-label">Gán trưởng bộ môn</span></a>
+
+          <div class="graduation-item">
+            <div class="flex items-center justify-between px-3 py-2 cursor-pointer toggle-button bg-slate-100 font-semibold">
+              <span class="flex items-center gap-3">
+                <i class="ph ph-graduation-cap"></i>
+                <span class="sidebar-label">Học phần tốt nghiệp</span>
+              </span>
+              <i class="ph ph-caret-down"></i>
+            </div>
+            <div id="gradMenu" class="submenu pl-6">
+              <a href="#" class="block px-3 py-2 rounded hover:bg-slate-100"><i class="ph ph-briefcase"></i> Thực tập tốt nghiệp</a>
+              <a href="{{ route('web.assistant.rounds') }}"
+                 class="block px-3 py-2 rounded hover:bg-slate-100 bg-slate-100 font-semibold"
+                 aria-current="page"><i class="ph ph-calendar"></i> Đồ án tốt nghiệp</a>
+            </div>
+          </div>
       </nav>
       <div class="p-3 border-t border-slate-200">
         <button id="toggleSidebar" class="w-full flex items-center justify-center gap-2 px-3 py-2 text-slate-600 hover:bg-slate-100 rounded-lg"><i class="ph ph-sidebar"></i><span class="sidebar-label">Thu gọn</span></button>
@@ -47,6 +74,23 @@
           <h1 class="text-lg md:text-xl font-semibold">Phân sinh viên vào hội đồng</h1>
           <div class="text-xs text-slate-500 mt-0.5">Đợt: 2025-Q3</div>
         </div>
+          <div class="relative">
+            <button id="profileBtn" class="flex items-center gap-3 px-2 py-1.5 rounded-lg hover:bg-slate-100">
+              <img class="h-9 w-9 rounded-full object-cover" src="{{ $avatarUrl }}" alt="avatar" />
+              <div class="hidden sm:block text-left">
+                <div class="text-sm font-semibold leading-4">{{ $userName }}</div>
+                <div class="text-xs text-slate-500">{{ $email }}</div>
+              </div>
+              <i class="ph ph-caret-down text-slate-500 hidden sm:block"></i>
+            </button>
+            <div id="profileMenu" class="hidden absolute right-0 mt-2 w-44 bg-white border border-slate-200 rounded-lg shadow-lg py-1 text-sm">
+              <a href="#" class="flex items-center gap-2 px-3 py-2 hover:bg-slate-50"><i class="ph ph-user"></i>Xem thông tin</a>
+              <a href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();" class="flex items-center gap-2 px-3 py-2 hover:bg-slate-50 text-rose-600"><i class="ph ph-sign-out"></i>Đăng xuất</a>
+              <form id="logout-form" action="{{ route('web.auth.logout') }}" method="POST" class="hidden">
+                @csrf
+              </form>
+            </div>
+          </div>
       </header>
 
       <main class="flex-1 overflow-y-auto p-4 md:p-6">
@@ -305,6 +349,12 @@ document.getElementById('btnAssignStudents')?.addEventListener('click', async ()
     btn.innerHTML = oldText;
   }
 });
+
+  // profile dropdown
+  const profileBtn=document.getElementById('profileBtn');
+  const profileMenu=document.getElementById('profileMenu');
+  profileBtn?.addEventListener('click', ()=> profileMenu.classList.toggle('hidden'));
+  document.addEventListener('click', (e)=>{ if(!profileBtn?.contains(e.target) && !profileMenu?.contains(e.target)) profileMenu?.classList.add('hidden'); });
 </script>
 </body>
 </html>

@@ -127,21 +127,19 @@
         class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-user-switch"></i><span
           class="sidebar-label">Gán trưởng bộ môn</span></a>
 
-      <div class="sidebar-label text-xs uppercase text-slate-400 px-3 mt-3">Học phần tốt nghiệp</div>
-
-      <div class="graduation-item">
-        <div class="flex items-center justify-between px-3 py-2 cursor-pointer toggle-button">
-          <span class="flex items-center gap-3">
-            <i class="ph ph-folder"></i>
-            <span class="sidebar-label">Học phần tốt nghiệp</span>
-          </span>
-          <i class="ph ph-caret-down"></i>
-        </div>
-        <div class="submenu hidden pl-6">
-          <a href="internship.html" class="block px-3 py-2 hover:bg-slate-100">Thực tập tốt nghiệp</a>
-          <a href="{{ route('web.assistant.rounds') }}" class="block px-3 py-2 hover:bg-slate-100">Đồ án tốt nghiệp</a>
-        </div>
-      </div>
+          <div class="graduation-item">
+            <div class="flex items-center justify-between px-3 py-2 cursor-pointer toggle-button">
+              <span class="flex items-center gap-3">
+                <i class="ph ph-graduation-cap"></i>
+                <span class="sidebar-label">Học phần tốt nghiệp</span>
+              </span>
+              <i class="ph ph-caret-down"></i>
+            </div>
+            <div class="submenu hidden pl-6">
+              <a href="internship.html" class="block px-3 py-2 hover:bg-slate-100"><i class="ph ph-briefcase"></i> Thực tập tốt nghiệp</a>
+              <a href="{{ route('web.assistant.rounds') }}" class="block px-3 py-2 hover:bg-slate-100"><i class="ph ph-calendar"></i> Đồ án tốt nghiệp</a>
+            </div>
+          </div>
     </nav>
 
     <div class="p-3 border-t border-slate-200">
