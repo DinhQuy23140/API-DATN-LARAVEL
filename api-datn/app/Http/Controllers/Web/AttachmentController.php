@@ -61,26 +61,33 @@ class AttachmentController extends Controller
         return redirect()->route('web.progress_logs.show', $log)->with('status','Đã xóa tệp');
     }
 
-    public function updateStatus($attachment, Request $request)
+    public function updateStatus($progress_log, Request $request)
     {
         $data = $request->validate([
-            'status' => 'required|in:pass,fail,needs_revision',
+            'status' => 'required|in:approved,not_achieved,need_editing',
             'note'   => 'nullable|string|max:2000',
         ]);
 
         // Gợi ý: đổi 'attachments' thành tên bảng thực tế nếu khác (vd: progress_log_attachments)
-        $row = DB::table('attachments')->where('id', $attachment)->first();
+        $row = DB::table('progress_logs')->where('id', $progress_log)->first();
         if (!$row) {
             return response()->json(['ok' => false, 'message' => 'Không tìm thấy tệp đính kèm.'], 404);
         }
 
         // TODO: kiểm tra quyền theo giảng viên hiện tại nếu cần
 
-        DB::table('attachments')
-            ->where('id', $attachment)
+        // DB::table('progress_logs')
+        //     ->where('id', $progress_log)
+        //     ->update([
+        //         'instructor_status'     => $data['status'],
+        //         'note'       => $data['note'] ?? null,
+        //         'updated_at' => now(),
+        //     ]);
+
+        DB::table('progress_logs')
+            ->where('id', $progress_log)
             ->update([
-                'status'     => $data['status'],
-                'note'       => $data['note'] ?? null,
+                'instructor_status'     => $data['status'],
                 'updated_at' => now(),
             ]);
 
@@ -88,7 +95,7 @@ class AttachmentController extends Controller
             'ok' => true,
             'message' => 'Cập nhật trạng thái thành công.',
             'data' => [
-                'id'     => (int) $attachment,
+                'id'     => (int) $progress_log,
                 'status' => $data['status'],
                 'note'   => $data['note'] ?? null,
             ],

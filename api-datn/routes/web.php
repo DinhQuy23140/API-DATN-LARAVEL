@@ -242,7 +242,7 @@ Route::middleware('auth')->group(function () {
 
     Route::patch('/report-files/{report_file}/status', [WebReportFilesController::class, 'update'])
         ->name('web.teacher.report_files.update_status');
-    Route::patch('/attachments/{attachment}/status', [WebAttachmentController::class, 'updateStatus'])
+    Route::patch('/attachments/{progress_log}/status', [WebAttachmentController::class, 'updateStatus'])
         ->name('web.teacher.attachments.update_status');
     //stage 5
 

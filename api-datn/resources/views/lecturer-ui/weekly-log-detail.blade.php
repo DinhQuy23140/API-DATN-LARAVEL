@@ -4,6 +4,7 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="csrf-token" content="{{ csrf_token() }}">
   <title>Chi tiết nhật ký tuần</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -82,7 +83,7 @@
 
         @if ($user->teacher && $user->teacher->supervisor)
           <a id="menuStudents"
-            href="{{ route('web.teacher.students', ['supervisorId' => $user->teacher->supervisor->id]) }}"
+            href="{{ route('web.teacher.students', ['teacherId' => $teacherId]) }}"
             class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100" data-skip-active="1">
             <i class="ph ph-student"></i><span class="sidebar-label">Sinh viên</span>
           </a>
@@ -279,8 +280,22 @@
         <div class="border border-slate-200 rounded-xl p-4 bg-slate-50">
           <div class="text-xs text-slate-500 mb-1">01/10/2025</div>
           <div>Hoàn thành khảo sát nghiệp vụ và phác thảo ERD sơ bộ.</div>
+          @php
+            $attachments = $progress_log->attachments ?? [];
+          @endphp
           <div class="mt-1 text-blue-600 hover:underline font-medium">
-            Tệp đính kèm: <a href="#">bao-cao-tuan-1.pdf</a>
+            Tệp đính kèm: 
+            @if (count($attachments) > 0)
+              @foreach ($attachments as $att)
+                @php
+                  $attName = $att->file_name ?? ($att->name ?? 'Tệp đính kèm');
+                  $attUrl = $att->file_url ?? ($att->url ?? '#');
+                @endphp
+                <a href="{{ $attUrl }}" target="_blank" class="mr-2">{{ $attName }}</a>
+              @endforeach
+            @else
+              <span class="text-slate-400">Chưa có tệp đính kèm.</span>
+            @endif
           </div>
         </div>
       </div>
@@ -313,13 +328,23 @@
           <span id="weekRange" class="font-medium text-slate-800">-</span>
         </div>
       </div>
+      @php
+      $listStatuses = ['approved', 'not_achieved', 'need_editing'];
+      $listStatusLabels = ['approved' => 'Đạt', 'not_achieved' => 'Chưa đạt', 'need_editing' => 'Cần chỉnh sửa'];
+      $listColorsBackground = ['approved' => 'bg-emerald-50', 'not_achieved' => 'bg-rose-50', 'need_editing' => 'bg-amber-50'];
+      $listColorsBorder = ['approved' => 'border-emerald-200', 'not_achieved' => 'border-rose-200', 'need_editing' => 'border-amber-200'];
+      $listColorsText = ['approved' => 'text-emerald-700', 'not_achieved' => 'text-rose-700', 'need_editing' => 'text-amber-700'];
+      $currentStatus = in_array($progress_log->instructor_status, $listStatuses) ? $progress_log->instructor_status : ''; 
+      @endphp
       <div class="flex flex-col sm:flex-row sm:items-center gap-3">
         <select id="selWeeklyStatus"
           class="px-4 py-2.5 border border-slate-200 rounded-xl w-full sm:w-64 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
-          <option value="">— Chọn trạng thái —</option>
-          <option value="pass">Đạt</option>
-          <option value="fail">Chưa đạt</option>
-          <option value="needs_revision">Cần chỉnh sửa</option>
+          <option value="">-- Chọn trạng thái --</option>
+          @foreach ($listStatuses as $status)
+            <option value="{{ $status }}" {{ $currentStatus === $status ? 'selected' : '' }}>
+              {{ $listStatusLabels[$status] ?? $status }}
+            </option>
+          @endforeach
         </select>
         <button id="btnConfirmStatus"
           class="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-500 transition text-sm font-medium">
@@ -329,8 +354,8 @@
       <div class="mt-3 text-sm text-slate-600">
         Trạng thái hiện tại:
         <span id="currentStatus"
-          class="inline-block px-2.5 py-0.5 rounded-full border border-slate-200 bg-slate-50 text-slate-800 text-sm font-medium">
-          -
+          class="inline-block px-2.5 py-0.5 rounded-full border {{ $listColorsBorder[$currentStatus] ?? '' }} {{ $listColorsBackground[$currentStatus] ?? '' }} {{ $currentStatus ? ($listColorsText[$currentStatus] ?? '-') : '-' }} text-sm font-medium ">
+          {{ $currentStatus ? ($listStatusLabels[$currentStatus] ?? '-') : '-' }}
         </span>
       </div>
     </section>
@@ -367,10 +392,11 @@
 
     // Đánh giá tuần: gọi API cập nhật status cho attachment
     (function () {
+      // Đồng bộ với value trong <select> và backend (approved/not_achieved/need_editting)
       const STATUS_MAP = {
-        pass: { label: 'Đạt', cls: 'border-emerald-200 bg-emerald-50 text-emerald-700' },
-        fail: { label: 'Chưa đạt', cls: 'border-rose-200 bg-rose-50 text-rose-700' },
-        needs_revision: { label: 'Cần chỉnh sửa', cls: 'border-amber-200 bg-amber-50 text-amber-700' }
+        approved:      { label: 'Đạt',          cls: 'border-emerald-200 bg-emerald-50 text-emerald-700' },
+        not_achieved:  { label: 'Chưa đạt',     cls: 'border-rose-200 bg-rose-50 text-rose-700' },
+        need_editing: { label: 'Cần chỉnh sửa',cls: 'border-amber-200 bg-amber-50 text-amber-700' }
       };
       const sel = document.getElementById('selWeeklyStatus');
       const btn = document.getElementById('btnConfirmStatus');
@@ -389,20 +415,22 @@
         if (!attachmentId) { alert('Không xác định được tệp đính kèm để cập nhật.'); return; }
         if (!status) { alert('Vui lòng chọn trạng thái.'); return; }
         const token = document.querySelector('meta[name="csrf-token"]')?.content || '';
-        const urlTpl = `{{ route('web.teacher.attachments.update_status', ['attachment' => '__ID__']) }}`;
-        const url = urlTpl.replace('__ID__', encodeURIComponent(attachmentId));
+        // Tạo URL trực tiếp từ Blade, tránh dùng biến JS không tồn tại
+        const url = `{{ route('web.teacher.attachments.update_status', ['progress_log' => $progress_log->id]) }}`;
         btn.disabled = true; const old = btn.innerHTML;
         btn.innerHTML = '<i class="ph ph-spinner-gap animate-spin"></i> Đang cập nhật...';
         try {
           const res = await fetch(url, {
             method: 'PATCH',
+            credentials: 'same-origin', // gửi cookie phiên
             headers: {
               'Content-Type': 'application/json',
               'Accept': 'application/json',
               'X-Requested-With': 'XMLHttpRequest',
-              'X-CSRF-TOKEN': token
+              'X-CSRF-TOKEN': token || ''
             },
-            body: JSON.stringify({ status })
+            // Gửi kèm attachment_id nếu backend cần
+            body: JSON.stringify({ status, attachment_id: attachmentId })
           });
           const js = await res.json().catch(() => ({}));
           if (!res.ok || js.ok === false) {
