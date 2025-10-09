@@ -172,14 +172,18 @@
                 'pending' => 'Đã nộp',
                 'submitted' => 'Đã nộp',
                 'approved' => 'Đã duyệt',
+                'passed' => 'Đã duyệt',
                 'rejected' => 'Bị từ chối',
+                'failured' => 'Bị từ chối',
               ];
               $listColorStatus = [
                 'none' => 'bg-slate-100 text-slate-600',
                 'pending' => 'bg-amber-100 text-amber-700',
                 'submitted' => 'bg-amber-100 text-amber-700',
                 'approved' => 'bg-emerald-100 text-emerald-700',
+                'passed' => 'bg-emerald-100 text-emerald-700',
                 'rejected' => 'bg-rose-100 text-rose-700',
+                'failured' => 'bg-rose-100 text-rose-700',
               ];
             @endphp
             <table class="w-full text-sm">

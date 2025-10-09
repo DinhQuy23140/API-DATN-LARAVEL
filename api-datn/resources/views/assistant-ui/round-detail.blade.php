@@ -54,6 +54,7 @@
         ?? 'https://ui-avatars.com/api/?name=' . urlencode($userName) . '&background=0ea5e9&color=ffffff';
         $assignments = $round_detail->assignments ?? collect();
         $supervisors = $round_detail->supervisors ?? collect();
+        $stageTimeline = $round_detail->stageTimelines?->sortBy('number_of_rounds') ?? collect();
     @endphp
     <div class="flex min-h-screen">
       <aside id="sidebar" class="sidebar fixed inset-y-0 left-0 z-30 bg-white border-r border-slate-200 flex flex-col transition-all">
@@ -151,80 +152,283 @@
           <div class="relative">
             <!-- Progress Line -->
             <div class="absolute top-6 left-8 right-8 h-0.5 bg-slate-200">
-              <div class="h-full bg-blue-600" style="width: 25%"></div>
+              @php
+                $progressWidth = 0;
+              @endphp
+              @foreach ($stageTimeline as $index => $stage)
+                @php
+                  $endDate = $stage->end_date ?? null;
+                  if( $endDate && Carbon::parse($endDate)->isPast() ) {
+                    $progressWidth ++;
+                  }
+                @endphp
+              @endforeach
+                <div class="h-full bg-emerald-600" style="width: {{ $progressWidth/8 * 100 }}%"></div>
             </div>
             
             <!-- Timeline Items -->
             <div class="grid grid-cols-8 gap-4 relative">
               <!-- Stage 1 -->
+              @php
+                $startDateStage1 = $stageTimeline[0]->start_date ?? null;
+                $endDateStage1   = $stageTimeline[0]->end_date ?? null;
+                $today = now();
+
+                if ($startDateStage1 && $today->lt(Carbon::parse($startDateStage1))) {
+                    // Trạng thái: Chưa bắt đầu
+                    $statusStage1 = 'Chưa bắt đầu';
+                    $statusColor = 'text-slate-500';
+                    $backgroundStage1 = 'bg-slate-400';
+                }
+                elseif ($endDateStage1 && $today->gt(Carbon::parse($endDateStage1))) {
+                    // Trạng thái: Hoàn thành
+                    $statusStage1 = 'Hoàn thành';
+                    $statusColor = 'text-emerald-600';
+                    $backgroundStage1 = 'bg-emerald-600';
+                }
+                else {
+                    // Trạng thái: Đang diễn ra
+                    $statusStage1 = 'Đang diễn ra';
+                    $statusColor = 'text-blue-600';
+                    $backgroundStage1 = 'bg-blue-600';
+                }
+              @endphp
               <div class="timeline-stage cursor-pointer" data-stage="1">
-                <div class="w-12 h-12 mx-auto bg-emerald-600 rounded-full flex items-center justify-center text-white font-medium text-sm relative z-10 hover:scale-110 transition-transform">1</div>
+                <div class="w-12 h-12 mx-auto {{ $backgroundStage1 }} rounded-full flex items-center justify-center text-white font-medium text-sm relative z-10 hover:scale-110 transition-transform">1</div>
                 <div class="text-center mt-2">
                   <div class="text-xs font-medium text-slate-900">Nhập liệu</div>
-                  <div class="text-xs text-emerald-600 mt-1">Hoàn thành</div>
+                  <div class="text-xs {{ $statusColor }} mt-1">{{ $statusStage1 }}</div>
                 </div>
               </div>
 
               <!-- Stage 2 -->
+              @php
+                $startDateStage2 = $stageTimeline[1]->start_date ?? null;
+                $endDateStage2   = $stageTimeline[1]->end_date ?? null;
+                $today = now();
+
+                if ($startDateStage2 && $today->lt(Carbon::parse($startDateStage2))) {
+                    // Trạng thái: Chưa bắt đầu
+                    $statusStage2 = 'Chưa bắt đầu';
+                    $statusColor = 'text-slate-500';
+                    $backgroundStage2 = 'bg-slate-400';
+                }
+                elseif ($endDateStage2 && $today->gt(Carbon::parse($endDateStage2))) {
+                    // Trạng thái: Hoàn thành
+                    $statusStage2 = 'Hoàn thành';
+                    $statusColor = 'text-emerald-600';
+                    $backgroundStage2 = 'bg-emerald-600';
+                }
+                else {
+                    // Trạng thái: Đang diễn ra
+                    $statusStage2 = 'Đang diễn ra';
+                    $statusColor = 'text-blue-600';
+                    $backgroundStage2 = 'bg-blue-600';
+                }
+              @endphp
               <div class="timeline-stage cursor-pointer" data-stage="2">
-                <div class="w-12 h-12 mx-auto bg-blue-600 rounded-full flex items-center justify-center text-white font-medium text-sm relative z-10 hover:scale-110 transition-transform">2</div>
+                <div class="w-12 h-12 mx-auto {{ $backgroundStage2 }} rounded-full flex items-center justify-center text-white font-medium text-sm relative z-10 hover:scale-110 transition-transform">2</div>
                 <div class="text-center mt-2">
                   <div class="text-xs font-medium text-slate-900">Đề cương đồ án</div>
-                  <div class="text-xs text-blue-600 mt-1">Đang diễn ra</div>
+                  <div class="text-xs {{ $statusColor }} mt-1">{{ $statusStage2 }}</div>
                 </div>
               </div>
 
               <!-- Stage 3 -->
+              @php
+                $startDateStage3 = $stageTimeline[2]->start_date ?? null;
+                $endDateStage3   = $stageTimeline[2]->end_date ?? null;
+                $today = now();
+
+                if ($startDateStage3 && $today->lt(Carbon::parse($startDateStage3))) {
+                    // Trạng thái: Chưa bắt đầu
+                    $statusStage3 = 'Chưa bắt đầu';
+                    $statusColor = 'text-slate-500';
+                    $backgroundStage3 = 'bg-slate-400';
+                }
+                elseif ($endDateStage3 && $today->gt(Carbon::parse($endDateStage3))) {
+                    // Trạng thái: Hoàn thành
+                    $statusStage3 = 'Hoàn thành';
+                    $statusColor = 'text-emerald-600';
+                    $backgroundStage3 = 'bg-emerald-600';
+                }
+                else {
+                    // Trạng thái: Đang diễn ra
+                    $statusStage3 = 'Đang diễn ra';
+                    $statusColor = 'text-blue-600';
+                    $backgroundStage3 = 'bg-blue-600';
+                }
+              @endphp
               <div class="timeline-stage cursor-pointer" data-stage="3">
-                <div class="w-12 h-12 mx-auto bg-slate-300 rounded-full flex items-center justify-center text-white font-medium text-sm relative z-10 hover:scale-110 transition-transform">3</div>
+                <div class="w-12 h-12 mx-auto {{ $backgroundStage3 }} rounded-full flex items-center justify-center text-white font-medium text-sm relative z-10 hover:scale-110 transition-transform">3</div>
                 <div class="text-center mt-2">
                   <div class="text-xs font-medium text-slate-900">Nhật ký đồ án</div>
-                  <div class="text-xs text-slate-600 mt-1">Sắp tới</div>
+                  <div class="text-xs {{ $statusColor }} mt-1">{{ $statusStage3 }}</div>
                 </div>
               </div>
 
               <!-- Stage 4 -->
+              @php
+                $startDateStage4 = $stageTimeline[3]->start_date ?? null;
+                $endDateStage4   = $stageTimeline[3]->end_date ?? null;
+                $today = now();
+
+                if ($startDateStage4 && $today->lt(Carbon::parse($startDateStage4))) {
+                    // Trạng thái: Chưa bắt đầu
+                    $statusStage4 = 'Chưa bắt đầu';
+                    $statusColor = 'text-slate-500';
+                    $backgroundStage4 = 'bg-slate-400';
+                }
+                elseif ($endDateStage4 && $today->gt(Carbon::parse($endDateStage4))) {
+                    // Trạng thái: Hoàn thành
+                    $statusStage4 = 'Hoàn thành';
+                    $statusColor = 'text-emerald-600';
+                    $backgroundStage4 = 'bg-emerald-600';
+                }
+                else {
+                    // Trạng thái: Đang diễn ra
+                    $statusStage4 = 'Đang diễn ra';
+                    $statusColor = 'text-blue-600';
+                    $backgroundStage4 = 'bg-blue-600';
+                }
+              @endphp
               <div class="timeline-stage cursor-pointer" data-stage="4">
-                <div class="w-12 h-12 mx-auto bg-slate-300 rounded-full flex items-center justify-center text-white font-medium text-sm relative z-10 hover:scale-110 transition-transform">4</div>
+                <div class="w-12 h-12 mx-auto {{ $backgroundStage4 }} rounded-full flex items-center justify-center text-white font-medium text-sm relative z-10 hover:scale-110 transition-transform">4</div>
                 <div class="text-center mt-2">
                   <div class="text-xs font-medium text-slate-900">Báo cáo đồ án</div>
-                  <div class="text-xs text-slate-600 mt-1">Sắp tới</div>
+                  <div class="text-xs {{ $statusColor }} mt-1">{{ $statusStage4 }}</div>
                 </div>
               </div>
 
               <!-- Stage 5 -->
+               @php
+                $startDateStage5 = $stageTimeline[4]->start_date ?? null;
+                $endDateStage5   = $stageTimeline[4]->end_date ?? null;
+                $today = now();
+
+                if ($startDateStage5 && $today->lt(Carbon::parse($startDateStage5))) {
+                    // Trạng thái: Chưa bắt đầu
+                    $statusStage5 = 'Chưa bắt đầu';
+                    $statusColor = 'text-slate-500';
+                    $backgroundStage5 = 'bg-slate-400';
+                }
+                elseif ($endDateStage5 && $today->gt(Carbon::parse($endDateStage5))) {
+                    // Trạng thái: Hoàn thành
+                    $statusStage5 = 'Hoàn thành';
+                    $statusColor = 'text-emerald-600';
+                    $backgroundStage5 = 'bg-emerald-600';
+                }
+                else {
+                    // Trạng thái: Đang diễn ra
+                    $statusStage5 = 'Đang diễn ra';
+                    $statusColor = 'text-blue-600';
+                    $backgroundStage5 = 'bg-blue-600';
+                }
+              @endphp
               <div class="timeline-stage cursor-pointer" data-stage="5">
-                <div class="w-12 h-12 mx-auto bg-slate-300 rounded-full flex items-center justify-center text-white font-medium text-sm relative z-10 hover:scale-110 transition-transform">5</div>
+                <div class="w-12 h-12 mx-auto {{ $backgroundStage5 }} rounded-full flex items-center justify-center text-white font-medium text-sm relative z-10 hover:scale-110 transition-transform">5</div>
                 <div class="text-center mt-2">
                   <div class="text-xs font-medium text-slate-900">Hội đồng bảo vệ</div>
-                  <div class="text-xs text-slate-600 mt-1">Sắp tới</div>
+                  <div class="text-xs {{ $statusColor }} mt-1">{{ $statusStage5 }}</div>
                 </div>
               </div>
 
               <!-- Stage 6 -->
+               @php
+                $startDateStage6 = $stageTimeline[5]->start_date ?? null;
+                $endDateStage6   = $stageTimeline[5]->end_date ?? null;
+                $today = now();
+
+                if ($startDateStage6 && $today->lt(Carbon::parse($startDateStage6))) {
+                    // Trạng thái: Chưa bắt đầu
+                    $statusStage6 = 'Chưa bắt đầu';
+                    $statusColor = 'text-slate-500';
+                    $backgroundStage6 = 'bg-slate-400';
+                }
+                elseif ($endDateStage6 && $today->gt(Carbon::parse($endDateStage6))) {
+                    // Trạng thái: Hoàn thành
+                    $statusStage6 = 'Hoàn thành';
+                    $statusColor = 'text-emerald-600';
+                    $backgroundStage6 = 'bg-emerald-600';
+                }
+                else {
+                    // Trạng thái: Đang diễn ra
+                    $statusStage6 = 'Đang diễn ra';
+                    $statusColor = 'text-blue-600';
+                    $backgroundStage6 = 'bg-blue-600';
+                }
+              @endphp
               <div class="timeline-stage cursor-pointer" data-stage="6">
-                <div class="w-12 h-12 mx-auto bg-slate-300 rounded-full flex items-center justify-center text-white font-medium text-sm relative z-10 hover:scale-110 transition-transform">6</div>
+                <div class="w-12 h-12 mx-auto {{ $backgroundStage6 }} rounded-full flex items-center justify-center text-white font-medium text-sm relative z-10 hover:scale-110 transition-transform">6</div>
                 <div class="text-center mt-2">
                   <div class="text-xs font-medium text-slate-900">Phản biện</div>
-                  <div class="text-xs text-slate-600 mt-1">Sắp tới</div>
+                  <div class="text-xs {{ $statusColor }} mt-1">{{ $statusStage6 }}</div>
                 </div>
               </div>
 
               <!-- Stage 7 -->
+               @php
+                $startDateStage7 = $stageTimeline[6]->start_date ?? null;
+                $endDateStage7   = $stageTimeline[6]->end_date ?? null;
+                $today = now();
+
+                if ($startDateStage7 && $today->lt(Carbon::parse($startDateStage7))) {
+                    // Trạng thái: Chưa bắt đầu
+                    $statusStage7 = 'Chưa bắt đầu';
+                    $statusColor = 'text-slate-500';
+                    $backgroundStage7 = 'bg-slate-400';
+                }
+                elseif ($endDateStage7 && $today->gt(Carbon::parse($endDateStage7))) {
+                    // Trạng thái: Hoàn thành
+                    $statusStage7 = 'Hoàn thành';
+                    $statusColor = 'text-emerald-600';
+                    $backgroundStage7 = 'bg-emerald-600';
+                }
+                else {
+                    // Trạng thái: Đang diễn ra
+                    $statusStage7 = 'Đang diễn ra';
+                    $statusColor = 'text-blue-600';
+                    $backgroundStage7 = 'bg-blue-600';
+                }
+              @endphp
               <div class="timeline-stage cursor-pointer" data-stage="7">
-                <div class="w-12 h-12 mx-auto bg-slate-300 rounded-full flex items-center justify-center text-white font-medium text-sm relative z-10 hover:scale-110 transition-transform">7</div>
+                <div class="w-12 h-12 mx-auto {{ $backgroundStage7 }} rounded-full flex items-center justify-center text-white font-medium text-sm relative z-10 hover:scale-110 transition-transform">7</div>
                 <div class="text-center mt-2">
                   <div class="text-xs font-medium text-slate-900">Kết quả phản biện</div>
-                  <div class="text-xs text-slate-600 mt-1">Sắp tới</div>
+                  <div class="text-xs {{ $statusColor }} mt-1">{{ $statusStage7 }}</div>
                 </div>
               </div>
 
               <!-- Stage 8 -->
+               @php
+                $startDateStage8 = $stageTimeline[7]->start_date ?? null;
+                $endDateStage8   = $stageTimeline[7]->end_date ?? null;
+                $today = now();
+
+                if ($startDateStage8 && $today->lt(Carbon::parse($startDateStage8))) {
+                    // Trạng thái: Chưa bắt đầu
+                    $statusStage8 = 'Chưa bắt đầu';
+                    $statusColor = 'text-slate-500';
+                    $backgroundStage8 = 'bg-slate-400';
+                }
+                elseif ($endDateStage8 && $today->gt(Carbon::parse($endDateStage8))) {
+                    // Trạng thái: Hoàn thành
+                    $statusStage8 = 'Hoàn thành';
+                    $statusColor = 'text-emerald-600';
+                    $backgroundStage8 = 'bg-emerald-600';
+                }
+                else {
+                    // Trạng thái: Đang diễn ra
+                    $statusStage8 = 'Đang diễn ra';
+                    $statusColor = 'text-blue-600';
+                    $backgroundStage8 = 'bg-blue-600';
+                }
+              @endphp
               <div class="timeline-stage cursor-pointer" data-stage="8">
-                <div class="w-12 h-12 mx-auto bg-slate-300 rounded-full flex items-center justify-center text-white font-medium text-sm relative z-10 hover:scale-110 transition-transform">8</div>
+                <div class="w-12 h-12 mx-auto {{ $backgroundStage8 }} rounded-full flex items-center justify-center text-white font-medium text-sm relative z-10 hover:scale-110 transition-transform">8</div>
                 <div class="text-center mt-2">
                   <div class="text-xs font-medium text-slate-900">Bảo vệ</div>
-                  <div class="text-xs text-slate-600 mt-1">Sắp tới</div>
+                  <div class="text-xs {{ $statusColor }} mt-1">{{ $statusStage8 }}</div>
                 </div>
               </div>
             </div>
@@ -312,18 +516,6 @@
           const start = toDateAny(a);
           const end = toDateAny(b);
           return { start, end };
-        }
-        function getStagePeriod(stageNum, totalStages = 8) {
-          const { start, end } = getRoundDates();
-          if (!start || !end || end < start) return null;
-          const totalMs = end.getTime() - start.getTime();
-          const slice = Math.floor(totalMs / totalStages);
-          const segStart = new Date(start.getTime() + slice * (stageNum - 1));
-          // segEnd: nếu là stage cuối dùng end, ngược lại lấy mốc trước của stage tiếp theo
-          const segEnd = stageNum === totalStages
-            ? end
-            : new Date(start.getTime() + slice * stageNum - 1);
-          return { start: segStart, end: segEnd };
         }
 
         const stageData = {
@@ -435,11 +627,6 @@
           document.querySelectorAll('.timeline-stage').forEach(s => s.classList.remove('active'));
           document.querySelector(`.timeline-stage[data-stage="${stageNum}"]`)?.classList.add('active');
 
-          const period = getStagePeriod(stageNum, 8);
-          const timeHtml = period
-            ? `<div class="mt-2 text-xs text-slate-500"><i class="ph ph-calendar"></i> Thời gian: ${formatVN(period.start)} - ${formatVN(period.end)}</div>`
-            : '';
-
           // Panel hiện đại cho Stage 1 (đã có)
           if (stageNum === 1) {
             stageContent.innerHTML = `
@@ -452,7 +639,7 @@
                   Nhập danh sách sinh viên đủ điều kiện
                 </h3>
                 <p class="text-sm text-slate-600">Chuẩn bị dữ liệu cho kỳ đồ án: SV đủ điều kiện và giảng viên hướng dẫn.</p>
-                ${timeHtml}
+                <h5 class="font-semibold text-md mt-4 text-slate-600">Thời gian: {{ Carbon::parse($stageTimeline[0]->start_date)->format('d/m/Y') }} - {{ Carbon::parse($stageTimeline[0]->end_date)->format('d/m/Y') }}</h5>
               </div>
 
               <!-- Actions -->
@@ -574,7 +761,7 @@
                 <!-- Table -->
                 <div class="overflow-x-auto">
                   <table class="min-w-full border border-slate-200 rounded-lg text-sm">
-                    <thead class="bg-emerald-50 text-emerald-700">
+                    <thead class="bg-gradient-to-r from-emerald-50 to-emerald-100 text-emerald-700">
                       <tr>
                         <th class="px-4 py-2 text-left">MSSV</th>
                         <th class="px-4 py-2 text-left">Họ tên</th>
@@ -755,7 +942,7 @@
                     Xác nhận giảng viên hướng dẫn
                   </h3>
                   <p class="text-sm text-slate-600">Danh sách sinh viên, đề tài đăng ký và trạng thái xác nhận của giảng viên.</p>
-                  ${timeHtml}
+                  <h5 class="font-semibold text-md mt-4 text-slate-600">Thời gian: {{ Carbon::parse($stageTimeline[1]->start_date)->format('d/m/Y') }} - {{ Carbon::parse($stageTimeline[1]->end_date)->format('d/m/Y') }}</h5>
                 </div>
 
                 <!-- Search -->
@@ -767,104 +954,103 @@
                 </div>
 
                 <!-- Table -->
-  <div class="overflow-x-auto">
-  <table class="min-w-full border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-    <thead class="bg-gradient-to-r from-emerald-50 to-emerald-100 text-emerald-700 text-sm uppercase font-semibold tracking-wide">
-      <tr>
-        <th class="px-4 py-3 text-left">Mã SV</th>
-        <th class="px-4 py-3 text-left">Họ tên</th>
-        <th class="px-4 py-3 text-left">Lớp</th>
-        <th class="px-4 py-3 text-left">Đề tài đăng ký</th>
-        <th class="px-4 py-3 text-left">GV hướng dẫn</th>
-        <th class="px-4 py-3 text-left">Đề cương</th>
-        <th class="px-4 py-3 text-left">Cập nhật</th>
-      </tr>
-    </thead>
-    <tbody id="stage2TableBody" class="divide-y divide-slate-200 text-sm bg-white">
-      @if ($assignments->isEmpty())
-        <tr>
-          <td colspan="8" class="px-4 py-6 text-center text-slate-400 italic">
-            Chưa có sinh viên nào được phân công.
-          </td>
-        </tr>
-      @else
-        @foreach ($assignments as $assignment)
-          @php
-            $student = $assignment->student;
-            $student_id = $student->student_code ?? 'N/A';
-            $name = $student->user->fullname ?? 'N/A';
-            $marjor = $student->marjor->name ?? 'N/A';
-            $topic = $assignment->project->name ?? 'Chưa có đề tài';
-            $assignment_supervisors = $assignment->assignment_supervisors;
-            $lastedOutline = $assignment?->project
-                ? $assignment->project->reportFiles()
-                    ->where('type_report', 'outline')
-                    ->latest('created_at')
-                    ->first()
-                : null;
-            $fileUrl = $lastedOutline?->file_url ?? "#";
-            $lastedOutlineStatus = $lastedOutline?->status ?? 'none';
-          @endphp
-          <tr class="hover:bg-emerald-50 transition">
-            <!-- Mã SV -->
-            <td class="px-4 py-3 font-semibold text-emerald-700">{{ $student_id }}</td>
+              <div class="overflow-x-auto">
+              <table class="min-w-full border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                <thead class="bg-gradient-to-r from-emerald-50 to-emerald-100 text-emerald-700 text-sm uppercase font-semibold tracking-wide">
+                  <tr>
+                    <th class="px-4 py-3 text-left">Mã SV</th>
+                    <th class="px-4 py-3 text-left">Họ tên</th>
+                    <th class="px-4 py-3 text-left">Lớp</th>
+                    <th class="px-4 py-3 text-left">Đề tài đăng ký</th>
+                    <th class="px-4 py-3 text-left">GV hướng dẫn</th>
+                    <th class="px-4 py-3 text-left">Đề cương</th>
+                    <th class="px-4 py-3 text-left">Cập nhật</th>
+                  </tr>
+                </thead>
+                <tbody id="stage2TableBody" class="divide-y divide-slate-200 text-sm bg-white">
+                  @if ($assignments->isEmpty())
+                    <tr>
+                      <td colspan="8" class="px-4 py-6 text-center text-slate-400 italic">
+                        Chưa có sinh viên nào được phân công.
+                      </td>
+                    </tr>
+                  @else
+                    @foreach ($assignments as $assignment)
+                      @php
+                        $student = $assignment->student;
+                        $student_id = $student->student_code ?? 'N/A';
+                        $name = $student->user->fullname ?? 'N/A';
+                        $marjor = $student->marjor->name ?? 'N/A';
+                        $topic = $assignment->project->name ?? 'Chưa có đề tài';
+                        $assignment_supervisors = $assignment->assignment_supervisors;
+                        $lastedOutline = $assignment?->project
+                            ? $assignment->project->reportFiles()
+                                ->where('type_report', 'outline')
+                                ->latest('created_at')
+                                ->first()
+                            : null;
+                        $fileUrl = $lastedOutline?->file_url ?? "#";
+                        $lastedOutlineStatus = $lastedOutline?->status ?? 'none';
+                      @endphp
+                      <tr class="hover:bg-emerald-50 transition">
+                        <!-- Mã SV -->
+                        <td class="px-4 py-3 font-semibold text-emerald-700">{{ $student_id }}</td>
 
-            <!-- Họ tên -->
-            <td class="px-4 py-3 font-medium text-slate-800">{{ $name }}</td>
+                        <!-- Họ tên -->
+                        <td class="px-4 py-3 font-medium text-slate-800">{{ $name }}</td>
 
-            <!-- Lớp -->
-            <td class="px-4 py-3 text-slate-700">{{ $marjor }}</td>
+                        <!-- Lớp -->
+                        <td class="px-4 py-3 text-slate-700">{{ $marjor }}</td>
 
-            <!-- Đề tài -->
-            <td class="px-4 py-3 text-slate-700 max-w-[250px] truncate" title="{{ $topic }}">
-              {{ $topic }}
-            </td>
+                        <!-- Đề tài -->
+                        <td class="px-4 py-3 text-slate-700 max-w-[250px] truncate" title="{{ $topic }}">
+                          {{ $topic }}
+                        </td>
 
-            <!-- GV hướng dẫn -->
-            <td class="px-4 py-3">
-              @if ($assignment_supervisors->isEmpty())
-                <span class="text-slate-400 italic">Chưa có GVHD</span>
-              @else
-                @foreach ($assignment_supervisors as $as)
-                  @php
-                    $teacher = $as->supervisor->teacher;
-                    $teacherName = $teacher->user->fullname ?? 'N/A';
-                  @endphp
-                  <div class="text-slate-700">{{ $teacherName }}</div>
-                @endforeach
-              @endif
-            </td>
+                        <!-- GV hướng dẫn -->
+                        <td class="px-4 py-3">
+                          @if ($assignment_supervisors->isEmpty())
+                            <span class="text-slate-400 italic">Chưa có GVHD</span>
+                          @else
+                            @foreach ($assignment_supervisors as $as)
+                              @php
+                                $teacher = $as->supervisor->teacher;
+                                $teacherName = $teacher->user->fullname ?? 'N/A';
+                              @endphp
+                              <div class="text-slate-700">{{ $teacherName }}</div>
+                            @endforeach
+                          @endif
+                        </td>
 
-            <!-- Đề cương -->
-            <td class="px-4 py-3">
-              @if ($lastedOutline)
-                <a href="{{ $fileUrl }}" target="_blank"
-                  class="text-emerald-600 font-medium hover:underline hover:text-emerald-700 flex items-center gap-1">
-                  <i class="ph ph-file-text text-emerald-500"></i> {{ $lastedOutline->file_name }}
-                </a>
-              @else
-                <span class="text-slate-400 italic">Chưa nộp</span>
-              @endif
-            </td>
+                        <!-- Đề cương -->
+                        <td class="px-4 py-3">
+                          @if ($lastedOutline)
+                            <a href="{{ $fileUrl }}" target="_blank"
+                              class="text-emerald-600 font-medium hover:underline hover:text-emerald-700 flex items-center gap-1">
+                              <i class="ph ph-file-text text-emerald-500"></i> {{ $lastedOutline->file_name }}
+                            </a>
+                          @else
+                            <span class="text-slate-400 italic">Chưa nộp</span>
+                          @endif
+                        </td>
 
-            <!-- Cập nhật -->
-            <td class="px-4 py-3">
-              @if ($lastedOutline)
-                <span class="inline-flex items-center gap-1 text-xs text-slate-600">
-                  <i class="ph ph-clock text-emerald-500"></i>
-                  {{ $lastedOutline?->created_at?->format('d/m/Y') }}
-                </span>
-              @else
-                <span class="text-slate-400 italic text-sm">Chưa nộp</span>
-              @endif
-            </td>
-          </tr>
-        @endforeach
-      @endif
-    </tbody>
-  </table>
-</div>
-
+                        <!-- Cập nhật -->
+                        <td class="px-4 py-3">
+                          @if ($lastedOutline)
+                            <span class="inline-flex items-center gap-1 text-xs text-slate-600">
+                              <i class="ph ph-clock text-emerald-500"></i>
+                              {{ $lastedOutline?->created_at?->format('d/m/Y') }}
+                            </span>
+                          @else
+                            <span class="text-slate-400 italic text-sm">Chưa nộp</span>
+                          @endif
+                        </td>
+                      </tr>
+                    @endforeach
+                  @endif
+                </tbody>
+              </table>
+            </div>
               </div>
             `;
 
@@ -895,7 +1081,7 @@
                     Theo dõi tiến độ
                   </h3>
                   <p class="text-sm text-slate-600">Bảng tĩnh hiển thị danh sách sinh viên và trạng thái tiến độ gần đây.</p>
-                  ${timeHtml}
+                  <h5 class="font-semibold text-md mt-4 text-slate-600">Thời gian: {{ Carbon::parse($stageTimeline[2]->start_date)->format('d/m/Y') }} - {{ Carbon::parse($stageTimeline[2]->end_date)->format('d/m/Y') }}</h5>
                 </div>
 
                 <!-- Search -->
@@ -1014,7 +1200,7 @@
                   <p class="text-sm text-slate-600">
                     Quản lý và theo dõi các báo cáo hàng tuần của sinh viên trong quá trình thực hiện đồ án tốt nghiệp.
                   </p>
-                  ${timeHtml}
+                  <h5 class="font-semibold text-md mt-4 text-slate-600">Thời gian: {{ Carbon::parse($stageTimeline[3]->start_date)->format('d/m/Y') }} - {{ Carbon::parse($stageTimeline[3]->end_date)->format('d/m/Y') }}</h5>
                 </div>
 
                 <!-- Toolbar -->
@@ -1031,84 +1217,84 @@
                 </div>
 
                 <!-- Table -->
-<div class="overflow-x-auto border border-slate-200 rounded-xl shadow-sm">
-  <table id="tableStage4" class="w-full text-sm border-collapse">
-    <thead>
-      <tr class="text-left text-emerald-700 border-b bg-emerald-50">
-        <th class="py-2.5 px-3">Mã SV</th>
-        <th class="py-2.5 px-3">Họ tên</th>
-        <th class="py-2.5 px-3">Lớp</th>
-        <th class="py-2.5 px-3">Đề tài</th>
-        <th class="py-2.5 px-3">Giảng viên hướng dẫn</th>
-        <th class="py-2.5 px-3">Báo cáo</th>
-        <th class="py-2.5 px-3">Cập nhật</th>
-      </tr>
-    </thead>
+                <div class="overflow-x-auto border border-slate-200 rounded-xl shadow-sm">
+                  <table id="tableStage4" class="w-full text-sm border-collapse">
+                    <thead>
+                      <tr class="text-left text-emerald-700 border-b bg-gradient-to-r from-emerald-50 to-emerald-100">
+                        <th class="py-2.5 px-3">Mã SV</th>
+                        <th class="py-2.5 px-3">Họ tên</th>
+                        <th class="py-2.5 px-3">Lớp</th>
+                        <th class="py-2.5 px-3">Đề tài</th>
+                        <th class="py-2.5 px-3">Giảng viên hướng dẫn</th>
+                        <th class="py-2.5 px-3">Báo cáo</th>
+                        <th class="py-2.5 px-3">Cập nhật</th>
+                      </tr>
+                    </thead>
 
-    <tbody id="stage4TableBody" class="divide-y divide-slate-100">
-      @if ($assignments->isEmpty())
-        <tr>
-          <td colspan="7" class="px-4 py-6 text-center text-slate-400 italic">
-            Chưa có sinh viên nào được phân công.
-          </td>
-        </tr>
-      @else
-        @foreach ($assignments as $assignment)
-          @php
-            $student = $assignment->student;
-            $topic = $assignment->project->name ?? 'Chưa có đề tài';
-            $assignment_supervisors = $assignment->assignment_supervisors;
-            $lastedReport = $assignment?->project
-                ? $assignment->project->reportFiles()
-                    ->where('type_report', 'report')
-                    ->latest('created_at')
-                    ->first()
-                : null;
-          @endphp
+                    <tbody id="stage4TableBody" class="divide-y divide-slate-100">
+                      @if ($assignments->isEmpty())
+                        <tr>
+                          <td colspan="7" class="px-4 py-6 text-center text-slate-400 italic">
+                            Chưa có sinh viên nào được phân công.
+                          </td>
+                        </tr>
+                      @else
+                        @foreach ($assignments as $assignment)
+                          @php
+                            $student = $assignment->student;
+                            $topic = $assignment->project->name ?? 'Chưa có đề tài';
+                            $assignment_supervisors = $assignment->assignment_supervisors;
+                            $lastedReport = $assignment?->project
+                                ? $assignment->project->reportFiles()
+                                    ->where('type_report', 'report')
+                                    ->latest('created_at')
+                                    ->first()
+                                : null;
+                          @endphp
 
-          <tr class="stage4-row odd:bg-white even:bg-emerald-50/30 hover:bg-emerald-50 transition-colors">
-            <td class="py-2.5 px-3 font-semibold text-emerald-700">{{ $student->student_code }}</td>
-            <td class="py-2.5 px-3 font-medium text-slate-800">{{ $student->user->fullname }}</td>
-            <td class="py-2.5 px-3 text-slate-700">{{ $student->class_code }}</td>
-            <td class="py-2.5 px-3 text-slate-700">{{ $topic }}</td>
-            <td class="py-2.5 px-3 text-slate-700">
-              @if ($assignment_supervisors->isEmpty())
-                <span class="text-slate-400 italic">Chưa có GVHD</span>
-              @else
-                @foreach ($assignment_supervisors as $as)
-                  @php
-                    $teacher = $as->supervisor->teacher;
-                    $teacherName = $teacher->user->fullname ?? 'N/A';
-                  @endphp
-                  <div class="flex items-center gap-1 text-emerald-700">
-                    <i class="ph ph-user text-emerald-500"></i>
-                    <span>{{ $teacherName }}</span>
-                  </div>
-                @endforeach
-              @endif
-            </td>
+                          <tr class="stage4-row odd:bg-white even:bg-emerald-50/30 hover:bg-emerald-50 transition-colors">
+                            <td class="py-2.5 px-3 font-semibold text-emerald-700">{{ $student->student_code }}</td>
+                            <td class="py-2.5 px-3 font-medium text-slate-800">{{ $student->user->fullname }}</td>
+                            <td class="py-2.5 px-3 text-slate-700">{{ $student->class_code }}</td>
+                            <td class="py-2.5 px-3 text-slate-700">{{ $topic }}</td>
+                            <td class="py-2.5 px-3 text-slate-700">
+                              @if ($assignment_supervisors->isEmpty())
+                                <span class="text-slate-400 italic">Chưa có GVHD</span>
+                              @else
+                                @foreach ($assignment_supervisors as $as)
+                                  @php
+                                    $teacher = $as->supervisor->teacher;
+                                    $teacherName = $teacher->user->fullname ?? 'N/A';
+                                  @endphp
+                                  <div class="flex items-center gap-1 text-emerald-700">
+                                    <i class="ph ph-user text-emerald-500"></i>
+                                    <span>{{ $teacherName }}</span>
+                                  </div>
+                                @endforeach
+                              @endif
+                            </td>
 
-            <td class="py-2.5 px-3">
-              @if ($lastedReport)
-                <a href="{{ $lastedReport->file_url }}" target="_blank"
-                  class="text-emerald-600 font-medium hover:underline hover:text-emerald-700 flex items-center gap-1">
-                  <i class="ph ph-file-text text-emerald-500"></i>
-                  {{ $lastedReport->file_name }}
-                </a>
-              @else
-                <span class="text-slate-400 italic">Chưa nộp</span>
-              @endif
-            </td>
+                            <td class="py-2.5 px-3">
+                              @if ($lastedReport)
+                                <a href="{{ $lastedReport->file_url }}" target="_blank"
+                                  class="text-emerald-600 font-medium hover:underline hover:text-emerald-700 flex items-center gap-1">
+                                  <i class="ph ph-file-text text-emerald-500"></i>
+                                  {{ $lastedReport->file_name }}
+                                </a>
+                              @else
+                                <span class="text-slate-400 italic">Chưa nộp</span>
+                              @endif
+                            </td>
 
-            <td class="py-2.5 px-3 text-slate-600">
-              {{ $assignment->created_at->format('d/m/Y H:i') }}
-            </td>
-          </tr>
-        @endforeach
-      @endif
-    </tbody>
-  </table>
-</div>
+                            <td class="py-2.5 px-3 text-slate-600">
+                              {{ $assignment->created_at->format('d/m/Y H:i') }}
+                            </td>
+                          </tr>
+                        @endforeach
+                      @endif
+                    </tbody>
+                  </table>
+                </div>
               </div>
             `;
 
@@ -1138,7 +1324,7 @@
                     Thành lập hội đồng chấm
                   </h3>
                   <p class="text-sm text-slate-600">Tạo hội đồng, phân công vai trò và phân sinh viên vào hội đồng.</p>
-                  ${timeHtml}
+                  <h5 class="font-semibold text-md mt-4 text-slate-600">Thời gian: {{ Carbon::parse($stageTimeline[4]->start_date)->format('d/m/Y') }} - {{ Carbon::parse($stageTimeline[4]->end_date)->format('d/m/Y') }}</h5>
                 </div>
                 <!-- Actions -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -1319,7 +1505,7 @@
                   <p class="text-sm text-slate-600">
                     Quản lý quá trình phản biện đồ án
                   </p>
-                  ${timeHtml}
+                  <h5 class="font-semibold text-md mt-4 text-slate-600">Thời gian: {{ Carbon::parse($stageTimeline[5]->start_date)->format('d/m/Y') }} - {{ Carbon::parse($stageTimeline[5]->end_date)->format('d/m/Y') }}</h5>
                 </div>
 
                 <!-- Search -->
@@ -1333,8 +1519,8 @@
                 <!-- Table -->
                 <div class="overflow-x-auto border border-slate-200 rounded-xl shadow-sm">
                   <table id="tableStage6" class="w-full text-sm border-collapse">
-                    <thead>
-                      <tr class="text-left text-emerald-700 border-b bg-emerald-50">
+                    <thead class="bg-gradient-to-r from-emerald-50 to-emerald-100 text-emerald-700 uppercase font-semibold tracking-wide">
+                      <tr class="text-left text-emerald-700 border-b ">
                         <th class="py-2.5 px-3 text-center">
                           <i class="ph ph-identification-card mr-1 text-emerald-600"></i>Mã SV
                         </th>
@@ -1509,7 +1695,7 @@
                     Công bố kết quả
                   </h3>
                   <p class="text-sm text-slate-600">Công bố kết quả phản biện đồ án tốt nghiệp.</p>
-                  ${timeHtml}
+                  <h5 class="font-semibold text-md mt-4 text-slate-600">Thời gian: {{ Carbon::parse($stageTimeline[6]->start_date)->format('d/m/Y') }} - {{ Carbon::parse($stageTimeline[6]->end_date)->format('d/m/Y') }}</h5>
                 </div>
 
                 <!-- Search -->
@@ -1522,124 +1708,124 @@
 
                 <!-- Table -->
                 <div class="overflow-x-auto">
-  <table class="min-w-full border border-slate-200 rounded-lg overflow-hidden">
-    <thead class="bg-emerald-50 text-emerald-700 text-sm font-semibold">
-      <tr>
-        <th class="px-3 py-2 text-center">
-          <i class="ph ph-identification-card mr-1 text-emerald-600"></i>Mã SV
-        </th>
-        <th class="px-3 py-2 text-center">
-          <i class="ph ph-user mr-1 text-emerald-600"></i>Họ tên
-        </th>
-        <th class="px-3 py-2 text-center">
-          <i class="ph ph-graduation-cap mr-1 text-emerald-600"></i>Lớp
-        </th>
-        <th class="px-3 py-2 text-center">
-          <i class="ph ph-book mr-1 text-emerald-600"></i>Đề tài
-        </th>
-        <th class="px-3 py-2 text-center">
-          <i class="ph ph-chalkboard-teacher mr-1 text-emerald-600"></i>GV phản biện
-        </th>
-        <th class="px-3 py-2 text-center">
-          <i class="ph ph-star mr-1 text-emerald-600"></i>Điểm
-        </th>
-        <th class="px-3 py-2 text-center">
-          <i class="ph ph-calendar-check mr-1 text-emerald-600"></i>Ngày chấm phản biện
-        </th>
-      </tr>
-    </thead>
+                <table class="min-w-full border border-slate-200 rounded-lg overflow-hidden">
+                  <thead class="bg-gradient-to-r from-emerald-50 to-emerald-100 text-emerald-700 text-sm font-semibold">
+                    <tr>
+                      <th class="px-3 py-2 text-center">
+                        <i class="ph ph-identification-card mr-1 text-emerald-600"></i>Mã SV
+                      </th>
+                      <th class="px-3 py-2 text-center">
+                        <i class="ph ph-user mr-1 text-emerald-600"></i>Họ tên
+                      </th>
+                      <th class="px-3 py-2 text-center">
+                        <i class="ph ph-graduation-cap mr-1 text-emerald-600"></i>Lớp
+                      </th>
+                      <th class="px-3 py-2 text-center">
+                        <i class="ph ph-book mr-1 text-emerald-600"></i>Đề tài
+                      </th>
+                      <th class="px-3 py-2 text-center">
+                        <i class="ph ph-chalkboard-teacher mr-1 text-emerald-600"></i>GV phản biện
+                      </th>
+                      <th class="px-3 py-2 text-center">
+                        <i class="ph ph-star mr-1 text-emerald-600"></i>Điểm
+                      </th>
+                      <th class="px-3 py-2 text-center">
+                        <i class="ph ph-calendar-check mr-1 text-emerald-600"></i>Ngày chấm phản biện
+                      </th>
+                    </tr>
+                  </thead>
 
-    <tbody id="stage7TableBody" class="divide-y divide-slate-200 text-sm text-gray-700">
-      @if ($assignments->isEmpty())
-        <tr>
-          <td colspan="7" class="px-4 py-6 text-center text-slate-400 italic">
-            Chưa có sinh viên nào được phân công.
-          </td>
-        </tr>
-      @else
-        @foreach ($assignments as $assignment)
-          @php
-            $student = $assignment->student;
-            $topic = $assignment->project->name ?? 'Chưa có đề tài';
-            $student_id = $student->student_code ?? 'N/A';
-            $name = $student->user->fullname ?? 'N/A';
-            $class_code = $student->class_code ?? 'N/A';
+                  <tbody id="stage7TableBody" class="divide-y divide-slate-200 text-sm text-gray-700">
+                    @if ($assignments->isEmpty())
+                      <tr>
+                        <td colspan="7" class="px-4 py-6 text-center text-slate-400 italic">
+                          Chưa có sinh viên nào được phân công.
+                        </td>
+                      </tr>
+                    @else
+                      @foreach ($assignments as $assignment)
+                        @php
+                          $student = $assignment->student;
+                          $topic = $assignment->project->name ?? 'Chưa có đề tài';
+                          $student_id = $student->student_code ?? 'N/A';
+                          $name = $student->user->fullname ?? 'N/A';
+                          $class_code = $student->class_code ?? 'N/A';
 
-            $review_supervisors = $assignment?->council_project?->council_member ?? null;
-            $score = $assignment?->council_project?->review_score;
-            $hasScore = is_numeric($score);
-            $displayScore = $hasScore ? number_format((float) $score, 2) : 'Chưa có';
-            $time = $hasScore
-                ? $assignment?->council_project?->updated_at?->format('d/m/Y')
-                : 'Chưa có';
-          @endphp
+                          $review_supervisors = $assignment?->council_project?->council_member ?? null;
+                          $score = $assignment?->council_project?->review_score;
+                          $hasScore = is_numeric($score);
+                          $displayScore = $hasScore ? number_format((float) $score, 2) : 'Chưa có';
+                          $time = $hasScore
+                              ? $assignment?->council_project?->updated_at?->format('d/m/Y')
+                              : 'Chưa có';
+                        @endphp
 
-          <tr class="hover:bg-slate-50 transition-colors duration-150">
-            <!-- Mã SV -->
-            <td class="px-3 py-2 text-center text-emerald-700 font-semibold">
-              <i class="ph ph-identification-card mr-1 text-gray-400 align-middle"></i>
-              <span class="align-middle">{{ $student_id }}</span>
-            </td>
+                        <tr class="hover:bg-slate-50 transition-colors duration-150">
+                          <!-- Mã SV -->
+                          <td class="px-3 py-2 text-center text-emerald-700 font-semibold">
+                            <i class="ph ph-identification-card mr-1 text-gray-400 align-middle"></i>
+                            <span class="align-middle">{{ $student_id }}</span>
+                          </td>
 
-            <!-- Họ tên -->
-            <td class="px-3 py-2 text-center font-semibold text-slate-800">
-              <i class="ph ph-user mr-1 text-gray-400 align-middle"></i>
-              <span class="align-middle">{{ $name }}</span>
-            </td>
+                          <!-- Họ tên -->
+                          <td class="px-3 py-2 text-center font-semibold text-slate-800">
+                            <i class="ph ph-user mr-1 text-gray-400 align-middle"></i>
+                            <span class="align-middle">{{ $name }}</span>
+                          </td>
 
-            <!-- Lớp -->
-            <td class="px-3 py-2 text-center">
-              <i class="ph ph-graduation-cap mr-1 text-gray-400 align-middle"></i>
-              <span class="align-middle">{{ $class_code }}</span>
-            </td>
+                          <!-- Lớp -->
+                          <td class="px-3 py-2 text-center">
+                            <i class="ph ph-graduation-cap mr-1 text-gray-400 align-middle"></i>
+                            <span class="align-middle">{{ $class_code }}</span>
+                          </td>
 
-            <!-- Đề tài -->
-            <td class="px-3 py-2 text-center">
-              <i class="ph ph-book mr-1 text-gray-400 align-middle"></i>
-              <span class="align-middle">{{ $topic }}</span>
-            </td>
+                          <!-- Đề tài -->
+                          <td class="px-3 py-2 text-center">
+                            <i class="ph ph-book mr-1 text-gray-400 align-middle"></i>
+                            <span class="align-middle">{{ $topic }}</span>
+                          </td>
 
-            <!-- GV phản biện -->
-            <td class="px-3 py-2 text-center">
-              @if ($review_supervisors)
-                <div class="inline-flex items-center justify-center px-3 py-1 rounded-full bg-sky-100 text-sky-700 font-medium">
-                  <i class="ph ph-user-circle text-sky-500 mr-1"></i>
-                  <span class="text-sm">{{ $review_supervisors->supervisor->teacher->user->fullname }}</span>
-                </div>
-              @else
-                <span class="text-slate-400 italic">Chưa có giảng viên</span>
-              @endif
-            </td>
+                          <!-- GV phản biện -->
+                          <td class="px-3 py-2 text-center">
+                            @if ($review_supervisors)
+                              <div class="inline-flex items-center justify-center px-3 py-1 rounded-full bg-sky-100 text-sky-700 font-medium">
+                                <i class="ph ph-user-circle text-sky-500 mr-1"></i>
+                                <span class="text-sm">{{ $review_supervisors->supervisor->teacher->user->fullname }}</span>
+                              </div>
+                            @else
+                              <span class="text-slate-400 italic">Chưa có giảng viên</span>
+                            @endif
+                          </td>
 
-            <!-- Điểm -->
-            <td class="px-3 py-2 text-center">
-              @if ($hasScore)
-                <div class="inline-flex items-center justify-center px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 font-semibold">
-                  <i class="ph ph-star text-amber-500 mr-1"></i>
-                  <span class="text-sm">{{ $displayScore }}</span>
-                </div>
-              @else
-                <span class="text-slate-400 italic">Chưa có</span>
-              @endif
-            </td>
+                          <!-- Điểm -->
+                          <td class="px-3 py-2 text-center">
+                            @if ($hasScore)
+                              <div class="inline-flex items-center justify-center px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 font-semibold">
+                                <i class="ph ph-star text-amber-500 mr-1"></i>
+                                <span class="text-sm">{{ $displayScore }}</span>
+                              </div>
+                            @else
+                              <span class="text-slate-400 italic">Chưa có</span>
+                            @endif
+                          </td>
 
-            <!-- Ngày chấm -->
-            <td class="px-3 py-2 text-center">
-              @if ($hasScore)
-                <div class="inline-flex items-center justify-center px-3 py-1 rounded-full bg-violet-100 text-violet-700 font-medium">
-                  <i class="ph ph-calendar-check mr-1"></i>
-                  <span class="text-sm">{{ $time }}</span>
-                </div>
-              @else
-                <span class="text-slate-400 italic">Chưa có</span>
-              @endif
-            </td>
-          </tr>
-        @endforeach
-      @endif
-    </tbody>
-  </table>
-</div>
+                          <!-- Ngày chấm -->
+                          <td class="px-3 py-2 text-center">
+                            @if ($hasScore)
+                              <div class="inline-flex items-center justify-center px-3 py-1 rounded-full bg-violet-100 text-violet-700 font-medium">
+                                <i class="ph ph-calendar-check mr-1"></i>
+                                <span class="text-sm">{{ $time }}</span>
+                              </div>
+                            @else
+                              <span class="text-slate-400 italic">Chưa có</span>
+                            @endif
+                          </td>
+                        </tr>
+                      @endforeach
+                    @endif
+                  </tbody>
+                </table>
+              </div>
               </div>
             `;
 
@@ -1669,7 +1855,7 @@
                     Bảo vệ đồ án
                   </h3>
                   <p class="text-sm text-slate-600">Quản lý quá trình bảo vệ đồ án tốt nghiệp.</p>
-                  ${timeHtml}
+                  <h5 class="font-semibold text-md mt-4 text-slate-600">Thời gian: {{ Carbon::parse($stageTimeline[7]->start_date)->format('d/m/Y') }} - {{ Carbon::parse($stageTimeline[7]->end_date)->format('d/m/Y') }}</h5>
                 </div>
 
                 <!-- Search -->
@@ -1683,7 +1869,7 @@
                 <!-- Table -->
                 <div class="overflow-x-auto">
                   <table class="min-w-full border border-slate-200 rounded-lg overflow-hidden">
-                    <thead class="bg-emerald-50 text-emerald-700 text-sm font-semibold">
+                    <thead class="bg-gradient-to-r from-emerald-50 to-emerald-100 text-emerald-700 text-sm font-semibold">
                       <tr>
                         <th class="px-3 py-2 text-center"><i class="ph ph-identification-card mr-1 text-emerald-600"></i>Mã SV</th>
                         <th class="px-3 py-2 text-center"><i class="ph ph-user mr-1 text-emerald-600"></i>Họ tên</th>
@@ -1823,7 +2009,6 @@
                 <div>
                   <h3 class="font-semibold text-lg">${data.title}</h3>
                   <p class="text-sm text-slate-600">${data.description || ''}</p>
-                  ${timeHtml}
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   ${cards || `<div class="text-sm text-slate-500">Chưa có hành động cho giai đoạn này.</div>`}
@@ -1834,7 +2019,6 @@
             stageContent.innerHTML = `
               <div class="space-y-2">
                 <p class="text-sm text-slate-500">Chưa có dữ liệu cho giai đoạn này.</p>
-                ${timeHtml}
               </div>`;
           }
 

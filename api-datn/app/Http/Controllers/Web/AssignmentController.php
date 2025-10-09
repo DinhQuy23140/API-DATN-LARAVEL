@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Models\Assignment;
+use App\Models\ReportFiles;
 use App\Models\Student;
 use App\Models\Supervisor;
 use App\Models\Project;
@@ -212,14 +213,23 @@ class AssignmentController extends Controller
         return view('lecturer-ui.outline-review-assignments', compact('rows', 'termId', 'supervisorId'));
     }
 
-    public function setCounterStatus(Request $request, Assignment $assignment)
+    public function setCounterStatus(Request $request, Assignment $assignment, ReportFiles $reportFile)
     {
         $payload = $request->validate([
-            'status' => 'required|string|in:approved,rejected,pending,todo,progress,done',
+            'status'       => 'required|string|in:approved,rejected,pending,todo,progress,done',
+            'statusReport' => 'required|string|in:approved,rejected,passed,failured,pending',
         ]);
 
         $assignment->counter_argument_status = $payload['status'];
         $assignment->save();
+
+        // Chuẩn hoá statusReport từ FE
+        $reportStatus = $payload['statusReport'];
+        if ($reportStatus === 'pass')    { $reportStatus = 'approved'; }
+        if ($reportStatus === 'failure') { $reportStatus = 'rejected'; }
+
+        $reportFile->status = $reportStatus;
+        $reportFile->save();
 
         $map = [
             'approved' => ['label' => 'Đã duyệt',  'class' => 'bg-emerald-100 text-emerald-700'],

@@ -182,20 +182,18 @@
           $fullname = $row->student->user->fullname;
           $student_code = $row->student->student_code;
           $topic = $row->project->name ?? 'Chưa có đề tài';
-          $status = $row->counter_argument_status ?? 'pending';
           $lastOutline = $row->project?->reportFiles()->latest('created_at')->first();
+          $status = $lastOutline->status ?? 'none';
           $lastOutlineDate = $lastOutline ? $lastOutline->created_at->format('H:i:s d/m/Y') : 'Chưa nộp báo cáo';
           $fileUrl = $lastOutline ? $lastOutline->file_url : '#';
 
           $statusLabels = [
-            'approved' => ['label' => 'Đã duyệt',   'color' => 'bg-emerald-100 text-emerald-700'],
+            'passed' => ['label' => 'Đã duyệt',   'color' => 'bg-emerald-100 text-emerald-700'],
             'rejected' => ['label' => 'Từ chối',    'color' => 'bg-rose-100 text-rose-700'],
-            'pending'  => ['label' => 'Chưa duyệt',  'color' => 'bg-slate-100 text-slate-600'],
-            'todo'     => ['label' => 'Cần chấm',   'color' => 'bg-amber-100 text-amber-700'],
-            'progress' => ['label' => 'Đang chấm',  'color' => 'bg-blue-100 text-blue-700'],
-            'done'     => ['label' => 'Hoàn tất',   'color' => 'bg-emerald-100 text-emerald-700'],
+            'approved'  => ['label' => 'Chưa duyệt',  'color' => 'bg-slate-100 text-slate-600'],
+            'none'      => ['label' => 'Chưa nộp',   'color' => 'bg-slate-100 text-slate-400'],
           ];
-          $st = $statusLabels[$status] ?? $statusLabels['pending'];
+          $st = $statusLabels[$status] ?? $statusLabels['none'];
         @endphp
         <tr class="hover:bg-slate-50" data-assignment-id="{{ $row->id }}">
           <td class="py-3 px-3 text-left">{{ $fullname }}</td>
@@ -209,22 +207,24 @@
           <td class="py-3 px-3 text-center">{{ $lastOutlineDate }}</td>
           <td class="py-3 px-3 text-left">
             <div class="flex flex-col gap-2 items-center" data-actions>
-              <a class="px-3 py-1 border border-slate-200 rounded text-xs hover:bg-slate-100 transition"
-                 href="{{ $fileUrl }}">
-                Tải đề cương
-              </a>
-              @if ($status === 'pending')
+              @if ($lastOutline)
+                <a class="px-3 py-1 border border-slate-200 rounded text-xs hover:bg-slate-100 transition"
+                  href="{{ $fileUrl }}">
+                  Tải đề cương
+                </a>
+              @endif
+              @if ($lastOutline && $status === 'approved')
                 <div class="flex gap-2">
                   <button class="px-3 py-1 bg-emerald-600 text-white rounded text-xs hover:bg-emerald-700 transition"
-                          onclick="approveOutline('{{ $row->id }}', this)">
+                          onclick="approveOutline('{{ $row->id }}', '{{ $lastOutline->id }}', this)">
                     Phê duyệt
                   </button>
                   <button class="px-3 py-1 bg-rose-600 text-white rounded text-xs hover:bg-rose-700 transition"
-                          onclick="rejectOutline('{{ $row->id }}', this)">
+                          onclick="rejectOutline('{{ $row->id }}', '{{ $lastOutline->id }}', this)">
                     Từ chối
                   </button>
                 </div>
-              @endif
+               @endif
             </div>
           </td>
         </tr>
@@ -411,9 +411,9 @@
       }
     }
 
-    async function sendCounterStatus(id, status){
+    async function sendCounterStatus(id, idOutline, status, statusReport){
       const token = document.querySelector('meta[name="csrf-token"]')?.content || '';
-      const url = `{{ url('/teacher/assignments') }}/${id}/counter-status`;
+      const url = `{{ url('/teacher/assignments') }}/${id}/counter-status/${idOutline}`;
       const res = await fetch(url, {
         method: 'POST',
         headers: {
@@ -421,16 +421,16 @@
           'X-CSRF-TOKEN': token,
           'Accept': 'application/json'
         },
-        body: JSON.stringify({ status })
+        body: JSON.stringify({ status, statusReport })
       });
       if(!res.ok) throw new Error('Request failed');
       return res.json();
     }
 
-    window.approveOutline = async function(id, btn){
+    window.approveOutline = async function(id, idOutline, btn){
       try{
         btn?.setAttribute('disabled','true');
-        const data = await sendCounterStatus(id, 'approved');
+        const data = await sendCounterStatus(id, idOutline, 'approved', 'passed');
         const tr = document.querySelector(`tr[data-assignment-id="${id}"]`);
         const pill = tr?.querySelector('[data-status-pill]');
         applyStatusPill(pill, data.status, data.class);
@@ -442,10 +442,10 @@
       }
     };
 
-    window.rejectOutline = async function(id, btn){
+    window.rejectOutline = async function(id, idOutline, btn){
       try{
         btn?.setAttribute('disabled','true');
-        const data = await sendCounterStatus(id, 'rejected');
+        const data = await sendCounterStatus(id, idOutline, 'rejected', 'failured');
         const tr = document.querySelector(`tr[data-assignment-id="${id}"]`);
         const pill = tr?.querySelector('[data-status-pill]');
         applyStatusPill(pill, data.status, data.class);

@@ -277,7 +277,7 @@ Route::middleware(['web','auth'])->group(function () {
 
 Route::middleware(['web','auth'])->prefix('teacher')->name('web.teacher.')->group(function () {
     // Cập nhật trạng thái phản biện (duyệt/từ chối/...)
-    Route::post('/assignments/{assignment}/counter-status', [WebAssignmentController::class, 'setCounterStatus'])
+    Route::post('/assignments/{assignment}/counter-status/{reportFile}', [WebAssignmentController::class, 'setCounterStatus'])
         ->name('assignments.counter_status');
     Route::post('/report-files/{reportFile}/status', [ReportFilesController::class, 'setStatus'])
         ->name('report_files.set_status');
