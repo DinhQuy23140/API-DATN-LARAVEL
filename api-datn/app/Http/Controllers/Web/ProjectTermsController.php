@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\AcademyYear;
 use App\Models\Assignment;
 use App\Models\AssignmentSupervisor;
+use App\Models\Council;
 use App\Models\CouncilProjects;
 use App\Models\Department;
 use App\Models\ProjectTerm;
@@ -232,7 +233,16 @@ class ProjectTermsController extends Controller
             }
         ])->findOrFail($termId);
 
-        return view('lecturer-ui.thesis-round-detail', compact('rows', 'supervisorId'));
+        $councils = Council::with('council_members')
+            ->whereHas('council_members', function ($q) use ($supervisorId) {
+                $q->where('supervisor_id', $supervisorId);
+            })
+            ->whereHas('project_term', function ($q) use ($termId) {
+                $q->where('id', $termId);
+            })
+            ->get();
+
+        return view('lecturer-ui.thesis-round-detail', compact('rows', 'supervisorId', 'councils'));
     }
 
     public function studentReviews($termId, $supervisorId)

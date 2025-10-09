@@ -79,7 +79,7 @@
 
         @if ($user->teacher && $user->teacher->supervisor)
           <a href="{{ route('web.teacher.students', ['teacherId' => $teacherId]) }}"
-            class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('web.teacher.students') ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}">
+            class="flex items-center gap-3 px-3 py-2 rounded-lg">
             <i class="ph ph-student"></i><span class="sidebar-label">Sinh viên</span>
           </a>
         @else
@@ -271,17 +271,6 @@
       thesisCaret?.classList.toggle('rotate-180', expanded);
     });
 
-    // Auto active nav highlight (bỏ qua link đã có aria-current)
-    (function () {
-      const current = location.pathname.split('/').pop();
-      document.querySelectorAll('aside nav a').forEach(a => {
-        if (a.hasAttribute('aria-current')) return;
-        const href = a.getAttribute('href') || '';
-        const active = href.endsWith(current);
-        a.classList.toggle('bg-slate-100', active);
-        a.classList.toggle('font-semibold', active);
-      });
-    })();
   </script>
 </body>
 

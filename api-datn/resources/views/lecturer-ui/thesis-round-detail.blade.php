@@ -205,7 +205,7 @@
               <div class="text-right">
                 <div class="text-sm text-slate-500">Vai trò của bạn</div>
                 <div class="font-medium text-blue-600">Giảng viên hướng dẫn • Thành viên hội đồng</div>
-                <div class="text-xs text-slate-500 mt-1">{{$rows->supervisors->count()}} sinh viên hướng dẫn • 4 hội đồng tham gia</div>
+                <div class="text-xs text-slate-500 mt-1">{{$assignments->count()}} sinh viên hướng dẫn • {{ $councils->count() }} hội đồng tham gia</div>
               </div>
             </div>
           </section>
@@ -1221,7 +1221,7 @@
                     $role = $listRole[$role] ?? 'NA';
                     $order    = $loop->index + 1;
                     $time = $assignment->council_project && $assignment->council_project->date
-                    ? \Carbon\Carbon::parse($assignment->council_project->date)->format('H:i d/m/Y')
+                    ? Carbon::parse($assignment->council_project->date)->format('H:i d/m/Y')
                     : 'Chưa có lịch';
                   @endphp
 
