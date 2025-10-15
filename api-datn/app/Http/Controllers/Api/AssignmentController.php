@@ -84,7 +84,8 @@ class AssignmentController extends Controller
             'project.progressLogs.attachments',
             'project.reportFiles',
             'council_project.council_project_defences.council_member.supervisor.teacher.user',
-            'council_project.council.council_members',
+            'council_project.council.department',
+            'council_project.council_member.supervisor.teacher.user',
             'council_project.council.council_members.supervisor.teacher.user',
             ])
             ->where('student_id', $studentId)
@@ -155,7 +156,8 @@ class AssignmentController extends Controller
             'project.progressLogs.attachments',
             'project.reportFiles',
             'council_project.council_project_defences.council_member.supervisor.teacher.user',
-            'council_project.council.council_members',
+            'council_project.council.department',
+            'council_project.council_member.supervisor.teacher.user',
             'council_project.council.council_members.supervisor.teacher.user',
         ])
         ->where('student_id', $studentId)
@@ -173,7 +175,8 @@ class AssignmentController extends Controller
             'project.progressLogs.attachments',
             'project.reportFiles',
             'council_project.council_project_defences.council_member.supervisor.teacher.user',
-            'council_project.council.council_members',
+            'council_project.council.department',
+            'council_project.council_member.supervisor.teacher.user',
             'council_project.council.council_members.supervisor.teacher.user',
         ])->findOrFail($assignmentId);
         return response()->json($assignment);
