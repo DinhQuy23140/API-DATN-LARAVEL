@@ -74,6 +74,8 @@ Route::apiResource('assignments', AssignmentController::class);
 Route::get('/assignments/student/{studentId}', [AssignmentController::class, 'getAssignmentByStudentId']);
 Route::get('/assignments/student/{studentId}/project-term/{projectTermId}', [AssignmentController::class, 'getAssignmentByStudentIdAndProjectTermId']);
 Route::patch('/assignments/{assignmentId}/project/{projectId}', [AssignmentController::class, 'updateProjectIdAssignmentByAssIdAndProId']);
+Route::get('/assignment/recent/student/{studentId}', [AssignmentController::class, 'getRecentAssignmentByStudentId']);
+Route::get('/assignments/{assignmentId}', [AssignmentController::class, 'getAssignmentById']);
 
 //student
 Route::apiResource('students', StudentController::class);

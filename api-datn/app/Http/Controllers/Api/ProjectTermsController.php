@@ -58,6 +58,7 @@ class ProjectTermsController extends Controller
     public function getProjectTermbyStudentId($studentId) {
     $terms = ProjectTerm::with([
             'academy_year',                // load năm học
+            'stageTimelines',
             'assignments' => function($q) use ($studentId) {
                 $q->where('student_id', $studentId) // lọc assignment đúng student_id
                   ->with('student');               // load luôn thông tin student

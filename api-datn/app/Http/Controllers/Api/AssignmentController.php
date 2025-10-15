@@ -13,7 +13,7 @@ class AssignmentController extends Controller
         $assignments = Assignment::with([
             'student.user',
             'project_term.academy_year',
-            'supervisors.teacher.user',
+            'assignment_supervisors.supervisors.teacher.user',
             'project.progressLogs.attachments',
         ])
         ->when($request->query('student_id'), function($q, $sid){
@@ -51,7 +51,7 @@ class AssignmentController extends Controller
             $assignment->load([
                 'student.user',
                 'project_term.academy_year',
-                'supervisors.teacher.user',
+                'assignment_supervisors.supervisors.teacher.user',
                 'project.progressLogs.attachments',
             ]),
             201
@@ -62,7 +62,7 @@ class AssignmentController extends Controller
     {
         $assignment = Assignment::with([
                 'student.user',
-                'supervisors.teacher.user',
+                'assignment_supervisors.supervisors.teacher.user',
                 'project.progressLogs.attachments',
             ])
             ->whereHas('student', function ($query) use ($studentId) {
@@ -73,29 +73,16 @@ class AssignmentController extends Controller
         return response()->json($assignment);
     }
 
-    // public function getAssignmentByStudentIdAndProjectTermId($studentId, $projectTermId)
-    // {
-    //     $assignment = Assignment::with([
-    //             'student.user',
-    //             'assignment_supervisors.supervisor.teacher.user',
-    //             'project.progressLogs.attachments',
-    //         ])
-    //         ->whereHas('student', function ($query) use ($studentId, $projectTermId) {
-    //             $query->where('id', $studentId)
-    //                   ->where('project_term_id', $projectTermId);
-    //         })
-    //         ->first();
-
-    //     return response()->json($assignment);
-    // }
 
     public function getAssignmentByStudentIdAndProjectTermId($studentId, $projectTermId)
     {
         $assignment = Assignment::with([
                 'student.user',
+                'student.marjor.faculties',
                 'assignment_supervisors.supervisor.teacher.user',
                 'project.progressLogs.attachments',
-                'project'
+                'project_term.academy_year',
+                'project_term.stageTimelines',
             ])
             ->where('student_id', $studentId)
             ->where('project_term_id', $projectTermId)
@@ -111,7 +98,7 @@ class AssignmentController extends Controller
             $assignment->load([
                 'student.user',
                 'project_term.academy_year',
-                'supervisors.teacher.user',
+                'assignment_supervisors.supervisors.teacher.user',
                 'project.progressLogs.attachments',
             ])
         );
@@ -136,7 +123,7 @@ class AssignmentController extends Controller
         return response()->json(
             $assignment->load([
                 'student.user',
-                'supervisors.teacher.user',
+                'assignment_supervisors.supervisors.teacher.user',
                 'project.progressLogs.attachments',
             ])
         );
@@ -154,5 +141,33 @@ class AssignmentController extends Controller
         $assignment->supervisors()->detach();
         $assignment->delete();
         return response()->json(['message'=>'Deleted']);
+    }
+
+    public function getRecentAssignmentByStudentId(String $studentId) {
+        $assignment = Assignment::with([
+            'student.user',
+            'project_term.academy_year',
+            'project_term.stageTimelines',
+            'assignment_supervisors.supervisor.teacher.user',
+            'project.progressLogs.attachments',
+        ])
+        ->where('student_id', $studentId)
+        ->latest('id')
+        ->first();
+        return response()->json($assignment);
+    }
+
+    public function getAssignmentById($assignmentId) {
+        $assignment = Assignment::with([
+            'student.user',
+            'project_term.academy_year',
+            'project_term.stageTimelines',
+            'assignment_supervisors.supervisor.teacher.user',
+            'project.progressLogs.attachments',
+            'council_project.council_member.supervisor.teacher.user',
+            'council_project.council.council_members.supervisor.teacher.user',
+            'council_project.council_project_defences.council_member.supervisor.teacher.user',
+        ])->findOrFail($assignmentId);
+        return response()->json($assignment);
     }
 }
