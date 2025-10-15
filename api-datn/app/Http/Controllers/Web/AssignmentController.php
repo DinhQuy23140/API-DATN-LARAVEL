@@ -162,9 +162,9 @@ class AssignmentController extends Controller
         'council_project.council_project_defences',
         'council_project.council.council_members'
         ])
-                        ->where('student_id', $studentId)
-                        ->where('project_term_id', $termId)
-                        ->first();
+        ->where('student_id', $studentId)
+        ->where('project_term_id', $termId)
+        ->first();
         // if (!$assignment) {
         //     return redirect()->back()->with('error', 'Không tìm thấy phân công phù hợp.');
         // }

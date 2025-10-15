@@ -13,7 +13,7 @@ class AssignmentController extends Controller
         $assignments = Assignment::with([
             'student.user',
             'project_term.academy_year',
-            'assignment_supervisors.supervisors.teacher.user',
+            'assignment_supervisors.supervisor.teacher.user',
             'project.progressLogs.attachments',
         ])
         ->when($request->query('student_id'), function($q, $sid){
@@ -51,7 +51,7 @@ class AssignmentController extends Controller
             $assignment->load([
                 'student.user',
                 'project_term.academy_year',
-                'assignment_supervisors.supervisors.teacher.user',
+                'assignment_supervisors.supervisor.teacher.user',
                 'project.progressLogs.attachments',
             ]),
             201
@@ -62,7 +62,7 @@ class AssignmentController extends Controller
     {
         $assignment = Assignment::with([
                 'student.user',
-                'assignment_supervisors.supervisors.teacher.user',
+                'assignment_supervisors.supervisor.teacher.user',
                 'project.progressLogs.attachments',
             ])
             ->whereHas('student', function ($query) use ($studentId) {
@@ -77,12 +77,15 @@ class AssignmentController extends Controller
     public function getAssignmentByStudentIdAndProjectTermId($studentId, $projectTermId)
     {
         $assignment = Assignment::with([
-                'student.user',
-                'student.marjor.faculties',
-                'assignment_supervisors.supervisor.teacher.user',
-                'project.progressLogs.attachments',
-                'project_term.academy_year',
-                'project_term.stageTimelines',
+            'student.user',
+            'project_term.academy_year',
+            'project_term.stageTimelines',
+            'assignment_supervisors.supervisor.teacher.user',
+            'project.progressLogs.attachments',
+            'project.reportFiles',
+            'council_project.council_project_defences.council_member.supervisor.teacher.user',
+            'council_project.council.council_members',
+            'council_project.council.council_members.supervisor.teacher.user',
             ])
             ->where('student_id', $studentId)
             ->where('project_term_id', $projectTermId)
@@ -98,7 +101,7 @@ class AssignmentController extends Controller
             $assignment->load([
                 'student.user',
                 'project_term.academy_year',
-                'assignment_supervisors.supervisors.teacher.user',
+                'assignment_supervisors.supervisor.teacher.user',
                 'project.progressLogs.attachments',
             ])
         );
@@ -123,7 +126,7 @@ class AssignmentController extends Controller
         return response()->json(
             $assignment->load([
                 'student.user',
-                'assignment_supervisors.supervisors.teacher.user',
+                'assignment_supervisors.supervisor.teacher.user',
                 'project.progressLogs.attachments',
             ])
         );
@@ -150,6 +153,10 @@ class AssignmentController extends Controller
             'project_term.stageTimelines',
             'assignment_supervisors.supervisor.teacher.user',
             'project.progressLogs.attachments',
+            'project.reportFiles',
+            'council_project.council_project_defences.council_member.supervisor.teacher.user',
+            'council_project.council.council_members',
+            'council_project.council.council_members.supervisor.teacher.user',
         ])
         ->where('student_id', $studentId)
         ->latest('id')
@@ -164,9 +171,10 @@ class AssignmentController extends Controller
             'project_term.stageTimelines',
             'assignment_supervisors.supervisor.teacher.user',
             'project.progressLogs.attachments',
-            'council_project.council_member.supervisor.teacher.user',
-            'council_project.council.council_members.supervisor.teacher.user',
+            'project.reportFiles',
             'council_project.council_project_defences.council_member.supervisor.teacher.user',
+            'council_project.council.council_members',
+            'council_project.council.council_members.supervisor.teacher.user',
         ])->findOrFail($assignmentId);
         return response()->json($assignment);
     }
