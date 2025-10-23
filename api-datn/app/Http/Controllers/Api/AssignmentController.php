@@ -80,17 +80,21 @@ class AssignmentController extends Controller
             'student.user',
             'project_term.academy_year',
             'project_term.stageTimelines',
-            'assignment_supervisors.supervisor.teacher.user',
+            // 👇 Lọc supervisor theo status = accepted
+            'assignment_supervisors' => function ($query) {
+                $query->where('status', 'accepted')
+                    ->with('supervisor.teacher.user');
+            },
             'project.progressLogs.attachments',
             'project.reportFiles',
             'council_project.council_project_defences.council_member.supervisor.teacher.user',
             'council_project.council.department',
             'council_project.council_member.supervisor.teacher.user',
             'council_project.council.council_members.supervisor.teacher.user',
-            ])
-            ->where('student_id', $studentId)
-            ->where('project_term_id', $projectTermId)
-            ->first();
+        ])
+        ->where('student_id', $studentId)
+        ->where('project_term_id', $projectTermId)
+        ->first();
 
         return response()->json($assignment);
     }
@@ -180,5 +184,23 @@ class AssignmentController extends Controller
             'council_project.council.council_members.supervisor.teacher.user',
         ])->findOrFail($assignmentId);
         return response()->json($assignment);
+    }
+
+    public function getAssignmentByTeacherId($teacherId) {
+        $assignments = Assignment::whereHas('assignment_supervisors.supervisor.teacher', function($q) use ($teacherId) {
+            $q->where('id', $teacherId);
+        })->with([
+            'student.user',
+            'project_term.academy_year',
+            'assignment_supervisors.supervisor.teacher.user',
+            'project.progressLogs.attachments',
+            'project.reportFiles',
+            'council_project.council_project_defences.council_member.supervisor.teacher.user',
+            'council_project.council.department',
+            'council_project.council_member.supervisor.teacher.user',
+            'council_project.council.council_members.supervisor.teacher.user',
+        ])->get();
+
+        return response()->json($assignments);
     }
 }

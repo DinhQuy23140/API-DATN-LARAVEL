@@ -54,7 +54,7 @@ class ReportFilesController extends Controller
             ->where('id', $report_file)
             ->update([
                 'status'     => $data['status'],
-                'note'       => $data['note'] ?? null,
+                // 'note'       => $data['note'] ?? null,
                 'updated_at' => now(),
             ]);
 
@@ -64,7 +64,7 @@ class ReportFilesController extends Controller
             'data' => [
                 'id'     => (int) $report_file,
                 'status' => $data['status'],
-                'note'   => $data['note'] ?? null,
+                // 'note'   => $data['note'] ?? null,
             ],
         ]);
     }

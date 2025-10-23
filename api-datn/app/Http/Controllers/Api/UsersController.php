@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\Student;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
@@ -25,7 +26,6 @@ class UsersController extends Controller
 
         // $user = User::where('email', $data['email'])->first();
         // if (!$user || !Hash::check($data['password'], $user->password)) {
-        //     return response()->json([
         //         'success' => false,
         //         'message' => 'Sai email hoặc mật khẩu'
         //     ], 401);
@@ -86,6 +86,19 @@ class UsersController extends Controller
 
         $data['password'] = Hash::make($data['password']);
         $user = User::create($data);
+
+        // Tạo bản ghi student liên quan ngay sau khi tạo user
+        // class_code random (ví dụ: CLS + uniqid)
+        try {
+            $student = Student::create([
+                'user_id' => $user->id,
+                'student_code' => 'CLS' . strtoupper(substr(uniqid(), -6)),
+            ]);
+        } catch (\Throwable $e) {
+            // Nếu tạo student thất bại, vẫn trả user nhưng log lỗi (ở production bạn có thể rollback)
+            \Log::error('Create student failed for user '.$user->id.': '.$e->getMessage());
+        }
+
         return response()->json([
             'success' => true,
             'message' => 'Đăng ký tạo người dùng thanh cong',

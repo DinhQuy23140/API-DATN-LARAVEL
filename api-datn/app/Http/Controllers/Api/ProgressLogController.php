@@ -17,18 +17,18 @@ class ProgressLogController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'project_id' => 'required|integer|exists:projects,id',
+            'project_id' => 'required|string|exists:projects,id',
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'start_date_time' => 'required|date',
-            'end_date_time' => 'required|date|after_or_equal:start_date_time',
+            'start_date_time' => 'required|date|string',
+            'end_date_time' => 'required|date|string|after_or_equal:start_date_time',
             'student_status' => 'required|string',
             'instructor_status' => 'nullable|string',
             'instructor_comment' => 'nullable|string',
         ]);
 
         $log = ProgressLog::create($data);
-        return response()->json($log->load('attachments'), 201);
+        return response()->json($log, 201);
     }
 
     public function show(ProgressLog $progressLog)

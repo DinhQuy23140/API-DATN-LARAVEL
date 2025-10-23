@@ -421,7 +421,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                   ${[1,2,3,4,5,6,7,8].map(i=>`
                     <div class="rounded-lg border border-slate-200 p-3 bg-slate-50/50">
-                      <div class="font-medium mb-2">Bước ${i}</div>
+                      <div class="font-medium mb-2">Giai đoạn ${i}</div>
                       <div class="grid grid-cols-2 gap-3">
                         <div>
                           <label class="block text-xs text-slate-600 mb-1">Bắt đầu</label>

@@ -26,4 +26,22 @@ class AssignmentSupervisorController extends Controller
         $assignmentSupervisor = AssignmentSupervisor::create($data);
         return response()->json($assignmentSupervisor->load('assignment'), 201);
     }
+
+    public function getAssignmentSupervisorsByTeacherId($teacher_id) {
+        $data = AssignmentSupervisor::whereHas('supervisor.teacher', function($q) use ($teacher_id) {
+            $q->where('id', $teacher_id);
+        })->with([
+            'assignment.student.user',
+            'assignment.project_term.academy_year',
+            'assignment.assignment_supervisors.supervisor.teacher.user',
+            'assignment.project.progressLogs.attachments',
+            'assignment.project.reportFiles',
+            'assignment.council_project.council_project_defences.council_member.supervisor.teacher.user',
+            'assignment.council_project.council.department',
+            'assignment.council_project.council_member.supervisor.teacher.user',
+            'assignment.council_project.council.council_members.supervisor.teacher.user',
+        ])->get();
+
+        return response()->json($data);
+    }
 }

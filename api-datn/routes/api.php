@@ -67,7 +67,7 @@ Route::middleware('auth:sanctum')->post('auth/logout', [UsersController::class, 
 
 //project
 Route::apiResource('projects', ProjectController::class);
-Route::post('create_project', [ProjectController::class, 'store']);
+Route::post('assignments/{assignmentId}/project', [ProjectController::class, 'updateOrCreateProject']);
 
 //assignment
 Route::apiResource('assignments', AssignmentController::class);
@@ -76,6 +76,7 @@ Route::get('/assignments/student/{studentId}/project-term/{projectTermId}', [Ass
 Route::patch('/assignments/{assignmentId}/project/{projectId}', [AssignmentController::class, 'updateProjectIdAssignmentByAssIdAndProId']);
 Route::get('/assignment/recent/student/{studentId}', [AssignmentController::class, 'getRecentAssignmentByStudentId']);
 Route::get('/assignment/{assignmentId}', [AssignmentController::class, 'getAssignmentById']);
+Route::get('/assignments/teacher/{teacherId}', [AssignmentController::class, 'getAssignmentByTeacherId']);
 
 //student
 Route::apiResource('students', StudentController::class);
@@ -100,6 +101,7 @@ Route::apiResource('batch-students', BatchStudentController::class);
 //assignment-supervisor
 Route::get('/assignment-supervisors', [App\Http\Controllers\Api\AssignmentSupervisorController::class, 'index']);
 Route::post('/assignment-supervisors', [App\Http\Controllers\Api\AssignmentSupervisorController::class, 'store']);
+Route::get('/assignment-supervisors/teacher/{teacherId}', [App\Http\Controllers\Api\AssignmentSupervisorController::class, 'getAssignmentSupervisorsByTeacherId']);
 
 //attachment
 Route::get('attachment/progress/{progressId}', [AttachmentController::class, 'getAttacahmentByProgressLogId']);
@@ -109,3 +111,4 @@ Route::post('attachment/create/{progressId}', [AttachmentController::class, 'cra
 //reportFile
 Route::apiResource('report-files', ReportFilesController::class);
 Route::get('/report-files/project/{projectId}/type/{typeReport}', [ReportFilesController::class, 'getReportFileByProjectAndType']);
+
