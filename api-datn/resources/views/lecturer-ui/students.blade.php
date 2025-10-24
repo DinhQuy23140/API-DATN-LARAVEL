@@ -181,84 +181,109 @@
                 <i class="ph ph-magnifying-glass absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
               </div>
             </div>
-<div class="mt-4 overflow-x-auto">
-  <table class="w-full text-sm border border-slate-200 rounded-xl overflow-hidden">
-    <thead class="bg-slate-50">
-      <tr class="text-slate-600">
-        <th class="py-3 px-4 border-b text-center">MSSV</th>
-        <th class="py-3 px-4 border-b text-left">Họ tên</th>
-        <th class="py-3 px-4 border-b text-center">Ngành</th>
-        <th class="py-3 px-4 border-b text-left">Đề tài</th>
-        <th class="py-3 px-4 border-b text-center">Đợt</th>
-        <th class="py-3 px-4 border-b text-center">Năm học</th>
-        <th class="py-3 px-4 border-b text-center">Trạng thái</th>
-        <th class="py-3 px-4 border-b text-center">Hành động</th>
-      </tr>
-    </thead>
-    <tbody id="tableBody" class="divide-y divide-slate-200">
-      @foreach ($assignmentSupervisors as $assignmentSupervisor)
-        @php
-          $stage     = data_get($assignmentSupervisor, 'assignment.project_term.stage', '');
-          $yearName  = data_get($assignmentSupervisor, 'assignment.project_term.academy_year.year_name', '');
-          $statusRaw = $assignmentSupervisor?->assignment?->status ?? 'pending';
+            <div class="mt-4 overflow-x-auto">
+              <table class="w-full text-sm border border-slate-200 rounded-xl overflow-hidden">
+                <thead class="bg-slate-50">
+                  <tr class="text-slate-600">
+                    <th class="py-3 px-4 border-b text-center">MSSV</th>
+                    <th class="py-3 px-4 border-b text-left">Họ tên</th>
+                    <th class="py-3 px-4 border-b text-center">Ngành</th>
+                    <th class="py-3 px-4 border-b text-left">Đề tài</th>
+                    <th class="py-3 px-4 border-b text-center">Đợt</th>
+                    <th class="py-3 px-4 border-b text-center">Năm học</th>
+                    <th class="py-3 px-4 border-b text-center">Trạng thái</th>
+                    <th class="py-3 px-4 border-b text-center">Hành động</th>
+                  </tr>
+                </thead>
+                <tbody id="tableBody" class="divide-y divide-slate-200">
+                @php
+                  // Lọc bỏ các assignment có trạng thái "pending"
+                  $validSupervisors = collect($assignmentSupervisors)->filter(function ($item) {
+                      return ($item->status ?? '') !== 'pending';
+                  });
+                @endphp
 
-          $statusColors = [
-              'pending'   => 'bg-yellow-100 text-yellow-800',
-              'cancelled' => 'bg-red-100 text-red-800',
-              'actived'   => 'bg-green-100 text-green-800',
-              'stopped'   => 'bg-gray-100 text-gray-800',
-          ];
+                @if ($validSupervisors->isEmpty())
+                  <tr>
+                    <td colspan="8" class="py-8 text-center text-slate-500">
+                      <div class="flex flex-col items-center justify-center gap-2">
+                        <i class="ph ph-users text-2xl"></i>
+                        <div>Chưa có sinh viên nào trong danh sách hướng dẫn.</div>
+                      </div>
+                    </td>
+                  </tr>
+                @else
+                  @foreach ($validSupervisors as $assignmentSupervisor)
+                    @php
+                      $stage     = data_get($assignmentSupervisor, 'assignment.project_term.stage', '');
+                      $yearName  = data_get($assignmentSupervisor, 'assignment.project_term.academy_year.year_name', '');
+                      $statusRaw = data_get($assignmentSupervisor, 'assignment.status', 'pending');
 
-          $statusLabels = [
-              'pending'   => 'Chờ xử lý',
-              'cancelled' => 'Đã hủy',
-              'actived'   => 'Đang hoạt động',
-              'stopped'   => 'Đã dừng',
-          ];
+                      // Màu sắc cho trạng thái
+                      $statusColors = [
+                          'pending'   => 'bg-amber-50 text-amber-700',
+                          'cancelled' => 'bg-rose-50 text-rose-700',
+                          'actived'   => 'bg-emerald-50 text-emerald-700',
+                          'stopped'   => 'bg-slate-100 text-slate-700',
+                          'accepted'  => 'bg-emerald-50 text-emerald-700',
+                          'approved'  => 'bg-emerald-50 text-emerald-700',
+                      ];
 
-          $statusClass = $statusColors[$statusRaw] ?? 'bg-slate-100 text-slate-800';
-          $statusLabel = $statusLabels[$statusRaw] ?? ucfirst($statusRaw);
-        @endphp
-        <tr class="hover:bg-slate-50 transition">
-          <td class="py-3 px-4 text-left">{{ $assignmentSupervisor->assignment->student->student_code }}</td>
-          <td class="py-3 px-4 font-medium text-slate-700">{{ $assignmentSupervisor->assignment->student->user->fullname }}</td>
-          <td class="py-3 px-4 text-center">{{ $assignmentSupervisor->assignment->student->marjor->name }}</td>
-          <td class="py-3 px-4 text-slate-700">{{ $assignmentSupervisor->assignment->project->name ?? 'Chưa có đề tài' }}</td>
-          <td class="py-3 px-4 text-left">{{ $stage }}</td>
-          <td class="py-3 px-4 text-left">{{ $yearName }}</td>
-          <td class="py-3 px-4 text-center">
-            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium {{ $statusClass }}">
-              @if ($statusRaw === 'approved' || $statusRaw === 'accepted')
-                <i class="ph ph-check-circle"></i>
-              @elseif ($statusRaw === 'pending')
-                <i class="ph ph-clock"></i>
-              @elseif ($statusRaw === 'rejected')
-                <i class="ph ph-x-circle"></i>
-              @endif
-              {{ $statusLabel }}
-            </span>
-          </td>
-          <td class="py-3 px-4">
-            @if ($statusRaw === 'pending')
-              <div class="flex justify-center gap-3">
-                <button class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 text-xs font-medium">
-                  <i class="ph ph-check"></i> Duyệt
-                </button>
-                <button class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-rose-600 text-white hover:bg-rose-700 text-xs font-medium">
-                  <i class="ph ph-x"></i> Từ chối
-                </button>
-              </div>
-            @else
-              <div class="flex justify-center">
-                <span class="text-slate-400 text-xs italic">—</span>
-              </div>
-            @endif
-          </td>
-        </tr>
-      @endforeach
-    </tbody>
-  </table>
-</div>
+                      // Nhãn hiển thị cho trạng thái
+                      $statusLabels = [
+                          'pending'   => 'Chờ xử lý',
+                          'cancelled' => 'Đã hủy',
+                          'actived'   => 'Đang hoạt động',
+                          'stopped'   => 'Đã dừng',
+                          'accepted'  => 'Đã chấp nhận',
+                          'approved'  => 'Đã duyệt',
+                      ];
+
+                      $statusClass = $statusColors[$statusRaw] ?? 'bg-slate-100 text-slate-800';
+                      $statusLabel = $statusLabels[$statusRaw] ?? ucfirst($statusRaw);
+                    @endphp
+
+                    <tr class="hover:bg-slate-50 transition">
+                      <td class="py-3 px-4 text-left">{{ optional($assignmentSupervisor->assignment->student)->student_code ?? '—' }}</td>
+                      <td class="py-3 px-4 font-medium text-slate-700">{{ optional($assignmentSupervisor->assignment->student->user)->fullname ?? '—' }}</td>
+                      <td class="py-3 px-4 text-center">{{ optional($assignmentSupervisor->assignment->student->marjor)->name ?? 'Chưa có ngành' }}</td>
+                      <td class="py-3 px-4 text-slate-700 truncate max-w-[320px]" title="{{ data_get($assignmentSupervisor, 'assignment.project.name', '—') }}">
+                        {{ data_get($assignmentSupervisor, 'assignment.project.name', '—') }}
+                      </td>
+                      <td class="py-3 px-4 text-left">{{ $stage ?: '—' }}</td>
+                      <td class="py-3 px-4 text-left">{{ $yearName ?: '—' }}</td>
+                      <td class="py-3 px-4 text-center">
+                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium {{ $statusClass }}">
+                          @if (in_array($statusRaw, ['approved', 'accepted', 'actived']))
+                            <i class="ph ph-check-circle"></i>
+                          @elseif ($statusRaw === 'pending')
+                            <i class="ph ph-clock"></i>
+                          @elseif (in_array($statusRaw, ['cancelled', 'stopped']))
+                            <i class="ph ph-x-circle"></i>
+                          @endif
+                          {{ $statusLabel }}
+                        </span>
+                      </td>
+                      <td class="py-3 px-4 text-center">
+                        @if ($statusRaw === 'pending')
+                          <div class="flex justify-center gap-3">
+                            <button class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 text-xs font-medium">
+                              <i class="ph ph-check"></i> Duyệt
+                            </button>
+                            <button class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-rose-600 text-white hover:bg-rose-700 text-xs font-medium">
+                              <i class="ph ph-x"></i> Từ chối
+                            </button>
+                          </div>
+                        @else
+                          <span class="text-slate-400 text-xs italic">—</span>
+                        @endif
+                      </td>
+                    </tr>
+                  @endforeach
+                @endif
+                </tbody>
+              </table>
+            </div>
 
           </section>
         </div>
@@ -268,7 +293,7 @@
 
     <script>
       const html=document.documentElement, sidebar=document.getElementById('sidebar');
-  function setCollapsed(c){const h=document.querySelector('header');const m=document.querySelector('main'); if(c){html.classList.add('sidebar-collapsed');h.classList.add('md:left-[72px]');h.classList.remove('md:left-[260px]');m.classList.add('md:pl-[72px]');m.classList.remove('md:pl-[260px]');} else {html.classList.remove('sidebar-collapsed');h.classList.remove('md:left-[72px]');h.classList.add('md:left-[260px]');m.classList.remove('md:pl-[72px]');m.classList.add('md:pl-[260px]');}}
+      function setCollapsed(c){const h=document.querySelector('header');const m=document.querySelector('main'); if(c){html.classList.add('sidebar-collapsed');h.classList.add('md:left-[72px]');h.classList.remove('md:left-[260px]');m.classList.add('md:pl-[72px]');m.classList.remove('md:pl-[260px]');} else {html.classList.remove('sidebar-collapsed');h.classList.remove('md:left-[72px]');h.classList.add('md:left-[260px]');m.classList.remove('md:pl-[72px]');m.classList.add('md:pl-[260px]');}}
       document.getElementById('toggleSidebar')?.addEventListener('click',()=>{const c=!html.classList.contains('sidebar-collapsed');setCollapsed(c);localStorage.setItem('lecturer_sidebar',''+(c?1:0));});
       document.getElementById('openSidebar')?.addEventListener('click',()=>sidebar.classList.toggle('-translate-x-full'));
       if(localStorage.getItem('lecturer_sidebar')==='1') setCollapsed(true);

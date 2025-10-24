@@ -610,7 +610,35 @@
                   </div>
                 </div>
               </div>
+            </a>  
+            @if($user->role === "head")
+            <a href="{{ route('web.head.thesis_round_supervision', ['termId' => $rows->id]) }}" 
+              class="group rounded-xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md hover:border-amber-300 transition">
+
+              <div class="flex items-start gap-3">
+                <!-- Icon -->
+                <div class="h-10 w-10 rounded-lg grid place-items-center bg-gradient-to-br from-amber-50 to-amber-100 text-amber-600 group-hover:from-amber-100 group-hover:to-amber-200">
+                  <i class="ph ph-user-switch text-lg"></i>
+                </div>
+
+                <!-- Nội dung -->
+                <div class="flex-1">
+                  <div class="font-medium text-slate-800">Phân công sinh viên</div>
+                  <div class="text-[11px] font-medium text-amber-600 uppercase tracking-wide mt-0.5">Gán GVHD</div>
+                  <div class="text-xs text-slate-500 mt-1">
+                    Phân công / điều chỉnh nhanh sinh viên cho giảng viên phụ trách.
+                  </div>
+
+                  <!-- Nút mở -->
+                  <div class="mt-3">
+                    <span class="inline-flex items-center gap-1.5 text-amber-700 text-sm group-hover:gap-2 transition-all">
+                      Mở <i class="ph ph-arrow-right"></i>
+                    </span>
+                  </div>
+                </div>
+              </div>
             </a>
+            @endif
           </div>
       `;
           break;
@@ -661,6 +689,34 @@
               </div>
             </div>
           </a>
+          @if ($user->role === "head")
+<a href="{{ route('web.head.blind_review_lecturers', ['termId' => $rows->id]) }}" 
+            class="group rounded-xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md hover:border-violet-300 transition">
+
+            <div class="flex items-start gap-3">
+              <!-- Icon -->
+              <div class="h-10 w-10 rounded-lg grid place-items-center bg-gradient-to-br from-violet-50 to-violet-100 text-violet-600 group-hover:from-violet-100 group-hover:to-violet-200">
+                <i class="ph ph-eye-slash text-lg"></i>
+              </div>
+
+              <!-- Nội dung -->
+              <div class="flex-1">
+                <div class="font-medium text-slate-800">Phản biện kín</div>
+                <div class="text-[11px] font-medium text-violet-600 uppercase tracking-wide mt-0.5">Ẩn GVHD</div>
+                <div class="text-xs text-slate-500 mt-1">
+                  Quản lý phản biện ẩn giúp đảm bảo tính khách quan.
+                </div>
+
+                <!-- Nút mở -->
+                <div class="mt-3">
+                  <span class="inline-flex items-center gap-1.5 text-violet-700 text-sm group-hover:gap-2 transition-all">
+                    Mở <i class="ph ph-arrow-right"></i>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </a>
+          @endif
         </div>
         <!-- Giữ nguyên bảng -->
         <div class="bg-white border rounded-xl p-4">

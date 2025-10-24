@@ -1009,7 +1009,7 @@
 
                         <!-- GV hướng dẫn -->
                         <td class="px-4 py-3">
-                          @if ($assignment_supervisors->isEmpty())
+                          @if ($assignment_supervisors->isEmpty() || $assignment_supervisors->where('status', 'accepted')->isEmpty())
                             <span class="text-slate-400 italic">Chưa có GVHD</span>
                           @else
                             @foreach ($assignment_supervisors as $as)
@@ -1017,7 +1017,9 @@
                                 $teacher = $as->supervisor->teacher;
                                 $teacherName = $teacher->user->fullname ?? 'N/A';
                               @endphp
-                              <div class="text-slate-700">{{ $teacherName }}</div>
+                              @if ($as->status === 'accepted')
+                                <div class="text-slate-700">{{ $teacherName }}</div>
+                              @endif
                             @endforeach
                           @endif
                         </td>

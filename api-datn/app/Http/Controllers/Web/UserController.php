@@ -92,15 +92,27 @@ class UserController extends Controller
         switch ($user->role) {
             case 'teacher':
             case 'dean':
+            case 'head':
             case 'vice_dean':
                 return redirect()->route('web.teacher.overview')->with('status','Đăng nhập thành công');
-            case 'head':
-                return redirect()->route('web.head.overview')->with('status','Đăng nhập thành công');
             case 'admin':
                 return redirect()->route('web.admin.dashboard')->with('status','Đăng nhập thành công');
             case 'assistant':
                 return redirect()->route('web.assistant.dashboard')->with('status','Đăng nhập thành công');
         }
+
+        // switch ($user->role) {
+        //     case 'teacher':
+        //     case 'dean':
+        //     case 'vice_dean':
+        //         return redirect()->route('web.teacher.overview')->with('status','Đăng nhập thành công');
+        //     case 'head':
+        //         return redirect()->route('web.head.overview')->with('status','Đăng nhập thành công');
+        //     case 'admin':
+        //         return redirect()->route('web.admin.dashboard')->with('status','Đăng nhập thành công');
+        //     case 'assistant':
+        //         return redirect()->route('web.assistant.dashboard')->with('status','Đăng nhập thành công');
+        // }
 
         return redirect()->intended('/')->with('status','Đăng nhập thành công');
     }

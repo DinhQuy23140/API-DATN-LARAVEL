@@ -52,41 +52,80 @@
       ?? 'https://ui-avatars.com/api/?name=' . urlencode($userName) . '&background=0ea5e9&color=ffffff';
   @endphp
   <!-- Sidebar (đồng nhất với round-detail) -->
-  <aside id="sidebar" class="sidebar fixed inset-y-0 left-0 z-30 bg-white border-r border-slate-200 flex flex-col transition-all overflow-hidden">
-    <div class="h-16 flex items-center gap-3 px-4 border-b border-slate-200">
-      <div class="h-9 w-9 grid place-items-center rounded-lg bg-blue-600 text-white"><i class="ph ph-buildings"></i></div>
-      <div class="sidebar-label">
-        <div class="font-semibold">Assistant</div>
-        <div class="text-xs text-slate-500">Quản trị khoa</div>
+    <aside class="sidebar fixed inset-y-0 left-0 z-30 bg-white border-r border-slate-200 flex flex-col transition-all"
+      id="sidebar">
+      <div class="h-16 flex items-center gap-3 px-4 border-b border-slate-200">
+        <div class="h-9 w-9 grid place-items-center rounded-lg bg-blue-600 text-white"><i
+            class="ph ph-chalkboard-teacher"></i></div>
+        <div class="sidebar-label">
+          <div class="font-semibold">Lecturer</div>
+          <div class="text-xs text-slate-500">Bảng điều khiển</div>
+        </div>
       </div>
-    </div>
-    <nav class="flex-1 p-3">
-      <a href="{{ route('web.assistant.dashboard') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-gauge"></i><span class="sidebar-label">Bảng điều khiển</span></a>
-      <a href="{{ route('web.assistant.manage_departments') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-buildings"></i><span class="sidebar-label">Bộ môn</span></a>
-      <a href="{{ route('web.assistant.manage_majors') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-book-open-text"></i><span class="sidebar-label">Ngành</span></a>
-      <a href="{{ route('web.assistant.manage_staffs') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-chalkboard-teacher"></i><span class="sidebar-label">Giảng viên</span></a>
-      <a href="{{ route('web.assistant.assign_head') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-user-switch"></i><span class="sidebar-label">Gán trưởng bộ môn</span></a>
-      <div class="sidebar-label text-xs uppercase text-slate-400 px-3 mt-3">Học phần tốt nghiệp</div>
-      <div class="graduation-item">
-        <div class="flex items-center justify-between px-3 py-2 cursor-pointer toggle-button">
+      @php
+        // Luôn mở nhóm "Học phần tốt nghiệp"
+        $isThesisOpen = true;
+        // Active item "Đồ án tốt nghiệp" trong submenu (giữ logic cũ)
+        $isThesisRoundsActive = request()->routeIs('web.teacher.thesis_rounds')
+          || request()->routeIs('web.teacher.thesis_round_detail');
+      @endphp
+      <nav class="flex-1 overflow-y-auto p-3">
+        <a href="{{ route('web.teacher.overview') }}"
+          class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('web.teacher.overview') ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}">
+          <i class="ph ph-gauge"></i><span class="sidebar-label">Tổng quan</span>
+        </a>
+
+        <a href="{{ route('web.teacher.profile') }}"
+          class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('web.teacher.profile') ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}">
+          <i class="ph ph-user"></i><span class="sidebar-label">Hồ sơ</span>
+        </a>
+
+        <a href="{{ route('web.teacher.research') }}"
+          class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('web.teacher.research') ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}">
+          <i class="ph ph-flask"></i><span class="sidebar-label">Nghiên cứu</span>
+        </a>
+
+        @if ($user->teacher && $user->teacher->supervisor)
+          <a id="menuStudents"
+            href="{{ route('web.teacher.students', ['teacherId' => $teacherId]) }}"
+            class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"
+            data-skip-active="1">
+             <i class="ph ph-student"></i><span class="sidebar-label">Sinh viên</span>
+           </a>
+        @else
+          <span class="text-slate-400">Chưa có supervisor</span>
+        @endif
+
+        @php $isThesisOpen = true; @endphp
+        <button type="button" id="toggleThesisMenu" aria-controls="thesisSubmenu"
+          aria-expanded="{{ $isThesisOpen ? 'true' : 'false' }}"
+          class="w-full flex items-center justify-between px-3 py-2 rounded-lg mt-3 {{ $isThesisOpen ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}">
           <span class="flex items-center gap-3">
-            <i class="ph ph-folder"></i>
+            <i class="ph ph-graduation-cap"></i>
             <span class="sidebar-label">Học phần tốt nghiệp</span>
           </span>
-          <i class="ph ph-caret-down"></i>
+          <i id="thesisCaret" class="ph ph-caret-down transition-transform {{ $isThesisOpen ? 'rotate-180' : '' }}"></i>
+        </button>
+
+        <div id="thesisSubmenu" class="mt-1 pl-3 space-y-1">
+          <a href="{{ route('web.teacher.thesis_internship') }}"
+            class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('web.teacher.thesis_internship') ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}"
+            @if(request()->routeIs('web.teacher.thesis_internship')) aria-current="page" @endif>
+            <i class="ph ph-briefcase"></i><span class="sidebar-label">Thực tập tốt nghiệp</span>
+          </a>
+          <a href="{{ route('web.teacher.thesis_rounds', ['teacherId' => $teacherId]) }}"
+            class="flex items-center gap-3 px-3 py-2 rounded-lg bg-slate-100 font-semibold {{ $isThesisRoundsActive ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}"
+            @if($isThesisRoundsActive) aria-current="page" @endif>
+            <i class="ph ph-calendar"></i><span class="sidebar-label">Đồ án tốt nghiệp</span>
+          </a>
         </div>
-        <div id="gradMenu" class="submenu pl-6">
-          <a href="#" class="block px-3 py-2 rounded hover:bg-slate-100">Thực tập tốt nghiệp</a>
-          <a href="{{ route('web.assistant.rounds') }}" class="block px-3 py-2 rounded hover:bg-slate-100 bg-slate-100 font-semibold" aria-current="page">Đồ án tốt nghiệp</a>
-        </div>
+      </nav>
+      <div class="p-3 border-t border-slate-200">
+        <button
+          class="w-full flex items-center justify-center gap-2 px-3 py-2 text-slate-600 hover:bg-slate-100 rounded-lg"
+          id="toggleSidebar"><i class="ph ph-sidebar"></i><span class="sidebar-label">Thu gọn</span></button>
       </div>
-    </nav>
-    <div class="p-3 border-t border-slate-200">
-      <button id="toggleSidebar" class="w-full flex items-center justify-center gap-2 px-3 py-2 text-slate-600 hover:bg-slate-100 rounded-lg">
-        <i class="ph ph-sidebar"></i><span class="sidebar-label">Thu gọn</span>
-      </button>
-    </div>
-  </aside>
+    </aside>
 
   <!-- Main -->
   <div class="flex-1 min-h-screen flex flex-col">
@@ -218,7 +257,7 @@
               <tbody id="tbTeachers">
                 @foreach ($supervisors as $t)
                   @php
-                    $pct = min(100, round(($t->assignment_supervisors->count() / max(1,$t->max_students))*100));
+                    $pct = min(100, round(($t->assignment_supervisors->where('status', '!=', 'pending')->count() / max(1,$t->max_students))*100));
                     // màu thanh tiến độ (gradient)
                     $barClass = $pct>=100
                       ? 'bg-gradient-to-r from-rose-500 to-rose-600'
@@ -246,7 +285,7 @@
                     <td class="py-2 px-3">
                       <div class="flex items-center justify-start gap-4 text-xs text-slate-600">
                         <span class="inline-flex items-center gap-1">
-                          <span class="cur font-medium">{{ $t->assignment_supervisors->count() }}</span>/<span class="max">{{ $t->max_students }}</span>
+                          <span class="cur font-medium">{{ $t->assignment_supervisors->where('status', '!=', 'pending')->count() }}</span>/<span class="max">{{ $t->max_students }}</span>
                         </span>
                         <span class="pct inline-flex items-center px-1.5 py-0.5 rounded-md text-[11px] font-medium {{ $pctBadge }}">{{ $pct }}%</span>
                       </div>
@@ -510,6 +549,17 @@
   }
   document.getElementById('btnAssign')?.addEventListener('click', doAssign);
   document.getElementById('btnAssignMain')?.addEventListener('click', doAssign);
+
+  // Toggle submenu "Học phần tốt nghiệp"
+  const toggleBtn = document.getElementById('toggleThesisMenu');
+  const thesisMenu = document.getElementById('thesisSubmenu');
+  const thesisCaret = document.getElementById('thesisCaret');
+  toggleBtn?.addEventListener('click', () => {
+    const isHidden = thesisMenu?.classList.toggle('hidden');
+    const expanded = !isHidden;
+    toggleBtn?.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+    thesisCaret?.classList.toggle('rotate-180', expanded);
+  });
 </script>
 <div id="toastHost" class="fixed top-4 right-4 z-50 space-y-2"></div>
 </body>

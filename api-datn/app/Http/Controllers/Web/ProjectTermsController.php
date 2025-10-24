@@ -220,6 +220,7 @@ class ProjectTermsController extends Controller
             'assignments' => function ($query) use ($supervisorId) {
                 $query->whereHas('assignment_supervisors', function ($q) use ($supervisorId) {
                     $q->where('supervisor_id', $supervisorId);
+                    $q->where('status', '!=', 'pending');
                 })->with([
                     'student.user',
                     'project.progressLogs.attachments',

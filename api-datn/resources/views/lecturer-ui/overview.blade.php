@@ -211,7 +211,7 @@
           <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <div class="bg-white rounded-xl border border-slate-200 p-5 lg:col-span-3">
               <div class="flex items-center justify-between gap-3 flex-wrap">
-                <h2 class="font-semibold">SV đang hướng dẫn</h2>
+                <h2 class="font-semibold">SV đã hướng dẫn</h2>
                 <a href="{{ route('web.teacher.students', ['teacherId' => $user->teacher?->id ?? 0]) }}"
                   class="text-blue-600 hover:underline text-sm">
                   Xem tất cả
@@ -244,87 +244,74 @@
                         </tr>
                       </thead>
                       <tbody id="studentsTbody" class="divide-y divide-slate-100">
-                        @forelse ($data_assignment_supervisors as $assignment_supervisor)
-                          @php
-                            $student   = optional(optional($assignment_supervisor->assignment))->student;
-                            $userStu   = optional($student)->user;
-                            $code      = $student->student_code ?? '—';
-                            $name      = $userStu->fullname ?? '—';
-                            $emailStu  = $userStu->email ?? '—';
+                      @php
+                        // Lọc danh sách chỉ lấy các supervisor có status = accepted
+                        $accepted_supervisors = collect($data_assignment_supervisors)->filter(function ($item) {
+                            return $item->status != "pending";
+                        });
+                      @endphp
 
-                            $stage     = data_get($assignment_supervisor, 'assignment.project_term.stage', '');
-                            $yearName  = data_get($assignment_supervisor, 'assignment.project_term.academy_year.year_name', '');
-                            $topic     = data_get($assignment_supervisor, 'assignment.project.name', '');
-                            $status    = data_get($assignment_supervisor, 'assignment.status', '');
-                            $statusKey = strtolower((string) $status);
+                      @forelse ($accepted_supervisors as $assignment_supervisor)
+                        @php
+                          $student   = optional(optional($assignment_supervisor->assignment))->student;
+                          $userStu   = optional($student)->user;
+                          $code      = $student->student_code ?? '—';
+                          $name      = $userStu->fullname ?? '—';
+                          $emailStu  = $userStu->email ?? '—';
 
-                            // Default
-                            $statusClass = 'bg-slate-100 text-slate-700';
-                            $statusLabel = 'Không xác định';
+                          $stage     = data_get($assignment_supervisor, 'assignment.project_term.stage', '');
+                          $yearName  = data_get($assignment_supervisor, 'assignment.project_term.academy_year.year_name', '');
+                          $topic     = data_get($assignment_supervisor, 'assignment.project.name', '');
+                          $status    = data_get($assignment_supervisor, 'assignment.status', '');
+                          $statusKey = strtolower((string) $status);
 
-                            // Mapping trạng thái
-                            $statusMap = [
-                                'pending' => [
-                                    'class' => 'bg-amber-50 text-amber-700',
-                                    'label' => 'Chờ duyệt',
-                                ],
-                                'actived' => [
-                                    'class' => 'bg-emerald-50 text-emerald-700',
-                                    'label' => 'Đang hoạt động',
-                                ],
-                                'stopped' => [
-                                    'class' => 'bg-rose-50 text-rose-700',
-                                    'label' => 'Đã dừng',
-                                ],
-                                'cancelled' => [
-                                    'class' => 'bg-slate-200 text-slate-600',
-                                    'label' => 'Đã hủy',
-                                ],
-                            ];
+                          $statusMap = [
+                              'pending' => ['class' => 'bg-amber-50 text-amber-700', 'label' => 'Chờ duyệt'],
+                              'actived' => ['class' => 'bg-emerald-50 text-emerald-700', 'label' => 'Đang hoạt động'],
+                              'stopped' => ['class' => 'bg-rose-50 text-rose-700', 'label' => 'Đã dừng'],
+                              'cancelled' => ['class' => 'bg-slate-200 text-slate-600', 'label' => 'Đã hủy'],
+                          ];
 
-                            // Gán nếu match
-                            if (array_key_exists($statusKey, $statusMap)) {
-                                $statusClass = $statusMap[$statusKey]['class'];
-                                $statusLabel = $statusMap[$statusKey]['label'];
-                            }
+                          $statusClass = $statusMap[$statusKey]['class'] ?? 'bg-slate-100 text-slate-700';
+                          $statusLabel = $statusMap[$statusKey]['label'] ?? 'Không xác định';
+                        @endphp
 
-                          @endphp
-                          <tr class="hover:bg-slate-50"
-                              data-name="{{ $name }}"
-                              data-year="{{ $yearName }}"
-                              data-term="{{ $stage }}">
-                            <td class="px-4 py-3 font-medium text-slate-800">{{ $code }}</td>
-                            <td class="px-4 py-3 text-slate-700">{{ $name }}</td>
-                            <td class="px-4 py-3">
-                              @if ($emailStu && $emailStu !== '—')
-                                <a href="mailto:{{ $emailStu }}" class="text-blue-600 hover:underline">{{ $emailStu }}</a>
-                              @else
-                                <span class="text-slate-500">—</span>
-                              @endif
-                            </td>
-                            <td class="px-4 py-3">
-                              <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-xs">
-                                {{ $stage ?: '—' }}
-                              </span>
-                            </td>
-                            <td class="px-4 py-3">{{ $yearName ?: '—' }}</td>
-                            <td class="px-4 py-3">
-                              <div class="truncate max-w-[320px]" title="{{ $topic }}">{{ $topic ?: '—' }}</div>
-                            </td>
-                            <td class="px-4 py-3">
-                              <span class="px-2 py-1 rounded-full text-xs {{ $statusClass }}">{{ $statusLabel ?: '—' }}</span>
-                            </td>
-                          </tr>
-                        @empty
-                          <tr>
-                            <td colspan="7" class="px-4 py-8">
-                              <div class="flex flex-col items-center justify-center gap-2 text-slate-500">
-                                <i class="ph ph-users text-2xl"></i>
-                                <div>Chưa có sinh viên nào trong danh sách hướng dẫn.</div>
-                              </div>
-                            </td>
-                          </tr>
-                        @endforelse
+                        <tr class="hover:bg-slate-50"
+                            data-name="{{ $name }}"
+                            data-year="{{ $yearName }}"
+                            data-term="{{ $stage }}">
+                          <td class="px-4 py-3 font-medium text-slate-800">{{ $code }}</td>
+                          <td class="px-4 py-3 text-slate-700">{{ $name }}</td>
+                          <td class="px-4 py-3">
+                            @if ($emailStu && $emailStu !== '—')
+                              <a href="mailto:{{ $emailStu }}" class="text-blue-600 hover:underline">{{ $emailStu }}</a>
+                            @else
+                              <span class="text-slate-500">—</span>
+                            @endif
+                          </td>
+                          <td class="px-4 py-3">
+                            <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-xs">
+                              {{ $stage ?: '—' }}
+                            </span>
+                          </td>
+                          <td class="px-4 py-3">{{ $yearName ?: '—' }}</td>
+                          <td class="px-4 py-3">
+                            <div class="truncate max-w-[320px]" title="{{ $topic }}">{{ $topic ?: '—' }}</div>
+                          </td>
+                          <td class="px-4 py-3">
+                            <span class="px-2 py-1 rounded-full text-xs {{ $statusClass }}">{{ $statusLabel }}</span>
+                          </td>
+                        </tr>
+                      @empty
+                        <tr>
+                          <td colspan="7" class="px-4 py-8">
+                            <div class="flex flex-col items-center justify-center gap-2 text-slate-500">
+                              <i class="ph ph-users text-2xl"></i>
+                              <div>Chưa có sinh viên nào trong danh sách hướng dẫn.</div>
+                            </div>
+                          </td>
+                        </tr>
+                      @endforelse
                       </tbody>
                     </table>
                   </div>
