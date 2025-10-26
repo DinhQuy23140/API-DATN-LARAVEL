@@ -111,173 +111,213 @@
           </section>
 
         <!-- Hai bảng ngang -->
+        <!-- Bộ lọc bộ môn -->
+        <div class="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div class="flex items-center gap-2 text-slate-700 font-semibold">
+            <i class="ph ph-buildings text-lg text-blue-500"></i>
+            <span>Lọc theo bộ môn</span>
+          </div>
+          <div class="relative w-full sm:w-64">
+            <i class="ph ph-funnel absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
+            <select id="departmentFilter"
+              class="w-full pl-9 pr-3 py-2 rounded-lg border border-slate-200 bg-white text-sm text-slate-700
+                    focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 appearance-none">
+              <option value="">-- Tất cả bộ môn --</option>
+              @foreach ($departments as $department)
+                <option value="{{ $department->id }}">{{ $department->name }}</option>
+              @endforeach
+            </select>
+          </div>
+        </div>
+
+        <!-- Hai bảng chính -->
         <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <!-- Bảng hội đồng -->
-            <div class="bg-white rounded-xl border border-slate-200 shadow-sm">
-                <!-- Header -->
-                <div class="p-4 border-b flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-                    <h3 class="font-semibold text-slate-700">Danh sách hội đồng</h3>
-                    <div class="flex items-center gap-3 w-full md:w-auto">
-                        <div class="relative flex-1 md:flex-none">
-                            <input id="councilSearch"
-                            class="w-full pl-9 pr-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 text-sm"
-                            placeholder="Tìm hội đồng (mã/tên/ngày/phòng)" />
-                            <i class="ph ph-magnifying-glass absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                        </div>
-                    <div class="hidden md:block text-sm text-slate-500">Chọn 1 hội đồng để gán</div>
-                    </div>
+          <!-- Bảng hội đồng -->
+          <div class="bg-white rounded-xl border border-slate-200 shadow-sm">
+            <!-- Header -->
+            <div class="p-4 border-b flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+              <h3 class="font-semibold text-slate-700">Danh sách hội đồng</h3>
+              <div class="flex items-center gap-3 w-full md:w-auto">
+                <div class="relative flex-1 md:flex-none">
+                  <input id="councilSearch"
+                    class="w-full pl-9 pr-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 text-sm"
+                    placeholder="Tìm hội đồng (mã/tên/ngày/phòng)" />
+                  <i class="ph ph-magnifying-glass absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
                 </div>
+                <div class="hidden md:block text-sm text-slate-500"></div>
+              </div>
+            </div>
 
-                <!-- Table -->
-                <div class="overflow-x-auto">
-                    <table class="min-w-full table-auto text-sm">
-                    <thead class="bg-slate-50">
-                        <tr class="text-left text-slate-600 border-b">
-                        <th class="py-3 px-4 w-10"><input type="checkbox" disabled /></th>
-                        <th class="py-3 px-4">Mã</th>
-                        <th class="py-3 px-4">Tên</th>
-                        <th class="py-3 px-4">Ngày</th>
-                        <th class="py-3 px-4">Phòng</th>
-                        <th class="py-3 px-4 text-right">SV đã gán</th>
-                        </tr>
-                    </thead>
+            <!-- Table -->
+            <div class="overflow-x-auto">
+              <table class="min-w-full table-auto text-sm">
+                <thead class="bg-slate-50">
+                  <tr class="text-left text-slate-600 border-b">
+                    <th class="py-3 px-4 w-10"><input type="checkbox" disabled /></th>
+                    <th class="py-3 px-4">Mã</th>
+                    <th class="py-3 px-4">Tên</th>
+                    <th class="py-3 px-4 text-right">Số sinh viên</th>
+                  </tr>
+                </thead>
+                @php
+                  $councils = $projectTerm->councils ?? [];
+                @endphp
+
+                <tbody id="councilTbody" class="divide-y divide-slate-200">
+                  @foreach ($councils as $council)
                     @php
-                        $councils = $projectTerm->councils ?? [];
+                      $code = $council->code ?? 'NA';
+                      $name = $council->name ?? 'NA';
+                      $date = $council->date ?? 'NA';
+                      $room = $council->address ?? 'NA';
+                      $count = $council->council_projects?->count() ?? 'NA';
+                      $department_id = $council->department->id ?? '';
                     @endphp
-
-                    <tbody id="councilTbody" class="divide-y divide-slate-200">
-                        @foreach ($councils as $council)
-                        @php
-                            $code = $council->code ?? 'NA';
-                            $name = $council->name ?? 'NA';
-                            $date = $council->date ?? 'NA';
-                            $room = $council->address ?? 'NA';
-                            $count = $council->council_projects?->count() ?? 'NA';
-                        @endphp
-                        <tr class="hover:bg-slate-50" data-council-id="{{ $council->id }}">
-                            <td class="py-3 px-4"><input type="checkbox" class="council-check" value="{{ $council->id }}" /></td>
-                            <td class="py-3 px-4 font-medium text-slate-700">{{ $code }}</td>
-                            <td class="py-3 px-4">{{ $name }}</td>
-                            <td class="py-3 px-4">{{ $date }}</td>
-                            <td class="py-3 px-4">{{ $room }}</td>
-                            <td class="py-3 px-4 text-right text-slate-600">{{ $count }}</td>
-                        </tr>
-                        @endforeach
-                    </tbody>
-                    </table>
-                </div>
-
-                <!-- Footer -->
-                <div class="p-4 border-t flex items-center justify-end gap-2">
-                    <button id="btnClearCouncil"
-                     class="px-3 py-1.5 rounded-lg border text-sm text-slate-600 hover:bg-slate-50 flex items-center gap-1">
-                     <i class="ph ph-x"></i> Bỏ chọn
-                     </button>
-                    <button
-                    class="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm flex items-center gap-1">
-                    <i class="ph ph-check"></i> Chọn hội đồng
-                    </button>
-                </div>
+                    <tr class="hover:bg-slate-50" data-council-id="{{ $council->id }}" data-department-id="{{ $department_id }}">
+                      <td class="py-3 px-4"><input type="checkbox" class="council-check" value="{{ $council->id }}" /></td>
+                      <td class="py-3 px-4 font-medium text-slate-700">{{ $code }}</td>
+                      <td class="py-3 px-4">{{ $name }}</td>
+                      <td class="py-3 px-4 text-right text-slate-600">{{ $count }}</td>
+                    </tr>
+                  @endforeach
+                </tbody>
+              </table>
             </div>
 
-            <!-- Bảng sinh viên -->
-            <div class="bg-white rounded-xl border border-slate-200 shadow-sm">
-                <!-- Header -->
-                <div class="p-4 border-b flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-                    <h3 class="font-semibold text-slate-700">Danh sách sinh viên</h3>
-                    <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 w-full md:w-auto">
-                        <div class="relative flex-1 sm:flex-none hidden lg:block">
-                            <input id="studentSearch"
-                                class="w-full pl-9 pr-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600 text-sm"
-                                placeholder="Tìm SV (mã, tên, lớp, ngành)" />
-                            <i class="ph ph-magnifying-glass absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                        </div>
-                        <div class="flex gap-2">
-                            <button id="btnCancelStudents"
-                                 class="px-3 py-1.5 rounded-lg border text-sm text-slate-600 hover:bg-slate-50 flex items-center gap-1">
-                                 <i class="ph ph-arrow-u-up-left"></i> Hủy
-                            </button>
-                            <button id="btnAssignStudents"
-                                 class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm flex items-center gap-1">
-                                 <i class="ph ph-arrow-right"></i> Gán sinh viên
-                            </button>
-                        </div>
-                    </div>
-                </div>
-                <!-- Table -->
-                <div class="overflow-x-auto">
-                    <table class="min-w-full table-auto text-sm">
-                        <thead class="bg-slate-50">
-                        <tr class="text-left text-slate-600 border-b">
-                            <th class="py-3 px-4 w-10"><input type="checkbox" /></th>
-                            <th class="py-3 px-4">Mã SV</th>
-                            <th class="py-3 px-4">Họ tên</th>
-                            <th class="py-3 px-4">Đề tài</th>
-                            <th class="py-3 px-4">GVHD</th>
-                        </tr>
-                        </thead>
-                        <tbody id="studentTbody" class="divide-y divide-slate-200">
-
-                        @foreach ($assignments as $assignment)
-                          @php
-                            $assignment_id = $assignment->id;
-                            $student_code = $assignment->student->student_code ?? 'NA';
-                            $student_name = $assignment->student->user->fullname ?? 'NA';
-                            $topic = $assignment->project?->name ?? 'Chưa có đề tài';
-                            $assignment_supervisors = $assignment->assignment_supervisors ?? [];
-                          @endphp
-                          <tr class="hover:bg-slate-50" data-assignment-id="{{ $assignment_id }}">
-                            <td class="py-3 px-4"><input type="checkbox" class="student-check" value="{{ $assignment_id }}" /></td>
-                            <td class="py-3 px-4 font-medium text-slate-700">{{ $student_code }}</td>
-                            <td class="py-3 px-4">{{ $student_name }}</td>
-                            <td class="py-3 px-4">{{ $topic }}</td>
-                            <td class="py-3 px-4">
-                                @if ($assignment_supervisors->count() > 0)
-                                    @foreach ($assignment_supervisors as $as)
-                                        @php
-                                            $supervisor = $as->supervisor;
-                                            $teacher = $supervisor->teacher ?? null;
-                                            $teacher_name = $teacher?->user?->fullname ?? 'NA';
-                                        @endphp
-                                        <div class="text-slate-700">{{ $teacher_name }}</div>
-                                    @endforeach
-                                @else
-                                    <div class="text-slate-500 italic">Chưa có GVHD</div>
-                                @endif
-                            </td>
-                          </tr>
-                        @endforeach
-                        </tbody>
-                    </table>
-                </div>
-
-                <!-- Footer -->
-                <div class="p-4 border-t text-xs text-slate-500">
-                    Chọn hội đồng ở bảng trái, chọn sinh viên ở bảng phải, sau đó bấm
-                    <span class="font-medium text-emerald-600">“Gán vào hội đồng đã chọn”</span>.
-                </div>
+            <!-- Footer -->
+            <div class="p-4 border-t flex items-center justify-end gap-2">
+              <button id="btnClearCouncil"
+                class="px-3 py-1.5 rounded-lg border text-sm text-slate-600 hover:bg-slate-50 flex items-center gap-1">
+                <i class="ph ph-x"></i> Bỏ chọn
+              </button>
+              <button
+                class="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm flex items-center gap-1">
+                <i class="ph ph-check"></i> Chọn hội đồng
+              </button>
             </div>
-          </section>
+          </div>
+
+          <!-- Bảng sinh viên -->
+          <div class="bg-white rounded-xl border border-slate-200 shadow-sm">
+            <!-- Header -->
+            <div class="p-4 border-b flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+              <h3 class="font-semibold text-slate-700">Danh sách sinh viên</h3>
+              <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 w-full md:w-auto">
+                <div class="relative flex-1 sm:flex-none hidden lg:block">
+                  <input id="studentSearch"
+                    class="w-full pl-9 pr-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-600/20 focus:border-emerald-600 text-sm"
+                    placeholder="Tìm SV (mã, tên, lớp, ngành)" />
+                  <i class="ph ph-magnifying-glass absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                </div>
+                <div class="flex gap-2">
+                  <button id="btnCancelStudents"
+                    class="px-3 py-1.5 rounded-lg border text-sm text-slate-600 hover:bg-slate-50 flex items-center gap-1">
+                    <i class="ph ph-arrow-u-up-left"></i> Hủy
+                  </button>
+                  <button id="btnAssignStudents"
+                    class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm flex items-center gap-1">
+                    <i class="ph ph-arrow-right"></i> Gán sinh viên
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Table -->
+            <div class="overflow-x-auto">
+              <table class="min-w-full table-auto text-sm">
+                <thead class="bg-slate-50">
+                  <tr class="text-left text-slate-600 border-b">
+                    <th class="py-3 px-4 w-10"><input type="checkbox" /></th>
+                    <th class="py-3 px-4">Mã SV</th>
+                    <th class="py-3 px-4">Họ tên</th>
+                    <th class="py-3 px-4">Đề tài</th>
+                    <th class="py-3 px-4">GVHD</th>
+                  </tr>
+                </thead>
+                <tbody id="studentTbody" class="divide-y divide-slate-200">
+                  @foreach ($assignments as $assignment)
+                    @php
+                      $assignment_id = $assignment->id;
+                      $student_code = $assignment->student->student_code ?? 'NA';
+                      $student_name = $assignment->student->user->fullname ?? 'NA';
+                      $topic = $assignment->project?->name ?? 'Chưa có đề tài';
+                      $assignment_supervisors = $assignment->assignment_supervisors ?? [];
+                      $department_id = $assignment->student->marjor->department->id ?? '';
+                    @endphp
+                    <tr class="hover:bg-slate-50" data-assignment-id="{{ $assignment_id }}" data-department-id="{{ $department_id }}">
+                      <td class="py-3 px-4"><input type="checkbox" class="student-check" value="{{ $assignment_id }}" /></td>
+                      <td class="py-3 px-4 font-medium text-slate-700">{{ $student_code }}</td>
+                      <td class="py-3 px-4">{{ $student_name }}</td>
+                      <td class="py-3 px-4">{{ $topic }}</td>
+                      <td class="py-3 px-4">
+                        @if ($assignment_supervisors->count() > 0)
+                          @foreach ($assignment_supervisors as $as)
+                            @php
+                              $supervisor = $as->supervisor;
+                              $teacher = $supervisor->teacher ?? null;
+                              $teacher_name = $teacher?->user?->fullname ?? 'NA';
+                            @endphp
+                            <div class="text-slate-700">{{ $teacher_name }}</div>
+                          @endforeach
+                        @else
+                          <div class="text-slate-500 italic">Chưa có GVHD</div>
+                        @endif
+                      </td>
+                    </tr>
+                  @endforeach
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Footer -->
+            <div class="p-4 border-t text-xs text-slate-500">
+              Chọn hội đồng ở bảng trái, chọn sinh viên ở bảng phải, sau đó bấm
+              <span class="font-medium text-emerald-600">“Gán vào hội đồng đã chọn”</span>.
+            </div>
+          </div>
+        </section>
+
         </div>
       </main>
     </div>
   </div>
 <script>
-  // Lọc bảng theo từ khóa (không render lại DOM)
-  function attachSearch(inputId, tbodyId) {
-    const input = document.getElementById(inputId);
-    const tbody = document.getElementById(tbodyId);
-    if (!input || !tbody) return;
-    input.addEventListener('input', () => {
-      const q = input.value.trim().toLowerCase();
-      Array.from(tbody.querySelectorAll('tr')).forEach(tr => {
-        const text = tr.innerText.toLowerCase();
-        tr.style.display = text.includes(q) ? '' : 'none';
-      });
+  // Combined filters: text search + department filter
+  const councilSearchInput = document.getElementById('councilSearch');
+  const studentSearchInput = document.getElementById('studentSearch');
+  const departmentFilter = document.getElementById('departmentFilter');
+
+  function applyFilters() {
+    const councilQ = (councilSearchInput?.value || '').trim().toLowerCase();
+    const studentQ = (studentSearchInput?.value || '').trim().toLowerCase();
+    const dept = (departmentFilter?.value || '').toString();
+
+    // filter councils
+    Array.from(document.querySelectorAll('#councilTbody tr')).forEach(tr => {
+      const text = tr.innerText.toLowerCase();
+      const rowDept = (tr.getAttribute('data-department-id') || '').toString();
+      const matchesSearch = councilQ === '' || text.includes(councilQ);
+      const matchesDept = dept === '' || rowDept === dept;
+      tr.style.display = (matchesSearch && matchesDept) ? '' : 'none';
+    });
+
+    // filter students
+    Array.from(document.querySelectorAll('#studentTbody tr')).forEach(tr => {
+      const text = tr.innerText.toLowerCase();
+      const rowDept = (tr.getAttribute('data-department-id') || '').toString();
+      const matchesSearch = studentQ === '' || text.includes(studentQ);
+      const matchesDept = dept === '' || rowDept === dept;
+      tr.style.display = (matchesSearch && matchesDept) ? '' : 'none';
     });
   }
-  attachSearch('councilSearch', 'councilTbody');
-  attachSearch('studentSearch', 'studentTbody');
+
+  // Wire inputs
+  councilSearchInput?.addEventListener('input', applyFilters);
+  studentSearchInput?.addEventListener('input', applyFilters);
+  departmentFilter?.addEventListener('change', applyFilters);
+
+  // Run once on load
+  applyFilters();
 
 // Giới hạn chỉ chọn 1 hội đồng
 document.querySelectorAll('.council-check').forEach(cb => {

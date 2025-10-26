@@ -10,9 +10,9 @@ class Marjor extends Model
     use HasFactory;
     protected $fillable = ['code', 'name', 'description', 'faculty_id'];
 
-    public function faculties()
+    public function department()
     {
-        return $this->belongsTo(Faculties::class , 'faculty_id');
+        return $this->belongsTo(Department::class, 'department_id');
     }
 
     public function students()

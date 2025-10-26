@@ -143,64 +143,94 @@
 
             <div class="mt-4 grid grid-cols-1 gap-6">
               <!-- Danh sách ứng viên (table + checkbox) -->
-              <div class="rounded-xl border border-slate-200 overflow-hidden">
-                <div class="h-10 bg-slate-50 border-b border-slate-200 px-3 text-xs text-slate-500 flex items-center justify-between">
-                  <span>Danh sách giảng viên</span>
-                  <label class="flex items-center gap-2 text-[13px] text-slate-600">
-                    <input type="checkbox" id="selectAllSup" class="rounded border-slate-300"> Chọn tất cả
-                  </label>
-                </div>
-                <div class="max-h-96 overflow-auto">
-                  <table class="w-full text-sm">
-                    <thead class="sticky top-0 bg-slate-50 border-b border-slate-200">
-                      <tr class="text-left text-slate-600">
-                        <th class="py-2 px-3 w-10"></th>
-                        <th class="py-2 px-3">Email</th>
-                        <th class="py-2 px-3">Họ tên</th>
-                        <th class="py-2 px-3">Bộ môn</th>
-                        <th class="py-2 px-3">Học vị</th>
-                        <th class="py-2 px-3">Số SV tối đa</th>
-                      </tr>
-                    </thead>
-                    <tbody id="supTbody">
-                      @php
-                        // Dữ liệu server: danh sách GV chưa trong đợt
-                        $supItems = $items ?? $supervisors ?? [];
-                      @endphp
-                      @if(!empty($supItems) && count($supItems))
-                        @foreach($supItems as $t)
-                          @php
-                            $email = optional(optional($t)->user)->email ?? $t->email ?? '';
-                            $name  = optional(optional($t)->user)->fullname ?? $t->fullname ?? ($t->name ?? '');
-                            $dept  = optional($t->department)->name ?? ($t->department_name ?? ($t->dept ?? ''));
-                            $title = $t->degree ?? ($t->title ?? '');
-                          @endphp
-                          <tr class="hover:bg-slate-50">
-                            <td class="py-2 px-3">
-                              <input type="checkbox"
-                                class="rounded border-slate-300"
-                                data-email="{{ $email }}"
-                                data-name="{{ $name }}"
-                                data-dept="{{ $dept }}"
-                                data-title="{{ $title }}">
-                            </td>
-                            <td class="py-2 px-3 font-medium">{{ $email }}</td>
-                            <td class="py-2 px-3">{{ $name }}</td>
-                            <td class="py-2 px-3">{{ $dept ?: '-' }}</td>
-                            <td class="py-2 px-3">{{ $title ?: '-' }}</td>
-                            <td class="py-2 px-3">
-                              <input type="number" min="0" step="1" value="" placeholder="vd: 10"
-                                     class="w-24 px-2 py-1 border rounded text-sm" data-max-for="{{ $email }}">
-                            </td>
-                          </tr>
-                        @endforeach
-                      @else
-                        <tr><td colspan="5" class="py-4 px-3 text-slate-500">Không có dữ liệu.</td></tr>
-                      @endif
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+<div class="rounded-xl border border-slate-200 shadow-sm overflow-hidden bg-white">
+  <div class="h-11 bg-gradient-to-r from-slate-50 to-slate-100 border-b border-slate-200 px-4 text-sm text-slate-700 flex items-center justify-between">
+    <div class="flex items-center gap-2 font-semibold">
+      <i class="ph ph-users text-lg text-blue-500"></i>
+      Danh sách giảng viên
+    </div>
+    <label class="flex items-center gap-2 text-[13px] text-slate-600 cursor-pointer select-none">
+      <input type="checkbox" id="selectAllSup" class="rounded border-slate-300 focus:ring-0 accent-blue-500">
+      <span>Chọn tất cả</span>
+    </label>
+  </div>
+
+  <div class="max-h-[480px] overflow-auto scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-transparent">
+    <table class="w-full text-sm border-collapse">
+      <thead class="sticky top-0 bg-slate-50 border-b border-slate-200 text-slate-600 text-[13px] uppercase">
+        <tr>
+          <th class="py-3 px-4 w-10"></th>
+          <th class="py-3 px-4 text-left"><i class="ph ph-envelope text-slate-500 mr-1"></i>Email</th>
+          <th class="py-3 px-4 text-left"><i class="ph ph-user text-slate-500 mr-1"></i>Họ tên</th>
+          <th class="py-3 px-4 text-left"><i class="ph ph-buildings text-slate-500 mr-1"></i>Bộ môn</th>
+          <th class="py-3 px-4 text-left"><i class="ph ph-graduation-cap text-slate-500 mr-1"></i>Học vị</th>
+          <th class="py-3 px-4 text-left"><i class="ph ph-flask text-slate-500 mr-1"></i>Hướng nghiên cứu</th>
+          <th class="py-3 px-4 text-right"><i class="ph ph-users-three text-slate-500 mr-1"></i>Số SV tối đa</th>
+        </tr>
+      </thead>
+
+      <tbody id="supTbody" class="divide-y divide-slate-100">
+        @php
+          $supItems = $items ?? $supervisors ?? [];
+        @endphp
+
+        @if(!empty($supItems) && count($supItems))
+          @foreach($supItems as $t)
+            @php
+              $email = optional(optional($t)->user)->email ?? $t->email ?? '';
+              $name  = optional(optional($t)->user)->fullname ?? $t->fullname ?? ($t->name ?? '');
+              $dept  = optional($t->department)->name ?? ($t->department_name ?? ($t->dept ?? ''));
+              $title = $t->degree ?? ($t->title ?? '');
+              $listResearches = $t->user?->userResearches ?? [];
+            @endphp
+            <tr class="hover:bg-slate-50 transition-all duration-150">
+              <td class="py-3 px-4">
+                <input type="checkbox"
+                  class="rounded border-slate-300 accent-blue-500 focus:ring-0"
+                  data-email="{{ $email }}"
+                  data-name="{{ $name }}"
+                  data-dept="{{ $dept }}"
+                  data-title="{{ $title }}">
+              </td>
+
+              <td class="py-3 px-4 font-medium text-slate-800">{{ $email }}</td>
+              <td class="py-3 px-4">{{ $name }}</td>
+              <td class="py-3 px-4">{{ $dept ?: '-' }}</td>
+              <td class="py-3 px-4">{{ $title ?: '-' }}</td>
+
+              <td class="py-3 px-4 text-slate-700">
+                @if ($listResearches->count() > 0)
+                  @foreach ($listResearches as $re)
+                    <span class="inline-flex items-center gap-1 bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full text-xs font-medium">
+                      <i class="ph ph-flask text-[11px]"></i>{{ $re->research->name }}
+                    </span>
+                  @endforeach
+                @else
+                  <span class="text-slate-400 italic">-</span>
+                @endif
+              </td>
+
+              <td class="py-3 px-4 text-right">
+                <input type="number" min="0" step="1" value=""
+                  placeholder="vd: 10"
+                  class="w-24 px-2 py-1 border border-slate-300 rounded-lg text-sm text-right focus:border-blue-400 focus:ring-1 focus:ring-blue-100 outline-none transition"
+                  data-max-for="{{ $email }}">
+              </td>
+            </tr>
+          @endforeach
+        @else
+          <tr>
+            <td colspan="7" class="text-center py-8 text-slate-500 text-sm">
+              <i class="ph ph-info text-lg text-blue-500 block mb-2"></i>
+              Không có giảng viên nào để hiển thị.
+            </td>
+          </tr>
+        @endif
+      </tbody>
+    </table>
+  </div>
+</div>
+
 
               <!-- Danh sách đã chọn (rút gọn) -->
               <div class="rounded-xl border border-slate-200 flex flex-col">

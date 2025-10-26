@@ -34,4 +34,9 @@ class Department extends Model
         return $this->hasMany(Subjects::class, 'department_id');
     }
 
+    public function marjors()
+    {
+        return $this->hasMany(Marjor::class);
+    }
+
 }

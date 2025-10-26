@@ -16,11 +16,6 @@ class Faculties extends Model
         return $this->hasMany(Department::class);
     }
 
-    public function marjors()
-    {
-        return $this->hasMany(Marjor::class);
-    }
-
     public function assistant()
     {
         return $this->belongsTo(Teacher::class, 'assistant_id');

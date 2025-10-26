@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Assignment;
 use App\Models\Council;
 use App\Models\CouncilMembers;
+use App\Models\Department;
 use App\Models\ProjectTerm;
 use App\Models\Supervisor;
 use Illuminate\Http\Request;
@@ -398,12 +399,14 @@ class CouncilController extends Controller
         //     ->get();
         $projectTerm = ProjectTerm::with('academy_year', 'councils.council_members.supervisor.teacher.user', 'councils.council_projects')->find($termId);
 
-        $assignments = Assignment::with('student.user', 'student.marjor', 'project', 'assignment_supervisors.supervisor.teacher.user')
+        $assignments = Assignment::with('student.user', 'student.marjor.department.faculties', 'project', 'assignment_supervisors.supervisor.teacher.user')
             ->where('project_term_id', $termId)
             ->whereDoesntHave('council_project') // loại assignment đã gán hội đồng
             ->get();
 
-        return view ('assistant-ui.council-assign-students', compact('projectTerm', 'assignments', 'termId'));
+        $departments = Department::get();
+
+        return view ('assistant-ui.council-assign-students', compact('projectTerm', 'assignments', 'departments', 'termId'));
     }
 
     // PATCH /assistant/councils/{council}/members

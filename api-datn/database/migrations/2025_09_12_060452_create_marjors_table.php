@@ -18,8 +18,8 @@ return new class extends Migration
             $table->string('code')->unique();
             $table->string('name');
             $table->text('description');
-            $table->unsignedBigInteger('faculty_id');
-            $table->foreign('faculty_id')->references('id')->on('faculties')->onDelete('cascade');
+            $table->unsignedBigInteger('department_id');
+            $table->foreign('department_id')->references('id')->on('departments')->onDelete('cascade');
             $table->timestamps();
         });
     }

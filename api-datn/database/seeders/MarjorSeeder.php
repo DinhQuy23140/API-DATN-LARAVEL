@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Department;
 use App\Models\Marjor;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -15,7 +16,7 @@ class MarjorSeeder extends Seeder
      */
     public function run()
     {
-                $majors = [
+        $majors = [
             ['code' => 'KHMT', 'name' => 'Khoa học máy tính', 'description' => 'Ngành Khoa học máy tính'],
             ['code' => 'KTPM', 'name' => 'Kỹ thuật phần mềm', 'description' => 'Ngành Kỹ thuật phần mềm'],
             ['code' => 'HTTT', 'name' => 'Hệ thống thông tin', 'description' => 'Ngành Hệ thống thông tin'],
@@ -31,7 +32,7 @@ class MarjorSeeder extends Seeder
                 'code' => $major['code'],
                 'name' => $major['name'],
                 'description' => $major['description'],
-                'faculty_id' => 1, // Giá trị cố định
+                'department_id' => Department::inRandomOrder()->first()->id ?? Department::first()->id,
             ]);
         }
     }

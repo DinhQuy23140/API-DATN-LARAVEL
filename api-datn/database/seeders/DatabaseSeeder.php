@@ -23,11 +23,11 @@ class DatabaseSeeder extends Seeder
         ]);
 
         $this->call([
-            MarjorSeeder::class,
+            DepartmentSeeder::class,
         ]);
 
         $this->call([
-            DepartmentSeeder::class,
+            MarjorSeeder::class,
         ]);
         
         $this->call([
