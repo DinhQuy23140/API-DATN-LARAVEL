@@ -249,7 +249,7 @@
                 <!-- Khoa phụ trách -->
                 <div class="text-slate-600 text-sm flex items-center gap-2 mt-1">
                   <i class="ph ph-buildings text-slate-500"></i>
-                  <span>{{ $major->faculties?->name ?? 'Chưa có khoa phụ trách' }}</span>
+                  <span>{{ $major->department?->name ?? 'Chưa có bộ môn phụ trách' }}</span>
                 </div>
 
                 <!-- Mô tả -->

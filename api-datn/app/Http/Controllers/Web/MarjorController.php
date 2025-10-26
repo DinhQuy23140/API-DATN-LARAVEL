@@ -10,7 +10,7 @@ class MarjorController extends Controller
 {
     //
     public function loadMajor() {
-        $majors = Marjor::with('faculties', 'students')->get();
+        $majors = Marjor::with('department', 'students')->get();
         return response()->view('assistant-ui.manage-majors', compact('majors'));
     }
 

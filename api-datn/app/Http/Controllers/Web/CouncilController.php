@@ -385,11 +385,13 @@ class CouncilController extends Controller
             ->latest('created_at')
             ->get();
 
+        $departments = Department::get();
+
         $supervisors = Supervisor::with('teacher.user')
         ->where('project_term_id', $termId)
         ->get();
 
-        return view ('assistant-ui.council-roles', compact('councils', 'supervisors', 'termId'));
+        return view ('assistant-ui.council-roles', compact('councils', 'supervisors', 'departments', 'termId'));
     }
 
     public function getCouncilAndAssignmentByTermId($termId) {

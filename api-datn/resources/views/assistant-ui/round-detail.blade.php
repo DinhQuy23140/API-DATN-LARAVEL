@@ -141,7 +141,7 @@
           <div class="flex items-center justify-between mb-6">
             <h3 class="font-semibold">Tiến độ giai đoạn đồ án</h3>
             <div class="flex items-center gap-2 text-sm">
-              <span id="progressText" class="font-medium">25%</span>
+              <span id="progressText" class="font-medium">0%</span>
               <div class="w-40 h-2 rounded-full bg-slate-100 overflow-hidden">
                 <div id="progressBar" class="h-full bg-blue-600" style="width:25%"></div>
               </div>
@@ -151,20 +151,24 @@
           <!-- Horizontal Timeline -->
           <div class="relative">
             <!-- Progress Line -->
-            <div class="absolute top-6 left-8 right-8 h-0.5 bg-slate-200">
-              @php
-                $progressWidth = 0;
-              @endphp
-              @foreach ($stageTimeline as $index => $stage)
-                @php
-                  $endDate = $stage->end_date ?? null;
-                  if( $endDate && Carbon::parse($endDate)->isPast() ) {
-                    $progressWidth ++;
-                  }
-                @endphp
-              @endforeach
-                <div class="h-full bg-emerald-600" style="width: {{ $progressWidth/8 * 100 }}%"></div>
-            </div>
+
+        <div class="absolute top-6 left-8 right-8 h-0.5 bg-slate-200">
+          @php
+            $totalStages = count($stageTimeline);
+            $completed = 0;
+            foreach ($stageTimeline as $stage) {
+                $endDate = $stage->end_date ?? null;
+                if ($endDate && Carbon::parse($endDate)->isPast()) {
+                    $completed++;
+                }
+            }
+            $progressPercent = $totalStages > 0 ? ($completed / $totalStages) * 100 : 0;
+          @endphp
+
+          <div class="h-full bg-emerald-600 transition-all duration-500"
+              style="width: {{ $progressPercent }}%">
+          </div>
+        </div>
             
             <!-- Timeline Items -->
             <div class="grid grid-cols-8 gap-4 relative">
@@ -898,7 +902,8 @@
                 row.style.display = ok ? '' : 'none';
                 if (ok) visible++;
               });
-              if (studentCount) studentCount.textContent = String(visible || studentRows.length || 0);
+              // Always show the actual number of visible rows (not fallback to total when zero)
+              if (studentCount) studentCount.textContent = String(visible);
             }
             studentInput?.addEventListener('input', applyStudentFilter);
             applyStudentFilter();
@@ -917,7 +922,7 @@
                 row.style.display = ok ? '' : 'none';
                 if (ok) visible++;
               });
-              if (lecturerCount) lecturerCount.textContent = String(visible || lectRows.length || 0);
+              if (lecturerCount) lecturerCount.textContent = String(visible);
             }
             lecturerInput?.addEventListener('input', applyLecturerFilter);
             applyLecturerFilter();
@@ -1058,7 +1063,8 @@
 
             // Search filtering for Stage 2
             const s2Input = stageContent.querySelector('#searchStage2');
-            const s2Rows = Array.from(stageContent.querySelectorAll('#stage2TableBody tr.stage2-row'));
+            // Rows here are plain TRs (no 'stage2-row' class in template). Select all TRs under the tbody.
+            const s2Rows = Array.from(stageContent.querySelectorAll('#stage2TableBody tr'));
             function s2Filter(){
               const q = (s2Input?.value || '').toLowerCase();
               s2Rows.forEach(tr => {
@@ -1175,7 +1181,8 @@
 
             // Search filtering for Stage 3
             const s3Input = stageContent.querySelector('#searchStage3');
-            const s3Rows = Array.from(stageContent.querySelectorAll('#stage3TableBody tr.stage3-row'));
+            // Stage 3 rows do not include a dedicated class in the template, select all TRs.
+            const s3Rows = Array.from(stageContent.querySelectorAll('#stage3TableBody tr'));
             function s3Filter(){
               const q = (s3Input?.value || '').toLowerCase();
               s3Rows.forEach(tr => {
@@ -1421,7 +1428,7 @@
                           $council_name = $council->name ?? 'N/A';
                           $department = $council->department->name ?? 'N/A';
                           $defense_date = $council->date 
-                              ? \Carbon\Carbon::parse($council->date)->format('d/m/Y') 
+                              ? Carbon::parse($council->date)->format('d/m/Y') 
                               : 'N/A';
                           $address = $council->address ?? 'N/A';
                           $council_members = $council->council_members?->sortByDesc('role') ?? collect();
@@ -1833,7 +1840,8 @@
 
             // Search filtering for Stage 7
             const s7Input = stageContent.querySelector('#searchStage7');
-            const s7Rows = Array.from(stageContent.querySelectorAll('#stage7TableBody tr.stage7-row'));
+            // Stage 7 rows don't include a 'stage7-row' class in the template; select all TRs.
+            const s7Rows = Array.from(stageContent.querySelectorAll('#stage7TableBody tr'));
             function s7Filter(){
               const q = (s7Input?.value || '').toLowerCase();
               s7Rows.forEach(tr => {
@@ -1988,7 +1996,8 @@
 
             // Search filtering for Stage 8
             const s8Input = stageContent.querySelector('#searchStage8');
-            const s8Rows = Array.from(stageContent.querySelectorAll('#stage8TableBody tr.stage8-row'));
+            // Stage 8 rows do not carry a 'stage8-row' class in the template; select all TRs.
+            const s8Rows = Array.from(stageContent.querySelectorAll('#stage8TableBody tr'));
             function s8Filter(){
               const q = (s8Input?.value || '').toLowerCase();
               s8Rows.forEach(tr => {
@@ -2713,13 +2722,12 @@
         const end = parseDateVN(endStr);
         const today = new Date();
 
-        // progress
-        const total = end - start;
-        const done = today - start;
-        const pct = total>0 ? Math.round(clamp((done/total)*100, 0, 100)) : 0;
-        const pt=document.getElementById('progressText'); if(pt) pt.textContent = pct + '%';
-        const pb=document.getElementById('progressBar'); if(pb) pb.style.width = pct + '%';
-
+  // progress
+  // Ensure server-provided PHP variable is injected into JS correctly
+  const progressPercent = {{ json_encode($progressPercent ?? 0) }};
+  const pt = document.getElementById('progressText'); if (pt) pt.textContent = String(progressPercent) + '%';
+  const pb = document.getElementById('progressBar'); if (pb) pb.style.width = String(progressPercent) + '%';
+        
         // milestones for the round
         const milestones = [
           { key:'open',    title:'Mở đăng ký đề tài',   date:'05/08/2025', desc:'Sinh viên đăng ký nguyện vọng và đề xuất đề tài.' },

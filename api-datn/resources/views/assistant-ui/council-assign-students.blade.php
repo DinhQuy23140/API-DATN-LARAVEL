@@ -216,7 +216,7 @@
                   </button>
                   <button id="btnAssignStudents"
                     class="px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm flex items-center gap-1">
-                    <i class="ph ph-arrow-right"></i> Gán sinh viên
+                    <i class="ph ph-arrow-right"></i> Phân sinh viên
                   </button>
                 </div>
               </div>

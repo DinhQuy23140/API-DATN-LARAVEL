@@ -191,7 +191,12 @@
               </div>
               <div id="researchContainer" class="mt-4">
                 <div id="researchEmpty" class="text-sm text-slate-600">
-                  {{ $expertise }}
+                  @php
+                    $reSearch = $user->userResearches;
+                  @endphp
+                  @foreach ($reSearch as $uS)
+                      <div>{{ $uS->research->name }}</div>
+                  @endforeach
                 <ul id="researchList" class="mt-2 space-y-3 text-sm"></ul>
               </div>
             </div>

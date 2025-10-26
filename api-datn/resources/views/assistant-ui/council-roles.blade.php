@@ -94,16 +94,36 @@
       </header>
 
       <main class="flex-1 overflow-y-auto p-4 md:p-6">
+        <!-- Filters row: department select moved here -->
+        <div class="mb-4 flex items-center justify-end">
+          <div class="w-full md:w-64">
+            <select id="departmentFilter" class="w-full pl-3 pr-8 py-2 rounded-lg border border-slate-200 text-sm">
+              <option value="">-- Tất cả bộ môn --</option>
+              @isset($departments)
+                @foreach($departments as $department)
+                  <option value="{{ $department->id }}">{{ $department->name }}</option>
+                @endforeach
+              @else
+                <option value="CNTT">Công nghệ thông tin</option>
+                <option value="CoKhi">Cơ khí</option>
+              @endisset
+            </select>
+          </div>
+        </div>
+
         <div class="w-full flex flex-col md:flex-row gap-6">
           <!-- Trái: Danh sách hội đồng (50%) -->
           <section class="w-full md:w-1/2 bg-white border rounded-xl">
             <div class="p-4 border-b">
               <div class="flex items-center justify-between">
                 <h2 class="font-semibold">Danh sách hội đồng</h2>
-                <div class="relative">
-                  <input id="q" class="pl-9 pr-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 text-sm" placeholder="Tìm theo mã/tên hội đồng" />
-                  <i class="ph ph-magnifying-glass absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
-                </div>
+                  <div class="relative flex items-center gap-3">
+                    <div class="relative">
+                      <input id="q" class="pl-9 pr-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 text-sm" placeholder="Tìm theo mã/tên hội đồng" />
+                      <i class="ph ph-magnifying-glass absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                    </div>
+                    <!-- departmentFilter moved to top filter row; removed duplicate here -->
+                  </div>
               </div>
             </div>
             <div class="overflow-x-auto">
@@ -119,7 +139,8 @@
                 </thead>
                 <tbody id="councilRows">
                   @foreach ($councils as $council)
-                    <tr class="hover:bg-slate-50 cursor-pointer" data-id="{{ $council->id }}">
+                    @php $department_id = $council->department->id ?? ''; @endphp
+                    <tr class="hover:bg-slate-50 cursor-pointer" data-id="{{ $council->id }}" data-department-id="{{ $department_id }}">
                       <td class="py-3 px-4 font-medium">{{ $council->code }}</td>
                       <td class="py-3 px-4">{{ $council->name }}</td>
                       <td class="py-3 px-4">{{ $council->date }}</td>
@@ -337,12 +358,32 @@
       if (c) fillPanel(c);
     })();
 
-    document.getElementById('q')?.addEventListener('input', (e)=>{
-      const q = (e.target.value||'').toLowerCase();
+    // Filtering by text + department
+    const departmentFilter = document.getElementById('departmentFilter');
+    function applyFilters(){
+      const q = (document.getElementById('q')?.value||'').toLowerCase();
+      const dept = (departmentFilter?.value||'').toString();
       rowsEl?.querySelectorAll('tr[data-id]').forEach(tr=>{
-        tr.style.display = tr.innerText.toLowerCase().includes(q) ? '' : 'none';
+        const text = tr.innerText.toLowerCase();
+        const rowDept = (tr.getAttribute('data-department-id')||'').toString();
+        const matchesSearch = q === '' || text.includes(q);
+        const matchesDept = dept === '' || rowDept === dept;
+        tr.style.display = (matchesSearch && matchesDept) ? '' : 'none';
       });
-    }); 
+      // auto-select first visible row if current selection is hidden or null
+      const visible = Array.from(rowsEl?.querySelectorAll('tr[data-id]')||[]).find(r => r.style.display !== 'none');
+      if(visible){
+        const vid = Number(visible.dataset.id);
+        if(!currentId || String(currentId) !== String(vid) || visible.classList.contains('bg-slate-50') === false){
+          // simulate click to fill panel and update selection state
+          visible.click();
+        }
+      }
+    }
+    document.getElementById('q')?.addEventListener('input', applyFilters);
+    departmentFilter?.addEventListener('change', applyFilters);
+    // run once to apply default filters
+    applyFilters();
     // Lưu về server (PATCH members)
     document.getElementById('btnSave')?.addEventListener('click', async ()=>{
       if(!currentId){ alert('Vui lòng chọn một hội đồng.'); return; }
