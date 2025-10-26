@@ -104,20 +104,22 @@ class SupervisorController extends Controller
     {
         $data = $request->validate([
             'project_term_id' => 'required|exists:project_terms,id',
-            'supervisors'     => 'required|array|min:1',
-            'supervisors.*'   => 'required|string', // email giảng viên
+            // Accept array of objects: [{ email: string, max_students?: int }, ...]
+            'supervisors'         => 'required|array|min:1',
+            'supervisors.*.email' => 'nullable|string',
+            'supervisors.*.max_students' => 'nullable|integer|min:0',
             'max_students'    => 'nullable|integer|min:1',
             'expertise'       => 'nullable|string',
             'status'          => 'nullable|string|max:100',
         ]);
 
         $termId   = (int) $data['project_term_id'];
-        $maxQuota = $data['max_students'] ?? 5;
+        $globalMax = $data['max_students'] ?? 5;
         $expertise= $data['expertise'] ?? null;
         $status   = $data['status'] ?? 'active';
 
-        $emails = collect($data['supervisors'])
-            ->filter()->map(fn($e) => strtolower(trim($e)))->unique()->values();
+        $supItems = collect($data['supervisors']);
+        $emails = $supItems->pluck('email')->filter()->map(fn($e) => strtolower(trim($e)))->unique()->values();
 
         if ($emails->isEmpty()) {
             return $request->expectsJson()
@@ -154,16 +156,31 @@ class SupervisorController extends Controller
 
         $toInsertIds = $resolvedIds->diff($existing)->values();
 
+        // prepare email -> max map from incoming items (use globalMax when not provided)
+        $emailToMax = $supItems->mapWithKeys(function($it) use ($globalMax) {
+            $email = strtolower(trim($it['email'] ?? ''));
+            $m = $it['max_students'] ?? null;
+            return [$email => is_null($m) ? null : (int)$m];
+        })->all();
+
+        // invert mapEmailToTeacher to lookup email by teacher_id
+        $mapTeacherToEmail = array_flip($mapEmailToTeacher);
+
         $now = now();
-        $rows = $toInsertIds->map(fn($tid) => [
-            'teacher_id'      => $tid,
-            'project_term_id' => $termId,
-            'max_students'    => $maxQuota,
-            'expertise'       => $expertise,
-            'status'          => $status,
-            'created_at'      => $now,
-            'updated_at'      => $now,
-        ])->all();
+        $rows = $toInsertIds->map(function($tid) use ($termId, $mapTeacherToEmail, $emailToMax, $globalMax, $expertise, $status, $now) {
+            $email = $mapTeacherToEmail[$tid] ?? null;
+            $maxFor = $email ? ($emailToMax[$email] ?? null) : null;
+            $quota = $maxFor ?? $globalMax;
+            return [
+                'teacher_id'      => $tid,
+                'project_term_id' => $termId,
+                'max_students'    => $quota,
+                'expertise'       => $expertise,
+                'status'          => $status,
+                'created_at'      => $now,
+                'updated_at'      => $now,
+            ];
+        })->all();
 
         $added = 0;
         DB::transaction(function () use ($rows, &$added) {

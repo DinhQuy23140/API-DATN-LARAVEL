@@ -6,6 +6,8 @@
     <title>Thêm giảng viên hướng dẫn</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/@phosphor-icons/web@2.1.1"></script>
+  <!-- SheetJS for Excel parsing -->
+  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
@@ -139,7 +141,7 @@
               </div>
             </div>
 
-            <div class="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="mt-4 grid grid-cols-1 gap-6">
               <!-- Danh sách ứng viên (table + checkbox) -->
               <div class="rounded-xl border border-slate-200 overflow-hidden">
                 <div class="h-10 bg-slate-50 border-b border-slate-200 px-3 text-xs text-slate-500 flex items-center justify-between">
@@ -157,6 +159,7 @@
                         <th class="py-2 px-3">Họ tên</th>
                         <th class="py-2 px-3">Bộ môn</th>
                         <th class="py-2 px-3">Học vị</th>
+                        <th class="py-2 px-3">Số SV tối đa</th>
                       </tr>
                     </thead>
                     <tbody id="supTbody">
@@ -185,6 +188,10 @@
                             <td class="py-2 px-3">{{ $name }}</td>
                             <td class="py-2 px-3">{{ $dept ?: '-' }}</td>
                             <td class="py-2 px-3">{{ $title ?: '-' }}</td>
+                            <td class="py-2 px-3">
+                              <input type="number" min="0" step="1" value="" placeholder="vd: 10"
+                                     class="w-24 px-2 py-1 border rounded text-sm" data-max-for="{{ $email }}">
+                            </td>
                           </tr>
                         @endforeach
                       @else
@@ -195,30 +202,15 @@
                 </div>
               </div>
 
-              <!-- Danh sách đã chọn -->
+              <!-- Danh sách đã chọn (rút gọn) -->
               <div class="rounded-xl border border-slate-200 flex flex-col">
                 <div class="p-4 border-b border-slate-200 flex items-center justify-between">
-                  <div class="font-medium">Giảng viên đã chọn</div>
+                  <div class="font-medium">Giảng viên được chọn: <span id="selectedCount" class="font-semibold">0</span></div>
                   <button id="btnCommit"
                           class="px-4 py-2 rounded-lg bg-blue-400 text-white text-sm disabled:opacity-60 disabled:cursor-not-allowed"
-                          disabled>Thêm giảng viên (0)</button>
+                          disabled>Thêm giảng viên</button>
                 </div>
-                <div class="flex-1 overflow-auto">
-                  <table class="w-full text-sm">
-                    <thead class="sticky top-0 bg-slate-50 border-b border-slate-200">
-                      <tr>
-                        <th class="text-left py-2 px-3 font-medium text-slate-600">Email</th>
-                        <th class="text-left py-2 px-3 font-medium text-slate-600">Họ tên</th>
-                        <th class="text-left py-2 px-3 font-medium text-slate-600">Bộ môn</th>
-                        <th class="text-left py-2 px-3 font-medium text-slate-600">Học vị</th>
-                        <th class="text-right py-2 px-3 font-medium text-slate-600">Thao tác</th>
-                      </tr>
-                    </thead>
-                    <tbody id="chosenTbody">
-                      <tr><td colspan="5" class="py-4 px-3 text-slate-500">Chưa chọn giảng viên nào.</td></tr>
-                    </tbody>
-                  </table>
-                </div>
+                <div class="p-4 text-sm text-slate-500">Chọn checkbox ở danh sách bên trái sau đó nhấn "Thêm giảng viên".</div>
               </div>
             </div>
           </section>
@@ -228,6 +220,86 @@
 
     <!-- Toast -->
     <div id="toastHost" class="fixed bottom-4 right-4 z-50 space-y-2 pointer-events-none"></div>
+
+    <!-- Excel preview modal (hidden by default) -->
+<div id="excelModal" class="fixed inset-0 z-50 hidden" aria-hidden="true">
+  <!-- Overlay mờ nền -->
+  <div id="excelModalOverlay" class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+
+  <!-- Khung modal -->
+  <div class="relative mx-auto mt-10 w-full max-w-6xl px-4">
+    <div id="excelModalCard"
+      class="bg-gradient-to-r from-white/80 via-slate-50 to-white/80 rounded-2xl shadow-2xl ring-1 ring-slate-200 transform transition-all duration-300 scale-95 opacity-0 overflow-hidden flex flex-col max-h-[90vh]">
+      
+      <!-- Header -->
+      <div class="flex flex-col sm:flex-row gap-4 p-5 border-b border-slate-100 bg-white/70 backdrop-blur">
+        <!-- Icon -->
+        <div class="flex-shrink-0 flex justify-center sm:justify-start">
+          <div
+            class="h-14 w-14 rounded-xl bg-gradient-to-br from-green-400 to-emerald-600 grid place-items-center text-white shadow-md">
+            <i class="ph ph-spreadsheet text-2xl"></i>
+          </div>
+        </div>
+
+        <!-- Nội dung header -->
+        <div class="flex-1 min-w-0">
+          <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+            <div class="flex-1">
+              <div class="flex flex-wrap items-center gap-3">
+                <h3 class="text-lg font-semibold text-slate-800 truncate">Xem trước file Excel</h3>
+                <span id="excelFileBadge"
+                  class="inline-flex items-center gap-2 text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded whitespace-nowrap">
+                  <i class="ph ph-file-text text-sm"></i>
+                  <span id="excelSheetName" class="font-medium truncate"></span>
+                </span>
+              </div>
+
+              <div class="flex flex-wrap items-center gap-3 mt-2">
+                <div id="excelMeta" class="text-xs text-slate-500">&nbsp;</div>
+
+                <label class="inline-flex items-center gap-2 text-xs text-slate-600 whitespace-nowrap">
+                  <input type="checkbox" id="excelUseHeader" class="rounded border-slate-300" checked>
+                  Dùng hàng đầu tiên làm tiêu đề
+                </label>
+
+                <label class="inline-flex items-center gap-2 text-xs text-slate-600 whitespace-nowrap">
+                  Hiển thị
+                  <select id="excelRowsPerPage" class="ml-1 text-xs border rounded px-2 py-0.5">
+                    <option value="20">20 hàng</option>
+                    <option value="50">50 hàng</option>
+                    <option value="100">100 hàng</option>
+                    <option value="all">Tất cả</option>
+                  </select>
+                </label>
+              </div>
+            </div>
+
+            <!-- Nút hành động -->
+            <div class="flex items-center gap-2 w-full sm:w-auto">
+              <button id="excelImportBtn"
+                class="flex-1 sm:flex-none px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-sm hover:bg-emerald-700 shadow transition w-full sm:w-auto">
+                Nhập
+              </button>
+              <button id="excelCloseBtn"
+                class="flex-1 sm:flex-none px-3 py-1.5 rounded-lg bg-white border text-sm hover:bg-slate-50 transition w-full sm:w-auto">
+                Đóng
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Vùng preview -->
+      <div class="flex-1 overflow-auto bg-white p-3">
+        <div id="excelPreviewContainer"
+          class="text-sm text-slate-600 min-w-full overflow-x-auto overflow-y-auto max-h-[70vh] whitespace-nowrap">
+          <!-- preview injected here -->
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 
     <script>
       // Sidebar
@@ -273,73 +345,180 @@
         setTimeout(()=> el.remove(), 2100);
       }
 
-      // Chọn/Thêm giống trang students-import
+        // Excel file preview handling (SheetJS)
+        const fileInputEl = document.getElementById('fileExcel');
+        const excelModal = document.getElementById('excelModal');
+        const excelOverlay = document.getElementById('excelModalOverlay');
+        const excelCloseBtn = document.getElementById('excelCloseBtn');
+        const excelSheetNameEl = document.getElementById('excelSheetName');
+        const excelPreviewContainer = document.getElementById('excelPreviewContainer');
+        const excelImportBtn = document.getElementById('excelImportBtn');
+  const excelMetaEl = document.getElementById('excelMeta');
+  const excelModalCard = document.getElementById('excelModalCard');
+  const excelUseHeaderEl = document.getElementById('excelUseHeader');
+  const excelRowsPerPageEl = document.getElementById('excelRowsPerPage');
+  let excelCurrentRows = null;
+  let excelUseHeader = true;
+  let excelRowsPerPage = 20;
+        const btnUploadEl = document.getElementById('btnUpload');
+
+        // Open file dialog when clicking Tải lên
+        btnUploadEl?.addEventListener('click', ()=> fileInputEl?.click());
+
+        function closeExcelModal(){
+          if(!excelModal) return;
+          excelModalCard?.classList.remove('scale-100','opacity-100');
+          excelModalCard?.classList.add('scale-95','opacity-0');
+          setTimeout(()=>{ excelModal.classList.add('hidden'); }, 220);
+          excelSheetNameEl.textContent = '';
+          excelMetaEl.textContent = '';
+          excelPreviewContainer.innerHTML = '';
+        }
+
+        function buildPreviewTable(rows, useHeader, rowsPerPage){
+            if(!rows || !rows.length) return '<div class="text-slate-500">(Không có dữ liệu trong sheet)</div>';
+            const fullCols = rows.reduce((m,r)=>Math.max(m, r.length||0), 0);
+            const maxCols = Math.min(fullCols, 50); // cap extreme cols
+            const headerRow = useHeader ? rows[0] || [] : null;
+            const dataRows = useHeader ? rows.slice(1) : rows.slice(0);
+            const maxRows = (rowsPerPage === 'all') ? dataRows.length : Math.min(parseInt(rowsPerPage,10)||20, dataRows.length);
+            const slice = dataRows.slice(0, maxRows);
+
+            // responsive container with horizontal scroll for many columns
+            let html = '<div class="overflow-auto"><table class="min-w-max w-full border-collapse text-sm table-auto">';
+
+            // header
+            html += '<thead>';
+            if(headerRow){
+              html += '<tr>';
+              for(let c=0;c<maxCols;c++){
+                const v = headerRow[c] !== undefined && headerRow[c] !== null ? String(headerRow[c]) : `Col ${c+1}`;
+                html += `<th class="border px-3 py-2 text-left bg-white" style="position:sticky; top:0; z-index:5">${escapeHtml(v)}</th>`;
+              }
+              html += '</tr>';
+            } else {
+              html += '<tr>';
+              for(let c=0;c<maxCols;c++) html += `<th class="border px-3 py-2 text-left bg-white" style="position:sticky; top:0; z-index:5">C${c+1}</th>`;
+              html += '</tr>';
+            }
+            html += '</thead>';
+
+            // body
+            html += '<tbody>';
+            for(let r=0;r<slice.length;r++){
+              const row = slice[r] || [];
+              html += '<tr class="hover:bg-slate-50">';
+              for(let c=0;c<maxCols;c++){
+                const v = row[c] !== undefined && row[c] !== null ? String(row[c]) : '';
+                html += `<td class="border px-3 py-2 align-top whitespace-pre max-w-[280px] break-words">${escapeHtml(v)}</td>`;
+              }
+              html += '</tr>';
+            }
+            html += '</tbody></table>';
+            if(dataRows.length>maxRows) html += `<div class="text-xs text-slate-500 mt-2">Hiển thị ${maxRows} hàng đầu tiên trên ${dataRows.length} hàng.</div>`;
+            html += '</div>';
+            return html;
+          }
+
+        function escapeHtml(s){ return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+        function renderPreview(){
+          if(!excelCurrentRows) return;
+          const useHeader = excelUseHeader;
+          const rowsPerPageVal = excelRowsPerPage;
+          excelPreviewContainer.innerHTML = buildPreviewTable(excelCurrentRows, useHeader, rowsPerPageVal);
+        }
+
+        function showExcelModal(sheetName, rows){
+          if(!excelModal) return;
+          const rowCount = rows?.length || 0;
+          const colCount = rows?.reduce ? rows.reduce((m,r)=>Math.max(m, r.length||0), 0) : 0;
+          excelSheetNameEl.textContent = sheetName || '';
+          excelMetaEl.textContent = `${rowCount} hàng • ${colCount} cột`;
+          // store current
+          excelCurrentRows = rows;
+          // default heuristics: if first row looks like header (all strings), keep header checked
+          if(rows && rows.length>1){
+            const first = rows[0];
+            const looksLikeHeader = first.every && first.every(v=> typeof v === 'string' && v.trim().length>0);
+            excelUseHeader = looksLikeHeader;
+          } else {
+            excelUseHeader = true;
+          }
+          excelUseHeaderEl.checked = !!excelUseHeader;
+          excelRowsPerPage = 20;
+          excelRowsPerPageEl.value = String(excelRowsPerPage);
+          renderPreview();
+          excelModal.classList.remove('hidden');
+          // animate card in
+          setTimeout(()=>{
+            excelModalCard?.classList.remove('scale-95','opacity-0');
+            excelModalCard?.classList.add('scale-100','opacity-100');
+          }, 10);
+          // focus for accessibility
+          excelModalCard.querySelector('button')?.focus();
+        }
+
+        excelCloseBtn?.addEventListener('click', closeExcelModal);
+        excelOverlay?.addEventListener('click', closeExcelModal);
+        document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closeExcelModal(); });
+
+        // Excel import button placeholder (you can hook this to upload flow)
+        excelImportBtn?.addEventListener('click', ()=>{
+          pushToast('Chức năng nhập file chưa được cấu hình ở phía server');
+          closeExcelModal();
+        });
+
+        // controls: header checkbox and rows-per-page select
+        excelUseHeaderEl?.addEventListener('change', (e)=>{ excelUseHeader = !!e.target.checked; renderPreview(); });
+        excelRowsPerPageEl?.addEventListener('change', (e)=>{ excelRowsPerPage = e.target.value; renderPreview(); });
+
+        // Read file and parse
+        fileInputEl?.addEventListener('change', (ev)=>{
+          const f = ev.target.files && ev.target.files[0];
+          if(!f) return;
+          const name = (f.name||'').toLowerCase();
+          if(!(name.endsWith('.xls') || name.endsWith('.xlsx'))){ pushToast('Vui lòng chọn file Excel (.xls hoặc .xlsx)'); return; }
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            try{
+              const data = new Uint8Array(e.target.result);
+              const wb = XLSX.read(data, { type: 'array' });
+              const first = wb.SheetNames && wb.SheetNames[0];
+              const sheet = wb.Sheets[first];
+              const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+              showExcelModal(first, rows);
+            }catch(err){ console.error(err); pushToast('Không thể đọc file Excel'); }
+          };
+          reader.onerror = ()=> pushToast('Lỗi khi đọc file');
+          reader.readAsArrayBuffer(f);
+        });
+
+      // Chọn/Thêm giảng viên: checkbox + nút commit (đơn giản)
       const qInput=document.getElementById('qInput');
       const supTbody=document.getElementById('supTbody');
-      const chosenTbody=document.getElementById('chosenTbody');
       const btnCommit=document.getElementById('btnCommit');
       const selectAllSup=document.getElementById('selectAllSup');
+      const selectedCountEl=document.getElementById('selectedCount');
 
-      const selected=new Set();          // key: email
-      const selectedData=new Map();      // email -> {email,name,dept,title}
+      const selected=new Set(); // store emails
 
       function updateBtn(){
         const n=selected.size;
         btnCommit.disabled = n===0;
-        btnCommit.textContent = `Thêm giảng viên (${n})`;
+        btnCommit.textContent = `Thêm giảng viên${n>0? ` (${n})`:''}`;
         btnCommit.classList.toggle('bg-blue-400', n===0);
         btnCommit.classList.toggle('bg-blue-600', n>0);
         btnCommit.classList.toggle('hover:bg-blue-700', n>0);
-      }
-
-      function renderChosen(){
-        if(!selected.size){
-          chosenTbody.innerHTML = `<tr><td colspan="5" class="py-4 px-3 text-slate-500">Chưa chọn giảng viên nào.</td></tr>`;
-          updateBtn(); return;
-        }
-        const rows=[...selected].map(email=>{
-          const t=selectedData.get(email); if(!t) return '';
-          return `<tr class="border-b">
-            <td class="py-2 px-3 font-medium">${t.email}</td>
-            <td class="py-2 px-3">${t.name||''}</td>
-            <td class="py-2 px-3">${t.dept||'-'}</td>
-            <td class="py-2 px-3">${t.title||'-'}</td>
-            <td class="py-2 px-3 text-right">
-              <button class="px-2 py-1 text-xs rounded border border-slate-200 hover:bg-slate-50" data-remove="${t.email}">Bỏ chọn</button>
-            </td>
-          </tr>`;
-        }).join('');
-        chosenTbody.innerHTML=rows;
-        chosenTbody.querySelectorAll('[data-remove]').forEach(b=>{
-          b.addEventListener('click', ()=>{
-            const em=b.getAttribute('data-remove');
-            selected.delete(em); selectedData.delete(em);
-            // Uncheck nguồn
-            const cb=supTbody.querySelector(`input[type=checkbox][data-email="${em}"]`);
-            if(cb) cb.checked=false;
-            renderChosen(); updateBtn(); syncSelectAll();
-          });
-        });
-        updateBtn();
+        if (selectedCountEl) selectedCountEl.textContent = String(n);
       }
 
       function bindSupList(){
         supTbody.querySelectorAll('input[type=checkbox][data-email]').forEach(cb=>{
           cb.addEventListener('change', ()=>{
             const email=cb.dataset.email;
-            if(cb.checked){
-              selected.add(email);
-              selectedData.set(email, {
-                email,
-                name: cb.dataset.name || '',
-                dept: cb.dataset.dept || '',
-                title: cb.dataset.title || ''
-              });
-            }else{
-              selected.delete(email);
-              selectedData.delete(email);
-            }
-            renderChosen(); updateBtn(); syncSelectAll();
+            if(cb.checked) selected.add(email); else selected.delete(email);
+            updateBtn(); syncSelectAll();
           });
         });
         syncSelectAll();
@@ -356,20 +535,9 @@
         supTbody.querySelectorAll('tr:not([style*="display: none"]) input[type=checkbox][data-email]').forEach(cb=>{
           cb.checked=target;
           const email=cb.dataset.email;
-          if(target){
-            selected.add(email);
-            selectedData.set(email, {
-              email,
-              name: cb.dataset.name || '',
-              dept: cb.dataset.dept || '',
-              title: cb.dataset.title || ''
-            });
-          }else{
-            selected.delete(email);
-            selectedData.delete(email);
-          }
+          if(target) selected.add(email); else selected.delete(email);
         });
-        renderChosen(); updateBtn(); syncSelectAll();
+        updateBtn(); syncSelectAll();
       });
 
       function applySearch(){
@@ -382,12 +550,16 @@
       }
       qInput?.addEventListener('input', applySearch);
 
-      // Gọi API thêm danh sách GV vào đợt (cần route backend)
+      // Gọi API thêm danh sách GV vào đợt
       btnCommit?.addEventListener('click', async ()=>{
         if(!selected.size) return;
         const termId = {{ $projectTerm->id ?? ($round->id ?? ($term->id ?? 'null')) }};
         if(!termId){ pushToast('Thiếu thông tin đợt đồ án'); return; }
-        const supervisors=[...selectedData.values()].map(x=> x.email).filter(Boolean);
+        const supervisors=[...selected].filter(Boolean).map(email => {
+          const input = supTbody.querySelector(`input[data-max-for="${email}"]`);
+          const max = input ? parseInt(input.value, 10) : null;
+          return { email: email, max_students: Number.isNaN(max) ? null : max };
+        });
 
         const prev=btnCommit.textContent;
         btnCommit.disabled=true; btnCommit.textContent='Đang thêm...';
@@ -406,10 +578,10 @@
             pushToast(data?.message||'Thêm thất bại');
           }else{
             pushToast(`Đã thêm ${data.added||0} GV, bỏ qua ${data.skipped||0}`);
-            selected.clear(); selectedData.clear();
-            renderChosen();
+            selected.clear();
             supTbody.querySelectorAll('input[type=checkbox][data-email]').forEach(cb=> cb.checked=false);
             syncSelectAll();
+            updateBtn();
           }
         }catch(e){
           pushToast('Lỗi mạng khi thêm giảng viên');
@@ -420,7 +592,6 @@
 
       // Init
       bindSupList();
-      renderChosen();
       updateBtn();
       applySearch();
 
