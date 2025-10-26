@@ -1499,6 +1499,19 @@
 
               </div>
             `;
+            // Attach search handler for the councils table (stage 5).
+            // The search input is injected dynamically, so bind here after rendering.
+            (function(){
+              const searchEl = stageContent.querySelector('#searchInput');
+              const rows = Array.from(stageContent.querySelectorAll('#tableBody tr'));
+              function filter() {
+                const q = (searchEl?.value || '').toLowerCase();
+                rows.forEach(tr => tr.style.display = tr.innerText.toLowerCase().includes(q) ? '' : 'none');
+              }
+              searchEl?.addEventListener('input', filter);
+              filter();
+            })();
+
             return;
           }
 
