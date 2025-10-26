@@ -4,6 +4,7 @@ use App\Http\Controllers\Web\CouncilProjectsController;
 use App\Http\Controllers\Web\DepartmentController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Web\UserController as WebUserController;
+use App\Http\Controllers\Web\UserResearchController as WebUserResearchController;
 use App\Http\Controllers\Web\ProgressLogController as WebProgressLogController;
 use App\Http\Controllers\Web\AttachmentController as WebAttachmentController;
 use App\Http\Controllers\Web\AcademyYearController as WebAcademyYearController;
@@ -214,7 +215,10 @@ Route::middleware('auth')->group(function () {
     // Lecturer UI pages
     Route::get('/teacher/overview', [WebUserController::class, 'showOverView'])->name('web.teacher.overview'); // trang tổng quan
     Route::get('/teacher/profile', [WebUserController::class, 'showProfile'])->name('web.teacher.profile');
-    Route::get('/teacher/research', fn () => view('lecturer-ui.research'))->name('web.teacher.research');
+    Route::get('/teacher/research', [WebUserController::class, 'loadResearch'])->name('web.teacher.research');
+    // Create and delete user research entries
+    Route::post('/teacher/user-research', [WebUserResearchController::class, 'store'])->name('web.teacher.user_research.store');
+    Route::delete('/teacher/user-research/{user_research}', [WebUserResearchController::class, 'destroy'])->name('web.teacher.user_research.destroy');
     Route::get('/teacher/students/{teacherId}', [WebSupervisorController::class, 'getStudentBySupervisor'])->name('web.teacher.students');
     Route::get('/teacher/thesis-internship', fn () => view('lecturer-ui.thesis-internship'))->name('web.teacher.thesis_internship');
     Route::get('/teacher/thesis-rounds/{teacherId}', [WebProjectTermsController::class, 'getProjectTermByTeacherId'])->name('web.teacher.thesis_rounds');

@@ -8,4 +8,10 @@ use Illuminate\Database\Eloquent\Model;
 class Research extends Model
 {
     use HasFactory;
+    protected $fillable = ['name', 'description'];
+
+    public function userResearches()
+    {
+        return $this->hasMany(UserResearch::class);
+    }
 }

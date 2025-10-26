@@ -19,6 +19,7 @@
   <body class="bg-slate-50 text-slate-800">
     @php
       $user = auth()->user();
+      $user_id = $user->id ?? null;
       $userName = $user->fullname ?? $user->name ?? 'Giảng viên';
       $email = $user->email ?? '';
       // Tùy mô hình dữ liệu, thay các field bên dưới cho khớp
@@ -122,76 +123,215 @@
           </div>
         </header>
 
-  <main class="pt-20 px-4 md:px-6 pb-10">
-          <div class="max-w-6xl mx-auto space-y-6">
-          <!-- Add new research form -->
-          <section class="bg-white rounded-xl border border-slate-200 p-5 max-w-4xl">
-            <h2 class="font-semibold">Thêm hướng nghiên cứu</h2>
-            <form id="createForm" class="space-y-4 mt-3" onsubmit="event.preventDefault(); addItem();">
-              <div class="grid sm:grid-cols-2 gap-4">
-                <div>
-                  <label class="text-sm font-medium">Tiêu đề</label>
-                  <input id="titleInput" required class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600" placeholder="VD: Trí tuệ nhân tạo trong y tế" />
-                </div>
-                <div>
-                  <label class="text-sm font-medium">Từ khóa</label>
-                  <input id="keywordsInput" class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600" placeholder="VD: AI, NLP, MLOps" />
-                  <p class="text-xs text-slate-500 mt-1">Nhập nhiều từ khóa, cách nhau bằng dấu phẩy.</p>
-                </div>
-              </div>
-              <div>
-                <label class="text-sm font-medium">Mô tả</label>
-                <div class="mt-1 border border-slate-200 rounded-lg">
-                  <div class="flex items-center gap-2 p-2 border-b text-slate-600 text-sm">
-                    <button type="button" class="px-2 py-1 rounded hover:bg-slate-100" onclick="wrapSelection('descInput','**','**')"><i class="ph ph-text-b"></i></button>
-                    <button type="button" class="px-2 py-1 rounded hover:bg-slate-100" onclick="wrapSelection('descInput','*','*')"><i class="ph ph-text-italic"></i></button>
-                    <button type="button" class="px-2 py-1 rounded hover:bg-slate-100" onclick="insertBullet('descInput')"><i class="ph ph-list-bullets"></i></button>
-                  </div>
-                  <textarea id="descInput" rows="5" class="w-full p-3 rounded-b-lg focus:outline-none" placeholder="Mô tả chi tiết..."></textarea>
-                </div>
-              </div>
-              <div>
-                <label class="text-sm font-medium">Lĩnh vực quan tâm</label>
-                <select id="fieldsInput" multiple class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600">
-                  <option>AI</option>
-                  <option>Data Science</option>
-                  <option>Hệ phân tán</option>
-                  <option>IoT</option>
-                </select>
-                <p class="text-xs text-slate-500 mt-1">Giữ Ctrl (Windows) để chọn nhiều.</p>
-              </div>
-              <div class="pt-2">
-                <button class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700">Thêm</button>
-              </div>
-            </form>
-          </section>
+<main class="pt-20 px-4 md:px-6 pb-10 bg-gradient-to-br from-slate-50 to-slate-100 min-h-screen">
+  <div class="max-w-6xl mx-auto space-y-8">
 
-          <!-- Existing research list -->
-          <section class="bg-white rounded-xl border border-slate-200 p-5 max-w-5xl">
-            <div class="flex items-center justify-between">
-              <h2 class="font-semibold">Danh sách hướng nghiên cứu</h2>
-              <div class="relative">
-                <input id="searchBox" class="pl-9 pr-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 text-sm" placeholder="Tìm theo tiêu đề, từ khóa" />
-                <i class="ph ph-magnifying-glass absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
-              </div>
-            </div>
-            <div id="emptyState" class="hidden text-sm text-slate-600 mt-4">Chưa có hướng nghiên cứu nào. Hãy thêm mới bên trên.</div>
-            <div class="mt-4 overflow-x-auto">
-              <table class="w-full text-sm">
-                <thead>
-                  <tr class="text-left text-slate-500">
-                    <th class="py-3 px-4 border-b">Tiêu đề</th>
-                    <th class="py-3 px-4 border-b">Lĩnh vực</th>
-                    <th class="py-3 px-4 border-b">Từ khóa</th>
-                    <th class="py-3 px-4 border-b text-right">Hành động</th>
-                  </tr>
-                </thead>
-                <tbody id="listBody"></tbody>
-              </table>
-            </div>
-          </section>
+    <!-- 🔹 Section: Chọn hướng nghiên cứu -->
+    <section class="bg-white/90 backdrop-blur-sm rounded-2xl border border-slate-200 shadow-lg p-6">
+      <div class="flex items-center gap-3 mb-5">
+        <div class="h-10 w-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 grid place-items-center text-white shadow">
+          <i class="ph ph-brain text-lg"></i>
         </div>
-        </main>
+        <h2 class="text-xl font-semibold text-slate-700">Chọn hướng nghiên cứu</h2>
+      </div>
+
+      <div class="grid md:grid-cols-2 gap-4">
+        <div>
+          <label class="text-sm font-medium text-slate-600">Chọn hướng nghiên cứu có sẵn</label>
+          <div class="mt-1 flex gap-2">
+            <select id="researchSelect" class="flex-1 px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 text-sm">
+              <option value="" disabled selected>-- Chọn hướng nghiên cứu --</option>
+              @foreach ($listResearch as $research)
+                @php
+                  $isSelected = $userResearch->userResearches->contains('research_id', $research->id);
+                @endphp
+                @unless ($isSelected)
+                  <option value="{{ $research->id }}">{{ $research->name }}</option>
+                @endunless
+              @endforeach
+            </select>
+            <button id="addResearchBtn" class="px-4 py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700">Thêm</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- 🔸 Hiển thị thông tin hướng nghiên cứu -->
+      <div id="researchInfo" class="hidden mt-6 border border-blue-100 bg-gradient-to-br from-blue-50 to-blue-100/50 p-4 rounded-xl shadow-inner">
+        <div class="flex items-start gap-3">
+          <div class="h-10 w-10 rounded-lg bg-blue-500 grid place-items-center text-white shadow-sm">
+            <i class="ph ph-lightbulb text-lg"></i>
+          </div>
+          <div>
+            <h3 id="researchTitle" class="font-semibold text-blue-800 text-lg">—</h3>
+            <p id="researchDesc" class="text-sm text-slate-600 mt-1 leading-relaxed">—</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 🔹 Section: Danh sách các hướng nghiên cứu đã có -->
+    <section class="bg-white/95 rounded-2xl border border-slate-200 shadow-lg p-6">
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex items-center gap-3">
+          <div class="h-10 w-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 grid place-items-center text-white shadow">
+            <i class="ph ph-list-bullets text-lg"></i>
+          </div>
+          <h2 class="text-xl font-semibold text-slate-700">Danh sách hướng nghiên cứu</h2>
+        </div>
+
+        <div class="relative">
+          <i class="ph ph-magnifying-glass absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+          <input id="searchBox" class="pl-9 pr-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 text-sm" placeholder="Tìm theo tiêu đề, từ khóa..." />
+        </div>
+      </div>
+
+<div class="overflow-x-auto rounded-lg border border-slate-100">
+  <table class="w-full min-w-[600px] text-sm border-collapse">
+    <thead class="bg-slate-50 text-slate-600">
+      <tr>
+        <th class="py-3 px-4 text-left font-medium whitespace-nowrap">Hướng nghiên cứu</th>
+        <th class="py-3 px-4 text-left font-medium whitespace-nowrap">Mô tả</th>
+        <th class="py-3 px-4 text-right font-medium whitespace-nowrap">Hành động</th>
+      </tr>
+    </thead>
+    <tbody id="listBody" class="divide-y divide-slate-100">
+      @if ($userResearch && $userResearch->userResearches->count() > 0)
+        @foreach ($userResearch->userResearches as $result)
+          <tr class="hover:bg-slate-50 transition">
+            <td class="py-3 px-4 text-left font-medium align-top">{{ $result->research->name }}</td>
+            <td class="py-3 px-4 text-left align-top break-words max-w-xs md:max-w-md">
+              {{ $result->research->description }}
+            </td>
+            <td class="py-3 px-4 text-right whitespace-nowrap">
+              <button class="text-blue-600 hover:text-blue-800 mr-2"><i class="ph ph-eye"></i></button>
+              <button class="text-amber-500 hover:text-amber-700 mr-2"><i class="ph ph-pencil"></i></button>
+              <!-- server-backed row: pass server id to openDelete -->
+              <button onclick="openDelete('srv_{{ $result->id }}')" class="text-rose-600 hover:text-rose-700"><i class="ph ph-trash"></i></button>
+            </td>
+          </tr>
+        @endforeach
+      @else
+        <tr>
+          <td colspan="3" class="text-center py-6 text-slate-500 text-sm">
+            <i class="ph ph-info text-lg text-blue-500"></i>
+            <div class="mt-2">Chưa có hướng nghiên cứu nào được thêm vào.</div>
+          </td>
+        </tr>
+      @endif
+    </tbody>
+  </table>
+</div>
+
+    </section>
+  </div>
+</main>
+
+@php
+$researchData = $listResearch->map(fn($r) => [
+    'id' => $r->id,
+    'title' => $r->name,
+    'desc' => $r->description,
+]);
+@endphp
+
+<script>
+  const researchData = @json($researchData);
+
+  // Server-rendered user research items. Use these when localStorage has no items
+  const serverResearchItems = [
+  @foreach ($userResearch->userResearches as $result)
+    {
+      // id uses the UserResearch pivot id so we can delete the correct record on server
+      id: {!! json_encode('srv_' . ($result->id)) !!},
+      title: {!! json_encode($result->research->name ?? '') !!},
+      description: {!! json_encode($result->research->description ?? '') !!},
+      fields: [],
+      keywords: []
+    },
+  @endforeach
+  ];
+  // CSRF token and endpoint base URL used by client-side delete
+  const CSRF_TOKEN = {!! json_encode(csrf_token()) !!};
+  // Named routes for store/destroy actions
+  const userResearchStoreUrl = {!! json_encode(route('web.teacher.user_research.store')) !!};
+  const userResearchDestroyUrl = {!! json_encode(url('/teacher/user-research')) !!};
+
+  const select = document.getElementById("researchSelect");
+  const infoBox = document.getElementById("researchInfo");
+  const titleEl = document.getElementById("researchTitle");
+  const descEl = document.getElementById("researchDesc");
+
+  select.addEventListener("change", (e) => {
+    const selectedId = e.target.value;
+    const data = researchData.find(r => r.id == selectedId);
+
+    if (data) {
+      titleEl.textContent = data.title || "Không có tiêu đề";
+      descEl.textContent = data.desc || "Chưa có mô tả cho hướng nghiên cứu này.";
+      infoBox.classList.remove("hidden");
+      infoBox.classList.add("animate-fadeIn");
+    } else {
+      infoBox.classList.add("hidden");
+    }
+  });
+
+  // Add selected research via AJAX to server
+  document.getElementById('addResearchBtn')?.addEventListener('click', async (e) => {
+    e.preventDefault();
+    const sel = document.getElementById('researchSelect');
+    const researchId = sel?.value;
+    if(!researchId){ alert('Vui lòng chọn hướng nghiên cứu'); return; }
+    const btn = document.getElementById('addResearchBtn');
+    btn.disabled = true; btn.textContent = 'Đang thêm...';
+    try{
+      const res = await fetch(userResearchStoreUrl, {
+        method: 'POST',
+        headers: {
+          'X-CSRF-TOKEN': CSRF_TOKEN,
+          'Accept': 'application/json',
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ research_id: researchId })
+      });
+      if(!res.ok) throw new Error('Server returned ' + res.status);
+      const data = await res.json();
+      if(data.success === false){
+        alert(data.message || 'Không thể thêm hướng nghiên cứu');
+      } else {
+        // accept several possible shapes from server: { item: { id } }, { id }, { user_research: { id } }
+        const newId = (data.item && data.item.id) ? data.item.id : (data.id ? data.id : (data.user_research && data.user_research.id ? data.user_research.id : null));
+        const rd = researchData.find(r => r.id == researchId) || { title: sel.selectedOptions[0]?.text || '', desc: '' };
+        const entry = {
+          id: newId ? ('srv_' + newId) : ('srv_' + Date.now()),
+          title: rd.title || rd.name || sel.selectedOptions[0]?.text || '',
+          description: rd.desc || rd.description || '' ,
+          fields: [], keywords: []
+        };
+        // add to serverResearchItems and re-render
+        serverResearchItems.unshift(entry);
+        renderList(document.getElementById('searchBox').value||'');
+        // optionally remove the added option from the select so it can't be added twice
+        const opt = sel.querySelector('option[value="'+researchId+'"]'); if(opt) opt.remove();
+      }
+    }catch(err){
+      console.error(err);
+      alert('Lỗi khi thêm hướng nghiên cứu.');
+    } finally {
+      btn.disabled = false; btn.textContent = 'Thêm';
+    }
+  });
+</script>
+
+<style>
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .animate-fadeIn {
+    animation: fadeIn 0.3s ease-out forwards;
+  }
+</style>
+
       </div>
     </div>
 
@@ -214,32 +354,54 @@
       function loadItems(){try{const s=localStorage.getItem(STORAGE_KEY);return s?JSON.parse(s):[];}catch{ return []}}
       function saveItems(items){localStorage.setItem(STORAGE_KEY, JSON.stringify(items));}
 
+  function escapeHtml(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
       // UI helpers
       function renderList(filter=''){
-        const tbody=document.getElementById('listBody');
-        const empty=document.getElementById('emptyState');
-        const items=loadItems();
-        const q=filter.trim().toLowerCase();
-        const filtered=items.filter(it=> it.title.toLowerCase().includes(q) || (it.keywords||[]).join(',').toLowerCase().includes(q));
-        tbody.innerHTML='';
-        if(filtered.length===0){ empty.classList.remove('hidden'); return; } else { empty.classList.add('hidden'); }
-        for(const it of filtered){
-          const tr=document.createElement('tr'); tr.className='hover:bg-slate-50';
-          const fields=(it.fields||[]).map(f=>`<span class="px-2 py-1 rounded-full text-xs bg-slate-100 text-slate-700 mr-1">${f}</span>`).join('');
-          const keywords=(it.keywords||[]).map(k=>`<span class="px-2 py-1 rounded-full text-xs bg-blue-50 text-blue-700 mr-1">${k}</span>`).join('');
-          tr.innerHTML=`
-            <td class="py-3 px-4">
-              <div class="font-medium">${it.title}</div>
-              ${it.description?`<div class="text-slate-600 line-clamp-2 max-w-xl">${it.description}</div>`:''}
-            </td>
-            <td class="py-3 px-4">${fields}</td>
-            <td class="py-3 px-4">${keywords}</td>
-            <td class="py-3 px-4 text-right space-x-2">
-              <button class="px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-slate-600" onclick="openEdit('${it.id}')"><i class="ph ph-pencil"></i></button>
-              <button class="px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-rose-600" onclick="openDelete('${it.id}')"><i class="ph ph-trash"></i></button>
-            </td>`;
-          tbody.appendChild(tr);
-        }
+            const tbody=document.getElementById('listBody');
+            // Prefer client-side stored items; if none exist, use server-rendered items
+            let items = loadItems();
+            if(!items || items.length === 0){
+              items = (typeof serverResearchItems !== 'undefined' && serverResearchItems.length) ? serverResearchItems.slice() : [];
+            }
+            const q=String(filter||'').trim().toLowerCase();
+            const filtered = items.filter(it => {
+              const title = String(it.title || '').toLowerCase();
+              const desc = String(it.description || '').toLowerCase();
+              const kwRaw = Array.isArray(it.keywords) ? it.keywords.join(',') : String(it.keywords || '');
+              const keywords = String(kwRaw).toLowerCase();
+              return title.includes(q) || desc.includes(q) || keywords.includes(q);
+            });
+
+            // clear existing rows before rendering
+            tbody.innerHTML = '';
+
+            if(filtered.length === 0){
+              // show empty state row matching server-side markup
+              const tr = document.createElement('tr');
+              tr.innerHTML = `
+                <td colspan="3" class="text-center py-6 text-slate-500 text-sm">
+                  <i class="ph ph-info text-lg text-blue-500"></i>
+                  <div class="mt-2">Chưa có hướng nghiên cứu nào được thêm vào.</div>
+                </td>`;
+              tbody.appendChild(tr);
+              return;
+            }
+
+            for(const it of filtered){
+              const tr=document.createElement('tr'); tr.className='hover:bg-slate-50 transition';
+              tr.innerHTML=`
+                <td class="py-3 px-4 text-left font-medium">
+                  ${escapeHtml(it.title || '')}
+                </td>
+                <td class="py-3 px-4 text-left">${it.description ? escapeHtml(it.description) : ''}</td>
+                <td class="py-3 px-4 text-right">
+                  <button class="text-blue-600 hover:text-blue-800 mr-2"><i class="ph ph-eye"></i></button>
+                  <button class="text-amber-500 hover:text-amber-700 mr-2"><i class="ph ph-pencil"></i></button>
+                  <button onclick="openDelete('${it.id}')" class="text-rose-600 hover:text-rose-700"><i class="ph ph-trash"></i></button>
+                </td>`;
+              tbody.appendChild(tr);
+            }
       }
 
       // Actions
@@ -338,8 +500,42 @@
       let pendingDeleteId=null;
       function openDelete(id){ pendingDeleteId=id; const m=document.getElementById('delModal'); m.classList.remove('hidden'); m.classList.add('flex'); }
       function closeDelete(){ pendingDeleteId=null; const m=document.getElementById('delModal'); m.classList.add('hidden'); m.classList.remove('flex'); }
-      document.getElementById('confirmDelBtn').addEventListener('click', ()=>{
-        if(!pendingDeleteId) return; const items=loadItems().filter(x=>x.id!==pendingDeleteId); saveItems(items); closeDelete(); renderList(document.getElementById('searchBox').value||''); localStorage.setItem('lecturer_research_last_update', Date.now().toString());
+      document.getElementById('confirmDelBtn').addEventListener('click', async ()=>{
+        if(!pendingDeleteId) return;
+        // If pendingDeleteId is a server-backed item (prefix 'srv_'), call server destroy route
+        if(String(pendingDeleteId).startsWith('srv_')){
+          const id = String(pendingDeleteId).replace(/^srv_/, '');
+          try{
+            const res = await fetch(`${userResearchDestroyUrl}/${encodeURIComponent(id)}`, {
+              method: 'DELETE',
+              headers: {
+                'X-CSRF-TOKEN': CSRF_TOKEN,
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+              }
+            });
+            if(!res.ok) throw new Error('Server returned ' + res.status);
+            const data = await res.json();
+            // remove from local serverResearchItems fallback and re-render
+            const idx = serverResearchItems.findIndex(s => String(s.id) === 'srv_' + String(id));
+            if(idx >= 0) serverResearchItems.splice(idx,1);
+            closeDelete();
+            renderList(document.getElementById('searchBox').value||'');
+          }catch(err){
+            console.error('Failed to delete on server', err);
+            alert('Xóa không thành công trên server. Vui lòng thử lại.');
+          }
+          pendingDeleteId = null;
+          return;
+        }
+
+        // local item -> remove from localStorage
+        const items=loadItems().filter(x=>x.id!==pendingDeleteId);
+        saveItems(items);
+        closeDelete();
+        renderList(document.getElementById('searchBox').value||'');
+        localStorage.setItem('lecturer_research_last_update', Date.now().toString());
+        pendingDeleteId = null;
       });
 
       // Search box

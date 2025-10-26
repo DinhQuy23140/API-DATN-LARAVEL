@@ -97,5 +97,13 @@ class DatabaseSeeder extends Seeder
         $this->call([
             SubjectsSeeder::class,
         ]);
+
+        $this->call([
+            ResearchSeeder::class,
+        ]);
+
+        $this->call([
+            UserReseachSeeder::class,
+        ]);
     }
 }

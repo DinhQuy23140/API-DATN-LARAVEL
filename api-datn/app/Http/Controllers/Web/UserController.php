@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
 use App\Models\AssignmentSupervisor;
+use App\Models\Research;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -20,27 +21,6 @@ class UserController extends Controller
         return view('login.login');
     }
 
-    // Xử lý đăng nhập (Web)
-    // public function login(Request $request)
-    // {
-    //     $credentials = $request->validate([
-    //         'email' => ['required','email'],
-    //         'password' => ['required','string'],
-    //     ]);
-
-    //     if (!Auth::attempt($credentials)) {
-    //         return back()
-    //             ->withErrors(['email' => 'Thông tin đăng nhập không đúng'])
-    //             ->onlyInput('email');
-    //     }
-
-    //     $request->session()->regenerate();
-    //     // Optional: nạp quan hệ student cho phiên làm việc
-    //     Auth::user()->loadMissing('student');
-
-    //     return redirect()->intended(route('web.users.index'))
-    //         ->with('status', 'Đăng nhập thành công');
-    // }
     public function login(Request $request)
     {
         $data = $request->validate([
@@ -101,19 +81,6 @@ class UserController extends Controller
                 return redirect()->route('web.assistant.dashboard')->with('status','Đăng nhập thành công');
         }
 
-        // switch ($user->role) {
-        //     case 'teacher':
-        //     case 'dean':
-        //     case 'vice_dean':
-        //         return redirect()->route('web.teacher.overview')->with('status','Đăng nhập thành công');
-        //     case 'head':
-        //         return redirect()->route('web.head.overview')->with('status','Đăng nhập thành công');
-        //     case 'admin':
-        //         return redirect()->route('web.admin.dashboard')->with('status','Đăng nhập thành công');
-        //     case 'assistant':
-        //         return redirect()->route('web.assistant.dashboard')->with('status','Đăng nhập thành công');
-        // }
-
         return redirect()->intended('/')->with('status','Đăng nhập thành công');
     }
 
@@ -127,6 +94,12 @@ class UserController extends Controller
         ->whereHas('supervisor', fn($query) => $query->where('teacher_id', $user->teacher->id))
         ->get();
         return view('lecturer-ui.overview', compact('user', 'assignmentSupervisors'));
+    }
+
+    public function loadResearch() {
+        $listResearch = Research::all();
+        $userResearch = User::with('userResearches.research')->findOrFail(Auth::id());
+        return view('lecturer-ui.research', compact('userResearch', 'listResearch'));
     }
 
     public function showProfile()

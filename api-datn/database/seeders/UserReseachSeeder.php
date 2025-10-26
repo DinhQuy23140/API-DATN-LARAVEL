@@ -2,11 +2,10 @@
 
 namespace Database\Seeders;
 
-use App\Models\Research;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\UserResearch;
 use Illuminate\Database\Seeder;
 
-class ResearchSeeder extends Seeder
+class UserReseachSeeder extends Seeder
 {
     /**
      * Run the database seeds.
@@ -15,6 +14,6 @@ class ResearchSeeder extends Seeder
      */
     public function run()
     {
-        Research::factory()->count(10)->create();
+        UserResearch::factory()->count(50)->create();
     }
 }
