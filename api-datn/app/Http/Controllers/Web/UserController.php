@@ -87,7 +87,7 @@ class UserController extends Controller
     public function showOverView()
     {
         $id = Auth::id();
-        $user = User::with('teacher.supervisor', 'userResearches.research')
+        $user = User::with('teacher.supervisor', 'userResearches.research', 'teacher.departmentRoles')
         ->with('teacher.supervisor.assignment_supervisors.assignment.project_term.academy_year')
         ->findOrFail(Auth::id());
         $assignmentSupervisors = AssignmentSupervisor::with(['assignment.student.marjor', 'assignment.project', 'assignment.project_term'])
@@ -98,14 +98,14 @@ class UserController extends Controller
 
     public function loadResearch() {
         $listResearch = Research::all();
-        $userResearch = User::with('userResearches.research')->findOrFail(Auth::id());
+        $userResearch = User::with('userResearches.research', 'teacher.departmentRoles')->findOrFail(Auth::id());
         return view('lecturer-ui.research', compact('userResearch', 'listResearch'));
     }
 
     public function showProfile()
     {
         $id = Auth::id();
-        $user = User::with('teacher.supervisor')->findOrFail($id);
+        $user = User::with('teacher.supervisor', 'teacher.departmentRoles')->findOrFail($id);
         return view('lecturer-ui.profile', compact('user'));
     }
     

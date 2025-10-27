@@ -31,6 +31,8 @@
     $avatarUrl = $user->avatar_url
       ?? $user->profile_photo_url
       ?? 'https://ui-avatars.com/api/?name=' . urlencode($userName) . '&background=0ea5e9&color=ffffff';
+    $departmentRole = $user->teacher->departmentRoles->where('role', 'head')->first() ?? null;
+    $departmentId = $departmentRole->department_id;
   @endphp
 <body class="bg-slate-50 text-slate-800">
   <div class="flex min-h-screen">
@@ -95,11 +97,19 @@
             @if(request()->routeIs('web.teacher.thesis_internship')) aria-current="page" @endif>
             <i class="ph ph-briefcase"></i><span class="sidebar-label">Thực tập tốt nghiệp</span>
           </a>
+          @if ($departmentRole)
+          <a href="{{ route('web.teacher.all_thesis_rounds', ['teacherId' => $teacherId]) }}"
+            class="flex items-center gap-3 px-3 py-2 rounded-lg bg-slate-100 font-semibold {{ $isThesisRoundsActive ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}"
+            @if($isThesisRoundsActive) aria-current="page" @endif>
+            <i class="ph ph-calendar"></i><span class="sidebar-label">Đồ án tốt nghiệp</span>
+          </a>
+          @else
           <a href="{{ route('web.teacher.thesis_rounds', ['teacherId' => $teacherId]) }}"
             class="flex items-center gap-3 px-3 py-2 rounded-lg bg-slate-100 font-semibold {{ $isThesisRoundsActive ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}"
             @if($isThesisRoundsActive) aria-current="page" @endif>
             <i class="ph ph-calendar"></i><span class="sidebar-label">Đồ án tốt nghiệp</span>
           </a>
+          @endif
         </div>
       </nav>
       <div class="p-3 border-t border-slate-200">

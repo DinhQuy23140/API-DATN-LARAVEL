@@ -266,7 +266,7 @@
                 </tr>
               </thead>
               @php
-                $listAssignments = $rows->assignments ?? collect();
+                $listAssignments = $assignedAssignments ?? collect();
               @endphp
               <tbody class="divide-y divide-slate-200">
                 @foreach ($listAssignments as $assignment)

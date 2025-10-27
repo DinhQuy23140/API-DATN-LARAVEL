@@ -63,13 +63,14 @@
     $assignments = $rows->assignments;
     $stage = $rows->stagetimelines->sortBy('number_of_rounds');
     $stageTimeline = $rows->stageTimelines?->sortBy('number_of_rounds') ?? collect();
+    $departmentRole = $user->teacher->departmentRoles->where('role', 'head')->first() ?? null;
+    $departmentId = $departmentRole->department_id;
   @endphp
 
   @php
     $listProgressLog = $assignments[0]->project->progressLogs ?? [];
     $latestLog = collect($listProgressLog)->sortByDesc('created_at')->first() ?? null;
   @endphp
-
   <div class="flex min-h-screen">
     <aside class="sidebar fixed inset-y-0 left-0 z-30 bg-white border-r border-slate-200 flex flex-col transition-all"
       id="sidebar">
@@ -136,11 +137,19 @@
             @if(request()->routeIs('web.teacher.thesis_internship')) aria-current="page" @endif>
             <i class="ph ph-briefcase"></i><span class="sidebar-label">Thực tập tốt nghiệp</span>
           </a>
+          @if ($departmentRole)
+          <a href="{{ route('web.teacher.all_thesis_rounds', ['teacherId' => $teacherId]) }}"
+            class="flex items-center gap-3 px-3 py-2 rounded-lg {{ $isThesisRoundsActive ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}"
+            @if($isThesisRoundsActive) aria-current="page" @endif>
+            <i class="ph ph-calendar"></i><span class="sidebar-label">Đồ án tốt nghiệp</span>
+          </a>
+          @else
           <a href="{{ route('web.teacher.thesis_rounds', ['teacherId' => $teacherId]) }}"
             class="flex items-center gap-3 px-3 py-2 rounded-lg {{ $isThesisRoundsActive ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}"
             @if($isThesisRoundsActive) aria-current="page" @endif>
             <i class="ph ph-calendar"></i><span class="sidebar-label">Đồ án tốt nghiệp</span>
           </a>
+          @endif
         </div>
       </nav>
       <div class="p-3 border-t border-slate-200">
@@ -610,9 +619,13 @@
                   </div>
                 </div>
               </div>
-            </a>  
-            @if($user->role === "head")
-            <a href="{{ route('web.head.thesis_round_supervision', ['termId' => $rows->id]) }}" 
+            </a>
+            @php
+              $departmentRole = $supervisor->teacher->departmentRoles->where('role', 'head')->first();
+              $departmentId = $departmentRole ? $departmentRole->department_id : '';
+            @endphp
+            @if($departmentRole)
+            <a href="{{ route('web.head.thesis_round_supervision', ['departmentId' => $departmentId, 'termId' => $rows->id]) }}" 
               class="group rounded-xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md hover:border-amber-300 transition">
 
               <div class="flex items-start gap-3">
@@ -623,7 +636,7 @@
 
                 <!-- Nội dung -->
                 <div class="flex-1">
-                  <div class="font-medium text-slate-800">Phân công sinh viên</div>
+                  <div class="font-medium text-slate-800">Phân công giảng viên hướng dẫn</div>
                   <div class="text-[11px] font-medium text-amber-600 uppercase tracking-wide mt-0.5">Gán GVHD</div>
                   <div class="text-xs text-slate-500 mt-1">
                     Phân công / điều chỉnh nhanh sinh viên cho giảng viên phụ trách.
@@ -689,8 +702,8 @@
               </div>
             </div>
           </a>
-          @if ($user->role === "head")
-<a href="{{ route('web.head.blind_review_lecturers', ['termId' => $rows->id]) }}" 
+          @if ($departmentRole)
+          <a href="{{ route('web.head.blind_review_lecturers', ['departmentId' => $departmentId, 'termId' => $rows->id]) }}" 
             class="group rounded-xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md hover:border-violet-300 transition">
 
             <div class="flex items-start gap-3">
@@ -701,8 +714,8 @@
 
               <!-- Nội dung -->
               <div class="flex-1">
-                <div class="font-medium text-slate-800">Phản biện kín</div>
-                <div class="text-[11px] font-medium text-violet-600 uppercase tracking-wide mt-0.5">Ẩn GVHD</div>
+                <div class="font-medium text-slate-800">Phân phản biện kín</div>
+                <div class="text-[11px] font-medium text-violet-600 uppercase tracking-wide mt-0.5">Ẩn GVPB</div>
                 <div class="text-xs text-slate-500 mt-1">
                   Quản lý phản biện ẩn giúp đảm bảo tính khách quan.
                 </div>
@@ -748,6 +761,66 @@
 
     <!-- Body -->
     <tbody class="divide-y divide-slate-100">
+      @if ($user->role === 'head')
+      @foreach ($allAssignments as $assignment)
+        @php
+          $student = $assignment->student;
+          $fullname = $student->user->fullname;
+          $student_code = $student->student_code;
+          $studentId = $student->id;
+          $topic = $assignment->project->name ?? 'Chưa có đề tài';
+
+          $latestReport = $assignment->project?->reportFiles()->latest('created_at')->first();
+          $statusRaw = $latestReport?->status ?? 'none';
+
+          $listStatus = [
+            'none' => ['label' => 'Chưa nộp', 'class' => 'bg-slate-100 text-slate-600', 'icon' => 'ph-clock'],
+            'pending' => ['label' => 'Đã nộp', 'class' => 'bg-amber-100 text-amber-700', 'icon' => 'ph-hourglass'],
+            'submitted' => ['label' => 'Đã nộp', 'class' => 'bg-amber-100 text-amber-700', 'icon' => 'ph-hourglass'],
+            'approved' => ['label' => 'Đã duyệt', 'class' => 'bg-emerald-100 text-emerald-700', 'icon' => 'ph-check-circle'],
+            'rejected' => ['label' => 'Bị từ chối', 'class' => 'bg-rose-100 text-rose-700', 'icon' => 'ph-x-circle'],
+          ];
+          $statusConfig = $listStatus[$statusRaw] ?? $listStatus['none'];
+
+          $updateLast = $latestReport?->created_at?->format('H:i:s d/m/Y') ?? 'Chưa nộp báo cáo';
+        @endphp
+
+        <tr class="hover:bg-slate-50 transition-colors">
+          <!-- Sinh viên -->
+          <td class="py-3 px-4">
+            <a href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $rows->id, 'supervisorId' => $supervisorId]) }}"
+               class="text-blue-600 hover:underline font-medium">
+              {{ $fullname }}
+            </a>
+          </td>
+
+          <!-- MSSV -->
+          <td class="py-3 px-4 text-center font-mono text-slate-700">{{ $student_code }}</td>
+
+          <!-- Đề tài -->
+          <td class="py-3 px-4 text-slate-700">{{ $topic }}</td>
+
+          <!-- Trạng thái -->
+          <td class="py-3 px-4 text-center">
+            <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium {{ $statusConfig['class'] }}">
+              <i class="ph {{ $statusConfig['icon'] }} text-sm"></i>
+              {{ $statusConfig['label'] }}
+            </span>
+          </td>
+
+          <!-- Lần nộp cuối -->
+          <td class="py-3 px-4 text-slate-600">{{ $updateLast }}</td>
+
+          <!-- Hành động -->
+          <td class="py-3 px-4 text-center">
+            <a href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $rows->id, 'supervisorId' => $supervisorId]) }}"
+               class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-slate-600 hover:bg-slate-100 transition">
+              <i class="ph ph-eye"></i> Xem
+            </a>
+          </td>
+        </tr>
+      @endforeach
+      @else
       @foreach ($assignments as $assignment)
         @php
           $student = $assignment->student;
@@ -806,6 +879,7 @@
           </td>
         </tr>
       @endforeach
+      @endif
     </tbody>
   </table>
 </div>

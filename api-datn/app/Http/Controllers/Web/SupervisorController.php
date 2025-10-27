@@ -64,7 +64,7 @@ class SupervisorController extends Controller
     public function getStudentBySupervisor($teacherId)
     {
         $idUser = Auth::id();
-        $user = User::with('teacher.supervisor')
+        $user = User::with('teacher.supervisor', 'teacher.departmentRoles')
         ->with('teacher.supervisor.assignment_supervisors.assignment.student.marjor')
         ->findOrFail(Auth::id());
         $years = AcademyYear::orderBy('year_name', 'desc')->get();
@@ -78,6 +78,8 @@ class SupervisorController extends Controller
             ->get();
         return view('lecturer-ui.students', compact( 'user', 'years', 'terms', 'assignmentSupervisors'));
     }
+
+    
 
     public function getAllSupervisorsByTerm($termId){
         $projectTerm = ProjectTerm::with('academy_year')->find($termId);

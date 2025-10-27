@@ -114,9 +114,12 @@
             <div class="mt-4 grid sm:grid-cols-3 gap-4">
               <div>
                 <label class="text-sm font-medium">Chọn giảng viên</label>
-                <select id="selectTeacher" class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600">
+                <select id="selectTeacher"
+                  class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600">
                   @foreach ($teachers as $teacher)
-                    <option value="{{ $teacher->id }}">{{ $teacher->user->fullname }}</option>
+                    <option value="{{ $teacher->id }}" data-user-id="{{ $teacher->user->id }}">
+                      {{ $teacher->user->fullname }}
+                    </option>
                   @endforeach
                 </select>
               </div>
@@ -216,7 +219,7 @@
 
     try{
       // route đang bind DepartmentRole → cần truyền roleId
-      const url = `{{ route('web.assistant.departments.destroy', 0) }}`.replace('/0','/'+roleId);
+      const url = `{{ route('web.assistant.departmentRole.destroy', 0) }}`.replace('/0','/'+roleId);
 
       const res = await fetch(url, {
         method: 'DELETE',
@@ -256,8 +259,11 @@ document.getElementById('btnAssignHead')?.addEventListener('click', assignHead);
 async function assignHead(e){
   e.preventDefault();
   const selTeacher = document.getElementById('selectTeacher');
+  const selectedOption = selTeacher.options[selTeacher.selectedIndex];
+
+  const teacher_id = selectedOption.value;
+  const user_id = selectedOption.dataset.userId;
   const selDept    = document.getElementById('selectDepartment');
-  const teacher_id = selTeacher?.value || '';
   const department_id = selDept?.value || '';
   const teacherName = selTeacher?.selectedOptions?.[0]?.textContent?.trim() || '';
   const deptName    = selDept?.selectedOptions?.[0]?.textContent?.trim() || '';
@@ -282,7 +288,8 @@ async function assignHead(e){
       body: JSON.stringify({
         teacher_id,
         department_id,
-        role: 'head'
+        role: 'head',
+        user_id
       })
     });
 

@@ -160,10 +160,10 @@ Route::middleware('auth')->prefix('head')->name('web.head.')->group(function () 
     Route::view('/thesis/internship', 'head-ui.thesis-internship')->name('thesis_internship');
     Route::get('/thesis/rounds', [WebProjectTermsController::class, 'getAllProjectTerms'])->name('thesis_rounds');
     Route::get('/thesis/round-detail/{termId}', [WebProjectTermsController::class, 'loadHeadRoundDetail'])->name('thesis_round_detail');
-    Route::get ('head/assign-students/{termId}', [WebProjectTermsController::class, 'assignmentSupervisor'])->name('thesis_round_supervision');
+    Route::get ('head/assign-students/department/{departmentId}/term/{termId}', [WebProjectTermsController::class, 'assignmentSupervisor'])->name('thesis_round_supervision');
     Route::post('head/assign-supervisors/bulk', [AssignmentSupervisorController::class, 'storeBulk'])
     ->name('assign_supervisors.bulk');
-    Route::get('bind-review-lecturers/{termId}', [WebProjectTermsController::class, 'getProjectTermBtId'])->name('blind_review_lecturers');
+    Route::get('bind-review-lecturers/department/{departmentId}/term/{termId}', [WebProjectTermsController::class, 'getProjectTermBtId'])->name('blind_review_lecturers');
     Route::post('/blind-review/assign', [WebAssignmentController::class, 'assign'])->name('blind_review.assign');
 });
 
@@ -222,6 +222,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/teacher/students/{teacherId}', [WebSupervisorController::class, 'getStudentBySupervisor'])->name('web.teacher.students');
     Route::get('/teacher/thesis-internship', fn () => view('lecturer-ui.thesis-internship'))->name('web.teacher.thesis_internship');
     Route::get('/teacher/thesis-rounds/{teacherId}', [WebProjectTermsController::class, 'getProjectTermByTeacherId'])->name('web.teacher.thesis_rounds');
+    Route::get('/teacher/all-thesis-rounds/{teacherId}', [WebProjectTermsController::class, 'getAllProjectTermsByHead'])->name('web.teacher.all_thesis_rounds');
     Route::get('/teacher/thesis-round-detail/{termId}/supervisor/{supervisorId}', [WebProjectTermsController::class, 'getDetailProjectTermByTeacherId'])->name('web.teacher.thesis_round_detail');
     Route::get('/teacher/weekly-log-detail/{progressLogId}', [WebProgressLogController::class, 'getProgressLogById'])->name('web.teacher.weekly_log_detail');
     //thesis round detail
@@ -297,7 +298,7 @@ Route::middleware(['auth','verified'])->prefix('assistant')->name('web.assistant
     Route::post('/departments', [DepartmentController::class, 'store'])->name('departments.store');
     // Cập nhật bộ môn
     Route::patch('/departments/{id}', [DepartmentController::class, 'update'])->name('departments.update');
-    Route::delete('/departments/{id}', [WebDepartmentRolesController::class, 'delete'])->name('departments.destroy');
+    Route::delete('/departmentRole/{id}', [WebDepartmentRolesController::class, 'delete'])->name('departmentRole.destroy');
     Route::delete('/departments/{id}', [WebDepartmentController::class, 'destroy'])->name('departments.destroy');
     Route::post('/department-roles', [WebDepartmentRolesController::class, 'assignHead'])
         ->name('department_roles.store');

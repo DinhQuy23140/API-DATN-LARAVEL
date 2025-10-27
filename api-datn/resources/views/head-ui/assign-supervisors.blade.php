@@ -196,15 +196,26 @@
             </span>
           </div>
         </div>
+
+        <!-- Thêm tên bộ môn -->
+        <div class="mt-4">
+          <div class="text-sm text-slate-500">Bộ môn</div>
+          @php
+            $departmentName = $department->name ?? '—';
+          @endphp
+          <div class="text-base md:text-lg font-semibold">{{ $departmentName }}</div>
+        </div>
+
+        <!-- Thống kê -->
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
           <div class="rounded-lg border border-slate-200 p-3">
             <div class="text-xs text-slate-500">Giảng viên</div>
             <!-- <div class="mt-1 text-lg font-semibold">{{ $lecturerCount }}</div> -->
-            <div class="mt-1 text-lg font-semibold">7</div>
+            <div class="mt-1 text-lg font-semibold">{{ $projectTerm->supervisors->count() }}</div>
           </div>
           <div class="rounded-lg border border-slate-200 p-3">
             <div class="text-xs text-slate-500">SV chưa có GVHD</div>
-            <div class="mt-1 text-lg font-semibold">{{ $unassignedCount }}</div>
+            <div class="mt-1 text-lg font-semibold">{{ $unassignedAssignments->count() }}</div>
           </div>
           <div class="rounded-lg border border-slate-200 p-3 col-span-2">
             <div class="flex items-center justify-between text-xs text-slate-500">
@@ -212,7 +223,10 @@
               <span>{{ $curTotal }}/{{ $maxTotal }}</span>
             </div>
             <div class="w-full bg-slate-200 rounded-full h-2 mt-1.5">
-              <div class="h-2 rounded-full {{ $pct>=100?'bg-rose-600':($pct>=75?'bg-yellow-600':'bg-emerald-600') }}" style="width: {{ $pct }}%"></div>
+              <div
+                class="h-2 rounded-full {{ $pct>=100?'bg-rose-600':($pct>=75?'bg-yellow-600':'bg-emerald-600') }}"
+                style="width: {{ $pct }}%">
+              </div>
             </div>
           </div>
         </div>

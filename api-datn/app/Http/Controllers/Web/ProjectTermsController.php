@@ -175,35 +175,49 @@ class ProjectTermsController extends Controller
     // }
 
     public function getProjectTermByTeacherId($teacherId)
-{
+    {
     $rows = ProjectTerm::whereHas('supervisors', function ($q) use ($teacherId) {
+        $q->where('teacher_id', $teacherId);
+    })
+    ->with([
+        'academy_year',
+        'assignments' => function ($q) use ($teacherId) {
+            $q->whereHas('assignment_supervisors.supervisor', function ($qq) use ($teacherId) {
+                $qq->where('teacher_id', $teacherId);
+            })
+            ->with([
+                'student.user',
+                'project.reportFiles',
+                'assignment_supervisors' => function ($sub) use ($teacherId) {
+                    $sub->whereHas('supervisor', function ($ss) use ($teacherId) {
+                        $ss->where('teacher_id', $teacherId);
+                    });
+                }
+            ]);
+        },
+        'supervisors' => function ($q) use ($teacherId) {
             $q->where('teacher_id', $teacherId);
-        })
-        ->with([
-            'academy_year',
-            'assignments' => function ($q) use ($teacherId) {
-                $q->whereHas('assignment_supervisors.supervisor', function ($qq) use ($teacherId) {
-                    $qq->where('teacher_id', $teacherId);
-                })
-                ->with([
-                    'student.user',
-                    'project.reportFiles',
-                    'assignment_supervisors' => function ($sub) use ($teacherId) {
-                        $sub->whereHas('supervisor', function ($ss) use ($teacherId) {
-                            $ss->where('teacher_id', $teacherId);
-                        });
-                    }
-                ]);
-            },
-            'supervisors' => function ($q) use ($teacherId) {
-                $q->where('teacher_id', $teacherId);
-            }
-        ])
-        ->get();
+        }
+    ])
+    ->get();
 
     return view('lecturer-ui.thesis-rounds', compact('rows'));
-}
+    }
 
+    public function getAllProjectTermsByHead($teacherId) {
+        $rows = ProjectTerm::with([
+            'academy_year',
+            'assignments' => function ($q) {
+                $q->with([
+                    'student.user',
+                    'project.reportFiles',
+                    'assignment_supervisors.supervisor',
+                ]);
+            },
+            'supervisors'
+        ])->get();
+        return view('lecturer-ui.thesis-rounds', compact('rows'));
+    }
 
     public function getAllProjectTerms()
     {
@@ -213,6 +227,7 @@ class ProjectTermsController extends Controller
 
     public function getDetailProjectTermByTeacherId($termId, $supervisorId)
     {
+        $supervisor = Supervisor::with('teacher.departmentRoles')->findOrFail($supervisorId);
         $rows = ProjectTerm::with([
             'academy_year',
             'stageTimelines',
@@ -234,6 +249,16 @@ class ProjectTermsController extends Controller
             }
         ])->findOrFail($termId);
 
+        $allAssignments = Assignment::with([
+                    'student.user',
+                    'project.progressLogs.attachments',
+                    'project.reportFiles',
+                    'council_project.council',
+                    'council_project.council_member.supervisor.teacher.user',
+                    'assignment_supervisors'])
+        ->where('project_term_id', $termId)
+        ->get();
+
         $councils = Council::with('council_members')
             ->whereHas('council_members', function ($q) use ($supervisorId) {
                 $q->where('supervisor_id', $supervisorId);
@@ -243,8 +268,56 @@ class ProjectTermsController extends Controller
             })
             ->get();
 
-        return view('lecturer-ui.thesis-round-detail', compact('rows', 'supervisorId', 'councils'));
+        return view('lecturer-ui.thesis-round-detail', compact('rows', 'supervisorId', 'supervisor', 'councils', 'allAssignments'));
     }
+
+    public function getDetailProjectTermByHeadId($termId, $supervisorId, $departmentId) {
+        $supervisor = Supervisor::with('teacher.departmentRoles')->findOrFail($supervisorId);
+        $rows = ProjectTerm::with([
+            'academy_year',
+            'stageTimelines',
+            'assignments.council_project.council_project_defences',
+            'assignments' => function ($query) use ($supervisorId) {
+                $query->whereHas('assignment_supervisors', function ($q) use ($supervisorId) {
+                    $q->where('supervisor_id', $supervisorId);
+                    $q->where('status', '!=', 'pending');
+                })->with([
+                    'student.user',
+                    'project.progressLogs.attachments',
+                    'project.reportFiles',
+                    'council_project.council',
+                    'council_project.council_member.supervisor.teacher.user',
+                    'assignment_supervisors' => function ($q) use ($supervisorId) {
+                        $q->where('supervisor_id', $supervisorId);
+                    }
+                ]);
+            }
+        ])->findOrFail($termId);
+
+        $allAssignments = Assignment::with([
+                    'student.user',
+                    'project.progressLogs.attachments',
+                    'project.reportFiles',
+                    'council_project.council',
+                    'council_project.council_member.supervisor.teacher.user',
+                    'assignment_supervisors'])
+        ->where('project_term_id', $termId)
+        ->whereHas('student.marjor.department', function($q) use ($departmentId) {
+            $q->where('id', $departmentId);
+        })
+        ->get();
+        
+        $councils = Council::with('council_members')
+            ->whereHas('council_members', function ($q) use ($supervisorId) {
+                $q->where('supervisor_id', $supervisorId);
+            })
+            ->whereHas('project_term', function ($q) use ($termId) {
+                $q->where('id', $termId);
+            })
+            ->get();
+
+        return view('lecturer-ui.thesis-round-detail', compact('rows', 'supervisorId', 'supervisor', 'councils', 'allAssignments'));
+    } //supervisorId
 
     public function studentReviews($termId, $supervisorId)
     {
@@ -342,10 +415,41 @@ class ProjectTermsController extends Controller
         return view('lecturer-ui.student-committees', compact('rows', 'supervisorId'));
     }
 
-    public function getProjectTermBtId($termId)
+    public function getProjectTermBtId($departmentId, $termId)
     {
-        $rows = ProjectTerm::with('supervisors.assignment_supervisors', 'academy_year', 'assignments.student.user', 'assignments.project')->findOrFail($termId);
-        return view('head-ui.blind-review-lecturer', compact('rows'));
+    $rows = ProjectTerm::with([
+        'academy_year',
+        'assignments.student.user',
+
+        // Lấy supervisors theo department của teacher
+        'supervisors' => function ($query) use ($departmentId, $termId) {
+            $query->whereHas('teacher', function ($teacherQuery) use ($departmentId) {
+                $teacherQuery->where('department_id', $departmentId);
+            })
+            ->with([
+                'teacher.user', // Lấy thông tin user của giảng viên
+                'assignment_supervisors' => function ($q) use ($termId) {
+                    $q->whereHas('assignment', function ($sub) use ($termId) {
+                        $sub->where('project_term_id', $termId);
+                    })->with('assignment.student.user');
+                }
+            ]);
+        },
+    ])->findOrFail($termId);
+
+    $department = Department::findOrFail($departmentId);
+
+    // Lấy danh sách đề tài chưa được gán GVHD trong bộ môn đó
+    $assignedAssignments = Assignment::with([
+        'project',
+        'student.user',
+    ])
+    ->where('project_term_id', $termId)
+    ->whereHas('student.marjor.department', function($q) use ($departmentId) {
+        $q->where('id', $departmentId);
+    })
+    ->get();
+        return view('head-ui.blind-review-lecturer', compact('rows', 'assignedAssignments', 'department'));
     }
 
     public function getDetailProjectTermBySupervisorId($supervisorId, $termId)
@@ -376,25 +480,44 @@ class ProjectTermsController extends Controller
         return view('lecturer-ui.supervised-outline-reports', compact('rows', 'supervisorId'));
     }
 
-    public function assignmentSupervisor($termId)
-    {
-        $projectTerm = ProjectTerm::with([
-            'academy_year',
-            'assignments.student.user',
-            'supervisors.assignment_supervisors' => function ($q) use ($termId) {
-                $q->whereHas('assignment', function ($sub) use ($termId) {
-                    $sub->where('project_term_id', $termId);
-                })->with('assignment.student.user');
-            }
-        ])->findOrFail($termId);
+public function assignmentSupervisor($departmentId, $termId)
+{
+    $projectTerm = ProjectTerm::with([
+        'academy_year',
+        'assignments.student.user',
 
-        $unassignedAssignments = Assignment::with('student.user', 'project')
-            ->where('project_term_id', $termId)
-            ->whereDoesntHave('assignment_supervisors')
-            ->get();
+        // Lấy supervisors theo department của teacher
+        'supervisors' => function ($query) use ($departmentId, $termId) {
+            $query->whereHas('teacher', function ($teacherQuery) use ($departmentId) {
+                $teacherQuery->where('department_id', $departmentId);
+            })
+            ->with([
+                'teacher.user', // Lấy thông tin user của giảng viên
+                'assignment_supervisors' => function ($q) use ($termId) {
+                    $q->whereHas('assignment', function ($sub) use ($termId) {
+                        $sub->where('project_term_id', $termId);
+                    })->with('assignment.student.user');
+                }
+            ]);
+        },
+    ])->findOrFail($termId);
 
-        return view('head-ui.assign-supervisors', compact('projectTerm', 'unassignedAssignments'));
-    }
+    $department = Department::findOrFail($departmentId);
+
+    // Lấy danh sách đề tài chưa được gán GVHD trong bộ môn đó
+    $unassignedAssignments = Assignment::with([
+        'project',
+        'student.user',
+    ])
+    ->where('project_term_id', $termId)
+    ->whereHas('student.marjor.department', function($q) use ($departmentId) {
+        $q->where('id', $departmentId);
+    })
+    ->whereDoesntHave('assignment_supervisors')
+    ->get();
+
+    return view('head-ui.assign-supervisors', compact('projectTerm', 'unassignedAssignments', 'department'));
+}
 
     public function loadHeadRoundDetail($termId) {
         $projectTerm = ProjectTerm::with('supervisors.assignment_supervisors', 'academy_year', 'assignments.student.user')->findOrFail($termId);

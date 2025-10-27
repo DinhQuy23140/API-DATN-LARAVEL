@@ -33,6 +33,8 @@
       $avatarUrl = $user->avatar_url
         ?? $user->profile_photo_url
         ?? 'https://ui-avatars.com/api/?name=' . urlencode($userName) . '&background=0ea5e9&color=ffffff';
+      $departmentRole = $user->teacher->departmentRoles->where('role', 'head')->first() ?? null;
+      $departmentId = $departmentRole->department_id;
     @endphp
     <div class="flex min-h-screen">
       <aside id="sidebar" class="sidebar fixed inset-y-0 left-0 z-30 bg-white border-r border-slate-200 flex flex-col transition-all">
@@ -83,10 +85,17 @@
                class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('web.teacher.thesis_internship') ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}">
               <i class="ph ph-briefcase"></i><span class="sidebar-label">Thực tập tốt nghiệp</span>
             </a>
+            @if ($departmentRole)
+            <a href="{{ route('web.teacher.all_thesis_rounds', ['teacherId' => $teacherId]) }}"
+               class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('web.teacher.thesis_rounds') ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}">
+              <i class="ph ph-calendar"></i><span class="sidebar-label">Học phần tốt nghiệp</span>
+            </a>
+            @else
             <a href="{{ route('web.teacher.thesis_rounds', ['teacherId' => $teacherId]) }}"
                class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('web.teacher.thesis_rounds') ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}">
               <i class="ph ph-calendar"></i><span class="sidebar-label">Học phần tốt nghiệp</span>
             </a>
+            @endif
           </div>
         </nav>
         <div class="p-3 border-t border-slate-200">
