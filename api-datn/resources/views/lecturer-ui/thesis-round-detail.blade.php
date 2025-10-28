@@ -620,10 +620,6 @@
                 </div>
               </div>
             </a>
-            @php
-              $departmentRole = $supervisor->teacher->departmentRoles->where('role', 'head')->first();
-              $departmentId = $departmentRole ? $departmentRole->department_id : '';
-            @endphp
             @if($departmentRole)
             <a href="{{ route('web.head.thesis_round_supervision', ['departmentId' => $departmentId, 'termId' => $rows->id]) }}" 
               class="group rounded-xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md hover:border-amber-300 transition">

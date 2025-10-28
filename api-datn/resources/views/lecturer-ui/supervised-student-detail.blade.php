@@ -646,9 +646,11 @@
                       $members2 = $listMember->where('role', 2)->first() ?? null;
                       $members3 = $listMember->where('role', 1)->first() ?? null;
                       $reviewer = $assignment->council_project->council_member ?? null;
-                      $time =  $assignment->council_project->time;
-                      $date =  $assignment->council_project->date;
-                      $timeAndDate = ($date ? date('d/m/Y', strtotime($date)) : '') . ($time ? ' • ' . date('H:i', strtotime($time)) : 'Chưa có');
+                      $time = optional($assignment->council_project)->time;
+                      $date = optional($assignment->council_project)->date;
+
+                      $timeAndDate = ($date ? date('d/m/Y', strtotime($date)) : '') 
+                          . ($time ? ' • ' . date('H:i', strtotime($time)) : 'Chưa có');
                       $room = $assignment->council_project->room ?? 'Chưa có';
                       $reviewScore = $assignment->council_project->review_score ?? 'Chưa có';
                     @endphp
@@ -735,7 +737,7 @@
 
                           <div class="flex items-center justify-between">
                             <span class="font-medium text-slate-600">Chức vụ:</span>
-                            <span class="text-slate-800">{{ $listPosition[$reviewer->role] ?? '—' }}</span>
+                            <span class="text-slate-800">{{ $listPosition[optional($reviewer)->role] ?? '—' }}</span>
                           </div>
 
                           <div class="flex items-center justify-between">
