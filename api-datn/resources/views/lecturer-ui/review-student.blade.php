@@ -33,7 +33,7 @@
         ?? $user->profile_photo_url
         ?? 'https://ui-avatars.com/api/?name=' . urlencode($userName) . '&background=0ea5e9&color=ffffff';
       $departmentRole = $user->teacher->departmentRoles->where('role', 'head')->first() ?? null;
-      $departmentId = $departmentRole->department_id;
+      $departmentId = $departmentRole?->department_id ?? 0;
     @endphp
 <body class="bg-slate-50 text-slate-800">
   <div class="flex min-h-screen">

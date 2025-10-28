@@ -66,7 +66,8 @@ class UserController extends Controller
         $request->session()->regenerate();
 
         $user->loadMissing([
-            'teacher.supervisor.assignment_supervisors.assignment.student'
+            'teacher.supervisor.assignment_supervisors.assignment.student',
+            'teacher.departmentRoles',
         ]);
 
         switch ($user->role) {

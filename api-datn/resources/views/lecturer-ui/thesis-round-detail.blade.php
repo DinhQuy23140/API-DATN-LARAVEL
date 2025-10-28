@@ -64,7 +64,7 @@
     $stage = $rows->stagetimelines->sortBy('number_of_rounds');
     $stageTimeline = $rows->stageTimelines?->sortBy('number_of_rounds') ?? collect();
     $departmentRole = $user->teacher->departmentRoles->where('role', 'head')->first() ?? null;
-    $departmentId = $departmentRole->department_id;
+    $departmentId = $departmentRole?->department_id ?? 0;
   @endphp
 
   @php

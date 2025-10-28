@@ -47,7 +47,7 @@
       ?? $user->profile_photo_url
       ?? 'https://ui-avatars.com/api/?name=' . urlencode($userName) . '&background=0ea5e9&color=ffffff';
     $departmentRole = $user->teacher->departmentRoles->where('role', 'head')->first() ?? null;
-    $departmentId = $departmentRole->department_id;
+    $departmentId = $departmentRole?->department_id ?? 0;
   @endphp
   <div class="flex min-h-screen">
     <aside id="sidebar"
@@ -85,7 +85,10 @@
             <i class="ph ph-student"></i><span class="sidebar-label">Sinh viên</span>
           </a>
         @else
-          <span class="text-slate-400">Chưa có supervisor</span>
+          <a href=""
+            class="flex items-center gap-3 px-3 py-2 rounded-lg">
+            <i class="ph ph-student"></i><span class="sidebar-label">Sinh viên</span>
+          </a>
         @endif
 
         @php
