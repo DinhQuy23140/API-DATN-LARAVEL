@@ -14,16 +14,32 @@ class AssignmentSupervisorController extends Controller
         return response()->json($data);
     }
 
-    public function store(Request $request) {
+    public function store(Request $request)
+    {
         $data = $request->validate([
             'assignment_id' => 'required|integer|exists:assignments,id',
             'supervisor_id' => 'required|integer|exists:supervisors,id',
-            'role' => 'required|string|max:255',
+            'role' => 'nullable|string|max:255',
+            'status' => 'nullable|string|max:255',
         ]);
 
-        if(empty($data['role'])) $data['role'] = 'main';
+        // Mặc định role là 'main' nếu không gửi
+        if (empty($data['role'])) {
+            $data['role'] = 'main';
+        }
 
-        $assignmentSupervisor = AssignmentSupervisor::create($data);
+        // Cập nhật nếu tồn tại, tạo mới nếu chưa
+        $assignmentSupervisor = AssignmentSupervisor::updateOrCreate(
+            [
+                'assignment_id' => $data['assignment_id'],
+                'supervisor_id' => $data['supervisor_id'],
+            ],
+            [
+                // 'role' => $data['role'],
+                'status' => $data['status'] ?? 'pending', // gán mặc định nếu cần
+            ]
+        );
+
         return response()->json($assignmentSupervisor->load('assignment'), 201);
     }
 

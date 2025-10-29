@@ -106,6 +106,7 @@ Route::get('/assignment-supervisors/teacher/{teacherId}', [App\Http\Controllers\
 //attachment
 Route::get('attachment/progress/{progressId}', [AttachmentController::class, 'getAttacahmentByProgressLogId']);
 Route::post('attachment/create/{progressId}', [AttachmentController::class, 'crateListAssignmentByProgressId']);
+Route::post('attachment/create-general', [AttachmentController::class, 'create']);
 
 
 //reportFile

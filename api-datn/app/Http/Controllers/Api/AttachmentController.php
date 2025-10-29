@@ -50,6 +50,26 @@ class AttachmentController extends Controller
             ->setStatusCode(201);
     }
 
+    public function create(Request $request)
+    {
+        $uploadTime = $request->filled('upload_time')
+            ? Carbon::parse($request->input('upload_time'))->timestamp
+            : now()->timestamp;
+
+        $attachment = Attachment::create([
+            'progress_log_id' => $request->input('progress_log_id'),
+            'file_name'       => $request->input('file_name', 'no-name.pdf'),
+            'file_url'        => $request->input('file_url', 'attachments/unknown.pdf'),
+            'file_type'       => $request->input('file_type', 'application/octet-stream'),
+            'upload_time'     => $uploadTime,
+            'uploader_id'     => $request->input('uploader_id', auth()->id() ?? 0),
+        ]);
+
+        return (new AttachmentResource($attachment))
+            ->response()
+            ->setStatusCode(201);
+    }
+
     public function show(Attachment $attachment)
     {
         return new AttachmentResource($attachment);

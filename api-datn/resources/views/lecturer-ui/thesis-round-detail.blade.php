@@ -935,16 +935,14 @@
           $listProgressLog = $assignment->project?->progressLogs ?? [];
           $latestLog = collect($listProgressLog)->sortByDesc('created_at')->first() ?? null;
 
-          $lastestTitle = $latestLog->title ?? 'Chưa nộp';
-          $lastestStatusRaw = $latestLog->student_status ?? 'none';
+          $lastestTitle = $latestLog->title ?? 'Tiêu đề tuần chưa có';
+          $lastestStatusRaw = $latestLog->student_status ?? 'in_progress';
 
           $listStatus = [
             'none' => ['label' => 'Chưa nộp', 'class' => 'bg-slate-100 text-slate-600', 'icon' => 'ph-clock'],
-            'chua_bat_dau' => ['label' => 'Chưa bắt đầu', 'class' => 'bg-slate-100 text-slate-600', 'icon' => 'ph-clock'],
-            'dang_thuc_hien' => ['label' => 'Đang thực hiện', 'class' => 'bg-amber-100 text-amber-700', 'icon' => 'ph-hourglass'],
-            'da_hoan_thanh' => ['label' => 'Đã hoàn thành', 'class' => 'bg-emerald-100 text-emerald-700', 'icon' => 'ph-check-circle'],
-            'approved' => ['label' => 'Đã chấm', 'class' => 'bg-blue-100 text-blue-700', 'icon' => 'ph-seal-check'],
-            'needs_revision' => ['label' => 'Cần bổ sung', 'class' => 'bg-rose-100 text-rose-700', 'icon' => 'ph-warning'],
+            'in_progress' => ['label' => 'Đang thực hiện', 'class' => 'bg-amber-100 text-amber-700', 'icon' => 'ph-hourglass'],
+            'completed' => ['label' => 'Đã hoàn thành', 'class' => 'bg-emerald-100 text-emerald-700', 'icon' => 'ph-check-circle'],
+            'not_completed' => ['label' => 'Cần bổ sung', 'class' => 'bg-rose-100 text-rose-700', 'icon' => 'ph-warning'],
           ];
 
           $lastestTime = $latestLog?->created_at?->format('H:i:s d/m/Y') ?? 'Chưa có';
@@ -1188,7 +1186,7 @@
                     $student_code = $student->student_code;
                     $studentId = $student->id;
                     $topic = $assignment->project?->name ?? 'Chưa có đề tài';
-                    $assignment_supervisors = $assignment->assignment_supervisors ?? [];
+                    $assignment_supervisors = $assignment->assignment_supervisors->where('status', 'accepted') ?? [];
 
                     $committee = $assignment->council_project?->council->name ?? 'Chưa có hội đồng'; // demo
                     $councilId = $assignment->council_project?->council_id;

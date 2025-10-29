@@ -561,17 +561,15 @@
                         {{-- Hiển thị trạng thái --}}
                         @php
                           $listStatus = [
-                              'pending' => 'Pending',
-                              'approved' => 'Approved',
-                              'need_editing' => 'Need Editing',
-                              'not_achieved' => 'Not Achieved',
+                              'pending' => 'Đang chờ',
+                              'approved' => 'Đã duyệt',
+                              'rejected' => 'Bị từ chối',
                           ];
 
                           $listColor = [
                               'pending' => 'bg-slate-100 text-slate-700',
                               'approved' => 'bg-emerald-100 text-emerald-700',
-                              'need_editing' => 'bg-amber-100 text-amber-700',
-                              'not_achieved' => 'bg-rose-100 text-rose-700',
+                              'rejected' => 'bg-rose-100 text-rose-700',
                           ];
                         @endphp
 
@@ -622,11 +620,11 @@
                       <i class="ph ph-users-three text-emerald-600 text-xl"></i>
                       Hội đồng & Điểm số
                     </h2>
-                    <button id="btnUpdateScores"
+                    <!-- <button id="btnUpdateScores"
                             class="flex items-center gap-1.5 px-3 py-1.5 border border-slate-300 rounded-lg text-sm text-slate-700 hover:bg-emerald-50 hover:border-emerald-400 transition">
                       <i class="ph ph-pencil-simple text-emerald-600"></i>
                       Cập nhật điểm
-                    </button>
+                    </button> -->
                   </div>
 
                   <div class="text-sm text-slate-700 space-y-6">

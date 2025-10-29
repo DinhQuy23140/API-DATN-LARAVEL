@@ -35,7 +35,7 @@ class StudentController extends Controller
     public function show(Student $student)
     {
         return response()->json($student->load([
-            'user','marjor.faculties']));
+            'user','marjor.department.faculties']));
     }
 
     public function update(Request $request, Student $student)
