@@ -100,6 +100,69 @@
             </div>
             <button id="btnAdd" class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700"><i class="ph ph-plus"></i>Thêm tài khoản</button>
           </div>
+          <!-- Role assignment UI (static) -->
+          <div class="bg-white border border-slate-200 rounded-xl p-4 mb-4">
+            @php
+              // Collect unique assistant accounts from faculties
+              $assistants = collect();
+              if (!empty($faculties)) {
+                foreach ($faculties as $f) {
+                  $a = $f->facultyRoles?->firstWhere('role', 'assistant');
+                  if ($a && $a->user) {
+                    $assistants->push([ 'id' => $a->user->id, 'name' => $a->user->fullname, 'email' => $a->user->email, 'faculty' => $f->name ]);
+                  }
+                }
+                // unique by id
+                $assistants = $assistants->unique('id')->values();
+              }
+            @endphp
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <!-- Current assistants list -->
+              <div class="md:col-span-2 bg-slate-50 rounded-lg p-3">
+                <div class="font-semibold mb-2 flex items-center gap-2"><i class="ph ph-users text-sky-600"></i> Tài khoản trợ lý khoa hiện tại</div>
+                @if($assistants->isEmpty())
+                  <div class="text-sm text-slate-500 italic">Chưa có trợ lý khoa được gán.</div>
+                @else
+                  <ul class="space-y-2">
+                    @foreach($assistants as $as)
+                        <li class="flex items-center justify-between p-2 bg-white rounded-lg shadow-sm">
+                          <div>
+                            <div class="font-medium flex items-center gap-2"><i class="ph ph-user-circle text-indigo-500"></i> {{ $as['name'] }}</div>
+                            <div class="text-xs text-slate-500 flex items-center gap-3">
+                              <span class="inline-flex items-center gap-2"><i class="ph ph-envelope simple text-slate-400"></i> {{ $as['email'] }}</span>
+                              <span class="inline-flex items-center gap-2"><i class="ph ph-building text-slate-400"></i> <span class="text-slate-600">{{ $as['faculty'] }}</span></span>
+                            </div>
+                          </div>
+                          <div class="text-xs text-slate-400">ID: {{ $as['id'] }}</div>
+                        </li>
+                    @endforeach
+                  </ul>
+                @endif
+              </div>
+
+              <!-- Assignment control -->
+              <div class="md:col-span-1 bg-white rounded-lg p-4 border border-slate-100">
+                <div class="font-semibold mb-2 flex items-center gap-2"><i class="ph ph-shield-check text-emerald-600"></i> Phân quyền trợ lý khoa</div>
+                <div class="text-sm text-slate-600 mb-3"><i class="ph ph-info-circle text-slate-400"></i> Chọn tài khoản trợ lý để phân quyền (giao diện tĩnh).</div>
+
+                <label class="block text-sm font-medium text-slate-700">Chọn tài khoản</label>
+                <select id="assistantSelect" class="mt-2 w-full px-3 py-2 rounded-lg border border-slate-200 text-sm">
+                  <option value="">-- Chọn trợ lý --</option>
+                  @foreach($assistants as $as)
+                    <option value="{{ $as['id'] }}">{{ $as['name'] }} — {{ $as['faculty'] }} ({{ $as['email'] }})</option>
+                  @endforeach
+                </select>
+
+                <div class="mt-4">
+                  <button id="assignRoleBtn" class="w-full px-4 py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700">Phân quyền</button>
+                </div>
+
+                <p id="assignMsg" class="mt-3 text-sm text-slate-500"></p>
+              </div>
+            </div>
+          </div>
+
           <!-- Table -->
           <div class="bg-white border border-slate-200 rounded-xl">
             <div class="overflow-x-auto">
@@ -249,6 +312,24 @@
           tr.style.display = tr.innerText.toLowerCase().includes(q) ? '' : 'none';
         });
       })
+
+      // Handler for static assignment UI
+      document.getElementById('assignRoleBtn')?.addEventListener('click', ()=>{
+        const sel = document.getElementById('assistantSelect');
+        const msg = document.getElementById('assignMsg');
+        const userId = sel ? sel.value : null;
+        if (!userId) {
+          msg.textContent = 'Vui lòng chọn một tài khoản trợ lý.';
+          msg.classList.remove('text-emerald-600');
+          msg.classList.add('text-rose-600');
+          return;
+        }
+        // Static demo behavior: show selected userId. Replace with AJAX to send userId to server as needed.
+        msg.textContent = 'Gửi userId: ' + userId;
+        msg.classList.remove('text-rose-600');
+        msg.classList.add('text-emerald-600');
+        console.log('Assign role to userId=', userId);
+      });
 
       // checkbox all
       document.getElementById('chkAll')?.addEventListener('change', (e)=>{
