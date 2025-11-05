@@ -87,7 +87,17 @@ class ProjectTermsController extends Controller
     public function show(ProjectTerm $project_term){ return view('project_terms.show',compact('project_term')); }
     public function edit(ProjectTerm $project_term){ return view('project_terms.edit',['term'=>$project_term,'years'=>AcademyYear::all()]); }
     public function update(Request $request, ProjectTerm $project_term){ $data=$request->validate(['academy_year_id'=>'sometimes|exists:academy_years,id','term_name'=>'sometimes|string|max:255','start_date'=>'sometimes|date','end_date'=>'sometimes|date|after_or_equal:start_date']); $project_term->update($data); return redirect()->route('web.project_terms.show',$project_term)->with('status','Cập nhật thành công'); }
-    public function destroy(ProjectTerm $project_term){ $project_term->delete(); return redirect()->route('web.project_terms.index')->with('status','Đã xóa'); }
+    public function destroy(Request $request, ProjectTerm $project_term)
+    {
+        $project_term->delete();
+
+        if ($request->wantsJson()) {
+            return response()->json(['ok' => true]);
+        }
+
+        return redirect()->route('web.project_terms.index')
+                        ->with('status', 'Đã xóa');
+    }
 
     public function loadRounds() {
         $years  = AcademyYear::orderByDesc('year_name')->get();

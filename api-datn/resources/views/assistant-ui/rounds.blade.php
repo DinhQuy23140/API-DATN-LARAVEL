@@ -2,6 +2,7 @@
 <html lang="vi">
   <head>
     <meta charset="UTF-8" />
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Đợt đồ án - Trợ lý khoa</title>
     <script src="https://cdn.tailwindcss.com"></script>
@@ -141,7 +142,7 @@
                     <td class="py-3 px-4 text-right space-x-2">
                       <a class="px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-slate-600" href="{{ route('web.assistant.round_detail', ['round_id' => $term->id]) }}"><i class="ph ph-eye"></i></a>
                       <button class="px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-slate-600" onclick="openModal('edit')"><i class="ph ph-pencil"></i></button>
-                      <button class="px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-rose-600"><i class="ph ph-trash"></i></button>
+                      <button type="button" data-round-id="{{ $term->id }}" class="btn-delete-round px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-rose-600" title="Xóa đợt"><i class="ph ph-trash"></i></button>
                     </td>
                   </tr>
                   @endforeach
@@ -673,6 +674,47 @@
         this.dataset.__submitting = '1';
         this.submit();
       });
+
+      // Delete round handler (confirm box + DELETE request)
+      (function(){
+        const baseUrl = '{{ url("assistant/thesis/rounds") }}';
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}';
+        document.addEventListener('click', function(e){
+          const btn = e.target.closest && e.target.closest('.btn-delete-round');
+          if(!btn) return;
+          const roundId = btn.getAttribute('data-round-id');
+          if(!roundId) return;
+          const confirmed = confirm('Bạn có chắc chắn muốn xóa đợt đồ án này? Thao tác này không thể hoàn tác.');
+          if(!confirmed) return;
+          // disable to prevent double click
+          btn.disabled = true;
+          fetch(baseUrl + '/' + encodeURIComponent(roundId), {
+            method: 'DELETE',
+            headers: {
+              'X-CSRF-TOKEN': csrfToken,
+              'Accept': 'application/json',
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({})
+          }).then(async res => {
+            if(res.ok){
+              // remove row from table if possible, else reload
+              const tr = btn.closest('tr');
+              if(tr){ tr.remove(); }
+              else { location.reload(); }
+            } else {
+              let msg = 'Xóa thất bại';
+              try { const j = await res.json(); msg = j.message || JSON.stringify(j); } catch(e){}
+              alert(msg);
+              btn.disabled = false;
+            }
+          }).catch(err=>{
+            console.error(err);
+            alert('Lỗi khi xóa đợt. Vui lòng thử lại.');
+            btn.disabled = false;
+          });
+        });
+      })();
     </script>
   </body>
 </html>

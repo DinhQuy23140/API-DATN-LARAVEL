@@ -179,6 +179,9 @@ Route::middleware('auth')->prefix('assistant')->name('web.assistant.')->group(fu
     Route::get('/thesis/rounds', [ProjectTermsController::class, 'loadRounds'])->name('rounds');
     Route::get('/thesis/rounds/{round_id}', [ProjectTermsController::class, 'loadRoundDetail'])->name('round_detail');
     Route::post('/thesis/rounds', [ProjectTermsController::class, 'store'])->name('rounds.store');
+    // Xóa một đợt đồ án
+    // use {project_term} so implicit model binding matches ProjectTermsController::destroy(ProjectTerm $project_term)
+    Route::delete('/thesis/rounds/{project_term}', [ProjectTermsController::class, 'destroy'])->name('rounds.destroy');
     Route::get('/students/import_students/{termId}', [WebBatchStudentController::class, 'getStudentNotInProjectTerm'])->name('students_import');
     Route::get('/staffs/import_supervisors/{termId}', [WebSupervisorController::class, 'getSupervisorNotInProjectTerm'])->name('supervisors_import');
     Route::get('/students_detail/{termId}', [WebBatchStudentController::class, 'getAllBatchStudentsByTerm'])->name('students_detail');
