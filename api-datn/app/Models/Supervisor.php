@@ -41,4 +41,12 @@ class Supervisor extends Model
     {
         return $this->hasMany(CouncilProjects::class, 'reviewer_id');
     }
+
+    public function commentLogs() {
+        return $this->hasMany(CommentLog::class);
+    }
+
+    public function proposeTopics() {
+        return $this->hasMany(ProposedTopic::class);
+    }
 }

@@ -28,6 +28,7 @@ class CouncilFactory extends Factory
             'department_id' => Department::inRandomOrder()->first()->id ?? Department::factory()->create()->id,
             'address' => $this->faker->optional()->address(),
             'date' => $this->faker->optional()->date(),
+            'time' => $this->faker->optional()->time(),
             'status' => $this->faker->randomElement(['active', 'inactive']),
         ];
     }

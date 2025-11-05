@@ -232,6 +232,7 @@ public function getRequestManagementPage($supervisorId, $termId)
         // ]);
 
         $assignmentSupervisor->score_report = (float) $data['score_report'];
+        $assignmentSupervisor->comments = $data['note'] ?? null;
         $assignmentSupervisor->save();
 
         return response()->json([

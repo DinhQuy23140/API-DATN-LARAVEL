@@ -5,25 +5,20 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class AssignmentSupervisor extends Model
+class CommentLog extends Model
 {
     use HasFactory;
     protected $fillable = [
-        'assignment_id',
+        'progress_log_id',
         'supervisor_id',
-        'role',
-        'status',
-        'score_report',
-        'comments',
+        'content',
     ];
 
-    public function assignment()
-    {
-        return $this->belongsTo(Assignment::class);
+    public function progressLog() {
+        return $this->belongsTo(ProgressLog::class);
     }
 
-    public function supervisor()
-    {
+    public function supervisor() {
         return $this->belongsTo(Supervisor::class);
     }
 }

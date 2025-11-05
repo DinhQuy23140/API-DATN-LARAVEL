@@ -18,6 +18,7 @@ return new class extends Migration
             $table->unsignedBigInteger('project_id');
             $table->string('title');
             $table->text('description')->nullable();
+            $table->text('content')->nullable();
             $table->dateTime('start_date_time')->nullable();
             $table->dateTime('end_date_time')->nullable();
             $table->text('instructor_comment')->nullable();

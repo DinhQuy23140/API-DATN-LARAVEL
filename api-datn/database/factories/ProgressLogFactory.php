@@ -25,6 +25,7 @@ class ProgressLogFactory extends Factory
                 'project_id' => Project::inRandomOrder()->value('id'),
                 'title' => $this->faker->sentence(6),
                 'description' => $this->faker->paragraph(),
+                'content' => $this->faker->optional()->paragraphs(3, true),
                 'start_date_time' => $start,
                 'end_date_time' => $end,
                 'instructor_comment' => $this->faker->optional()->sentence(),

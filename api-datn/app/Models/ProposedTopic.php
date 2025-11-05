@@ -5,22 +5,15 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class AssignmentSupervisor extends Model
+class ProposedTopic extends Model
 {
     use HasFactory;
     protected $fillable = [
-        'assignment_id',
         'supervisor_id',
-        'role',
-        'status',
-        'score_report',
-        'comments',
+        'title',
+        'description',
+        'proposed_at',
     ];
-
-    public function assignment()
-    {
-        return $this->belongsTo(Assignment::class);
-    }
 
     public function supervisor()
     {

@@ -22,6 +22,7 @@ return new class extends Migration
             $table->date('date')->nullable();
             $table->time('time')->nullable();
             $table->decimal('review_score', 5, 2)->nullable();
+            $table->text('comments')->nullable();
             $table->timestamps();
 
             $table->foreign('council_id')->references('id')->on('councils')->onDelete('cascade');

@@ -13,17 +13,14 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('assignment_supervisors', function (Blueprint $table) {
+        Schema::create('proposed_topics', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('assignment_id');
             $table->unsignedBigInteger('supervisor_id');
-            $table->string('role')->nullable(); // e.g., 'main' or 'co'
-            $table->string('status')->default('pending'); // e.g., 'approved', 'pending', 'rejected'
-            $table->text('score_report')->nullable();
-            $table->text('comments')->nullable();
+            $table->string('title');
+            $table->text('description')->nullable();
+            $table->dateTime('proposed_at');
             $table->timestamps();
 
-            $table->foreign('assignment_id')->references('id')->on('assignments')->onDelete('cascade');
             $table->foreign('supervisor_id')->references('id')->on('supervisors')->onDelete('cascade');
         });
     }
@@ -35,6 +32,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('assignment_supervisors');
+        Schema::dropIfExists('proposed_topics');
     }
 };

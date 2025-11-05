@@ -22,6 +22,7 @@ return new class extends Migration
             $table->unsignedBigInteger('department_id');
             $table->text('address')->nullable();
             $table->string('date')->nullable();
+            $table->string('time')->nullable();
             $table->text('status');
             $table->timestamps();
             $table->foreign('project_term_id')->references('id')->on('project_terms')->onDelete('cascade');

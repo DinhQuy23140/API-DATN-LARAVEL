@@ -13,6 +13,7 @@ class ProgressLog extends Model
         'project_id',
         'title',
         'description',
+        'content',
         'start_date_time',
         'end_date_time',
         'instructor_comment',
@@ -32,5 +33,9 @@ class ProgressLog extends Model
 
     public function project() {
         return $this->belongsTo(Project::class);
+    }
+
+    public function commentLogs() {
+        return $this->hasMany(CommentLog::class);
     }
 }
