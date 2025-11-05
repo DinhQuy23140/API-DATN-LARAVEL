@@ -161,20 +161,21 @@
           <h3 id="modalTitle" class="font-semibold">Tạo đợt mới</h3>
           <button class="p-2 hover:bg-slate-100 rounded-lg" onclick="closeModal()" data-close aria-label="Đóng"><i class="ph ph-x"></i></button>
         </div>
-        <form class="p-4 space-y-5" onsubmit="event.preventDefault(); closeModal();">
+  <form id="modalCreateForm" method="POST" action="{{ route('web.assistant.rounds.store') }}" class="p-4 space-y-5">
+    <input type="hidden" name="_token" value="{{ csrf_token() }}">
           <!-- Năm học + Đợt (gọn) -->
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div class="relative">
               <label class="text-sm font-medium">Năm học</label>
               <i class="ph ph-calendar text-slate-400 absolute left-3 bottom-3.5 pointer-events-none"></i>
-              <select id="modalYearSelect" required class="mt-1 w-full pl-9 pr-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600">
+              <select id="modalYearSelect" name="academy_year_id" required class="mt-1 w-full pl-9 pr-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600">
                 <!-- JS sẽ render options hoặc render Blade nếu có -->
               </select>
             </div>
             <div class="relative">
               <label class="text-sm font-medium">Đợt</label>
               <i class="ph ph-flag text-slate-400 absolute left-3 bottom-3.5 pointer-events-none"></i>
-              <select id="modalStageSelect" required class="mt-1 w-full pl-9 pr-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600">
+              <select id="modalStageSelect" name="stage" required class="mt-1 w-full pl-9 pr-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600">
                 <option value="1">Đợt 1</option>
                 <option value="2">Đợt 2</option>
                 <option value="Hè">Đợt Hè</option>
@@ -188,14 +189,14 @@
               <label class="text-sm font-medium">Ngày bắt đầu</label>
               <div class="relative mt-1">
                 <i class="ph ph-calendar-check text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
-                <input type="date" required class="w-full pl-9 pr-3 py-2 rounded-lg border border-slate-200 text-sm" />
+                <input type="date" name="start_date" required class="w-full pl-9 pr-3 py-2 rounded-lg border border-slate-200 text-sm" />
               </div>
             </div>
             <div> <!-- Ngày kết thúc (static modal) -->
               <label class="text-sm font-medium">Ngày kết thúc</label>
               <div class="relative mt-1">
                 <i class="ph ph-calendar-x text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
-                <input type="date" required class="w-full pl-9 pr-3 py-2 rounded-lg border border-slate-200 text-sm" />
+                <input type="date" name="end_date" required class="w-full pl-9 pr-3 py-2 rounded-lg border border-slate-200 text-sm" />
               </div>
             </div>
           </div>
@@ -451,7 +452,26 @@
         document.body.appendChild(wrap);
         au_registerModal(wrap);
 
-        // LƯU Ý: Không chặn submit nữa (để POST về server)
+        // Attach validation to the dynamically created form before it can be submitted
+        const dynForm = wrap.querySelector('#createRoundForm');
+        if(dynForm){
+          dynForm.addEventListener('submit', function(e){
+            // prevent default always and submit programmatically only when valid
+            if (this.dataset.__submitting === '1') {
+              // allow actual submission to proceed (flag set)
+              return true;
+            }
+            e.preventDefault();
+            if(!validateRoundForm(this)){
+              return false;
+            }
+            // mark to avoid re-validation loop and submit
+            this.dataset.__submitting = '1';
+            this.submit();
+          });
+        }
+
+        // LƯU Ý: Không chặn submit nữa (để POST về server) — validation above will block if invalid
       }
 
       // Close/Open static modal (#modal)
@@ -483,6 +503,176 @@
       // Expose for buttons already using onclick
       window.openModal = openModal;
       window.closeModal = closeModal;
+
+      // --- Validation helper used by both static and dynamic modals ---
+      function clearValidationErrors(form){
+        form.querySelectorAll('.field-error-message').forEach(n=>n.remove());
+        form.querySelectorAll('.ring-2\.ring-rose-500, .border-rose-500').forEach(el=>{
+          el.classList.remove('ring-2','ring-rose-500','border-rose-500');
+        });
+      }
+
+      function getFieldLabel(form, el){
+        if(!el) return '';
+        if(el.id){
+          const lbl = form.querySelector(`label[for="${el.id}"]`);
+          if(lbl) return lbl.innerText.trim();
+        }
+        let p = el.parentElement;
+        for(let i=0;i<4 && p;i++){
+          const lbl = p.querySelector('label');
+          if(lbl) return lbl.innerText.trim();
+          p = p.parentElement;
+        }
+        return el.name || el.id || 'Trường';
+      }
+
+      function showFieldError(form, el, message){
+        if(!el) return;
+        el.classList.add('ring-2','ring-rose-500','border-rose-500');
+        // insert message after the nearest container (prefer parent)
+        const container = el.parentElement || el;
+        // avoid duplicate
+        if(container.querySelector('.field-error-message')) return;
+        const p = document.createElement('p');
+        p.className = 'field-error-message mt-1 text-rose-600 text-sm';
+        p.textContent = message;
+        container.appendChild(p);
+      }
+
+      function focusAndScroll(el){
+        if(!el) return;
+        try{ el.scrollIntoView({behavior:'smooth', block:'center'}); }catch(e){}
+        try{ el.focus({preventScroll:true}); }catch(e){ el.focus(); }
+      }
+
+      function validateRoundForm(form){
+        clearValidationErrors(form);
+        const errors = [];
+
+        const yearEl = form.querySelector('[name="academy_year_id"]');
+        const stageEl = form.querySelector('[name="stage"]');
+        const startEl = form.querySelector('[name="start_date"]');
+        const endEl = form.querySelector('[name="end_date"]');
+        const descEl = form.querySelector('[name="description"]');
+
+        if(!yearEl || !yearEl.value){
+          const label = getFieldLabel(form, yearEl) || 'Năm học';
+          showFieldError(form, yearEl || form, `Thiếu: ${label}`);
+          errors.push(yearEl || form);
+        }
+        if(!stageEl || !stageEl.value){
+          const label = getFieldLabel(form, stageEl) || 'Đợt';
+          showFieldError(form, stageEl || form, `Thiếu: ${label}`);
+          errors.push(stageEl || form);
+        }
+        if(!startEl || !startEl.value){
+          const label = getFieldLabel(form, startEl) || 'Ngày bắt đầu đợt';
+          showFieldError(form, startEl || form, `Thiếu: ${label}`);
+          errors.push(startEl || form);
+        }
+        if(!endEl || !endEl.value){
+          const label = getFieldLabel(form, endEl) || 'Ngày kết thúc đợt';
+          showFieldError(form, endEl || form, `Thiếu: ${label}`);
+          errors.push(endEl || form);
+        }
+
+        // validate description (required, max length)
+        if(!descEl || !descEl.value || !descEl.value.trim()){
+          const label = getFieldLabel(form, descEl) || 'Mô tả';
+          showFieldError(form, descEl || form, `Thiếu: ${label}`);
+          errors.push(descEl || form);
+        } else if(descEl.value.trim().length > 1000){
+          showFieldError(form, descEl, 'Mô tả không được vượt quá 1000 ký tự.');
+          errors.push(descEl);
+        }
+
+        if(startEl && endEl && startEl.value && endEl.value){
+          if(new Date(startEl.value) > new Date(endEl.value)){
+            showFieldError(form, startEl, 'Ngày bắt đầu phải trước hoặc bằng ngày kết thúc.');
+            errors.push(startEl);
+          }
+        }
+
+        // timeline stages: require both start and end for ALL stages and ensure start<=end
+        for(let i=1;i<=8;i++){
+          const sEl = form.querySelector(`[name="stage_${i}_start"]`);
+          const eEl = form.querySelector(`[name="stage_${i}_end"]`);
+          const s = sEl?.value || '';
+          const e = eEl?.value || '';
+          // require both values for every stage
+          if(!s || !e){
+            const labelS = getFieldLabel(form, sEl) || `Giai đoạn ${i} bắt đầu`;
+            const labelE = getFieldLabel(form, eEl) || `Giai đoạn ${i} kết thúc`;
+            if(!s) showFieldError(form, sEl || eEl || form, `Thiếu: ${labelS}`);
+            if(!e) showFieldError(form, eEl || sEl || form, `Thiếu: ${labelE}`);
+            errors.push(sEl || eEl || form);
+            continue; // skip ordering check for this stage since it's incomplete
+          }
+          // both provided: check ordering
+          if(new Date(s) > new Date(e)){
+            showFieldError(form, sEl, `Giai đoạn ${i}: ngày bắt đầu phải trước hoặc bằng ngày kết thúc.`);
+            errors.push(sEl);
+          }
+        }
+
+        // Additional timeline validations:
+        // 1) Each stage (if provided) must lie within the overall round start/end
+        // 2) Stages must be in chronological order and non-overlapping: end(i) <= start(i+1)
+        const roundStart = startEl?.value ? new Date(startEl.value) : null;
+        const roundEnd = endEl?.value ? new Date(endEl.value) : null;
+        if(roundStart && roundEnd){
+          let prevEnd = null;
+          for(let i=1;i<=8;i++){
+            const sEl = form.querySelector(`[name="stage_${i}_start"]`);
+            const eEl = form.querySelector(`[name="stage_${i}_end"]`);
+            const s = sEl?.value ? new Date(sEl.value) : null;
+            const e = eEl?.value ? new Date(eEl.value) : null;
+
+            if(s && e){
+              // inside round range
+              if(s < roundStart){
+                showFieldError(form, sEl, `Giai đoạn ${i}: ngày bắt đầu nhỏ hơn ngày bắt đầu đợt.`);
+                errors.push(sEl);
+              }
+              if(e > roundEnd){
+                showFieldError(form, eEl, `Giai đoạn ${i}: ngày kết thúc lớn hơn ngày kết thúc đợt.`);
+                errors.push(eEl);
+              }
+              // ordering with previous stage
+              if(prevEnd && s < prevEnd){
+                showFieldError(form, sEl, `Giai đoạn ${i}: ngày bắt đầu phải sau hoặc bằng ngày kết thúc của giai đoạn trước.`);
+                errors.push(sEl);
+              }
+              prevEnd = e;
+            }
+            // if stage not filled, keep prevEnd unchanged
+          }
+        }
+
+        // NOTE: all stages are required now (handled above) so no "at least one" check here
+
+        if(errors.length){
+          // focus and scroll to first invalid element
+          const first = errors.find(x => x instanceof Element) || errors[0];
+          if(first && first instanceof Element) focusAndScroll(first);
+          return false;
+        }
+        return true;
+      }
+
+      // Attach validation to static modal form: block submit if invalid
+      document.getElementById('modalCreateForm')?.addEventListener('submit', function(e){
+        // prevent default always and submit programmatically only when valid
+        if (this.dataset.__submitting === '1') {
+          return true;
+        }
+        e.preventDefault();
+        if(!validateRoundForm(this)) return;
+        // mark and submit so the route is called only when validation passes
+        this.dataset.__submitting = '1';
+        this.submit();
+      });
     </script>
   </body>
 </html>
