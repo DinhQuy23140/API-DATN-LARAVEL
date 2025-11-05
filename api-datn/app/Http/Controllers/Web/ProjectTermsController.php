@@ -86,7 +86,58 @@ class ProjectTermsController extends Controller
 
     public function show(ProjectTerm $project_term){ return view('project_terms.show',compact('project_term')); }
     public function edit(ProjectTerm $project_term){ return view('project_terms.edit',['term'=>$project_term,'years'=>AcademyYear::all()]); }
-    public function update(Request $request, ProjectTerm $project_term){ $data=$request->validate(['academy_year_id'=>'sometimes|exists:academy_years,id','term_name'=>'sometimes|string|max:255','start_date'=>'sometimes|date','end_date'=>'sometimes|date|after_or_equal:start_date']); $project_term->update($data); return redirect()->route('web.project_terms.show',$project_term)->with('status','Cập nhật thành công'); }
+    public function update(Request $request, ProjectTerm $project_term)
+    {
+        // Normalize fields (accept both assistant modal names and generic names)
+        $request->merge([
+            'academy_year_id' => $request->input('academy_year_id') ?: $request->input('schoolYear'),
+            'stage'           => $request->input('stage') ?: $request->input('roundTerm'),
+            'start_date'      => $request->input('start_date') ?: $request->input('roundStart'),
+            'end_date'        => $request->input('end_date') ?: $request->input('roundEnd'),
+        ]);
+
+        $validated = $request->validate([
+            'academy_year_id' => ['sometimes','required','exists:academy_years,id'],
+            'stage'           => ['sometimes','required','string','max:50'],
+            'start_date'      => ['nullable','date'],
+            'end_date'        => ['nullable','date','after_or_equal:start_date'],
+            'description'     => ['nullable','string','max:255'],
+        ]);
+
+        // extract timelines from request
+        $timelineRows = $this->extractStageTimelines($request);
+
+        DB::transaction(function () use ($project_term, $validated, $timelineRows) {
+            // Update project term fields
+            $project_term->update(array_merge([
+                'academy_year_id' => $validated['academy_year_id'] ?? $project_term->academy_year_id,
+                'stage'           => $validated['stage'] ?? $project_term->stage,
+                'start_date'      => $validated['start_date'] ?? $project_term->start_date,
+                'end_date'        => $validated['end_date'] ?? $project_term->end_date,
+                'description'     => $validated['description'] ?? $project_term->description,
+            ], []));
+
+            // Replace stage timelines: delete existing and insert new ones
+            // Use the stage_timeline model used elsewhere in this controller
+            stage_timeline::where('project_term_id', $project_term->id)->delete();
+            if (!empty($timelineRows)) {
+                $now = now();
+                foreach ($timelineRows as &$row) {
+                    $row['project_term_id'] = $project_term->id;
+                    $row['created_at'] = $now;
+                    $row['updated_at'] = $now;
+                }
+                stage_timeline::insert($timelineRows);
+            }
+        });
+
+        if ($request->wantsJson()) {
+            return response()->json(['ok' => true, 'message' => 'Cập nhật thành công']);
+        }
+
+        // Redirect back to assistant rounds listing for UI consistency
+        return redirect()->route('web.assistant.rounds')->with('status', 'Cập nhật thành công');
+    }
     public function destroy(Request $request, ProjectTerm $project_term)
     {
         $project_term->delete();
@@ -134,12 +185,27 @@ class ProjectTermsController extends Controller
         if (is_array($stagesArray) && count($stagesArray)) {
             foreach ($stagesArray as $it) {
                 if (empty($it['start_date']) || empty($it['end_date'])) continue;
+                // Normalize status to DB enum values ('pending','active','completed').
+                $rawStatus = $it['status'] ?? null;
+                if (is_null($rawStatus) || $rawStatus === '') {
+                    $status = 'pending';
+                } elseif (is_numeric($rawStatus)) {
+                    // map numeric values to enum
+                    $map = [0 => 'pending', 1 => 'active', 2 => 'completed'];
+                    $status = $map[(int) $rawStatus] ?? 'pending';
+                } elseif (in_array($rawStatus, ['pending', 'active', 'completed'], true)) {
+                    $status = $rawStatus;
+                } else {
+                    // fallback
+                    $status = 'pending';
+                }
+
                 $rows[] = [
                     'number_of_rounds' => (int) ($it['number_of_rounds'] ?? 0),
                     'start_date'       => $it['start_date'],
                     'end_date'         => $it['end_date'],
                     'description'      => $it['description'] ?? null,
-                    'status'           => (int) ($it['status'] ?? 0),
+                    'status'           => $status,
                 ];
             }
             return $rows;
@@ -153,12 +219,25 @@ class ProjectTermsController extends Controller
                 if ($i > 8) break; // dừng sớm sau 8 mốc mặc định
                 continue;
             }
+            // Normalize status input: accept enum strings or numeric codes, default to 'pending'.
+            $rawStatus = $request->input("stage_{$i}_status", null);
+            if (is_null($rawStatus) || $rawStatus === '') {
+                $status = 'pending';
+            } elseif (is_numeric($rawStatus)) {
+                $map = [0 => 'pending', 1 => 'active', 2 => 'completed'];
+                $status = $map[(int) $rawStatus] ?? 'pending';
+            } elseif (in_array($rawStatus, ['pending', 'active', 'completed'], true)) {
+                $status = $rawStatus;
+            } else {
+                $status = 'pending';
+            }
+
             $rows[] = [
                 'number_of_rounds' => $i,
                 'start_date'       => $s,
                 'end_date'         => $e,
                 'description'      => $request->input("stage_{$i}_desc") ?: "Stage {$i}",
-                'status'           => (int) $request->input("stage_{$i}_status", 0),
+                'status'           => $status,
             ];
         }
 

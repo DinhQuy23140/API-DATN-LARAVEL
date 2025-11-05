@@ -134,14 +134,34 @@
                       $start_year = $term->start_date ? substr($term->start_date, 0, 4) : '';
                       $end_year = $term->end_date ? substr($term->end_date, 0, 4) : '';
                       $termName = "Đợt " . $term->stage . " " . $term->academy_year->year_name;
+                      // build a simple array for the row data-term to avoid inline closures in attributes
+                      $timelines = [];
+                      if (!empty($term->stageTimelines)) {
+                        foreach ($term->stageTimelines as $st) {
+                          $timelines[] = [
+                            'number' => $st->number_of_rounds ?? null,
+                            'start' => $st->start_date ?? null,
+                            'end' => $st->end_date ?? null,
+                          ];
+                        }
+                      }
+                      $termData = [
+                        'id' => $term->id,
+                        'academy_year_id' => $term->academy_year_id,
+                        'stage' => $term->stage,
+                        'start_date' => $term->start_date,
+                        'end_date' => $term->end_date,
+                        'description' => $term->description,
+                        'stage_timelines' => $timelines,
+                      ];
                     @endphp
-                  <tr class="hover:bg-slate-50">
+                  <tr class="hover:bg-slate-50" data-term='@json($termData)'>
                     <td class="py-3 px-4"><a href="{{ route('web.assistant.round_detail', ['round_id' => $term->id]) }}" class="text-blue-600 hover:underline">{{$termName}}</a></td>
                     <td class="py-3 px-4">{{$term->start_date}} - {{$term->end_date}}</td>
                     <td class="py-3 px-4">12</td>
                     <td class="py-3 px-4 text-right space-x-2">
                       <a class="px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-slate-600" href="{{ route('web.assistant.round_detail', ['round_id' => $term->id]) }}"><i class="ph ph-eye"></i></a>
-                      <button class="px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-slate-600" onclick="openModal('edit')"><i class="ph ph-pencil"></i></button>
+                      <button type="button" class="btn-edit-round px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-slate-600" title="Sửa đợt"><i class="ph ph-pencil"></i></button>
                       <button type="button" data-round-id="{{ $term->id }}" class="btn-delete-round px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-rose-600" title="Xóa đợt"><i class="ph ph-trash"></i></button>
                     </td>
                   </tr>
@@ -210,7 +230,230 @@
       </div>
     </div>
 
-    <script>
+      <!-- Edit Modal (separate from create modal) -->
+      <div id="modalEdit" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm hidden flex items-end sm:items-center justify-center z-50">
+        <div data-modal-container class="bg-white w-full sm:max-w-4xl max-h-[92vh] overflow-auto rounded-t-2xl sm:rounded-2xl shadow-xl relative z-10">
+          <div class="p-4 border-b flex items-center justify-between sticky top-0 bg-white z-10">
+            <h3 class="font-semibold">Sửa đợt đồ án</h3>
+            <button class="p-2 hover:bg-slate-100 rounded-lg" onclick="closeEditModal()" data-close aria-label="Đóng"><i class="ph ph-x"></i></button>
+          </div>
+          <form id="modalEditForm" method="POST" action="#" class="p-4 space-y-5">
+            <input type="hidden" name="_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="_method" value="PUT">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div class="relative">
+                <label class="text-sm font-medium">Năm học</label>
+                <i class="ph ph-calendar text-slate-400 absolute left-3 bottom-3.5 pointer-events-none"></i>
+                <select name="academy_year_id" required class="mt-1 w-full pl-9 pr-3 py-2 rounded-lg border border-slate-200 text-sm">
+                  @foreach ($years as $year)
+                    <option value="{{ $year->id }}">{{ $year->year_name }}</option>
+                  @endforeach
+                </select>
+              </div>
+              <div class="relative">
+                <label class="text-sm font-medium">Đợt</label>
+                <i class="ph ph-flag text-slate-400 absolute left-3 bottom-3.5 pointer-events-none"></i>
+                <select name="stage" required class="mt-1 w-full pl-9 pr-3 py-2 rounded-lg border border-slate-200 text-sm">
+                  <option value="1">Đợt 1</option>
+                  <option value="2">Đợt 2</option>
+                  <option value="Hè">Đợt Hè</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="grid sm:grid-cols-2 gap-4">
+              <div>
+                <label class="text-sm font-medium">Ngày bắt đầu đợt</label>
+                <div class="relative mt-1">
+                  <i class="ph ph-calendar-check text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                  <input type="date" name="start_date" class="w-full pl-9 pr-3 py-2 rounded-lg border border-slate-200 text-sm" />
+                </div>
+              </div>
+              <div>
+                <label class="text-sm font-medium">Ngày kết thúc đợt</label>
+                <div class="relative mt-1">
+                  <i class="ph ph-calendar-x text-slate-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                  <input type="date" name="end_date" class="w-full pl-9 pr-3 py-2 rounded-lg border border-slate-200 text-sm" />
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <label class="text-sm font-medium">Mô tả</label>
+              <input name="description" class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 text-sm" placeholder="VD: Đợt 1 2025-2026" />
+            </div>
+
+            <!-- Timeline 1–8 (same inputs as create form) -->
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <h4 class="font-semibold">Mốc timeline (1–8)</h4>
+                <span class="text-xs text-slate-500">Nhập thời gian cho từng mốc</span>
+              </div>
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="rounded-lg border border-slate-200 p-3 bg-slate-50/50">
+                  <div class="font-medium mb-2">Giai đoạn 1</div>
+                  <div class="grid grid-cols-2 gap-3">
+                    <div>
+                      <label class="block text-xs text-slate-600 mb-1">Bắt đầu</label>
+                      <div class="relative">
+                        <i class="ph ph-clock text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                        <input type="date" name="stage_1_start" class="w-full pl-8 pr-2 py-1.5 border border-slate-200 rounded text-sm">
+                      </div>
+                    </div>
+                    <div>
+                      <label class="block text-xs text-slate-600 mb-1">Kết thúc</label>
+                      <div class="relative">
+                        <i class="ph ph-clock-afternoon text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                        <input type="date" name="stage_1_end" class="w-full pl-8 pr-2 py-1.5 border border-slate-200 rounded text-sm">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="rounded-lg border border-slate-200 p-3 bg-slate-50/50">
+                  <div class="font-medium mb-2">Giai đoạn 2</div>
+                  <div class="grid grid-cols-2 gap-3">
+                    <div>
+                      <label class="block text-xs text-slate-600 mb-1">Bắt đầu</label>
+                      <div class="relative">
+                        <i class="ph ph-clock text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                        <input type="date" name="stage_2_start" class="w-full pl-8 pr-2 py-1.5 border border-slate-200 rounded text-sm">
+                      </div>
+                    </div>
+                    <div>
+                      <label class="block text-xs text-slate-600 mb-1">Kết thúc</label>
+                      <div class="relative">
+                        <i class="ph ph-clock-afternoon text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                        <input type="date" name="stage_2_end" class="w-full pl-8 pr-2 py-1.5 border border-slate-200 rounded text-sm">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="rounded-lg border border-slate-200 p-3 bg-slate-50/50">
+                  <div class="font-medium mb-2">Giai đoạn 3</div>
+                  <div class="grid grid-cols-2 gap-3">
+                    <div>
+                      <label class="block text-xs text-slate-600 mb-1">Bắt đầu</label>
+                      <div class="relative">
+                        <i class="ph ph-clock text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                        <input type="date" name="stage_3_start" class="w-full pl-8 pr-2 py-1.5 border border-slate-200 rounded text-sm">
+                      </div>
+                    </div>
+                    <div>
+                      <label class="block text-xs text-slate-600 mb-1">Kết thúc</label>
+                      <div class="relative">
+                        <i class="ph ph-clock-afternoon text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                        <input type="date" name="stage_3_end" class="w-full pl-8 pr-2 py-1.5 border border-slate-200 rounded text-sm">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="rounded-lg border border-slate-200 p-3 bg-slate-50/50">
+                  <div class="font-medium mb-2">Giai đoạn 4</div>
+                  <div class="grid grid-cols-2 gap-3">
+                    <div>
+                      <label class="block text-xs text-slate-600 mb-1">Bắt đầu</label>
+                      <div class="relative">
+                        <i class="ph ph-clock text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                        <input type="date" name="stage_4_start" class="w-full pl-8 pr-2 py-1.5 border border-slate-200 rounded text-sm">
+                      </div>
+                    </div>
+                    <div>
+                      <label class="block text-xs text-slate-600 mb-1">Kết thúc</label>
+                      <div class="relative">
+                        <i class="ph ph-clock-afternoon text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                        <input type="date" name="stage_4_end" class="w-full pl-8 pr-2 py-1.5 border border-slate-200 rounded text-sm">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="rounded-lg border border-slate-200 p-3 bg-slate-50/50">
+                  <div class="font-medium mb-2">Giai đoạn 5</div>
+                  <div class="grid grid-cols-2 gap-3">
+                    <div>
+                      <label class="block text-xs text-slate-600 mb-1">Bắt đầu</label>
+                      <div class="relative">
+                        <i class="ph ph-clock text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                        <input type="date" name="stage_5_start" class="w-full pl-8 pr-2 py-1.5 border border-slate-200 rounded text-sm">
+                      </div>
+                    </div>
+                    <div>
+                      <label class="block text-xs text-slate-600 mb-1">Kết thúc</label>
+                      <div class="relative">
+                        <i class="ph ph-clock-afternoon text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                        <input type="date" name="stage_5_end" class="w-full pl-8 pr-2 py-1.5 border border-slate-200 rounded text-sm">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="rounded-lg border border-slate-200 p-3 bg-slate-50/50">
+                  <div class="font-medium mb-2">Giai đoạn 6</div>
+                  <div class="grid grid-cols-2 gap-3">
+                    <div>
+                      <label class="block text-xs text-slate-600 mb-1">Bắt đầu</label>
+                      <div class="relative">
+                        <i class="ph ph-clock text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                        <input type="date" name="stage_6_start" class="w-full pl-8 pr-2 py-1.5 border border-slate-200 rounded text-sm">
+                      </div>
+                    </div>
+                    <div>
+                      <label class="block text-xs text-slate-600 mb-1">Kết thúc</label>
+                      <div class="relative">
+                        <i class="ph ph-clock-afternoon text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                        <input type="date" name="stage_6_end" class="w-full pl-8 pr-2 py-1.5 border border-slate-200 rounded text-sm">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="rounded-lg border border-slate-200 p-3 bg-slate-50/50">
+                  <div class="font-medium mb-2">Giai đoạn 7</div>
+                  <div class="grid grid-cols-2 gap-3">
+                    <div>
+                      <label class="block text-xs text-slate-600 mb-1">Bắt đầu</label>
+                      <div class="relative">
+                        <i class="ph ph-clock text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                        <input type="date" name="stage_7_start" class="w-full pl-8 pr-2 py-1.5 border border-slate-200 rounded text-sm">
+                      </div>
+                    </div>
+                    <div>
+                      <label class="block text-xs text-slate-600 mb-1">Kết thúc</label>
+                      <div class="relative">
+                        <i class="ph ph-clock-afternoon text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                        <input type="date" name="stage_7_end" class="w-full pl-8 pr-2 py-1.5 border border-slate-200 rounded text-sm">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="rounded-lg border border-slate-200 p-3 bg-slate-50/50">
+                  <div class="font-medium mb-2">Giai đoạn 8</div>
+                  <div class="grid grid-cols-2 gap-3">
+                    <div>
+                      <label class="block text-xs text-slate-600 mb-1">Bắt đầu</label>
+                      <div class="relative">
+                        <i class="ph ph-clock text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                        <input type="date" name="stage_8_start" class="w-full pl-8 pr-2 py-1.5 border border-slate-200 rounded text-sm">
+                      </div>
+                    </div>
+                    <div>
+                      <label class="block text-xs text-slate-600 mb-1">Kết thúc</label>
+                      <div class="relative">
+                        <i class="ph ph-clock-afternoon text-slate-400 absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                        <input type="date" name="stage_8_end" class="w-full pl-8 pr-2 py-1.5 border border-slate-200 rounded text-sm">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div class="flex items-center justify-end gap-2 pt-2">
+              <button type="button" onclick="closeEditModal()" data-close class="px-4 py-2 rounded-lg border hover:bg-slate-50">Hủy</button>
+              <button type="submit" class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700">Lưu</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <script>
       const html=document.documentElement, sidebar=document.getElementById('sidebar');
       function setCollapsed(c){
         const mainArea = document.querySelector('.flex-1');
@@ -674,6 +917,73 @@
         this.dataset.__submitting = '1';
         this.submit();
       });
+
+      // Edit modal handling: open, populate and submit
+      (function(){
+        const modalEdit = document.getElementById('modalEdit');
+        const editForm = document.getElementById('modalEditForm');
+        const baseUrl = '{{ url("assistant/thesis/rounds") }}';
+
+        function openEditModalForTerm(term){
+          if(!editForm) return;
+          clearValidationErrors(editForm);
+          // set action to the update route
+          editForm.action = baseUrl + '/' + encodeURIComponent(term.id);
+          // fill basic fields
+          editForm.querySelector('[name="academy_year_id"]').value = term.academy_year_id || '';
+          editForm.querySelector('[name="stage"]').value = term.stage || '';
+          editForm.querySelector('[name="start_date"]').value = term.start_date || '';
+          editForm.querySelector('[name="end_date"]').value = term.end_date || '';
+          editForm.querySelector('[name="description"]').value = term.description || '';
+
+          // if stage timelines present, fill stage_{i}_start/end if inputs exist
+          if(Array.isArray(term.stage_timelines) && term.stage_timelines.length){
+            term.stage_timelines.forEach(st => {
+              const idx = st.number || st.number_of_rounds || st.number_of_rounds === 0 ? st.number : st.number;
+              if(!idx) return;
+              const s = editForm.querySelector(`[name="stage_${idx}_start"]`);
+              const e = editForm.querySelector(`[name="stage_${idx}_end"]`);
+              if(s) s.value = st.start || '';
+              if(e) e.value = st.end || '';
+            });
+          }
+
+          modalEdit.classList.remove('hidden');
+        }
+
+        function closeEditModal(){
+          modalEdit.classList.add('hidden');
+        }
+
+        // expose close for button
+        window.closeEditModal = closeEditModal;
+
+        // open when clicking an edit button; term data is stored on the row (<tr data-term='...'>)
+        document.addEventListener('click', function(e){
+          const btn = e.target.closest && e.target.closest('.btn-edit-round');
+          if(!btn) return;
+          // prefer data on the button if present, otherwise look up the closest row
+          const tr = btn.closest('tr');
+          const raw = btn.getAttribute('data-term') || (tr && tr.getAttribute('data-term'));
+          if(!raw) {
+            console.warn('No term data found for edit button');
+            return;
+          }
+          let term = null;
+          try{ term = JSON.parse(raw); }catch(err){ console.error('Failed to parse term data', err, raw); return; }
+          openEditModalForTerm(term);
+        });
+
+        // validate & submit edit form
+        editForm?.addEventListener('submit', function(e){
+          if(this.dataset.__submitting === '1') return true;
+          e.preventDefault();
+          if(!validateRoundForm(this)) return;
+          this.dataset.__submitting = '1';
+          this.submit();
+        });
+
+      })();
 
       // Delete round handler (confirm box + DELETE request)
       (function(){
