@@ -22,46 +22,42 @@
   $email = $user->email ?? '';
   $avatarUrl = $user->avatar_url ?? $user->profile_photo_url ?? 'https://ui-avatars.com/api/?name=' . urlencode($userName) . '&background=0ea5e9&color=ffffff';
 
-  // Data mẫu khi chưa có $students từ controller
-  $hasData = isset($students);
-  $items = $hasData ? $students : collect([
-    (object)['id'=>1,'student_code'=>'20123456','fullname'=>'Nguyễn Văn A','class_name'=>'KTPM2021','email'=>'a@example.com','status'=>'active'],
-    (object)['id'=>2,'student_code'=>'20124567','fullname'=>'Trần Thị B','class_name'=>'HTTT2021','email'=>'b@example.com','status'=>'pending'],
-    (object)['id'=>3,'student_code'=>'20125678','fullname'=>'Lê Văn C','class_name'=>'CNPM2021','email'=>'c@example.com','status'=>'paused'],
-  ]);
 @endphp
 
 <div class="flex min-h-screen">
   <!-- Sidebar -->
-  <aside id="sidebar" class="sidebar fixed inset-y-0 left-0 z-30 bg-white border-r border-slate-200 flex flex-col transition-all">
-    <div class="h-16 flex items-center gap-3 px-4 border-b border-slate-200">
-      <div class="h-9 w-9 grid place-items-center rounded-lg bg-blue-600 text-white"><i class="ph ph-buildings"></i></div>
-      <div class="sidebar-label">
-        <div class="font-semibold">Bảng quản trị</div>
-        <div class="text-xs text-slate-500">Hệ thống</div>
-      </div>
-    </div>
-    <nav class="flex-1 overflow-y-auto p-3">
-      <a href="{{ route('web.admin.dashboard') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100">
-        <i class="ph ph-gauge"></i><span class="sidebar-label">Dashboard</span>
-      </a>
-      <div class="mt-3 text-xs uppercase text-slate-400 sidebar-label px-3">Quản lý</div>
-      <a href="{{ route('web.admin.students.index') ?? '#' }}" class="flex items-center gap-3 px-3 py-2 rounded-lg bg-slate-100 font-semibold">
-        <i class="ph ph-student"></i><span class="sidebar-label">Sinh viên</span>
-      </a>
-      <a href="{{ route('web.admin.lecturers.index') ?? '#' }}" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100">
-        <i class="ph ph-chalkboard-teacher"></i><span class="sidebar-label">Giảng viên</span>
-      </a>
-    </nav>
-    <div class="p-3 border-t border-slate-200">
-      <button id="toggleSidebar" class="w-full flex items-center justify-center gap-2 px-3 py-2 text-slate-600 hover:bg-slate-100 rounded-lg">
-        <i class="ph ph-sidebar"></i><span class="sidebar-label">Thu gọn</span>
-      </button>
-    </div>
-  </aside>
+      <aside id="sidebar" class="sidebar fixed inset-y-0 left-0 z-30 bg-white border-r border-slate-200 flex flex-col transition-all">
+        <div class="h-16 flex items-center gap-3 px-4 border-b border-slate-200">
+          <div class="h-9 w-9 grid place-items-center rounded-lg bg-blue-600 text-white"><i class="ph ph-buildings"></i></div>
+          <div class="sidebar-label">
+            <div class="font-semibold">UniAdmin</div>
+            <div class="text-xs text-slate-500">Quản trị hệ thống</div>
+          </div>
+        </div>
+        <nav class="flex-1 overflow-y-auto p-3">
+          <a href="{{ route('web.admin.dashboard') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-100 font-medium">
+            <i class="ph ph-gauge"></i> <span class="sidebar-label">Bảng điều khiển</span>
+          </a>
+          <a href="{{ route('web.admin.manage_faculties') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-100 font-medium">
+            <i class="ph ph-graduation-cap"></i> <span class="sidebar-label">Quản lý Khoa</span>
+          </a>
+          <a href="{{ route('web.admin.manage_assistants') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-100 font-medium">
+            <i class="ph ph-users-three"></i> <span class="sidebar-label">Trợ lý khoa</span>
+          </a>
+          <a href="{{ route('web.admin.manage_students') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-700 bg-slate-100 font-bold">
+            <i class="ph ph-users"></i> <span class="sidebar-label">Quản lý Sinh viên</span>
+          </a>
+          <a href="{{ route('web.admin.manage_lecturers') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-100 font-medium">
+            <i class="ph ph-chalkboard-teacher"></i> <span class="sidebar-label">Quản lý Giảng viên</span>
+          </a>
+        </nav>
+        <div class="p-3 border-t border-slate-200">
+          <button id="toggleSidebar" class="w-full flex items-center justify-center gap-2 px-3 py-2 text-slate-600 hover:bg-slate-100 rounded-lg"><i class="ph ph-sidebar"></i><span class="sidebar-label">Thu gọn</span></button>
+        </div>
+      </aside>
 
   <!-- Main -->
-  <div class="flex-1 h-screen overflow-hidden flex flex-col md:pl-[260px]">
+  <div class="flex-1 h-screen overflow-hidden flex flex-col">
     <!-- Header -->
     <header class="h-16 bg-white border-b border-slate-200 flex items-center px-4 md:px-6 flex-shrink-0">
       <div class="flex items-center gap-3 flex-1">
@@ -130,34 +126,32 @@
                 <th class="text-left px-4 py-3">Họ tên</th>
                 <th class="text-left px-4 py-3">Lớp</th>
                 <th class="text-left px-4 py-3">Email</th>
-                <th class="text-center px-4 py-3">Trạng thái</th>
+                <th class="text-center px-4 py-3">Ngành</th>
                 <th class="text-right px-4 py-3">Hành động</th>
               </tr>
             </thead>
             <tbody id="tableBody" class="divide-y divide-slate-100">
-              @foreach ($items as $st)
+              @foreach ($students as $st)
                 @php
                   $status = $st->status ?? 'active';
-                  $pill = ['active'=>'bg-emerald-50 text-emerald-700','pending'=>'bg-amber-50 text-amber-700','paused'=>'bg-slate-100 text-slate-700'][$status] ?? 'bg-slate-100 text-slate-700';
-                  $pillText = ['active'=>'Đang học','pending'=>'Chờ xác nhận','paused'=>'Tạm dừng'][$status] ?? 'Khác';
                 @endphp
                 <tr class="hover:bg-slate-50" data-status="{{ $status }}">
                   <td class="px-4 py-3"><input type="checkbox" class="rowChk h-4 w-4"></td>
                   <td class="px-4 py-3 font-mono">{{ $st->student_code ?? '-' }}</td>
                   <td class="px-4 py-3 font-medium text-slate-800">{{ $st->fullname ?? ($st->user->fullname ?? '-') }}</td>
-                  <td class="px-4 py-3">{{ $st->class_name ?? ($st->classroom->name ?? '-') }}</td>
+                  <td class="px-4 py-3">{{ $st->class_code ?? ($st->classroom->name ?? '-') }}</td>
                   <td class="px-4 py-3">{{ $st->email ?? ($st->user->email ?? '-') }}</td>
                   <td class="px-4 py-3 text-center">
-                    <span class="px-2 py-0.5 rounded-full text-xs {{ $pill }}">{{ $pillText }}</span>
+                    {{ $st->marjor->name ??  '-' }}
                   </td>
                   <td class="px-4 py-3 text-right space-x-2">
-                    <button class="btnEdit px-2 py-1.5 rounded-lg border hover:bg-slate-50 text-indigo-600"
-                            data-id="{{ $st->id }}"
-                            data-code="{{ $st->student_code ?? '' }}"
-                            data-name="{{ $st->fullname ?? ($st->user->fullname ?? '') }}"
-                            data-class="{{ $st->class_name ?? ($st->classroom->name ?? '') }}"
-                            data-email="{{ $st->email ?? ($st->user->email ?? '') }}"
-                            data-status="{{ $status }}">
+        <button class="btnEdit px-2 py-1.5 rounded-lg border hover:bg-slate-50 text-indigo-600"
+          data-id="{{ $st->id }}"
+          data-code="{{ $st->student_code ?? '' }}"
+          data-name="{{ $st->fullname ?? ($st->user->fullname ?? '') }}"
+          data-classname="{{ $st->class_code ?? ($st->classroom->name ?? '') }}"
+          data-email="{{ $st->email ?? ($st->user->email ?? '') }}"
+          data-status="{{ $status }}">
                       <i class="ph ph-pencil"></i>
                     </button>
                     <button class="btnDelete px-2 py-1.5 rounded-lg border hover:bg-slate-50 text-rose-600" data-id="{{ $st->id }}">
@@ -171,7 +165,7 @@
         </section>
 
         <!-- Pagination (tĩnh nếu chưa có paginate) -->
-        @if($hasData && method_exists($students, 'links'))
+        @if(method_exists($students, 'links'))
           <div>{{ $students->links() }}</div>
         @endif
       </div>
@@ -207,6 +201,26 @@
           <input id="stEmail" type="email" class="mt-1 w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600">
         </div>
       </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <label class="text-sm text-slate-600">Mật khẩu (mới)</label>
+          <input id="stPassword" type="password" class="mt-1 w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600" placeholder="Để trống nếu không đổi">
+        </div>
+        <div>
+          <label class="text-sm text-slate-600">Ngành học</label>
+          <input id="stMajor" class="mt-1 w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600" placeholder="Ví dụ: Công nghệ phần mềm">
+        </div>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <label class="text-sm text-slate-600">Số điện thoại</label>
+          <input id="stPhone" class="mt-1 w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600" placeholder="Số điện thoại">
+        </div>
+        <div>
+          <label class="text-sm text-slate-600">Ngày sinh</label>
+          <input id="stDob" type="date" class="mt-1 w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600">
+        </div>
+      </div>
       <div>
         <label class="text-sm text-slate-600">Trạng thái</label>
         <select id="stStatus" class="mt-1 w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600">
@@ -230,8 +244,8 @@
   const html = document.documentElement, sidebar = document.getElementById('sidebar');
   function setCollapsed(c){
     const mainArea = document.querySelector('.flex-1');
-    if(c){ html.classList.add('sidebar-collapsed'); mainArea?.classList.add('md:pl-[72px]'); mainArea?.classList.remove('md:pl-[260px]'); }
-    else { html.classList.remove('sidebar-collapsed'); mainArea?.classList.remove('md:pl-[72px]'); mainArea?.classList.add('md:pl-[260px]'); }
+    if(c){ html.classList.add('sidebar-collapsed');}
+    else { html.classList.remove('sidebar-collapsed'); }
   }
   document.getElementById('toggleSidebar')?.addEventListener('click',()=>{const c=!html.classList.contains('sidebar-collapsed'); setCollapsed(c); localStorage.setItem('admin_sidebar',''+(c?1:0));});
   document.getElementById('openSidebar')?.addEventListener('click',()=> sidebar.classList.toggle('-translate-x-full'));
@@ -261,6 +275,10 @@
     document.getElementById('stName').value = '';
     document.getElementById('stClass').value = '';
     document.getElementById('stEmail').value = '';
+    document.getElementById('stPassword').value = '';
+    document.getElementById('stMajor').value = '';
+    document.getElementById('stPhone').value = '';
+    document.getElementById('stDob').value = '';
     document.getElementById('stStatus').value = 'active';
     openModal();
   });
@@ -289,8 +307,13 @@
     document.getElementById('stId').value = btn.dataset.id || '';
     document.getElementById('stCode').value = btn.dataset.code || '';
     document.getElementById('stName').value = btn.dataset.name || '';
-    document.getElementById('stClass').value = btn.dataset.class || '';
+  document.getElementById('stClass').value = btn.dataset.classname || '';
     document.getElementById('stEmail').value = btn.dataset.email || '';
+    // Do not populate password for security reasons
+    document.getElementById('stPassword').value = '';
+    document.getElementById('stMajor').value = btn.dataset.major || '';
+    document.getElementById('stPhone').value = btn.dataset.phone || '';
+    document.getElementById('stDob').value = btn.dataset.dob || '';
     document.getElementById('stStatus').value = btn.dataset.status || 'active';
     openModal();
   });
@@ -306,7 +329,6 @@
     const old = btn.innerHTML; btn.disabled = true; btn.innerHTML = '<i class="ph ph-spinner-gap animate-spin"></i>';
     try {
       // TODO: gọi API xóa khi có route:
-      // const url = `{{ route('web.admin.students.destroy', 0) }}`.replace('/0','/'+id);
       // const res = await fetch(url, { method:'DELETE', headers:{'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content, 'Accept':'application/json'} });
       // const data = await res.json().catch(()=>({}));
       // if(!res.ok || data.ok===false) throw new Error(data.message || 'Xóa thất bại');
@@ -326,6 +348,10 @@
     const name = document.getElementById('stName').value.trim();
     const className = document.getElementById('stClass').value.trim();
     const email = document.getElementById('stEmail').value.trim();
+    const password = document.getElementById('stPassword').value;
+    const major = document.getElementById('stMajor').value.trim();
+    const phone = document.getElementById('stPhone').value.trim();
+    const dob = document.getElementById('stDob').value;
     const status = document.getElementById('stStatus').value;
 
     if(!code || !name){ alert('Vui lòng nhập MSSV và Họ tên'); return; }
@@ -334,8 +360,6 @@
       // TODO: gọi API khi có route:
       // const method = id ? 'PATCH' : 'POST';
       // const url = id
-      //   ? `{{ route('web.admin.students.update', 0) }}`.replace('/0','/'+id)
-      //   : `{{ route('web.admin.students.store') }}`;
       // const res = await fetch(url, {
       //   method, headers:{'Content-Type':'application/json','Accept':'application/json','X-CSRF-TOKEN':document.querySelector('meta[name="csrf-token"]')?.content},
       //   body: JSON.stringify({ student_code:code, fullname:name, class_name:className, email, status })
@@ -352,19 +376,20 @@
           tr.children[2].textContent = name;
           tr.children[3].textContent = className || '-';
           tr.children[4].textContent = email || '-';
-          const pillMap = {active:['Đang học','bg-emerald-50 text-emerald-700'], pending:['Chờ xác nhận','bg-amber-50 text-amber-700'], paused:['Tạm dừng','bg-slate-100 text-slate-700']};
-          const [label, cls] = pillMap[status] || ['Khác','bg-slate-100 text-slate-700'];
-          tr.children[5].querySelector('span').className = 'px-2 py-0.5 rounded-full text-xs ' + cls;
-          tr.children[5].querySelector('span').textContent = label;
+          // Update major cell if exists
+          if(tr.children[5]){
+            tr.children[5].textContent = major || '-';
+          }
           const editBtn = tr.querySelector('.btnEdit');
-          editBtn.dataset.code = code; editBtn.dataset.name = name; editBtn.dataset.class = className; editBtn.dataset.email = email; editBtn.dataset.status = status;
+          editBtn.dataset.code = code; editBtn.dataset.name = name; editBtn.dataset.classname = className; editBtn.dataset.email = email; editBtn.dataset.status = status;
+          editBtn.dataset.major = major || '';
+          editBtn.dataset.phone = phone || '';
+          editBtn.dataset.dob = dob || '';
         }
       } else {
         const tr = document.createElement('tr');
         tr.className = 'hover:bg-slate-50';
         tr.setAttribute('data-status', status);
-        const pillMap = {active:['Đang học','bg-emerald-50 text-emerald-700'], pending:['Chờ xác nhận','bg-amber-50 text-amber-700'], paused:['Tạm dừng','bg-slate-100 text-slate-700']};
-        const [label, cls] = pillMap[status] || ['Khác','bg-slate-100 text-slate-700'];
         const newId = 'new-' + Date.now();
         tr.innerHTML = `
           <td class="px-4 py-3"><input type="checkbox" class="rowChk h-4 w-4"></td>
@@ -372,10 +397,10 @@
           <td class="px-4 py-3 font-medium text-slate-800">${name}</td>
           <td class="px-4 py-3">${className || '-'}</td>
           <td class="px-4 py-3">${email || '-'}</td>
-          <td class="px-4 py-3 text-center"><span class="px-2 py-0.5 rounded-full text-xs ${cls}">${label}</span></td>
+          <td class="px-4 py-3 text-center">${major || '-'}</td>
           <td class="px-4 py-3 text-right space-x-2">
             <button class="btnEdit px-2 py-1.5 rounded-lg border hover:bg-slate-50 text-indigo-600"
-                    data-id="${newId}" data-code="${code}" data-name="${name}" data-class="${className}" data-email="${email}" data-status="${status}">
+                    data-id="${newId}" data-code="${code}" data-name="${name}" data-classname="${className}" data-email="${email}" data-major="${major}" data-phone="${phone}" data-dob="${dob}" data-status="${status}">
               <i class="ph ph-pencil"></i>
             </button>
             <button class="btnDelete px-2 py-1.5 rounded-lg border hover:bg-slate-50 text-rose-600" data-id="${newId}">

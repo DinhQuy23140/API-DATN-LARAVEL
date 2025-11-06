@@ -33,35 +33,38 @@
 
 <div class="flex min-h-screen">
   <!-- Sidebar -->
-  <aside id="sidebar" class="sidebar fixed inset-y-0 left-0 z-30 bg-white border-r border-slate-200 flex flex-col transition-all">
-    <div class="h-16 flex items-center gap-3 px-4 border-b border-slate-200">
-      <div class="h-9 w-9 grid place-items-center rounded-lg bg-blue-600 text-white"><i class="ph ph-buildings"></i></div>
-      <div class="sidebar-label">
-        <div class="font-semibold">Bảng quản trị</div>
-        <div class="text-xs text-slate-500">Hệ thống</div>
-      </div>
-    </div>
-    <nav class="flex-1 overflow-y-auto p-3">
-      <a href="{{ route('web.admin.dashboard') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100">
-        <i class="ph ph-gauge"></i><span class="sidebar-label">Dashboard</span>
-      </a>
-      <div class="mt-3 text-xs uppercase text-slate-400 sidebar-label px-3">Quản lý</div>
-      <a href="{{ route('web.admin.students.index') ?? '#' }}" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100">
-        <i class="ph ph-student"></i><span class="sidebar-label">Sinh viên</span>
-      </a>
-      <a href="{{ route('web.admin.lecturers.index') ?? '#' }}" class="flex items-center gap-3 px-3 py-2 rounded-lg bg-slate-100 font-semibold">
-        <i class="ph ph-chalkboard-teacher"></i><span class="sidebar-label">Giảng viên</span>
-      </a>
-    </nav>
-    <div class="p-3 border-t border-slate-200">
-      <button id="toggleSidebar" class="w-full flex items-center justify-center gap-2 px-3 py-2 text-slate-600 hover:bg-slate-100 rounded-lg">
-        <i class="ph ph-sidebar"></i><span class="sidebar-label">Thu gọn</span>
-      </button>
-    </div>
-  </aside>
+      <aside id="sidebar" class="sidebar fixed inset-y-0 left-0 z-30 bg-white border-r border-slate-200 flex flex-col transition-all">
+        <div class="h-16 flex items-center gap-3 px-4 border-b border-slate-200">
+          <div class="h-9 w-9 grid place-items-center rounded-lg bg-blue-600 text-white"><i class="ph ph-buildings"></i></div>
+          <div class="sidebar-label">
+            <div class="font-semibold">UniAdmin</div>
+            <div class="text-xs text-slate-500">Quản trị hệ thống</div>
+          </div>
+        </div>
+        <nav class="flex-1 overflow-y-auto p-3">
+          <a href="{{ route('web.admin.dashboard') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-100 font-medium">
+            <i class="ph ph-gauge"></i> <span class="sidebar-label">Bảng điều khiển</span>
+          </a>
+          <a href="{{ route('web.admin.manage_faculties') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-100 font-medium">
+            <i class="ph ph-graduation-cap"></i> <span class="sidebar-label">Quản lý Khoa</span>
+          </a>
+          <a href="{{ route('web.admin.manage_assistants') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-100 font-medium">
+            <i class="ph ph-users-three"></i> <span class="sidebar-label">Trợ lý khoa</span>
+          </a>
+          <a href="{{ route('web.admin.manage_students') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-700 hover:bg-slate-100 font-medium">
+            <i class="ph ph-users"></i> <span class="sidebar-label">Quản lý Sinh viên</span>
+          </a>
+          <a href="{{ route('web.admin.manage_lecturers') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-700 bg-slate-100 font-bold">
+            <i class="ph ph-chalkboard-teacher"></i> <span class="sidebar-label">Quản lý Giảng viên</span>
+          </a>
+        </nav>
+        <div class="p-3 border-t border-slate-200">
+          <button id="toggleSidebar" class="w-full flex items-center justify-center gap-2 px-3 py-2 text-slate-600 hover:bg-slate-100 rounded-lg"><i class="ph ph-sidebar"></i><span class="sidebar-label">Thu gọn</span></button>
+        </div>
+      </aside>
 
   <!-- Main -->
-  <div class="flex-1 h-screen overflow-hidden flex flex-col md:pl-[260px]">
+  <div class="flex-1 h-screen overflow-hidden flex flex-col">
     <!-- Header -->
     <header class="h-16 bg-white border-b border-slate-200 flex items-center px-4 md:px-6 flex-shrink-0">
       <div class="flex items-center gap-3 flex-1">
@@ -135,7 +138,7 @@
               </tr>
             </thead>
             <tbody id="tableBody" class="divide-y divide-slate-100">
-              @foreach ($items as $gv)
+              @foreach ($teachers as $gv)
                 @php
                   $status = $gv->status ?? 'active';
                   $pill = ['active'=>'bg-emerald-50 text-emerald-700','probation'=>'bg-amber-50 text-amber-700','inactive'=>'bg-slate-100 text-slate-700'][$status] ?? 'bg-slate-100 text-slate-700';
@@ -143,7 +146,7 @@
                 @endphp
                 <tr class="hover:bg-slate-50" data-status="{{ $status }}">
                   <td class="px-4 py-3"><input type="checkbox" class="rowChk h-4 w-4"></td>
-                  <td class="px-4 py-3 font-mono">{{ $gv->lecturer_code ?? ($gv->code ?? '-') }}</td>
+                  <td class="px-4 py-3 font-mono">{{ $gv->teacher_code ?? ($gv->code ?? '-') }}</td>
                   <td class="px-4 py-3 font-medium text-slate-800">{{ $gv->fullname ?? ($gv->user->fullname ?? '-') }}</td>
                   <td class="px-4 py-3">{{ $gv->department_name ?? ($gv->department->name ?? '-') }}</td>
                   <td class="px-4 py-3">{{ $gv->email ?? ($gv->user->email ?? '-') }}</td>
@@ -151,13 +154,15 @@
                     <span class="px-2 py-0.5 rounded-full text-xs {{ $pill }}">{{ $pillText }}</span>
                   </td>
                   <td class="px-4 py-3 text-right space-x-2">
-                    <button class="btnEdit px-2 py-1.5 rounded-lg border hover:bg-slate-50 text-indigo-600"
-                            data-id="{{ $gv->id }}"
-                            data-code="{{ $gv->lecturer_code ?? ($gv->code ?? '') }}"
-                            data-name="{{ $gv->fullname ?? ($gv->user->fullname ?? '') }}"
-                            data-dept="{{ $gv->department_name ?? ($gv->department->name ?? '') }}"
-                            data-email="{{ $gv->email ?? ($gv->user->email ?? '') }}"
-                            data-status="{{ $status }}">
+        <button class="btnEdit px-2 py-1.5 rounded-lg border hover:bg-slate-50 text-indigo-600"
+          data-id="{{ $gv->id }}"
+          data-code="{{ $gv->teacher_code ?? ($gv->code ?? '') }}"
+          data-name="{{ $gv->fullname ?? ($gv->user->fullname ?? '') }}"
+          data-dept="{{ $gv->department_name ?? ($gv->department->name ?? '') }}"
+          data-email="{{ $gv->email ?? ($gv->user->email ?? '') }}"
+          data-dob="{{ $gv->dob ?? $gv->date_of_birth ?? '' }}"
+          data-address="{{ $gv->address ?? '' }}"
+          data-status="{{ $status }}">
                       <i class="ph ph-pencil"></i>
                     </button>
                     <button class="btnDelete px-2 py-1.5 rounded-lg border hover:bg-slate-50 text-rose-600" data-id="{{ $gv->id }}">
@@ -186,7 +191,7 @@
       <h3 id="modalTitle" class="font-semibold">Thêm giảng viên</h3>
       <button class="text-slate-500 hover:text-slate-700" data-close><i class="ph ph-x"></i></button>
     </div>
-    <div class="p-5 space-y-3 overflow-y-auto">
+      <div class="p-5 space-y-3 overflow-y-auto">
       <input type="hidden" id="gvId">
       <div>
         <label class="text-sm text-slate-600">Mã GV</label>
@@ -199,13 +204,46 @@
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
           <label class="text-sm text-slate-600">Bộ môn</label>
-          <input id="gvDept" class="mt-1 w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600" placeholder="VD: KTPM">
+          @php
+            // fallback departments list when controller doesn't provide $departments
+            $deptOptions = isset($departments) ? $departments : collect([
+              (object)['code'=>'KTPM','name'=>'Kỹ thuật phần mềm'],
+              (object)['code'=>'HTTT','name'=>'Hệ thống thông tin'],
+              (object)['code'=>'CNPM','name'=>'Công nghệ phần mềm'],
+            ]);
+          @endphp
+          <select id="gvDept" class="mt-1 w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600">
+            @foreach($deptOptions as $d)
+              @php
+                $val = is_object($d) ? ($d->code ?? $d->name ?? '') : (is_array($d) ? ($d['code'] ?? $d['name'] ?? '') : $d);
+                $label = is_object($d) ? ($d->name ?? $d->code ?? $d->id ?? '') : (is_array($d) ? ($d['name'] ?? $d['code'] ?? '') : $d);
+              @endphp
+              <option value="{{ $val }}">{{ $label }}</option>
+            @endforeach
+          </select>
         </div>
         <div>
           <label class="text-sm text-slate-600">Email</label>
           <input id="gvEmail" type="email" class="mt-1 w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600">
         </div>
       </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div>
+          <label class="text-sm text-slate-600">Mật khẩu (để trống nếu không đổi)</label>
+          <input id="gvPassword" type="password" class="mt-1 w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600" placeholder="••••••••">
+        </div>
+        <div>
+          <label class="text-sm text-slate-600">Ngày sinh</label>
+          <input id="gvDob" type="date" class="mt-1 w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600">
+        </div>
+      </div>
+
+      <div>
+        <label class="text-sm text-slate-600">Địa chỉ</label>
+        <input id="gvAddress" class="mt-1 w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600">
+      </div>
+
       <div>
         <label class="text-sm text-slate-600">Trạng thái</label>
         <select id="gvStatus" class="mt-1 w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600">
@@ -229,8 +267,8 @@
   const html = document.documentElement, sidebar = document.getElementById('sidebar');
   function setCollapsed(c){
     const mainArea = document.querySelector('.flex-1');
-    if(c){ html.classList.add('sidebar-collapsed'); mainArea?.classList.add('md:pl-[72px]'); mainArea?.classList.remove('md:pl-[260px]'); }
-    else { html.classList.remove('sidebar-collapsed'); mainArea?.classList.remove('md:pl-[72px]'); mainArea?.classList.add('md:pl-[260px]'); }
+    if(c){ html.classList.add('sidebar-collapsed');}
+    else { html.classList.remove('sidebar-collapsed');}
   }
   document.getElementById('toggleSidebar')?.addEventListener('click',()=>{const c=!html.classList.contains('sidebar-collapsed'); setCollapsed(c); localStorage.setItem('admin_sidebar',''+(c?1:0));});
   document.getElementById('openSidebar')?.addEventListener('click',()=> sidebar.classList.toggle('-translate-x-full'));
@@ -258,8 +296,11 @@
     document.getElementById('gvId').value = '';
     document.getElementById('gvCode').value = '';
     document.getElementById('gvName').value = '';
-    document.getElementById('gvDept').value = '';
+    document.getElementById('gvDept').value = document.getElementById('gvDept').options[0]?.value || '';
     document.getElementById('gvEmail').value = '';
+    document.getElementById('gvPassword').value = '';
+    document.getElementById('gvDob').value = '';
+    document.getElementById('gvAddress').value = '';
     document.getElementById('gvStatus').value = 'active';
     openModal();
   });
@@ -288,8 +329,12 @@
     document.getElementById('gvId').value = btn.dataset.id || '';
     document.getElementById('gvCode').value = btn.dataset.code || '';
     document.getElementById('gvName').value = btn.dataset.name || '';
-    document.getElementById('gvDept').value = btn.dataset.dept || '';
+    document.getElementById('gvDept').value = btn.dataset.dept || document.getElementById('gvDept').options[0]?.value || '';
     document.getElementById('gvEmail').value = btn.dataset.email || '';
+    // don't populate password for security
+    document.getElementById('gvPassword').value = '';
+    document.getElementById('gvDob').value = btn.dataset.dob || '';
+    document.getElementById('gvAddress').value = btn.dataset.address || '';
     document.getElementById('gvStatus').value = btn.dataset.status || 'active';
     openModal();
   });
@@ -305,7 +350,6 @@
     const old = btn.innerHTML; btn.disabled = true; btn.innerHTML = '<i class="ph ph-spinner-gap animate-spin"></i>';
     try {
       // TODO: gọi API xóa khi có route:
-      // const url = `{{ route('web.admin.lecturers.destroy', 0) }}`.replace('/0','/'+id);
       // const res = await fetch(url, { method:'DELETE', headers:{'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content, 'Accept':'application/json'} });
       // const data = await res.json().catch(()=>({}));
       // if(!res.ok || data.ok===false) throw new Error(data.message || 'Xóa thất bại');
@@ -333,8 +377,6 @@
       // TODO: gọi API khi có route:
       // const method = id ? 'PATCH' : 'POST';
       // const url = id
-      //   ? `{{ route('web.admin.lecturers.update', 0) }}`.replace('/0','/'+id)
-      //   : `{{ route('web.admin.lecturers.store') }}`;
       // const res = await fetch(url, {
       //   method, headers:{'Content-Type':'application/json','Accept':'application/json','X-CSRF-TOKEN':document.querySelector('meta[name="csrf-token"]')?.content},
       //   body: JSON.stringify({ lecturer_code:code, fullname:name, department_name:dept, email, status })
@@ -357,6 +399,9 @@
           tr.children[5].querySelector('span').textContent = label;
           const editBtn = tr.querySelector('.btnEdit');
           editBtn.dataset.code = code; editBtn.dataset.name = name; editBtn.dataset.dept = dept; editBtn.dataset.email = email; editBtn.dataset.status = status;
+          // new fields
+          editBtn.dataset.dob = document.getElementById('gvDob').value || '';
+          editBtn.dataset.address = document.getElementById('gvAddress').value || '';
         }
       } else {
         const tr = document.createElement('tr');
@@ -374,7 +419,7 @@
           <td class="px-4 py-3 text-center"><span class="px-2 py-0.5 rounded-full text-xs ${cls}">${label}</span></td>
           <td class="px-4 py-3 text-right space-x-2">
             <button class="btnEdit px-2 py-1.5 rounded-lg border hover:bg-slate-50 text-indigo-600"
-                    data-id="${newId}" data-code="${code}" data-name="${name}" data-dept="${dept}" data-email="${email}" data-status="${status}">
+                    data-id="${newId}" data-code="${code}" data-name="${name}" data-dept="${dept}" data-email="${email}" data-status="${status}" data-dob="${''}" data-address="${''}">
               <i class="ph ph-pencil"></i>
             </button>
             <button class="btnDelete px-2 py-1.5 rounded-lg border hover:bg-slate-50 text-rose-600" data-id="${newId}">
@@ -392,4 +437,3 @@
 </script>
 </body>
 </html>
-```

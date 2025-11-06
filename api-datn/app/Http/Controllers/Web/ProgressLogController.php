@@ -79,9 +79,13 @@ class ProgressLogController extends Controller
         return view('lecturer-ui.weekly-log-detail', compact('progress_log', 'student'));
     }
 
-    public function getProgressLogById($progressLogId) {
+    public function getProgressLogById($progressLogId)
+    {
         $progress_log = ProgressLog::with([
             'attachments',
+            'commentLogs' => function ($query) {
+                $query->orderBy('created_at', 'desc'); // 🔹 sắp xếp giảm dần
+            },
             'project.assignment' => function ($query) {
                 $query->with([
                     'project_term.academy_year',
@@ -90,6 +94,8 @@ class ProgressLogController extends Controller
                 ]);
             }
         ])->findOrFail($progressLogId);
+
         return view('lecturer-ui.weekly-log-detail', compact('progress_log'));
     }
+
 }

@@ -2503,19 +2503,21 @@
 <form id="createCommitteeForm" class="space-y-6">
   <!-- Thông tin chung -->
   <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-    <div>
+      <div>
       <label class="block text-sm font-medium text-slate-700">Mã hội đồng</label>
       <input name="code" 
-             class="mt-2 w-full border border-slate-300 rounded-xl px-3 py-2 text-sm shadow-sm 
-                    focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
-             placeholder="HĐ-CNTT-02" />
+        class="mt-2 w-full border border-slate-300 rounded-xl px-3 py-2 text-sm shadow-sm 
+          focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+        placeholder="HĐ-CNTT-02" />
+      <p class="mt-1 text-sm text-red-600" data-error="code" style="display:none"></p>
     </div>
     <div>
       <label class="block text-sm font-medium text-slate-700">Tên hội đồng</label>
       <input name="name" 
-             class="mt-2 w-full border border-slate-300 rounded-xl px-3 py-2 text-sm shadow-sm 
-                    focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
-             placeholder="Hội đồng bảo vệ khóa luận CNTT" />
+        class="mt-2 w-full border border-slate-300 rounded-xl px-3 py-2 text-sm shadow-sm 
+          focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+        placeholder="Hội đồng bảo vệ khóa luận CNTT" />
+      <p class="mt-1 text-sm text-red-600" data-error="name" style="display:none"></p>
     </div>
     <div>
       <label class="block text-sm font-medium text-slate-700">Bộ môn</label>
@@ -2527,6 +2529,7 @@
           <option value="{{ $dept->id }}">{{ $dept->name }}</option>
         @endforeach
       </select>
+      <p class="mt-1 text-sm text-red-600" data-error="dept" style="display:none"></p>
     </div>
 
   </div>
@@ -2536,15 +2539,17 @@
     <div>
       <label class="block text-sm font-medium text-slate-700">Ngày bảo vệ</label>
       <input type="date" name="date" 
-             class="mt-2 w-full border border-slate-300 rounded-xl px-3 py-2 text-sm shadow-sm 
-                    focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+        class="mt-2 w-full border border-slate-300 rounded-xl px-3 py-2 text-sm shadow-sm 
+          focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+      <p class="mt-1 text-sm text-red-600" data-error="date" style="display:none"></p>
     </div>
     <div>
       <label class="block text-sm font-medium text-slate-700">Phòng bảo vệ</label>
       <input name="room" 
-             class="mt-2 w-full border border-slate-300 rounded-xl px-3 py-2 text-sm shadow-sm 
-                    focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
-             placeholder="B203" />
+        class="mt-2 w-full border border-slate-300 rounded-xl px-3 py-2 text-sm shadow-sm 
+          focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+        placeholder="B203" />
+      <p class="mt-1 text-sm text-red-600" data-error="room" style="display:none"></p>
     </div>
   </div>
 
@@ -2555,6 +2560,7 @@
               class="mt-2 w-full border border-slate-300 rounded-xl px-3 py-2 text-sm shadow-sm 
                      focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
               placeholder="Nhập mô tả chi tiết về hội đồng..."></textarea>
+    <p class="mt-1 text-sm text-red-600" data-error="description" style="display:none"></p>
   </div>
 
   <!-- Thành viên hội đồng -->
@@ -2634,6 +2640,7 @@
 
     </div>
     <p class="mt-4 text-xs text-slate-500">Thành phần: 1 Chủ tịch, 1 Thư kí, 3 Ủy viên.</p>
+    <p class="mt-2 text-sm text-red-600" data-error="roles" style="display:none"></p>
   </div>
 
   <!-- Buttons -->
@@ -2672,35 +2679,125 @@
         const form = modal.querySelector('#createCommitteeForm');
         form.addEventListener('submit', async (e)=>{
           e.preventDefault();
+          // Prevent double submit
+          const submitBtn = form.querySelector('#confirmCreateCommittee');
+          if (submitBtn?.disabled) return;
+
           // Validate: không được trùng giảng viên giữa các vai trò
           const picked = roleSelects.map(s => s.value).filter(Boolean);
           const hasDup = new Set(picked).size !== picked.length;
-          if (hasDup) { alert('Các vai trò không được trùng giảng viên. Vui lòng kiểm tra lại.'); return; }
 
+          // Basic required fields validation (inline error messages)
+          const codeEl = form.querySelector('[name="code"]');
+          const nameEl = form.querySelector('[name="name"]');
+          const dateEl = form.querySelector('[name="date"]');
+          const roomEl = form.querySelector('[name="room"]');
+          const deptEl = form.querySelector('[name="dept"]');
+
+          const code = (codeEl?.value || '').toString().trim();
+          const name = (nameEl?.value || '').toString().trim();
+          const date = (dateEl?.value || '').toString().trim();
+          const room = (roomEl?.value || '').toString().trim();
+          const dept = (deptEl?.value || '').toString().trim();
+
+          // clear previous inline errors
+          form.querySelectorAll('[data-error]').forEach(el=>{ el.textContent=''; el.style.display='none'; });
+          let firstInvalid = null;
+
+          if (!code) {
+            const el = form.querySelector('[data-error="code"]'); if (el) { el.textContent = 'Mã hội đồng là bắt buộc.'; el.style.display = ''; }
+            if (!firstInvalid) firstInvalid = codeEl;
+          }
+          if (!name) {
+            const el = form.querySelector('[data-error="name"]'); if (el) { el.textContent = 'Tên hội đồng là bắt buộc.'; el.style.display = ''; }
+            if (!firstInvalid) firstInvalid = nameEl;
+          }
+          if (!date) {
+            const el = form.querySelector('[data-error="date"]'); if (el) { el.textContent = 'Ngày bảo vệ là bắt buộc.'; el.style.display = ''; }
+            if (!firstInvalid) firstInvalid = dateEl;
+          } else {
+            const d = new Date(date);
+            if (isNaN(d.getTime())) {
+              const el = form.querySelector('[data-error="date"]'); if (el) { el.textContent = 'Ngày bảo vệ không hợp lệ.'; el.style.display = ''; }
+              if (!firstInvalid) firstInvalid = dateEl;
+            }
+          }
+          if (!room) {
+            const el = form.querySelector('[data-error="room"]'); if (el) { el.textContent = 'Phòng bảo vệ là bắt buộc.'; el.style.display = ''; }
+            if (!firstInvalid) firstInvalid = roomEl;
+          }
+            // Department required
+            if (!dept) {
+              const el = form.querySelector('[data-error="dept"]'); if (el) { el.textContent = 'Bộ môn là bắt buộc.'; el.style.display = ''; }
+              if (!firstInvalid) firstInvalid = deptEl;
+            }
+          if (hasDup) {
+            const el = form.querySelector('[data-error="roles"]'); if (el) { el.textContent = 'Các vai trò không được trùng giảng viên. Vui lòng kiểm tra lại.'; el.style.display = ''; }
+            // no focus change for roles, but focus first invalid input if any
+            if (!firstInvalid) firstInvalid = roleSelects[0] || null;
+          }
+
+          if (firstInvalid) {
+            try { firstInvalid.focus(); } catch(e){}
+            return;
+          }
+
+          // build payload and send
           const fd = new FormData(form);
           const payload = {
             term_id: {{ $round_detail->id }},
             code: (fd.get('code')||'').toString().trim(),
             name: (fd.get('name')||'').toString().trim(),
-            dept: (fd.get('dept')||'').toString().trim(),
+            dept: (fd.get('dept')||'').toString().trim() || null,
             room: (fd.get('room')||'').toString().trim(),
             date: (fd.get('date')||'').toString().trim(),
-            description: (fd.get('description')||'').toString().trim(),
+            description: (fd.get('description')||'').toString().trim() || null,
             chutich: fd.get('chutich') || null,
             thuki: fd.get('thuki') || null,
             uyvien1: fd.get('uyvien1') || null,
             uyvien2: fd.get('uyvien2') || null,
             uyvien3: fd.get('uyvien3') || null,
           };
+
           const token = document.querySelector('meta[name="csrf-token"]')?.content || '';
-          const res = await fetch(`{{ route('web.assistant.councils.store') }}`, {
-            method: 'POST',
-            headers: { 'Content-Type':'application/json', 'X-CSRF-TOKEN': token, 'Accept':'application/json' },
-            body: JSON.stringify(payload)
-          });
-          if(!res.ok){ alert('Tạo hội đồng thất bại'); return; }
-          // TODO: cập nhật bảng danh sách bằng data trả về
-          e.target.closest('.fixed')?.remove();
+          try {
+            if (submitBtn) { submitBtn.disabled = true; submitBtn.textContent = 'Đang tạo...'; }
+            const res = await fetch(`{{ route('web.assistant.councils.store') }}`, {
+              method: 'POST',
+              headers: { 'Content-Type':'application/json', 'X-CSRF-TOKEN': token, 'Accept':'application/json' },
+              body: JSON.stringify(payload)
+            });
+            if (!res.ok) {
+              // Try to extract and display validation errors inline (Laravel 422)
+              const ct = res.headers.get('content-type') || '';
+              if (res.status === 422 && ct.includes('application/json')) {
+                const j = await res.json().catch(()=>null);
+                if (j && j.errors) {
+                  Object.keys(j.errors).forEach(k => {
+                    const msg = Array.isArray(j.errors[k]) ? j.errors[k].join(' ') : String(j.errors[k]);
+                    const el = form.querySelector('[data-error="'+k+'"]') || form.querySelector('[data-error="'+k.replace(/\./g,'_')+'"]');
+                    if (el) { el.textContent = msg; el.style.display = ''; }
+                  });
+                  return;
+                }
+              }
+              // Fallback: try a friendly message if provided
+              try {
+                const j = await res.json().catch(()=>null);
+                if (j && j.message) { alert(j.message); return; }
+              } catch(_){}
+              alert('Tạo hội đồng thất bại. Vui lòng thử lại.');
+              return;
+            }
+
+            // Success: remove modal and (optionally) update the list later
+            e.target.closest('.fixed')?.remove();
+          } catch (err) {
+            console.error(err);
+            alert('Lỗi mạng hoặc máy chủ. Vui lòng thử lại.');
+          } finally {
+            if (submitBtn) { submitBtn.disabled = false; submitBtn.textContent = 'Tạo'; }
+          }
         })
       }
 

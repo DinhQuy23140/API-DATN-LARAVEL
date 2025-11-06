@@ -30,6 +30,7 @@
   </style>
 </head>
 @php
+  use Carbon\Carbon;
   $user = auth()->user();
   $userName = $user->fullname ?? $user->name ?? 'Giảng viên';
   $email = $user->email ?? '';
@@ -209,8 +210,9 @@
     @php
       $titleProgress = $progress_log->title ?? 'Chưa có tiêu đề';
       $description = $progress_log->description ?? 'Chưa có mô tả';
-      $start_date = $progress_log->start_date_time ? date('d/m/Y', strtotime($progress_log->start_date)) : 'N/A';
-      $end_date = $progress_log->end_date_time ? date('d/m/Y', strtotime($progress_log->end_date)) : 'N/A';
+
+      $start_date = Carbon::parse($progress_log->start_date_time)->format('H:i d/m/Y');
+      $end_date   = Carbon::parse($progress_log->end_date_time)->format('H:i d/m/Y');
     @endphp
     <section class="bg-white border border-slate-200 shadow-sm rounded-2xl p-6 hover:shadow-md transition">
       <div class="flex items-center justify-between mb-5 border-b pb-3">
@@ -320,11 +322,46 @@
         class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
         placeholder="Viết nhận xét cho sinh viên..."></textarea>
       <div class="mt-4 flex items-center justify-between">
-        <div id="commentStatus" class="text-sm text-slate-500">Chưa có nhận xét.</div>
+        <div id="commentStatus" class="text-sm text-slate-500"></div>
         <button id="btnSendComment"
           class="flex items-center gap-2 px-5 py-2.5 bg-emerald-600 text-white rounded-xl text-sm font-medium hover:bg-emerald-500 transition">
           <i class="ph ph-paper-plane-tilt"></i> Gửi nhận xét
         </button>
+      </div>
+      @php
+        // Load existing comments safely - fallbacks in case relation name varies
+        $comments = $progress_log->commentLogs ?? $progress_log->comments ?? collect();
+      @endphp
+
+      <!-- Danh sách nhận xét (tĩnh, server-rendered) -->
+      <div class="mt-6">
+        <h4 class="text-sm font-medium text-slate-700 mb-3 flex items-center gap-2"><i class="ph ph-clipboard-text text-indigo-600"></i> Danh sách nhận xét</h4>
+        <div id="commentsContainer">
+        @if($comments && count($comments) > 0)
+          <ul id="commentsList" class="space-y-3">
+            @foreach($comments as $c)
+              @php
+                $author = optional(optional($c->supervisor)->teacher->user)->fullname ?? optional($c->supervisor)->fullname ?? ($c->supervisor_id ? 'Giảng viên' : ($c->author_name ?? 'Giảng viên'));
+                $time = $c->created_at ? $c->created_at->format('d/m/Y H:i') : '-';
+              @endphp
+              <li class="bg-slate-50 border border-slate-100 rounded-xl p-4 flex gap-3 items-start">
+                <div class="shrink-0 mt-1">
+                  <div class="h-9 w-9 grid place-items-center rounded-full bg-indigo-50 text-indigo-700"><i class="ph ph-chat-text"></i></div>
+                </div>
+                <div class="flex-1">
+                  <div class="text-sm text-slate-700 leading-relaxed">{{ $c->content }}</div>
+                  <div class="mt-2 text-xs text-slate-500 flex items-center gap-3">
+                    <span class="inline-flex items-center gap-2"><i class="ph ph-user-circle text-slate-400"></i> <span>{{ $author }}</span></span>
+                    <span class="inline-flex items-center gap-2"><i class="ph ph-clock text-slate-400"></i> <span>{{ $time }}</span></span>
+                  </div>
+                </div>
+              </li>
+            @endforeach
+          </ul>
+        @else
+          <div id="commentsEmpty" class="text-sm text-slate-400">Chưa có nhận xét nào.</div>
+        @endif
+        </div>
       </div>
     </section>
 
@@ -399,6 +436,14 @@
     const name = decodeURIComponent(qs('name')) || 'Sinh viên';
     const weekNo = parseInt(qs('week'));
     const LS_KEY = `lecturer:student:${studentId}`;
+    // Current user name (for author display when appending new comments client-side)
+    const currentUserName = @json($userName);
+
+    function formatNowToVN() {
+      const d = new Date();
+      const pad = (n) => String(n).padStart(2,'0');
+      return `${pad(d.getDate())}/${pad(d.getMonth()+1)}/${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+    }
 
     // Đánh giá tuần: gọi API cập nhật status cho attachment
     (function () {
@@ -449,6 +494,94 @@
           }
           render(status);
         } catch (e) {
+          alert('Lỗi mạng, vui lòng thử lại.');
+        } finally {
+          btn.disabled = false; btn.innerHTML = old;
+        }
+      });
+    })();
+
+    // Gửi nhận xét: gửi POST tới backend
+    (function () {
+      const btn = document.getElementById('btnSendComment');
+      const ta = document.getElementById('commentText');
+      const statusEl = document.getElementById('commentStatus');
+      const url = `{{ route('web.progress_logs.comments.store', ['progress_log' => $progress_log->id]) }}`;
+      btn?.addEventListener('click', async () => {
+        const content = (ta?.value || '').trim();
+        if (!content) { alert('Vui lòng nhập nhận xét.'); return; }
+        btn.disabled = true; const old = btn.innerHTML; btn.innerHTML = '<i class="ph ph-spinner-gap animate-spin"></i> Đang gửi...';
+        try {
+          const token = document.querySelector('meta[name="csrf-token"]')?.content || '';
+          const res = await fetch(url, {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+              'X-Requested-With': 'XMLHttpRequest',
+              'X-CSRF-TOKEN': token || ''
+            },
+            body: JSON.stringify({ content })
+          });
+          const js = await res.json().catch(() => ({}));
+          if (!res.ok || js.ok === false) {
+            alert(js.message || 'Gửi nhận xét thất bại.');
+            return;
+          }
+          // Success: clear textarea and update status
+          ta.value = '';
+          statusEl.textContent = 'Đã gửi nhận xét.';
+
+          // Prepend the new comment to the comment list (create list if necessary)
+          try {
+            const container = document.getElementById('commentsContainer');
+            if (container) {
+              let list = document.getElementById('commentsList');
+              // Remove empty placeholder if present
+              const empty = document.getElementById('commentsEmpty');
+              if (!list) {
+                if (empty) empty.remove();
+                list = document.createElement('ul');
+                list.id = 'commentsList';
+                list.className = 'space-y-3';
+                container.appendChild(list);
+              }
+
+              const li = document.createElement('li');
+              li.className = 'bg-slate-50 border border-slate-100 rounded-xl p-4 flex gap-3 items-start';
+
+              const iconWrap = document.createElement('div'); iconWrap.className = 'shrink-0 mt-1';
+              const iconInner = document.createElement('div'); iconInner.className = 'h-9 w-9 grid place-items-center rounded-full bg-indigo-50 text-indigo-700';
+              iconInner.innerHTML = '<i class="ph ph-chat-text"></i>';
+              iconWrap.appendChild(iconInner);
+
+              const body = document.createElement('div'); body.className = 'flex-1';
+              const contentDiv = document.createElement('div'); contentDiv.className = 'text-sm text-slate-700 leading-relaxed';
+              // Use server-returned comment content if available, fallback to posted content
+              contentDiv.textContent = (js.comment && js.comment.content) ? js.comment.content : content;
+
+              const meta = document.createElement('div'); meta.className = 'mt-2 text-xs text-slate-500 flex items-center gap-3';
+              const authorSpan = document.createElement('span'); authorSpan.className = 'inline-flex items-center gap-2';
+              authorSpan.innerHTML = '<i class="ph ph-user-circle text-slate-400"></i> <span>' + (js.comment && js.comment.supervisor_id ? (js.comment.supervisor_name || currentUserName) : currentUserName) + '</span>';
+              const timeSpan = document.createElement('span'); timeSpan.className = 'inline-flex items-center gap-2';
+              const createdAt = js.comment && js.comment.created_at ? new Date(js.comment.created_at) : new Date();
+              const pad = (n) => String(n).padStart(2,'0');
+              const formatted = `${pad(createdAt.getDate())}/${pad(createdAt.getMonth()+1)}/${createdAt.getFullYear()} ${pad(createdAt.getHours())}:${pad(createdAt.getMinutes())}`;
+              timeSpan.innerHTML = '<i class="ph ph-clock text-slate-400"></i> <span>' + formatted + '</span>';
+
+              meta.appendChild(authorSpan); meta.appendChild(timeSpan);
+              body.appendChild(contentDiv); body.appendChild(meta);
+
+              li.appendChild(iconWrap); li.appendChild(body);
+              // Prepend to the list
+              list.prepend(li);
+            }
+          } catch (err) {
+            console.error('Append comment failed', err);
+          }
+        } catch (err) {
+          console.error(err);
           alert('Lỗi mạng, vui lòng thử lại.');
         } finally {
           btn.disabled = false; btn.innerHTML = old;

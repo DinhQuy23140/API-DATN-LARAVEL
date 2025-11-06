@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Web\CouncilProjectsController;
 use App\Http\Controllers\Web\DepartmentController;
+use App\Http\Controllers\Web\CommentLogController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Web\UserController as WebUserController;
 use App\Http\Controllers\Web\UserResearchController as WebUserResearchController;
@@ -29,6 +30,7 @@ use App\Http\Controllers\Web\EmailVerificationController;
 use App\Http\Controllers\Web\DepartmentRolesController as WebDepartmentRolesController;
 use App\Http\Controllers\Web\CouncilProjectDefencesController as WebCouncilProjectDefencesController;
 use App\Http\Controllers\Web\ReportFilesController as WebReportFilesController;
+use App\Http\Controllers\Web\StudentController as WebStudentController;
 
 // Chỉ cho guest
 Route::middleware('guest')->group(function () {
@@ -135,6 +137,9 @@ Route::prefix('progress-logs')->name('web.progress_logs.')->group(function () {
     Route::put('/{progress_log}', [WebProgressLogController::class, 'update'])->name('update');
     Route::delete('/{progress_log}', [WebProgressLogController::class, 'destroy'])->name('destroy');
 
+    // Comments for a progress log (lecturer -> send comments)
+    Route::post('/{progress_log}/comments', [CommentLogController::class, 'store'])->name('comments.store');
+
     Route::get('/{progress_log}/attachments/create', [WebAttachmentController::class, 'create'])->name('attachments.create');
     Route::post('/{progress_log}/attachments', [WebAttachmentController::class, 'store'])->name('attachments.store');
 });
@@ -207,6 +212,8 @@ Route::middleware(['web','auth'])->prefix('admin')->name('web.admin.')->group(fu
     Route::view('/manage_accounts', 'admin-ui.manage-accounts')->name('manage_accounts');
     Route::view('/manage_academy_years', 'admin-ui.manage-academy-years')->name('manage_academy_years');
     Route::view('/manage_projects', 'admin-ui.manage-projects')->name('manage_projects');
+    Route::get('/manage_students', [WebStudentController::class, 'index'])->name('manage_students');
+    Route::get('/manage_lecturers', [WebTeacherController::class, 'index'])->name('manage_lecturers');
     Route::view('/manage_terms', 'admin-ui.manage-terms')->name('manage_terms');
     Route::get('/manage_assistants', [WebFacultiesController::class, 'getAssistants'])->name('manage_assistants');
     Route::get('/manage_faculties', [WebFacultiesController::class, 'load_dashboard'])->name('manage_faculties');

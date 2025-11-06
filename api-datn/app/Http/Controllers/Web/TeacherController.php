@@ -10,8 +10,8 @@ use Illuminate\Http\Request;
 class TeacherController extends Controller
 {
     public function index(){
-        $teachers = Teacher::with('user')->latest('id')->paginate(15);
-        return view('teachers.index', compact('teachers'));
+        $teachers = Teacher::with('user', 'department')->latest('id')->paginate(15);
+        return view('admin-ui.manage-lecturers', compact('teachers'));
     }
     public function loadTeachers(){
         $teachers = Teacher::with('user.facultyRoles', 'departmentRoles')->latest('id')->get();

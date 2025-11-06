@@ -10,8 +10,8 @@ use Illuminate\Http\Request;
 class StudentController extends Controller
 {
     public function index(){
-        $students = Student::with('user')->latest('id')->paginate(15);
-        return view('students.index', compact('students'));
+        $students = Student::with('user', 'marjor')->latest('id')->paginate(15);
+        return view('admin-ui.manage-students', compact('students'));
     }
     public function create(){
         return view('students.create', ['student'=>new Student(),'users'=>User::all()]);

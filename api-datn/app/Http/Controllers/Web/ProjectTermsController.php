@@ -303,7 +303,9 @@ class ProjectTermsController extends Controller
                     'assignment_supervisors.supervisor',
                 ]);
             },
-            'supervisors'
+            'supervisors' => function ($q) use ($teacherId) {
+                $q->where('teacher_id', $teacherId);
+            }
         ])->get();
         return view('lecturer-ui.thesis-rounds', compact('rows'));
     }
