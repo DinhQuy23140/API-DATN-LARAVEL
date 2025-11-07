@@ -8,6 +8,7 @@ use App\Models\Student;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
 
 class UsersController extends Controller
@@ -77,34 +78,51 @@ class UsersController extends Controller
         ]);
     }
 
-    public function register(Request $request) {
+    public function register(Request $request)
+    {
         $data = $request->validate([
             'fullname' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255', Rule::unique('users', 'email')],
             'password' => ['required', 'string', 'min:6'],
         ]);
 
-        $data['password'] = Hash::make($data['password']);
-        $user = User::create($data);
+        DB::beginTransaction();
 
-        // Tạo bản ghi student liên quan ngay sau khi tạo user
-        // class_code random (ví dụ: CLS + uniqid)
         try {
-            $student = Student::create([
+            $data['password'] = Hash::make($data['password']);
+            $user = User::create($data);
+
+            Student::create([
                 'user_id' => $user->id,
                 'student_code' => 'CLS' . strtoupper(substr(uniqid(), -6)),
             ]);
-        } catch (\Throwable $e) {
-            // Nếu tạo student thất bại, vẫn trả user nhưng log lỗi (ở production bạn có thể rollback)
-            \Log::error('Create student failed for user '.$user->id.': '.$e->getMessage());
-        }
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Đăng ký tạo người dùng thanh cong',
-            'user' => $user
-        ]);
+            DB::commit();
+
+            // Tạo token đăng nhập ngay sau khi đăng ký
+            $token = $user->createToken('api-token')->plainTextToken;
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Đăng ký thành công',
+                'token_type' => 'Bearer',
+                'access_token' => $token,
+                'user' => [
+                    'id' => $user->id,
+                    'fullname' => $user->fullname,
+                    'email' => $user->email,
+                ],
+            ]);
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            \Log::error('Register failed: ' . $e->getMessage());
+            return response()->json([
+                'success' => false,
+                'message' => 'Đăng ký thất bại, vui lòng thử lại sau.',
+            ], 500);
+        }
     }
+
     /**
      * Hiển thị danh sách người dùng (có phân trang & optional include quan hệ).
      * GET /api/users

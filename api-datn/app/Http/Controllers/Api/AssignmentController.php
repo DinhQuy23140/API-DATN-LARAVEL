@@ -15,6 +15,7 @@ class AssignmentController extends Controller
             'project_term.academy_year',
             'assignment_supervisors.supervisor.teacher.user',
             'project.progressLogs.attachments',
+            'project.progressLogs.commentLogs.supervisor.teacher.user',
         ])
         ->when($request->query('student_id'), function($q, $sid){
             $q->whereHas('student', fn($qb)=>$qb->where('id', $sid));
@@ -64,6 +65,7 @@ class AssignmentController extends Controller
                 'student.user',
                 'assignment_supervisors.supervisor.teacher.user',
                 'project.progressLogs.attachments',
+                'project.progressLogs.commentLogs.supervisor.teacher.user',
             ])
             ->whereHas('student', function ($query) use ($studentId) {
                 $query->where('id', $studentId);
@@ -86,6 +88,7 @@ class AssignmentController extends Controller
                     ->with('supervisor.teacher.user');
             },
             'project.progressLogs.attachments',
+            'project.progressLogs.commentLogs.supervisor.teacher.user',
             'project.reportFiles',
             'council_project.council_project_defences.council_member.supervisor.teacher.user',
             'council_project.council.department',
@@ -108,6 +111,7 @@ class AssignmentController extends Controller
                 'project_term.academy_year',
                 'assignment_supervisors.supervisor.teacher.user',
                 'project.progressLogs.attachments',
+                'project.progressLogs.commentLogs.supervisor.teacher.user',
             ])
         );
     }
@@ -133,6 +137,7 @@ class AssignmentController extends Controller
                 'student.user',
                 'assignment_supervisors.supervisor.teacher.user',
                 'project.progressLogs.attachments',
+                'project.progressLogs.commentLogs.supervisor.teacher.user',
             ])
         );
     }
@@ -158,6 +163,7 @@ class AssignmentController extends Controller
             'project_term.stageTimelines',
             'assignment_supervisors.supervisor.teacher.user',
             'project.progressLogs.attachments',
+            'project.progressLogs.commentLogs.supervisor.teacher.user',
             'project.reportFiles',
             'council_project.council_project_defences.council_member.supervisor.teacher.user',
             'council_project.council.department',
@@ -177,6 +183,7 @@ class AssignmentController extends Controller
             'project_term.stageTimelines',
             'assignment_supervisors.supervisor.teacher.user',
             'project.progressLogs.attachments',
+            'project.progressLogs.commentLogs.supervisor.teacher.user',
             'project.reportFiles',
             'council_project.council_project_defences.council_member.supervisor.teacher.user',
             'council_project.council.department',
@@ -194,6 +201,7 @@ class AssignmentController extends Controller
             'project_term.academy_year',
             'assignment_supervisors.supervisor.teacher.user',
             'project.progressLogs.attachments',
+            'project.progressLogs.commentLogs.supervisor.teacher.user',
             'project.reportFiles',
             'council_project.council_project_defences.council_member.supervisor.teacher.user',
             'council_project.council.department',
