@@ -14,7 +14,6 @@ class stage_timeline extends Model
         'start_date',
         'end_date',
         'description',
-        'status'
     ];
 
     public function projectTerm()

@@ -23,7 +23,6 @@ return new class extends Migration
             $table->text('address')->nullable();
             $table->string('date')->nullable();
             $table->string('time')->nullable();
-            $table->text('status');
             $table->timestamps();
             $table->foreign('project_term_id')->references('id')->on('project_terms')->onDelete('cascade');
             $table->foreign('department_id')->references('id')->on('departments')->onDelete('cascade');

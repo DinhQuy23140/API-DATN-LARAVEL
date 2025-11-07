@@ -17,9 +17,17 @@ return new class extends Migration
             $table->id();
             $table->string('class_code');
             $table->string('class_name');
-            $table->text('number_students');
-            $table->unsignedBigInteger('cohort_id');
-            $table->foreign('cohort_id')->references('id')->on('cohorts')->onDelete('cascade');
+            $table->text('number_students')->nullable();
+            $table->string('admission_year')->nullable();
+            $table->string('cohort')->nullable();
+            $table->text('description')->nullable();
+
+            $table->unsignedBigInteger('department_id')->nullable();
+            $table->foreign('department_id')->references('id')->on('departments')->onDelete('cascade');
+
+            $table->unsignedBigInteger('marjor_id')->nullable();
+            $table->foreign('marjor_id')->references('id')->on('marjors')->onDelete('cascade');
+
             $table->timestamps();
         });
     }

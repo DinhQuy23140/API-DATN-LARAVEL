@@ -31,7 +31,6 @@ class TeacherFactory extends Factory
                 'Cử nhân', 'Thạc sĩ', 'Tiến sĩ', 'Phó Giáo sư', 'Giáo sư'
             ]),
 
-            'faculty_id' => Faculties::inRandomOrder()->first()->id ?? Faculties::factory()->create()->id,
 
             // Giả định department_id, faculties_id là số nguyên
             'department_id' => Department::inRandomOrder()->first()->id ?? Department::factory()->create()->id,

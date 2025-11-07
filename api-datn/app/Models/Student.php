@@ -24,6 +24,7 @@ class Student extends Model
         'class_code',
         'major_id',
         'course_year',
+        'graduation_project',
     ];
 
     public function user()
@@ -32,7 +33,7 @@ class Student extends Model
     }
 
     public function assignment() {
-        return $this->hasOne(Assignment::class);
+        return $this->hasOne(Assignment::class);    
     }
 
     public function marjor() {

@@ -13,8 +13,6 @@ class Supervisor extends Model
         'teacher_id',
         'project_term_id',
         'max_students',
-        'expertise',
-        'status',
     ];
 
     public function teacher()

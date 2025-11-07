@@ -20,7 +20,6 @@ return new class extends Migration
             $table->text('description');
             $table->text('start_date');
             $table->text('end_date');
-            $table->text('status');
             $table->timestamps();
             $table->foreign('academy_year_id')->references('id')->on('academy_years')->onDelete('cascade');
         });

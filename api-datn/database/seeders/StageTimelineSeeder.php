@@ -51,7 +51,6 @@ public function run(): void
                         'start_date'  => $roundStart->toDateString(),
                         'end_date'    => $roundEnd->toDateString(),
                         'description' => "Round {$round} of term {$term->id}",
-                        'status'      => 'pending',
                     ]
                 );
             }

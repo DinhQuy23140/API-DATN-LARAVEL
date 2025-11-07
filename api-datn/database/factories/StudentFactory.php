@@ -34,8 +34,7 @@ class StudentFactory extends Factory
             'marjor_id' => Marjor::inRandomOrder()->first()->id ?? Marjor::factory()->create()->id,
             // 'department_id' => $this->faker->numberBetween(1, 5),
 
-            // Năm khóa học
-            'course_year' => $this->faker->numberBetween(2018, 2025),
+            'graduation_project' => $this->faker->boolean,
         ];
         // return [
         //     // Liên kết với user (mỗi student phải có 1 user)

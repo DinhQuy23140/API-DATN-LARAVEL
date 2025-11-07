@@ -14,7 +14,6 @@ class Attachment extends Model
         'file_url',
         'file_type',
         'upload_time',
-        'uploader_id',
     ];
 
     public function progressLog()

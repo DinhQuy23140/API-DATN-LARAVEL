@@ -22,7 +22,6 @@ class ProjectTermFactory extends Factory
             'description' => $this->faker->text(),
             'start_date' => $this->faker->date(),
             'end_date' => $this->faker->date(),
-            'status' => $this->faker->randomElement(['active', 'inactive'])
         ];
     }
 }

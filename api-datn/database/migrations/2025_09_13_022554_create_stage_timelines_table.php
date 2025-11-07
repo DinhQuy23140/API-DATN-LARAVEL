@@ -27,7 +27,6 @@ return new class extends Migration
             $table->date('end_date')->nullable();
 
             $table->text('description')->nullable();
-            $table->enum('status', ['pending', 'active', 'completed'])->nullable();
 
             $table->timestamps();
 

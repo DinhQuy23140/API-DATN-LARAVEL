@@ -20,8 +20,7 @@ class Marjor extends Model
         return $this->hasMany(Student::class);
     }
 
-    public function cohorts()
-    {
-        return $this->hasMany(Cohort::class);
+    public function class_rooms() {
+        return $this->hasMany(Class_room::class);
     }
 }

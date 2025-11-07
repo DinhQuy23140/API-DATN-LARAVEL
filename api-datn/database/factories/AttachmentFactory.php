@@ -23,7 +23,6 @@ class AttachmentFactory extends Factory
             'file_url' => $this->faker->url(),
             'file_type' => $this->faker->randomElement(['pdf', 'image', 'doc', 'xlsx', 'ppt']),
             'upload_time' => $this->faker->unixTime(),
-            'uploader_id' => $this->faker->uuid(),
         ];
     }
 }

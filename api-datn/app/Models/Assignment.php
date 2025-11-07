@@ -15,7 +15,7 @@ class Assignment extends Model
         'status',
         'counter_argument_id', // id giảng viên phản biện
         'counter_argument_status', // trạng thái chấm đề cương phản biện
-        'council_id'
+        'counter_argument_comment' // nhận xét phản biện
     ];
 
     public function student() {

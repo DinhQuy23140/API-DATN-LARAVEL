@@ -24,7 +24,6 @@ class AssignmentFactory extends Factory
             'project_id' => Project::inRandomOrder()->first()->id ?? Project::factory(),
             'project_term_id' => ProjectTerm::inRandomOrder()->first()->id ?? null,
             'status' => $this->faker->randomElement(['pending', 'cancelled', 'actived', 'stopped']),
-            'role' => $this->faker->randomElement(['leader', 'member', null]),
         ];
     }
 }

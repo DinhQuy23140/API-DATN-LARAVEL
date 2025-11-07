@@ -20,7 +20,6 @@ return new class extends Migration
             $table->string('file_url');
             $table->string('file_type');
             $table->unsignedBigInteger('upload_time');
-            $table->string('uploader_id');
             $table->timestamps();
         });
     }

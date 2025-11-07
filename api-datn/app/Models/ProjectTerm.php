@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class ProjectTerm extends Model
 {
     use HasFactory;
-    protected $fillable = ['academy_year_id', 'stage', 'description', 'start_date', 'end_date', 'status'];
+    protected $fillable = ['academy_year_id', 'stage', 'description', 'start_date', 'end_date'];
 
     public function academy_year()
     {

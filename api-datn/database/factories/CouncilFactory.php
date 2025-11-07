@@ -29,7 +29,6 @@ class CouncilFactory extends Factory
             'address' => $this->faker->optional()->address(),
             'date' => $this->faker->optional()->date(),
             'time' => $this->faker->optional()->time(),
-            'status' => $this->faker->randomElement(['active', 'inactive']),
         ];
     }
 }

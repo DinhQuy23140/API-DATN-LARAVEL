@@ -29,7 +29,6 @@ class StageTimelineFactory extends Factory
             'start_date'        => Carbon::instance($start)->toDateString(),
             'end_date'          => Carbon::instance($end)->toDateString(),
             'description'       => $this->faker->sentence(),
-            'status'            => $this->faker->randomElement(['pending', 'active', 'completed']),
         ];
     }
 }
