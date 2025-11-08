@@ -18,7 +18,6 @@ class MarjorController extends Controller
         $data = $request->validate([
             'code' => 'required|string|max:100|unique:marjors,code',
             'name' => 'required|string|max:255',
-            'faculty_id' => 'nullable|integer|exists:faculties,id',
             'description' => 'nullable|string'
         ]);
 
@@ -35,7 +34,6 @@ class MarjorController extends Controller
         $data = $request->validate([
             'code' => 'sometimes|string|max:100|unique:marjors,code,' . $major->id,
             'name' => 'sometimes|string|max:255',
-            'faculties_id' => 'nullable|integer|exists:faculties,id',
             'description' => 'nullable|string'
         ]);
         $major->update($data);

@@ -25,7 +25,6 @@ class SupervisorController extends Controller
         $data=$request->validate([
             'teacher_id'=>'required|exists:teachers,id',
             'max_students'=>'required|integer|min:1',
-            'expertise'=>'nullable|string'
         ]);
         $sp=Supervisor::create($data);
         return redirect()->route('web.supervisors.show',$sp)->with('status','Tạo thành công');
@@ -36,7 +35,6 @@ class SupervisorController extends Controller
         $data=$request->validate([
             'teacher_id'=>'sometimes|exists:teachers,id',
             'max_students'=>'sometimes|integer|min:1',
-            'expertise'=>'nullable|string'
         ]);
         $supervisor->update($data);
         return redirect()->route('web.supervisors.show',$supervisor)->with('status','Cập nhật thành công');
@@ -111,14 +109,10 @@ class SupervisorController extends Controller
             'supervisors.*.email' => 'nullable|string',
             'supervisors.*.max_students' => 'nullable|integer|min:0',
             'max_students'    => 'nullable|integer|min:1',
-            'expertise'       => 'nullable|string',
-            'status'          => 'nullable|string|max:100',
         ]);
 
         $termId   = (int) $data['project_term_id'];
         $globalMax = $data['max_students'] ?? 5;
-        $expertise= $data['expertise'] ?? null;
-        $status   = $data['status'] ?? 'active';
 
         $supItems = collect($data['supervisors']);
         $emails = $supItems->pluck('email')->filter()->map(fn($e) => strtolower(trim($e)))->unique()->values();
@@ -169,7 +163,7 @@ class SupervisorController extends Controller
         $mapTeacherToEmail = array_flip($mapEmailToTeacher);
 
         $now = now();
-        $rows = $toInsertIds->map(function($tid) use ($termId, $mapTeacherToEmail, $emailToMax, $globalMax, $expertise, $status, $now) {
+        $rows = $toInsertIds->map(function($tid) use ($termId, $mapTeacherToEmail, $emailToMax, $globalMax, $now) {
             $email = $mapTeacherToEmail[$tid] ?? null;
             $maxFor = $email ? ($emailToMax[$email] ?? null) : null;
             $quota = $maxFor ?? $globalMax;
@@ -177,8 +171,6 @@ class SupervisorController extends Controller
                 'teacher_id'      => $tid,
                 'project_term_id' => $termId,
                 'max_students'    => $quota,
-                'expertise'       => $expertise,
-                'status'          => $status,
                 'created_at'      => $now,
                 'updated_at'      => $now,
             ];

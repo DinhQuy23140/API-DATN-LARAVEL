@@ -162,47 +162,67 @@
 
           <section class="bg-white rounded-xl border border-slate-200 p-4">
             <h2 class="font-semibold text-lg mb-2">Thông tin đợt đồ án</h2>
-            <div class="text-slate-700 text-sm space-y-1">
+            <div class="text-slate-700 text-sm space-y-2">
               @php
               $stage = $rows->stage;
               $term = $rows->academy_year->name . ' - Học kỳ ' . $rows->stage;
               $semester = ($rows->stage % 2 == 1) ? '1' : '2';
               $date = date('d/m/Y', strtotime($rows->start_date)) . ' - ' . date('d/m/Y', strtotime($rows->end_date));
               @endphp
-              <div><strong>Đợt:</strong> {{ $term }} </div>
-              <div><strong>Năm học:</strong> {{ $term }} </div>
-              <div><strong>Học kỳ:</strong> {{ $semester }} </div>
-              <div><strong>Thời gian:</strong> {{ $date }} </div>
+              <div class="flex items-center gap-3">
+                <div class="h-8 w-8 rounded-md bg-indigo-50 text-indigo-600 grid place-items-center">
+                  <i class="ph ph-calendar"></i>
+                </div>
+                <div><strong class="text-indigo-700">Đợt:</strong> <span class="text-slate-700">{{ $term }}</span></div>
+              </div>
+              <div class="flex items-center gap-3">
+                <div class="h-8 w-8 rounded-md bg-emerald-50 text-emerald-600 grid place-items-center">
+                  <i class="ph ph-book-open"></i>
+                </div>
+                <div><strong class="text-emerald-700">Năm học:</strong> <span class="text-slate-700">{{ $term }}</span></div>
+              </div>
+              <div class="flex items-center gap-3">
+                <div class="h-8 w-8 rounded-md bg-amber-50 text-amber-600 grid place-items-center">
+                  <i class="ph ph-graduation-cap"></i>
+                </div>
+                <div><strong class="text-amber-700">Học kỳ:</strong> <span class="text-slate-700">{{ $semester }}</span></div>
+              </div>
+              <div class="flex items-center gap-3">
+                <div class="h-8 w-8 rounded-md bg-violet-50 text-violet-600 grid place-items-center">
+                  <i class="ph ph-clock"></i>
+                </div>
+                <div><strong class="text-violet-700">Thời gian:</strong> <span class="text-slate-700">{{ $date }}</span></div>
+              </div>
             </div>
           </section>
 
           <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
-            <div class="relative">
-              <i class="ph ph-magnifying-glass absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
-              <input id="search" class="pl-8 pr-3 py-2 border border-slate-200 rounded text-sm w-80" placeholder="Tìm theo tên/MSSV/hội đồng" />
+            <div class="relative w-full md:w-auto">
+              <i class="ph ph-magnifying-glass absolute left-3 top-2.5 text-slate-400"></i>
+              <input id="search" class="pl-10 pr-3 py-2 border border-slate-200 rounded-lg text-sm w-full md:w-80 focus:outline-none focus:ring-2 focus:ring-sky-200" placeholder="Tìm theo tên/MSSV/hội đồng" />
             </div>
-            <a href="thesis-round-detail.html" class="text-sm text-blue-600 hover:underline"><i class="ph ph-caret-left"></i> Quay lại chi tiết đợt</a>
+            <a href="thesis-round-detail.html" class="text-sm text-sky-600 hover:underline flex items-center gap-2"><i class="ph ph-caret-left"></i><span>Quay lại chi tiết đợt</span></a>
           </div>
 
-<div class="bg-white border rounded-xl shadow-sm overflow-hidden">
+<div class="bg-white border rounded-2xl shadow-sm overflow-hidden">
   <div class="overflow-x-auto">
     <table id="studentTable" class="w-full text-sm border-collapse">
-      <thead class="bg-slate-50 border-b">
+      <thead class="bg-slate-50 border-b sticky top-0">
         <tr class="text-slate-600">
-          <th class="py-3 px-4 text-left font-semibold">Sinh viên</th>
-          <th class="py-3 px-4 text-left font-semibold">MSSV</th>
-          <th class="py-3 px-4 text-left font-semibold">Đề tài</th>
-          <th class="py-3 px-4 text-left font-semibold">Hội đồng</th>
-          <th class="py-3 px-4 text-left font-semibold">Lịch bảo vệ</th>
-          <th class="py-3 px-4 text-left font-semibold">Phòng</th>
-          <th class="py-3 px-4 text-center font-semibold">Hành động</th>
+          <th class="py-3 px-4 text-left font-semibold"><i class="ph ph-user mr-2"></i> Sinh viên</th>
+          <th class="py-3 px-4 text-left font-semibold"><i class="ph ph-hash mr-2"></i> MSSV</th>
+          <th class="py-3 px-4 text-left font-semibold"><i class="ph ph-file-text mr-2"></i> Đề tài</th>
+          <th class="py-3 px-4 text-left font-semibold"><i class="ph ph-chalkboard-teacher mr-2"></i> Hội đồng</th>
+          <th class="py-3 px-4 text-left font-semibold"><i class="ph ph-calendar mr-2"></i> Lịch bảo vệ</th>
+          <th class="py-3 px-4 text-left font-semibold"><i class="ph ph-map-pin mr-2"></i> Phòng</th>
+          <th class="py-3 px-4 text-center font-semibold"><i class="ph ph-gear-six mr-2"></i> Hành động</th>
         </tr>
       </thead>
-      <tbody id="rows" class="divide-y divide-slate-100">
+      <tbody id="committeesTableBody" class="divide-y divide-slate-100">
         @php
           $assignments = $rows->assignments;
         @endphp
-        @foreach ($assignments as $assignment)
+  @foreach ($assignments as $assignment)
           @php
             $fullname = $assignment->student->user->fullname;
             $student_code = $assignment->student->code;
@@ -212,27 +232,30 @@
             $room = $assignment->council_project->council->address ?? 'Chưa có phòng';
             $councilId = $assignment->council_project->council->id ?? null;
           @endphp
-          <tr class="hover:bg-slate-50 transition">
+          <tr class="hover:bg-slate-50 transition group">
             <td class="py-3 px-4 font-medium text-slate-700">
-              <a class="text-blue-600 hover:underline" href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $assignment->student->id, 'termId' => $rows->id, 'supervisorId' => $supervisorId]) }}">
+              <a class="text-sky-600 hover:underline font-medium" href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $assignment->student->id, 'termId' => $rows->id, 'supervisorId' => $supervisorId]) }}">
                 {{ $fullname }}
               </a>
+              <div class="text-xs text-slate-500 mt-1">{{ $topic }}</div>
             </td>
             <td class="py-3 px-4 text-slate-600">{{ $student_code }}</td>
-            <td class="py-3 px-4">{{ $topic }}</td>
-            <td class="py-3 px-4">{{ $council_name }}</td>
-            <td class="py-3 px-4">{{ $date }}</td>
-            <td class="py-3 px-4">{{ $room }}</td>
+            <td class="py-3 px-4 text-slate-700">{{ $topic }}</td>
+            <td class="py-3 px-4 text-slate-700">{{ $council_name }}</td>
+            <td class="py-3 px-4 text-slate-600">{{ $date }}</td>
+            <td class="py-3 px-4 text-slate-600">{{ $room }}</td>
             <td class="py-3 px-4 text-center">
               <div class="flex items-center justify-center gap-2">
                 <a href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $assignment->student->id, 'termId' => $rows->id, 'supervisorId' => $supervisorId]) }}"
-                  class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 text-xs font-medium transition">
-                  <i class="ph ph-user text-sm"></i> SV
+                  class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-sky-50 text-sky-600 hover:bg-sky-100 text-xs font-medium transition">
+                  <i class="ph ph-user text-sm"></i>
+                  <span class="hidden sm:inline">SV</span>
                 </a>
                 @if ($councilId)
                 <a href="{{ route('web.teacher.committee_detail', ['councilId'=>$councilId, 'termId'=>$rows->id, 'supervisorId' => $supervisorId]) }}"
-                  class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-slate-50 text-slate-600 hover:bg-slate-100 text-xs font-medium transition">
-                  <i class="ph ph-chalkboard-teacher text-sm"></i> Hội đồng
+                  class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-50 text-slate-600 hover:bg-slate-100 text-xs font-medium transition">
+                  <i class="ph ph-chalkboard-teacher text-sm"></i>
+                  <span class="hidden sm:inline">Hội đồng</span>
                 </a>
                 @endif
               </div>
@@ -243,6 +266,8 @@
     </table>
   </div>
 </div>
+
+          <div id="noResults" class="hidden p-6 text-center text-slate-500">Không tìm thấy kết quả nào.</div>
 
 
         </div>
@@ -268,14 +293,30 @@
       document.addEventListener('click', (e)=>{ if(!profileBtn?.contains(e.target) && !profileMenu?.contains(e.target)) profileMenu?.classList.add('hidden'); });
     })();
     
-    document.getElementById('search').addEventListener('input', function() {
-      const filter = this.value.toLowerCase();
-      const rows = document.querySelectorAll('#studentTable tbody tr');
-      rows.forEach(row => {
-        const text = row.innerText.toLowerCase();
-        row.style.display = text.includes(filter) ? '' : 'none';
+    // Debounced, diacritic-insensitive search for committees table
+    (function(){
+      const input = document.getElementById('search');
+      const tbody = document.getElementById('committeesTableBody');
+      const noResults = document.getElementById('noResults');
+      if(!input || !tbody) return;
+      let timer = null;
+      function normalize(s){ return (s||'').toString().toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu,''); }
+      input.addEventListener('input', ()=>{
+        clearTimeout(timer);
+        timer = setTimeout(()=>{
+          const q = normalize(input.value.trim());
+          let visible = 0;
+          for(const row of Array.from(tbody.querySelectorAll('tr'))){
+            const text = normalize(row.textContent || '');
+            const match = q === '' || text.indexOf(q) !== -1;
+            row.style.display = match ? '' : 'none';
+            if(match) visible++;
+          }
+          if(visible === 0){ noResults.classList.remove('hidden'); }
+          else { noResults.classList.add('hidden'); }
+        }, 220);
       });
-    });
+    })();
   </script>
 </body>
 </html>

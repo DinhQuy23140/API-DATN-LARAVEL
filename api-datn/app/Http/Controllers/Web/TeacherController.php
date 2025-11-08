@@ -25,7 +25,6 @@ class TeacherController extends Controller
             'degree'=>'nullable|string|max:100',
             'department_id'=>'nullable|integer',
             'position'=>'nullable|string|max:100',
-            'faculties_id'=>'nullable|integer'
         ]);
         $t=Teacher::create($data);
         return redirect()->route('web.teachers.show',$t)->with('status','Tạo thành công');
@@ -39,7 +38,6 @@ class TeacherController extends Controller
             'degree'=>'nullable|string|max:100',
             'department_id'=>'nullable|integer',
             'position'=>'nullable|string|max:100',
-            'faculties_id'=>'nullable|integer'
         ]);
         $teacher->update($data);
         return redirect()->route('web.teachers.show',$teacher)->with('status','Cập nhật thành công');

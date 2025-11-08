@@ -163,26 +163,32 @@
             <a href="#" onclick="window.history.back(); return false;" class="text-sm text-blue-600 hover:underline"><i class="ph ph-caret-left"></i> Quay lại</a>
           </div>
           <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3">
-            <input class="px-3 py-2 border border-slate-200 rounded text-sm w-64" placeholder="Tìm theo tên/MSSV/đề tài" />
+            <div class="flex items-center gap-2 w-full sm:w-auto">
+              <div class="relative w-full sm:w-64">
+                <i class="ph ph-magnifying-glass absolute left-3 top-2.5 text-slate-400"></i>
+                <input id="searchInput" class="pl-10 pr-3 py-2 border border-slate-200 rounded-lg text-sm w-full focus:outline-none focus:ring-2 focus:ring-sky-200" placeholder="Tìm theo tên/MSSV/đề tài" />
+              </div>
+            </div>
             <div class="flex items-center gap-2">
-              <button class="px-3 py-1.5 bg-blue-600 text-white rounded text-sm"><i class="ph ph-plus"></i> Thêm SV</button>
-              <button class="px-3 py-1.5 border border-slate-200 rounded text-sm"><i class="ph ph-export"></i> Xuất danh sách</button>
+              <button class="px-3 py-1.5 bg-emerald-600 text-white rounded-full text-sm shadow-sm hover:shadow-md flex items-center gap-2"><i class="ph ph-plus"></i><span class="hidden sm:inline">Thêm SV</span></button>
+              <button class="px-3 py-1.5 border border-slate-200 rounded-full text-sm flex items-center gap-2"><i class="ph ph-export"></i><span class="hidden sm:inline">Xuất danh sách</span></button>
             </div>
           </div>
-          <div class="overflow-x-auto bg-white border rounded-xl shadow-sm">
+          <div class="overflow-x-auto bg-white border rounded-2xl shadow-sm">
+            <div class="p-2 overflow-x-auto">
             <table class="w-full text-sm">
-              <thead class="bg-slate-50">
+              <thead class="bg-slate-50 sticky top-0">
                 <tr class="text-left text-slate-600 border-b">
-                  <th class="py-3 px-3 font-medium">Sinh viên</th>
-                  <th class="py-3 px-3 font-medium">MSSV</th>
-                  <th class="py-3 px-3 font-medium">Lớp</th>
-                  <th class="py-3 px-3 font-medium">Đề tài</th>
-                  <th class="py-3 px-3 font-medium">Ngày bắt đầu</th>
-                  <th class="py-3 px-3 font-medium text-center">Trạng thái</th>
-                  <th class="py-3 px-3 font-medium text-center">Hành động</th>
+                  <th class="py-3 px-4 font-medium">Sinh viên</th>
+                  <th class="py-3 px-4 font-medium">MSSV</th>
+                  <th class="py-3 px-4 font-medium">Lớp</th>
+                  <th class="py-3 px-4 font-medium">Đề tài</th>
+                  <th class="py-3 px-4 font-medium">Ngày bắt đầu</th>
+                  <th class="py-3 px-4 font-medium text-center">Trạng thái</th>
+                  <th class="py-3 px-4 font-medium text-center">Hành động</th>
                 </tr>
               </thead>
-              <tbody class="divide-y divide-slate-200">
+              <tbody class="divide-y divide-slate-200" id="studentsTableBody">
                 @foreach ($items as $item)
                   @php
                     $student   = $item->student;
@@ -224,30 +230,33 @@
                     }
                   @endphp
 
-                  <tr class="hover:bg-slate-50 transition-colors">
-                    <td class="py-3 px-3">
-                      <a class="text-blue-600 hover:underline font-medium"
+                  <tr class="hover:bg-slate-50 transition-colors group">
+                    <td class="py-3 px-4 align-top">
+                      <a class="text-sky-600 hover:underline font-medium"
                         href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $termId, 'supervisorId' => $supervisorId]) }}">
                         {{ $name }}
                       </a>
+                      <div class="text-xs text-slate-500 mt-1">{{ $topic }}</div>
                     </td>
-                    <td class="py-3 px-3">{{ $mssv }}</td>
-                    <td class="py-3 px-3">{{ $class }}</td>
-                    <td class="py-3 px-3">{{ $topic }}</td>
-                    <td class="py-3 px-3 text-slate-600">{{ $startDate }}</td>
-                    <td class="py-3 px-3 text-center">
+                    <td class="py-3 px-4 align-top">{{ $mssv }}</td>
+                    <td class="py-3 px-4 align-top">{{ $class }}</td>
+                    <td class="py-3 px-4 align-top text-slate-700">{{ $topic }}</td>
+                    <td class="py-3 px-4 align-top text-slate-600">{{ $startDate }}</td>
+                    <td class="py-3 px-4 text-center align-top">
                       <span class="px-2.5 py-1 text-xs font-medium rounded-full {{ $statusClass }}">
                         {{ $statusText }}
                       </span>
                     </td>
-                    <td class="py-3 px-3 text-center">
+                    <td class="py-3 px-4 text-center align-top">
                       <div class="flex items-center justify-center gap-2">
-                        <a class="px-3 py-1.5 border border-slate-200 rounded-lg text-xs font-medium text-slate-700 hover:bg-slate-50 transition"
+                        <a class="px-3 py-1.5 border border-slate-200 rounded-full text-xs font-medium text-slate-700 hover:bg-slate-50 transition flex items-center gap-2"
                           href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $termId, 'supervisorId' => $supervisorId]) }}">
-                          Xem chi tiết
+                          <i class="ph ph-eye text-sm"></i>
+                          <span class="hidden sm:inline">Xem chi tiết</span>
                         </a>
-                        <button class="px-3 py-1.5 bg-rose-600 text-white rounded-lg text-xs font-medium hover:bg-rose-700 transition">
-                          Gỡ
+                        <button class="px-3 py-1.5 bg-rose-600 text-white rounded-full text-xs font-medium hover:bg-rose-700 transition flex items-center gap-2">
+                          <i class="ph ph-trash"></i>
+                          <span class="hidden sm:inline">Gỡ</span>
                         </button>
                       </div>
                     </td>
@@ -255,6 +264,8 @@
                 @endforeach
               </tbody>
             </table>
+            <div id="noResults" class="hidden p-6 text-center text-slate-500">Không tìm thấy kết quả nào.</div>
+            </div>
           </div>
         </main>
       </div>
@@ -274,6 +285,31 @@
       const profileBtn=document.getElementById('profileBtn'); const profileMenu=document.getElementById('profileMenu');
       profileBtn?.addEventListener('click', ()=> profileMenu.classList.toggle('hidden'));
       document.addEventListener('click', (e)=>{ if(!profileBtn?.contains(e.target) && !profileMenu?.contains(e.target)) profileMenu?.classList.add('hidden'); });
+
+      // Search event (debounced) - filters table rows by name, MSSV or topic
+      (function(){
+        const input = document.getElementById('searchInput');
+        const tbody = document.getElementById('studentsTableBody');
+        const noResults = document.getElementById('noResults');
+        if(!input || !tbody) return;
+        let timer = null;
+        function normalize(s){ return (s||'').toString().toLowerCase().normalize('NFD').replace(/\p{Diacritic}/gu,''); }
+        input.addEventListener('input', ()=>{
+          clearTimeout(timer);
+          timer = setTimeout(()=>{
+            const q = normalize(input.value.trim());
+            let visible = 0;
+            for(const row of Array.from(tbody.querySelectorAll('tr'))){
+              const text = normalize(row.textContent || '');
+              const match = q === '' || text.indexOf(q) !== -1;
+              row.style.display = match ? '' : 'none';
+              if(match) visible++;
+            }
+            if(visible === 0){ noResults.classList.remove('hidden'); }
+            else { noResults.classList.add('hidden'); }
+          }, 220);
+        });
+      })();
     </script>
   </div>
 </body>

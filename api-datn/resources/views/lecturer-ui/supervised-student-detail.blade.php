@@ -202,39 +202,42 @@
                     <a href="{{ url()->previous() }}" class="text-sm text-blue-600 hover:underline"><i class="ph ph-caret-left"></i> Quay lại danh sách</a>
                 </div>
 
-               <div class="bg-white border rounded-xl p-4 mb-4">
-                   <div class="flex items-center justify-between">
-                       <div>
-                           <div class="text-sm text-slate-500">
-                               MSSV: <span class="font-medium text-slate-700">{{ $student->student_code ?? $student->id ?? '-' }}</span>
-                           </div>
-                           <h2 class="font-semibold text-lg mt-1">{{ $studentUser->fullname ?? 'Sinh viên' }}</h2>
-                           <div class="text-sm text-slate-600">Lớp: {{ $student->class_code ?? '-' }}</div>
-                       </div>
-                       <div class="text-right">
-                           <div class="text-sm text-slate-500">GVHD</div>
-                           <div class="font-medium text-blue-600">
-                               {{ $supervisorTeacherUser->fullname ?? '—' }}
-                           </div>
-                       </div>
-                   </div>
+               
+         <div class="rounded-2xl overflow-hidden shadow-lg mb-6 bg-gradient-to-r from-sky-600 via-indigo-600 to-violet-600 text-white">
+           <div class="p-5 md:p-6 flex items-center gap-4">
+             <img src="{{ $studentUser->avatar_url ?? ($studentUser->profile_photo_url ?? ('https://ui-avatars.com/api/?name=' . urlencode($studentUser->fullname ?? 'Sinh viên') . '&background=ffffff&color=000')) }}" alt="avatar" class="h-20 w-20 rounded-full ring-4 ring-white object-cover shadow-md" />
+             <div class="flex-1">
+               <div class="text-sm uppercase opacity-90">Sinh viên hướng dẫn</div>
+               <div class="text-2xl font-bold mt-1">{{ $studentUser->fullname ?? 'Sinh viên' }}</div>
+               <div class="text-sm opacity-90 mt-1">MSSV: <span class="font-medium">{{ $student->student_code ?? $student->id ?? '-' }}</span> • Lớp: {{ $student->class_code ?? '-' }}</div>
+             </div>
+             <div class="text-right">
+               <div class="text-sm opacity-90">Giảng viên hướng dẫn</div>
+               <div class="mt-1 inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-white/20">
+                 <i class="ph ph-user-circle text-white"></i>
+                 <div class="font-medium">{{ $supervisorTeacherUser->fullname ?? '—' }}</div>
                </div>
+             </div>
+           </div>
+         </div>
+         <!-- (above) Student hero rendered -->
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <section class="md:col-span-2 bg-white border rounded-xl p-4">
-                        <h2 class="font-semibold mb-3">Thông tin đề tài</h2>
-                        <div class="text-sm text-slate-700 space-y-1">
-                            <div><span class="text-slate-500">Đề tài: </span><span class="font-medium">{{ $project->name ?? ($project->title ?? 'Chưa có đề tài') }}</span></div>
-                        </div>
-                        <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
-                            <div class="bg-blue-50 p-3 rounded">
-                                <div class="text-sm text-blue-800">Ngày bắt đầu</div>
-                                <div class="text-2xl font-bold text-blue-600">
-                                    {{ optional($assignment?->created_at)->format('d/m/Y') ?? '-' }}
-                                </div>
-                            </div>
-                            <div class="bg-slate-50 p-3 rounded">
-                                <div class="text-sm text-slate-700">Trạng thái</div>
+          <section class="md:col-span-2 bg-white border rounded-2xl p-5 shadow-sm hover:shadow-md transition">
+            <div class="flex items-center justify-between mb-3">
+              <h2 class="font-semibold text-lg flex items-center gap-2"><i class="ph ph-document-text text-indigo-600"></i> Thông tin đề tài</h2>
+              <div class="text-sm text-slate-500">Thông tin chi tiết dự án</div>
+            </div>
+            <div class="text-sm text-slate-700 space-y-1">
+              <div><span class="text-slate-500">Đề tài: </span><span class="font-medium">{{ $project->name ?? ($project->title ?? 'Chưa có đề tài') }}</span></div>
+            </div>
+            <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-3">
+              <div class="bg-gradient-to-br from-indigo-50 to-sky-50 p-4 rounded-lg border border-slate-100">
+                <div class="text-sm text-indigo-600 flex items-center gap-2"><i class="ph ph-calendar-check"></i> Ngày bắt đầu</div>
+                <div class="text-2xl font-bold text-indigo-700 mt-1">{{ optional($assignment?->created_at)->format('d/m/Y') ?? '-' }}</div>
+              </div>
+              <div class="bg-gradient-to-br from-amber-50 to-emerald-50 p-4 rounded-lg border border-slate-100">
+                <div class="text-sm text-slate-700 flex items-center gap-2"><i class="ph ph-flag"></i> Trạng thái</div>
                                 @php
                                     $status = $assignment->status ?? null;
                                     $statusClass = match($status) {
@@ -259,8 +262,8 @@
                         </div>
 <!-- de cuong -->
                         <div class="mt-6">
-                            <h3 class="font-semibold mb-2">Đề cương đã nộp</h3>
-                           <div class="border rounded-lg p-3 bg-slate-50 text-sm">
+                            <h3 class="font-semibold mb-2 flex items-center gap-2"><i class="ph ph-file-text text-emerald-600"></i> Đề cương đã nộp</h3>
+                           <div class="border-l-4 border-emerald-200 rounded-lg p-3 bg-slate-50 text-sm">
                                @php
                                    $hasOutline = $outlineSubmissions->count() > 0;
                                    $latest = $hasOutline ? $outlineSubmissions->first() : null;
@@ -392,8 +395,8 @@
                            </div>
                         </div>
                     </section>
-                    <section class="bg-white border rounded-xl p-4">
-                        <h2 class="font-semibold mb-3">Liên hệ</h2>
+          <section class="bg-white border rounded-2xl p-4 shadow-sm hover:shadow-md transition">
+            <h2 class="font-semibold mb-3 flex items-center gap-2"><i class="ph ph-address-book text-blue-600"></i> Liên hệ</h2>
                        <div class="text-sm text-slate-700 space-y-1">
                            <div><span class="text-slate-500">Email: </span>
                                @if(!empty($studentUser->email))

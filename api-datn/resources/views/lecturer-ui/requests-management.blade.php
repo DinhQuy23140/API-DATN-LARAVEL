@@ -164,20 +164,23 @@
             <div></div>
             <a href="thesis-round-detail.html" class="text-sm text-blue-600 hover:underline"><i class="ph ph-caret-left"></i> Quay lại đợt</a>
           </div>
-    <!-- Stage info banner -->
-    <section class="bg-white border rounded-xl p-4 mb-4">
-      <div class="flex items-start justify-between">
+    <!-- Stage info banner (modernized) -->
+    <section class="rounded-3xl overflow-hidden mb-6 shadow-lg bg-gradient-to-r from-indigo-600 via-sky-500 to-emerald-400 text-white">
+      <div class="p-5 md:p-6 flex items-center justify-between">
         <div>
-          <div class="text-xs uppercase text-slate-500">Giai đoạn</div>
-          <h2 class="text-lg font-semibold">Giai đoạn 01: Tiếp nhận yêu cầu sinh viên</h2>
-          <div class="text-sm text-slate-600">
+          <div class="text-xs uppercase opacity-90">Giai đoạn</div>
+          <h2 class="text-2xl font-bold">Giai đoạn 01: Tiếp nhận yêu cầu sinh viên</h2>
+          <div class="text-sm opacity-90 mt-1">
               Thời gian: {{ \Carbon\Carbon::parse($timeStage->start_date)->format('d/m/Y') }}
               – {{ \Carbon\Carbon::parse($timeStage->end_date)->format('d/m/Y') }}
               • Hạn phản hồi chuẩn: 7 ngày
           </div>
         </div>
         <div class="text-right">
-          <span class="px-2 py-1 rounded-full text-xs bg-blue-50 text-blue-700">Đang diễn ra</span>
+          <span class="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-white/20 text-sm font-medium">
+            <i class="ph ph-clock"></i>
+            Đang diễn ra
+          </span>
         </div>
       </div>
     </section>
@@ -187,122 +190,148 @@
 
     <!-- Quick stats -->
     <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-      <div class="bg-blue-50 p-4 rounded-lg flex items-center gap-3">
-        <div class="h-10 w-10 rounded-lg bg-blue-600/10 text-blue-600 grid place-items-center"><i class="ph ph-inbox"></i></div>
-        <div><div class="text-2xl font-bold text-blue-600">{{ $items->count() }}</div><div class="text-sm text-blue-800">Tổng yêu cầu</div></div>
+      <div class="p-4 rounded-2xl flex items-center gap-3 bg-white shadow-sm hover:shadow-md transition">
+        <div class="h-12 w-12 rounded-lg bg-indigo-50 text-indigo-600 grid place-items-center"><i class="ph ph-inbox text-xl"></i></div>
+        <div>
+          <div class="text-2xl font-bold text-slate-800">{{ $items->count() }}</div>
+          <div class="text-sm text-slate-500">Tổng yêu cầu</div>
+        </div>
       </div>
-      <div class="bg-yellow-50 p-4 rounded-lg flex items-center gap-3">
-        <div class="h-10 w-10 rounded-lg bg-yellow-600/10 text-yellow-600 grid place-items-center"><i class="ph ph-hourglass"></i></div>
-        <div><div class="text-2xl font-bold text-yellow-600">{{ $items->filter(function ($item) {return optional($item->assignment_supervisors->first())->status === 'pending';})->count() }}</div><div class="text-sm text-yellow-800">Chờ duyệt</div></div>
+      <div class="p-4 rounded-2xl flex items-center gap-3 bg-white shadow-sm hover:shadow-md transition">
+        <div class="h-12 w-12 rounded-lg bg-amber-50 text-amber-600 grid place-items-center"><i class="ph ph-hourglass text-xl"></i></div>
+        <div>
+          <div class="text-2xl font-bold text-slate-800">{{ $items->filter(function ($item) {return optional($item->assignment_supervisors->first())->status === 'pending';})->count() }}</div>
+          <div class="text-sm text-slate-500">Chờ duyệt</div>
+        </div>
       </div>
-      <div class="bg-green-50 p-4 rounded-lg flex items-center gap-3">
-        <div class="h-10 w-10 rounded-lg bg-green-600/10 text-green-600 grid place-items-center"><i class="ph ph-check-circle"></i></div>
-        <div><div class="text-2xl font-bold text-green-600">{{ $items->filter(function ($item) {return optional($item->assignment_supervisors->first())->status === 'accepted';})->count() }}</div><div class="text-sm text-green-800">Đã chấp nhận</div></div>
+      <div class="p-4 rounded-2xl flex items-center gap-3 bg-white shadow-sm hover:shadow-md transition">
+        <div class="h-12 w-12 rounded-lg bg-emerald-50 text-emerald-600 grid place-items-center"><i class="ph ph-check-circle text-xl"></i></div>
+        <div>
+          <div class="text-2xl font-bold text-slate-800">{{ $items->filter(function ($item) {return optional($item->assignment_supervisors->first())->status === 'accepted';})->count() }}</div>
+          <div class="text-sm text-slate-500">Đã chấp nhận</div>
+        </div>
       </div>
-      <div class="bg-red-50 p-4 rounded-lg flex items-center gap-3">
-        <div class="h-10 w-10 rounded-lg bg-red-600/10 text-red-600 grid place-items-center"><i class="ph ph-x-circle"></i></div>
-        <div><div class="text-2xl font-bold text-red-600">{{ $items->filter(function ($item) {return optional($item->assignment_supervisors->first())->status === 'rejected';})->count() }}</div><div class="text-sm text-red-800">Từ chối</div></div>
+      <div class="p-4 rounded-2xl flex items-center gap-3 bg-white shadow-sm hover:shadow-md transition">
+        <div class="h-12 w-12 rounded-lg bg-rose-50 text-rose-600 grid place-items-center"><i class="ph ph-x-circle text-xl"></i></div>
+        <div>
+          <div class="text-2xl font-bold text-slate-800">{{ $items->filter(function ($item) {return optional($item->assignment_supervisors->first())->status === 'rejected';})->count() }}</div>
+          <div class="text-sm text-slate-500">Từ chối</div>
+        </div>
       </div>
     </div>
 
-    <!-- Filters and bulk actions -->
-    <div class="bg-white border rounded-xl p-3 mb-3">
+    <!-- Filters and bulk actions (modernized) -->
+  <div class="bg-white border rounded-2xl p-3 mb-3 shadow-sm">
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
         <div class="flex flex-wrap items-center gap-2">
           <div class="relative">
-            <i class="ph ph-magnifying-glass absolute left-2 top-2.5 text-slate-400"></i>
-            <input class="pl-8 pr-3 py-2 border border-slate-200 rounded text-sm w-64" placeholder="Tìm theo tên/MSSV/đề tài" />
+            <i class="ph ph-magnifying-glass absolute left-3 top-2.5 text-slate-400"></i>
+            <input class="pl-10 pr-3 py-2 border border-slate-200 rounded-lg text-sm w-64 focus:outline-none focus:ring-2 focus:ring-sky-200" placeholder="Tìm theo tên/MSSV/đề tài" />
           </div>
-          <select class="px-3 py-2 border border-slate-200 rounded text-sm">
+          <select class="px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white">
             <option value="">Tất cả trạng thái</option>
             <option>Chờ duyệt</option>
             <option>Đã chấp nhận</option>
             <option>Từ chối</option>
           </select>
-          <input type="date" class="px-3 py-2 border border-slate-200 rounded text-sm" />
-          <button class="px-2 py-1 text-sm text-slate-600 hover:text-slate-800">Đặt lại</button>
+          <input type="date" class="px-3 py-2 border border-slate-200 rounded-lg text-sm bg-white" />
+          <button class="px-3 py-1.5 text-sm text-slate-600 hover:text-slate-800">Đặt lại</button>
         </div>
         <div class="flex items-center gap-2">
-          <button class="px-3 py-1.5 bg-green-600 text-white rounded text-sm disabled:opacity-50"><i class="ph ph-check"></i> Chấp nhận đã chọn</button>
-          <button class="px-3 py-1.5 bg-red-600 text-white rounded text-sm disabled:opacity-50"><i class="ph ph-x"></i> Từ chối đã chọn</button>
+          <button class="px-3 py-1.5 bg-emerald-600 text-white rounded-full text-sm shadow-sm hover:shadow-md disabled:opacity-50 flex items-center gap-2"><i class="ph ph-check text-base"></i><span>Chấp nhận đã chọn</span></button>
+          <button class="px-3 py-1.5 bg-rose-600 text-white rounded-full text-sm shadow-sm hover:shadow-md disabled:opacity-50 flex items-center gap-2"><i class="ph ph-x text-base"></i><span>Từ chối đã chọn</span></button>
         </div>
       </div>
     </div>
 
-    <!-- Requests table -->
-    <div class="overflow-x-auto bg-white border rounded-xl">
-      <table class="w-full text-sm">
-        <thead class="bg-slate-50">
-          <tr class="text-left text-slate-500 border-b">
-            <th class="py-3 px-3"><input type="checkbox" /></th>
-            <th class="py-3 px-3">Sinh viên</th>
-            <th class="py-3 px-3">MSSV</th>
-            <th class="py-3 px-3">Đề tài đề xuất</th>
-            <th class="py-3 px-3">Ngày gửi</th>
-            <th class="py-3 px-3">Hạn phản hồi</th>
-            <th class="py-3 px-3">Trạng thái</th>
-            <th class="py-3 px-3">Hành động</th>
-          </tr>
-        </thead>
-        <tbody>
-          @if (count($items) > 0)
-            @foreach ($items as $item)
-              <tr class="border-b hover:bg-slate-50">
-                <td class="py-3 px-3"><input type="checkbox" /></td>
-                <td class="py-3 px-3">{{ $item->student->user->fullname }}</td>
-                <td class="py-3 px-3">{{ $item->student->student_code }}</td>
-                <td class="py-3 px-3">{{ $item->project_id ? $item->project->name : 'Chưa có đề tài' }}</td>
-                <td class="py-3 px-3">{{ $item->created_at->format('d/m/Y') }}</td>
-                <td class="py-3 px-3">{{ $item->created_at->addDays(7)->format('d/m/Y') }}</td>
-                @php
-                  $statusColors = [
-                    'approved' => 'bg-green-100 text-green-800',
-                    'pending' => 'bg-yellow-100 text-yellow-800',
-                    'accepted' => 'bg-green-100 text-green-800',
-                    'rejected' => 'bg-red-100 text-red-800',
-                  ];
-                  $statusLabels = [
-                    'approved' => 'Đã duyệt',
-                    'pending' => 'Chờ duyệt',
-                    'accepted' => 'Đã chấp nhận',
-                    'rejected' => 'Từ chối',
-                  ];
-                  $statusClass = $statusColors[$item->assignment_supervisors->first()->status] ?? 'bg-slate-100 text-slate-800';
-                  $statusLabel = $statusLabels[$item->assignment_supervisors->first()->status] ?? ucfirst($item->assignment_supervisors->first()->status);
-                @endphp
-                <td class="py-3 px-3" data-col="status">
-                  <span class="status-pill px-2 py-0.5 rounded-full text-xs {{ $statusClass }}">{{ $statusLabel }}</span>
-                </td>
-                <td class="py-3 px-3" data-col="actions">
-                  @if ($item->assignment_supervisors->first()->status === 'pending')
-                    @php $as = $item->assignment_supervisors->first(); @endphp
-                    <button
-                      type="button"
-                      class="accept-btn px-2 py-1 text-sm bg-green-600 text-white rounded mr-2 hover:bg-green-700"
-                      data-id="{{ $item->id }}"
-                      data-name="{{ $item->student->user->fullname}}"
-                      data-url="{{ route('web.teacher.requests.accept', $as->id) }}">
-                      Chấp nhận
-                    </button>
-                    <button
-                      type="button"
-                      class="reject-btn px-2 py-1 text-sm bg-red-600 text-white rounded hover:bg-red-700"
-                      data-id="{{ $item->id }}"
-                      data-name="{{ $item->student->user->fullname }}"
-                      data-url="{{ route('web.teacher.requests.reject', $as->id) }}">
-                      Từ chối
-                    </button>
-                  @endif
-                </td>
-              </tr>
-            @endforeach
-          @else
-              <tr>
-                <td colspan="8" class="py-6 px-3 text-center text-slate-500">Không có yêu cầu nào.</td>
-              </tr>
-          @endif
-        </tbody>
-      </table>
+    <!-- Requests table (modernized) -->
+    <div class="overflow-x-auto bg-white border rounded-2xl shadow-sm">
+      <div class="p-3 overflow-x-auto">
+        <table class="w-full text-sm table-auto">
+          <thead class="bg-slate-50 sticky top-0">
+            <tr class="text-left text-slate-500 border-b">
+              <th class="py-3 px-4 w-6"><input type="checkbox" class="text-sky-500" /></th>
+              <th class="py-3 px-4">Sinh viên</th>
+              <th class="py-3 px-4">MSSV</th>
+              <th class="py-3 px-4">Đề tài đề xuất</th>
+              <th class="py-3 px-4">Ngày gửi</th>
+              <th class="py-3 px-4">Hạn phản hồi</th>
+              <th class="py-3 px-4">Trạng thái</th>
+              <th class="py-3 px-4 text-right">Hành động</th>
+            </tr>
+          </thead>
+          <tbody>
+            @if (count($items) > 0)
+              @foreach ($items as $item)
+                <tr class="border-b hover:bg-slate-50 group transition-colors">
+                  <td class="py-3 px-4 align-top"><input type="checkbox" class="rounded text-sky-500" /></td>
+                  <td class="py-3 px-4 align-top">{{ $item->student->user->fullname }}</td>
+                  <td class="py-3 px-4 align-top">{{ $item->student->student_code }}</td>
+                  <td class="py-3 px-4 align-top text-slate-700">{{ $item->project_id ? $item->project->name : 'Chưa có đề tài' }}</td>
+                  <td class="py-3 px-4 align-top">{{ $item->created_at->format('d/m/Y') }}</td>
+                  <td class="py-3 px-4 align-top">{{ $item->created_at->addDays(7)->format('d/m/Y') }}</td>
+                  @php
+                    $statusColors = [
+                      'approved' => 'bg-green-100 text-green-800',
+                      'pending' => 'bg-yellow-100 text-yellow-800',
+                      'accepted' => 'bg-green-100 text-green-800',
+                      'rejected' => 'bg-red-100 text-red-800',
+                    ];
+                    $statusLabels = [
+                      'approved' => 'Đã duyệt',
+                      'pending' => 'Chờ duyệt',
+                      'accepted' => 'Đã chấp nhận',
+                      'rejected' => 'Từ chối',
+                    ];
+                    $status = $item->assignment_supervisors->first()->status;
+                    $statusClass = $statusColors[$status] ?? 'bg-slate-100 text-slate-800';
+                    $statusLabel = $statusLabels[$status] ?? ucfirst($status);
+                  @endphp
+                  <td class="py-3 px-4 align-top" data-col="status">
+                    <span class="status-pill inline-flex items-center gap-2 px-2 py-1 rounded-full text-xs {{ $statusClass }}">
+                      @if($status === 'pending')
+                        <i class="ph ph-hourglass text-sm"></i>
+                      @elseif($status === 'accepted')
+                        <i class="ph ph-check-circle text-sm"></i>
+                      @elseif($status === 'rejected')
+                        <i class="ph ph-x-circle text-sm"></i>
+                      @endif
+                      <span>{{ $statusLabel }}</span>
+                    </span>
+                  </td>
+                  <td class="py-3 px-4 align-top text-right" data-col="actions">
+                    @if ($item->assignment_supervisors->first()->status === 'pending')
+                      @php $as = $item->assignment_supervisors->first(); @endphp
+                      <button
+                        type="button"
+                        class="accept-btn inline-flex items-center gap-2 px-3 py-1.5 text-sm bg-emerald-600 text-white rounded-full mr-2 hover:bg-emerald-700 transition shadow-sm"
+                        data-id="{{ $item->id }}"
+                        data-name="{{ $item->student->user->fullname}}"
+                        data-url="{{ route('web.teacher.requests.accept', $as->id) }}">
+                        <i class="ph ph-check text-sm"></i>
+                        <span class="hidden sm:inline">Chấp nhận</span>
+                      </button>
+                      <button
+                        type="button"
+                        class="reject-btn inline-flex items-center gap-2 px-3 py-1.5 text-sm bg-rose-600 text-white rounded-full hover:bg-rose-700 transition shadow-sm"
+                        data-id="{{ $item->id }}"
+                        data-name="{{ $item->student->user->fullname }}"
+                        data-url="{{ route('web.teacher.requests.reject', $as->id) }}">
+                        <i class="ph ph-x text-sm"></i>
+                        <span class="hidden sm:inline">Từ chối</span>
+                      </button>
+                    @endif
+                  </td>
+                </tr>
+              @endforeach
+            @else
+                <tr>
+                  <td colspan="8" class="py-6 px-3 text-center text-slate-500">Không có yêu cầu nào.</td>
+                </tr>
+            @endif
+          </tbody>
+        </table>
+      </div>
     </div>
 
     <!-- Legend / notes -->

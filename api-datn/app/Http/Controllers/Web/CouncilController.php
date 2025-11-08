@@ -57,7 +57,6 @@ class CouncilController extends Controller
                 'address'         => $request->input('room') ?: null,
                 'date'            => $request->input('date') ?: null,
                 'description'     => $request->input('description') ?: null,
-                'status'          => 'draft',
             ]);
 
             // Thành viên (vai trò số: 5=Chủ tịch, 4=Thư ký, 3=UV1, 2=UV2, 1=UV3)
@@ -154,7 +153,6 @@ class CouncilController extends Controller
             'room'        => ['nullable','string','max:100'],
             'date'        => ['nullable','date'],
             'description' => ['nullable','string','max:2000'],
-            'status'      => ['nullable','string','in:draft,scheduled,finished,canceled'],
         ]);
 
         $council->update([
@@ -164,7 +162,6 @@ class CouncilController extends Controller
             'address'       => $request->input('room') ?: null,
             'date'          => $request->input('date') ?: null,
             'description'   => $request->input('description') ?: null,
-            'status'        => $request->input('status') ?: ($council->status ?? 'draft'),
         ]);
 
         $deptName = $request->filled('dept')
@@ -186,7 +183,6 @@ class CouncilController extends Controller
                         : (string)$council->date)
                     : null,
                 'description' => $council->description,
-                'status'      => $council->status,
             ]
         ]);
     }

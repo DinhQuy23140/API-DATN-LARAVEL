@@ -24,7 +24,6 @@ class AttachmentController extends Controller
             'file_url' => 'required|string|max:500',
             'file_type' => 'nullable|string|max:120',
             'upload_time' => 'nullable|date',
-            'uploader_id' => 'nullable|integer'
         ]);
         $data['upload_time'] = isset($data['upload_time']) ? Carbon::parse($data['upload_time'])->timestamp : now()->timestamp;
         $data['progress_log_id'] = $progress_log->id;
@@ -45,7 +44,6 @@ class AttachmentController extends Controller
             'file_url' => 'sometimes|string|max:500',
             'file_type' => 'nullable|string|max:120',
             'upload_time' => 'nullable|date',
-            'uploader_id' => 'nullable|integer'
         ]);
         if(isset($data['upload_time'])){
             $data['upload_time'] = Carbon::parse($data['upload_time'])->timestamp;

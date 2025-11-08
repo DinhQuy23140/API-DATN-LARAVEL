@@ -177,36 +177,39 @@
         </div>
       </header>
 
-<main class="flex-1 overflow-y-auto px-4 md:px-8 py-8 bg-gradient-to-b from-slate-50 to-slate-100">
+<main class="flex-1 overflow-y-auto px-4 md:px-8 py-10 bg-gradient-to-b from-slate-50 to-slate-100">
   <div class="max-w-6xl mx-auto space-y-8">
 
-    <!-- 🧑‍🎓 Thông tin sinh viên & tuần -->
-    <div class="bg-white border border-slate-200 shadow-sm rounded-2xl p-6 flex flex-col md:flex-row md:items-center md:justify-between hover:shadow-md transition">
-      <div>
-        @php
-          $student = $progress_log->project->assignment->student;
-          $mssv = $student->student_code ?? 'N/A';
-          $fullname = $student->user->fullname ?? 'Sinh viên';
-        @endphp
-        <div class="text-sm text-slate-500">MSSV: 
-          <span class="font-semibold text-slate-800">{{ $mssv }}</span>
+    <!-- Hero: student + week -->
+    <div class="rounded-3xl overflow-hidden shadow-lg bg-gradient-to-r from-indigo-600 via-sky-500 to-emerald-400 text-white p-6 flex flex-col md:flex-row items-center gap-6">
+      @php
+        $student = $progress_log->project->assignment->student;
+        $mssv = $student->student_code ?? 'N/A';
+        $fullname = $student->user->fullname ?? 'Sinh viên';
+      @endphp
+      <div class="flex items-center gap-4 w-full md:w-auto">
+        <img src="{{ $student->user->avatar_url ?? ($student->user->profile_photo_url ?? ('https://ui-avatars.com/api/?name=' . urlencode($fullname) . '&background=ffffff&color=000')) }}"
+          alt="avatar" class="h-20 w-20 rounded-full ring-4 ring-white object-cover shadow-md" />
+        <div>
+          <div class="text-xs uppercase tracking-wide opacity-90">Sinh viên hướng dẫn</div>
+          <div class="text-2xl font-bold leading-tight">{{ $fullname }}</div>
+          <div class="text-sm opacity-90 mt-1">MSSV: <span class="font-medium">{{ $mssv }}</span></div>
         </div>
-        <h2 class="font-bold text-2xl text-slate-800 mt-1 flex items-center gap-2">
-          <i class="ph ph-student text-blue-600"></i>
-          {{ $fullname }}
-        </h2>
       </div>
 
-      <div class="mt-4 md:mt-0 text-right">
-        <div class="text-sm text-slate-500">Tuần hiện tại</div>
-        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-blue-50 border border-blue-200">
-          <i class="ph ph-calendar text-blue-600"></i>
-          <span class="font-semibold text-blue-700 text-lg">#1</span>
+      <div class="ml-auto flex items-center gap-4 w-full md:w-auto justify-between">
+        <div class="text-center bg-white/10 rounded-lg px-4 py-3">
+          <div class="text-xs uppercase opacity-90">Tuần</div>
+          <div class="mt-1 text-xl font-semibold">#1</div>
+        </div>
+        <div class="text-center bg-white/10 rounded-lg px-4 py-3 hidden sm:block">
+          <div class="text-xs uppercase opacity-90">Giảng viên</div>
+          <div class="mt-1 text-sm font-medium">{{ $userName }}</div>
         </div>
       </div>
     </div>
 
-    <!-- 📅 Tổng quan tuần -->
+    <!-- Overview (title/description + meta) -->
     @php
       $titleProgress = $progress_log->title ?? 'Chưa có tiêu đề';
       $description = $progress_log->description ?? 'Chưa có mô tả';
@@ -214,126 +217,108 @@
       $start_date = Carbon::parse($progress_log->start_date_time)->format('H:i d/m/Y');
       $end_date   = Carbon::parse($progress_log->end_date_time)->format('H:i d/m/Y');
     @endphp
-    <section class="bg-white border border-slate-200 shadow-sm rounded-2xl p-6 hover:shadow-md transition">
-      <div class="flex items-center justify-between mb-5 border-b pb-3">
-        <h3 class="font-semibold text-lg text-slate-800 flex items-center gap-2">
-          <i class="ph ph-clipboard-text text-emerald-600"></i> Tổng quan tuần
-        </h3>
+    <section class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div class="md:col-span-2 bg-white border border-slate-100 rounded-2xl p-6 shadow-sm hover:shadow-md transition">
+        <div class="flex items-start justify-between">
+          <h3 class="text-lg font-semibold flex items-center gap-3 text-slate-800"><i class="ph ph-clipboard-text text-indigo-600"></i> Tổng quan tuần</h3>
+          <div class="text-sm text-slate-500">Từ <span class="font-medium">{{ $start_date }}</span></div>
+        </div>
+        <div class="mt-4">
+          <div class="text-sm text-slate-500 mb-1">Tiêu đề</div>
+          <div class="text-xl font-bold text-slate-800">{{ $titleProgress }}</div>
+        </div>
+        <!-- Description moved below 'Công việc trong tuần' as requested -->
       </div>
 
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div class="md:col-span-2 space-y-3">
-          <div>
-            <div class="text-sm text-slate-500 mb-1">Tiêu đề</div>
-            <div class="font-semibold text-slate-800 text-base">{{ $titleProgress }}</div>
-          </div>
-
-          <div>
-            <div class="text-sm text-slate-500 mb-1">Mô tả</div>
-            <div class="text-slate-700 leading-relaxed text-sm bg-slate-50 border border-slate-100 rounded-lg p-3">
-              {{ $description }}
-            </div>
-          </div>
+      <aside class="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm hover:shadow-md transition">
+        <div class="flex items-center justify-between">
+          <div class="text-sm text-slate-500">Thời gian kết thúc</div>
+          <div class="text-sm font-medium text-slate-800">{{ $end_date }}</div>
         </div>
-
-        <div class="space-y-3">
-          <div>
-            <div class="text-sm text-slate-500 mb-1">Thời gian bắt đầu</div>
-            <div class="font-medium text-slate-800 flex items-center gap-1">
-              <i class="ph ph-clock text-emerald-600"></i> {{ $start_date }}
-            </div>
-          </div>
-          <div>
-            <div class="text-sm text-slate-500 mb-1">Thời gian kết thúc</div>
-            <div class="font-medium text-slate-800 flex items-center gap-1">
-              <i class="ph ph-clock text-rose-500"></i> {{ $end_date }}
-            </div>
-          </div>
-          <div>
-            <div class="text-sm text-slate-500 mb-1">Tệp đính kèm</div>
-            @php
-              $latestAttachment = $progress_log->attachments->last() ?? null;
-              $latestAttachmentId = $latestAttachment->id ?? null;
-              $latestAttachmentName = $latestAttachment->file_name ?? ($latestAttachment->name ?? 'Tệp đính kèm');
-              $latestAttachmentUrl = $latestAttachment->file_url ?? ($latestAttachment->url ?? '#');
-            @endphp
-            @if($latestAttachmentId)
-              <a href="{{ $latestAttachmentUrl }}" target="_blank"
-                class="inline-flex items-center gap-2 text-blue-600 hover:underline text-sm font-medium">
-                <i class="ph ph-paperclip"></i>{{ $latestAttachmentName }}
-              </a>
-              <input type="hidden" id="attachmentId" value="{{ $latestAttachmentId }}">
-            @else
-              <div class="text-slate-400 text-sm">Chưa có tệp đính kèm.</div>
-            @endif
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- ✅ Công việc trong tuần -->
-    <section class="bg-white border border-slate-200 shadow-sm rounded-2xl p-6 hover:shadow-md transition">
-      <h3 class="font-semibold text-lg mb-4 flex items-center gap-2 text-slate-800">
-        <i class="ph ph-list-checks text-blue-600"></i> Công việc trong tuần
-      </h3>
-      <ul class="space-y-2 text-sm text-slate-700">
-        <li class="flex items-center gap-2"><i class="ph ph-check-circle text-emerald-600"></i> Khảo sát yêu cầu</li>
-        <li class="flex items-center gap-2"><i class="ph ph-check-circle text-emerald-600"></i> Phân tích use case</li>
-        <li class="flex items-center gap-2 text-slate-400"><i class="ph ph-circle text-slate-400"></i> Thiết kế ERD</li>
-      </ul>
-    </section>
-
-    <!-- 🧾 Báo cáo tuần -->
-    <section class="bg-white border border-slate-200 shadow-sm rounded-2xl p-6 hover:shadow-md transition">
-      <h3 class="font-semibold text-lg mb-4 flex items-center gap-2 text-slate-800">
-        <i class="ph ph-file-text text-indigo-600"></i> Các báo cáo trong tuần
-      </h3>
-      <div class="space-y-3 text-sm text-slate-700">
-        <div class="border border-slate-200 rounded-xl p-4 bg-slate-50">
-          <div class="text-xs text-slate-500 mb-1">01/10/2025</div>
-          <div>Hoàn thành khảo sát nghiệp vụ và phác thảo ERD sơ bộ.</div>
+        <div class="mt-4 border-t pt-4">
+          <div class="text-sm text-slate-500">Tệp đính kèm</div>
           @php
-            $attachments = $progress_log->attachments ?? [];
+            $latestAttachment = $progress_log->attachments->last() ?? null;
+            $latestAttachmentId = $latestAttachment->id ?? null;
+            $latestAttachmentName = $latestAttachment->file_name ?? ($latestAttachment->name ?? 'Tệp đính kèm');
+            $latestAttachmentUrl = $latestAttachment->file_url ?? ($latestAttachment->url ?? '#');
           @endphp
-          <div class="mt-1 text-blue-600 hover:underline font-medium">
-            Tệp đính kèm: 
-            @if (count($attachments) > 0)
+          @if($latestAttachmentId)
+            <a href="{{ $latestAttachmentUrl }}" target="_blank" class="mt-2 inline-flex items-center gap-2 text-indigo-600 hover:underline font-medium">
+              <i class="ph ph-paperclip"></i> {{ $latestAttachmentName }}
+            </a>
+            <input type="hidden" id="attachmentId" value="{{ $latestAttachmentId }}">
+          @else
+            <div class="text-sm text-slate-400 mt-2">Chưa có tệp đính kèm.</div>
+          @endif
+        </div>
+      </aside>
+    </section>
+
+    <!-- Tasks + Reports -->
+    <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div class="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm hover:shadow-md transition">
+        <h4 class="font-semibold text-slate-800 flex items-center gap-2"><i class="ph ph-list-checks text-emerald-600"></i> Công việc trong tuần</h4>
+        <ul class="mt-4 space-y-3 text-sm text-slate-700">
+          <li class="flex items-start gap-3"><div class="h-6 w-6 rounded-full bg-emerald-100 text-emerald-600 grid place-items-center"><i class="ph ph-check-circle"></i></div><div>Khảo sát yêu cầu</div></li>
+          <li class="flex items-start gap-3"><div class="h-6 w-6 rounded-full bg-emerald-100 text-emerald-600 grid place-items-center"><i class="ph ph-check-circle"></i></div><div>Phân tích use case</div></li>
+          <li class="flex items-start gap-3 text-slate-400"><div class="h-6 w-6 rounded-full bg-slate-100 text-slate-400 grid place-items-center"><i class="ph ph-circle"></i></div><div>Thiết kế ERD</div></li>
+        </ul>
+
+        <!-- Moved description: appears below Công việc trong tuần -->
+        <div class="mt-6">
+          <div class="text-sm text-slate-500 mb-1">Mô tả</div>
+          <div class="mt-2 text-slate-700 leading-relaxed text-sm bg-slate-50 border border-slate-100 rounded-xl p-4">{{ $description }}</div>
+        </div>
+      </div>
+
+      <div class="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm hover:shadow-md transition">
+        <h4 class="font-semibold text-slate-800 flex items-center gap-2"><i class="ph ph-file-text text-indigo-600"></i> Báo cáo & tệp</h4>
+        <div class="mt-4 text-sm text-slate-700">
+          @php $attachments = $progress_log->attachments ?? []; @endphp
+          @if (count($attachments) > 0)
+            <ul class="space-y-2">
               @foreach ($attachments as $att)
                 @php
                   $attName = $att->file_name ?? ($att->name ?? 'Tệp đính kèm');
                   $attUrl = $att->file_url ?? ($att->url ?? '#');
                 @endphp
-                <a href="{{ $attUrl }}" target="_blank" class="mr-2">{{ $attName }}</a>
+                <li class="flex items-center justify-between">
+                  <a href="{{ $attUrl }}" target="_blank" class="text-indigo-600 font-medium hover:underline"><i class="ph ph-download"></i> {{ $attName }}</a>
+                </li>
               @endforeach
-            @else
-              <span class="text-slate-400">Chưa có tệp đính kèm.</span>
-            @endif
-          </div>
+            </ul>
+          @else
+            <div class="text-sm text-slate-400">Chưa có báo cáo hoặc tệp đính kèm.</div>
+          @endif
         </div>
       </div>
     </section>
 
-    <!-- 💬 Nhận xét gửi sinh viên -->
-    <section class="bg-white border border-slate-200 shadow-sm rounded-2xl p-6 hover:shadow-md transition">
-      <h3 class="font-semibold text-lg mb-4 flex items-center gap-2 text-slate-800">
-        <i class="ph ph-chat-circle-text text-emerald-600"></i> Nhận xét gửi sinh viên
-      </h3>
-      <textarea id="commentText" rows="3"
-        class="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-        placeholder="Viết nhận xét cho sinh viên..."></textarea>
-      <div class="mt-4 flex items-center justify-between">
-        <div id="commentStatus" class="text-sm text-slate-500"></div>
-        <button id="btnSendComment"
-          class="flex items-center gap-2 px-5 py-2.5 bg-emerald-600 text-white rounded-xl text-sm font-medium hover:bg-emerald-500 transition">
-          <i class="ph ph-paper-plane-tilt"></i> Gửi nhận xét
-        </button>
+    <!-- Comments -->
+    <section class="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm hover:shadow-md transition">
+      <div class="flex items-start gap-4">
+        <img src="{{ $avatarUrl }}" alt="you" class="h-12 w-12 rounded-full object-cover ring-2 ring-slate-100" />
+        <div class="flex-1">
+          <label for="commentText" class="text-sm font-medium text-slate-700">Nhận xét gửi sinh viên</label>
+          <div class="relative mt-2">
+            <textarea id="commentText" rows="3" placeholder="Viết nhận xét cho sinh viên..."
+              class="w-full pr-28 px-4 py-3 border border-slate-200 rounded-2xl text-sm focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400"></textarea>
+            <div class="absolute right-3 bottom-3">
+              <button id="btnSendComment" class="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-500 transition text-sm">
+                <i class="ph ph-paper-plane-tilt"></i> Gửi
+              </button>
+            </div>
+          </div>
+          <div id="commentStatus" class="mt-2 text-sm text-slate-500"></div>
+        </div>
       </div>
+
       @php
         // Load existing comments safely - fallbacks in case relation name varies
         $comments = $progress_log->commentLogs ?? $progress_log->comments ?? collect();
       @endphp
 
-      <!-- Danh sách nhận xét (tĩnh, server-rendered) -->
       <div class="mt-6">
         <h4 class="text-sm font-medium text-slate-700 mb-3 flex items-center gap-2"><i class="ph ph-clipboard-text text-indigo-600"></i> Danh sách nhận xét</h4>
         <div id="commentsContainer">
@@ -344,9 +329,9 @@
                 $author = optional(optional($c->supervisor)->teacher->user)->fullname ?? optional($c->supervisor)->fullname ?? ($c->supervisor_id ? 'Giảng viên' : ($c->author_name ?? 'Giảng viên'));
                 $time = $c->created_at ? $c->created_at->format('d/m/Y H:i') : '-';
               @endphp
-              <li class="bg-slate-50 border border-slate-100 rounded-xl p-4 flex gap-3 items-start">
+              <li class="bg-slate-50 border border-slate-100 rounded-2xl p-4 flex gap-3 items-start">
                 <div class="shrink-0 mt-1">
-                  <div class="h-9 w-9 grid place-items-center rounded-full bg-indigo-50 text-indigo-700"><i class="ph ph-chat-text"></i></div>
+                  <div class="h-10 w-10 grid place-items-center rounded-full bg-indigo-50 text-indigo-700"><i class="ph ph-chat-text"></i></div>
                 </div>
                 <div class="flex-1">
                   <div class="text-sm text-slate-700 leading-relaxed">{{ $c->content }}</div>
@@ -365,15 +350,11 @@
       </div>
     </section>
 
-    <!-- ⭐ Đánh giá tuần -->
-    <section class="bg-white border border-slate-200 shadow-sm rounded-2xl p-6 hover:shadow-md transition">
-      <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-4 border-b pb-3">
-        <h3 class="font-semibold text-lg flex items-center gap-2 text-slate-800">
-          <i class="ph ph-star text-amber-500"></i> Đánh giá tuần
-        </h3>
-        <div class="text-sm text-slate-600 mt-2 md:mt-0">Khoảng thời gian:
-          <span id="weekRange" class="font-medium text-slate-800">-</span>
-        </div>
+    <!-- Rating -->
+    <section class="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm hover:shadow-md transition">
+      <div class="flex items-center justify-between">
+        <h3 class="font-semibold text-lg flex items-center gap-2 text-slate-800"><i class="ph ph-star text-amber-500"></i> Đánh giá tuần</h3>
+        <div class="text-sm text-slate-600">Khoảng thời gian: <span id="weekRange" class="font-medium text-slate-800">-</span></div>
       </div>
       @php
       $listStatuses = ['approved', 'not_achieved', 'need_editing'];
@@ -383,28 +364,16 @@
       $listColorsText = ['approved' => 'text-emerald-700', 'not_achieved' => 'text-rose-700', 'need_editing' => 'text-amber-700'];
       $currentStatus = in_array($progress_log->instructor_status, $listStatuses) ? $progress_log->instructor_status : ''; 
       @endphp
-      <div class="flex flex-col sm:flex-row sm:items-center gap-3">
-        <select id="selWeeklyStatus"
-          class="px-4 py-2.5 border border-slate-200 rounded-xl w-full sm:w-64 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+      <div class="mt-4 flex flex-col sm:flex-row sm:items-center gap-3">
+        <select id="selWeeklyStatus" class="px-4 py-2.5 border border-slate-200 rounded-xl w-full sm:w-64 focus:ring-2 focus:ring-indigo-400 text-sm">
           <option value="">-- Chọn trạng thái --</option>
           @foreach ($listStatuses as $status)
-            <option value="{{ $status }}" {{ $currentStatus === $status ? 'selected' : '' }}>
-              {{ $listStatusLabels[$status] ?? $status }}
-            </option>
+            <option value="{{ $status }}" {{ $currentStatus === $status ? 'selected' : '' }}>{{ $listStatusLabels[$status] ?? $status }}</option>
           @endforeach
         </select>
-        <button id="btnConfirmStatus"
-          class="flex items-center gap-2 px-5 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-500 transition text-sm font-medium">
-          <i class="ph ph-check-circle"></i> Xác nhận
-        </button>
+        <button id="btnConfirmStatus" class="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white rounded-xl hover:bg-indigo-500 transition text-sm font-medium"><i class="ph ph-check-circle"></i> Xác nhận</button>
       </div>
-      <div class="mt-3 text-sm text-slate-600">
-        Trạng thái hiện tại:
-        <span id="currentStatus"
-          class="inline-block px-2.5 py-0.5 rounded-full border {{ $listColorsBorder[$currentStatus] ?? '' }} {{ $listColorsBackground[$currentStatus] ?? '' }} {{ $currentStatus ? ($listColorsText[$currentStatus] ?? '-') : '-' }} text-sm font-medium ">
-          {{ $currentStatus ? ($listStatusLabels[$currentStatus] ?? '-') : '-' }}
-        </span>
-      </div>
+      <div class="mt-3 text-sm text-slate-600">Trạng thái hiện tại: <span id="currentStatus" class="inline-block px-2.5 py-0.5 rounded-full border {{ $listColorsBorder[$currentStatus] ?? '' }} {{ $listColorsBackground[$currentStatus] ?? '' }} {{ $currentStatus ? ($listColorsText[$currentStatus] ?? '-') : '-' }} text-sm font-medium">{{ $currentStatus ? ($listStatusLabels[$currentStatus] ?? '-') : '-' }}</span></div>
     </section>
 
   </div>
