@@ -58,8 +58,6 @@
       $faculty = $user->faculty_name ?? optional($user->teacher)->faculty ?? '';
       $subtitle = trim(($dept ? "Bộ môn $dept" : '') . (($dept && $faculty) ? ' • ' : '') . ($faculty ? "Khoa $faculty" : ''));
       $degree = $user->teacher->degree ?? '';
-      $expertise = $user->teacher->supervisor->expertise ?? 'null';
-      $data_assignment_supervisors = $user->teacher->supervisor->assignment_supervisors ?? "null";
       $teacherId = $user->teacher->id ?? null;
       $avatarUrl = $user->avatar_url
         ?? $user->profile_photo_url
@@ -265,24 +263,122 @@
         return hit && ok;
       });
       listEl.innerHTML = filtered.map(t=>`
-        <div class="border rounded-lg p-4 bg-white">
-          <div class="flex items-start justify-between gap-2">
-            <div>
-              <h5 class="font-medium">${t.title}</h5>
-              <p class="text-sm text-slate-600 mt-1">${t.description||''}</p>
-              <div class="mt-2 flex flex-wrap gap-1">
-                ${(t.tags||[]).map(tag=>`<span class="px-2 py-0.5 rounded-full text-xs bg-slate-100 text-slate-700">${tag}</span>`).join('')}
+        <article class="border rounded-xl p-4 bg-white shadow-sm hover:shadow-md transition" data-id="${t.id}">
+          <div class="flex items-start justify-between gap-4">
+            <div class="flex-1">
+              <div class="flex items-center gap-3">
+                <div class="h-10 w-10 rounded-lg bg-blue-50 text-blue-600 grid place-items-center"><i class="ph ph-notebook text-lg"></i></div>
+                <div>
+                  <h5 class="font-semibold text-slate-800">${t.title}</h5>
+                  <div class="text-xs text-slate-500 mt-1 inline-flex items-center gap-2"><i class="ph ph-calendar text-slate-400"></i><span>Cập nhật: ${t.updatedAt||'-'}</span></div>
+                </div>
               </div>
-              <div class="text-xs text-slate-500 mt-2">Cập nhật: ${t.updatedAt||'-'}</div>
+              <p class="text-sm text-slate-600 mt-3">${t.description||''}</p>
+              <div class="mt-3 flex items-center gap-2 flex-wrap text-xs">
+                <div class="inline-flex items-center gap-2 text-slate-500"><i class="ph ph-tag text-slate-400"></i>
+                  ${(t.tags||[]).map(tag=>`<span class="px-2 py-0.5 rounded-full text-xs bg-slate-100 text-slate-700">${tag}</span>`).join('')}
+                </div>
+              </div>
             </div>
-            <div class="text-right">
-              <div class="text-sm"><span class="font-semibold">${t.registered||0}</span>/<span>${t.slots||0}</span> SV</div>
-              <div><span class="px-2 py-0.5 rounded-full text-xs ${statusPill(t.status)}">${t.status}</span></div>
-            </div>
+            <aside class="w-40 flex-shrink-0 text-right">
+              <div class="text-sm text-slate-700"><i class="ph ph-users-three text-slate-400"></i> <span class="font-semibold">${t.registered||0}</span>/<span>${t.slots||0}</span></div>
+              <div class="mt-2"><span class="px-2 py-1 rounded-full text-xs ${statusPill(t.status)}">${t.status}</span></div>
+              <div class="mt-3 flex justify-end gap-2">
+                <button data-id="${t.id}" class="edit-topic-btn px-2 py-1 text-sm bg-yellow-50 text-yellow-700 rounded hover:bg-yellow-100 flex items-center gap-2"><i class="ph ph-pencil"></i><span class="hidden sm:inline">Sửa</span></button>
+                <button data-id="${t.id}" class="delete-topic-btn px-2 py-1 text-sm bg-rose-50 text-rose-700 rounded hover:bg-rose-100 flex items-center gap-2"><i class="ph ph-trash"></i><span class="hidden sm:inline">Xóa</span></button>
+              </div>
+            </aside>
           </div>
-        </div>
+        </article>
       `).join('');
     }
+
+    // Edit/Delete handlers (delegated)
+    function openEditTopicModal(id){
+      const topic = topics.find(t=>t.id===id);
+      if(!topic){ alert('Không tìm thấy đề tài'); return; }
+      const formHTML = `
+        <form id="topicEditForm" class="space-y-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="floating-label">
+              <label>Tiêu đề *</label>
+              <input name="title" required maxlength="180" class="${baseInputCls()}" placeholder=" " />
+            </div>
+            <div class="floating-label">
+              <label>Chỉ tiêu (SV)</label>
+              <input type="number" name="slots" min="1" class="${baseInputCls()}" placeholder=" " />
+            </div>
+          </div>
+          <div class="floating-label">
+            <label>Mô tả</label>
+            <textarea name="desc" rows="5" class="${baseInputCls('resize-y')}" placeholder=" "></textarea>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="floating-label md:col-span-2">
+              <label>Thẻ (ngăn cách phẩy / chấm phẩy)</label>
+              <input name="tags" class="${baseInputCls()}" placeholder=" " />
+              ${chipsPreviewTemplate()}
+            </div>
+            <div class="floating-label">
+              <label>Trạng thái</label>
+              <select name="status" class="${baseInputCls()}">
+                <option value="Mở">Mở</option>
+                <option value="Đóng">Đóng</option>
+              </select>
+            </div>
+          </div>
+        </form>
+      `;
+      const modal = createModal({ title: 'Sửa đề tài', content: formHTML });
+      document.body.appendChild(modal.el);
+
+      const form = modal.el.querySelector('#topicEditForm');
+      const titleInput = form.querySelector('input[name="title"]');
+      const slotsInput = form.querySelector('input[name="slots"]');
+      const descInput = form.querySelector('textarea[name="desc"]');
+      const tagsInput = form.querySelector('input[name="tags"]');
+      const statusSel = form.querySelector('select[name="status"]');
+      const tagsPreview = modal.el.querySelector('#tagsPreview');
+
+      // populate values
+      titleInput.value = topic.title || '';
+      slotsInput.value = topic.slots || 1;
+      descInput.value = topic.description || '';
+      tagsInput.value = (topic.tags||[]).join(', ');
+      statusSel.value = topic.status || 'Mở';
+      renderTagPreview(tagsPreview, tagsInput.value || '');
+
+      tagsInput?.addEventListener('input', ()=> renderTagPreview(tagsPreview, tagsInput.value || ''));
+
+      form.addEventListener('submit', (e)=>{
+        e.preventDefault();
+        const fd = new FormData(form);
+        const title = String(fd.get('title')||'').trim();
+        if(!title) return alert('Tiêu đề không được để trống');
+        topic.title = title;
+        topic.description = String(fd.get('desc')||'').trim();
+        topic.tags = String(fd.get('tags')||'').split(/[;,]/).map(x=>x.trim()).filter(Boolean);
+        topic.slots = Math.max(1, Number(fd.get('slots')||1));
+        topic.status = fd.get('status')||'Mở';
+        topic.updatedAt = new Date().toLocaleDateString('vi-VN');
+        modal.destroy();
+        render();
+      });
+    }
+
+    function deleteTopic(id){
+      if(!confirm('Bạn có chắc muốn xóa đề tài này?')) return;
+      const idx = topics.findIndex(t=>t.id===id);
+      if(idx>=0){ topics.splice(idx,1); render(); }
+    }
+
+    // Delegated click handlers for edit/delete
+    listEl.addEventListener('click', (e)=>{
+      const editBtn = e.target.closest('.edit-topic-btn');
+      if(editBtn){ const id = editBtn.getAttribute('data-id'); openEditTopicModal(id); return; }
+      const delBtn = e.target.closest('.delete-topic-btn');
+      if(delBtn){ const id = delBtn.getAttribute('data-id'); deleteTopic(id); return; }
+    });
 
     // Modern modal helper
     function createModal(opts){

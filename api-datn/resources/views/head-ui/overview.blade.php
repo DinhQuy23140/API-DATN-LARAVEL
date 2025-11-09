@@ -25,8 +25,6 @@
     $faculty = $user->faculty_name ?? optional($user->teacher)->faculty ?? '';
     $subtitle = trim(($dept ? "Bộ môn $dept" : '') . (($dept && $faculty) ? ' • ' : '') . ($faculty ? "Khoa $faculty" : ''));
     $degree = $user->teacher->degree ?? '';
-    $expertise = $user->teacher->supervisor->expertise ?? 'null';
-    $data_assignment_supervisors = $user->teacher->supervisor->assignment_supervisors ?? collect();
     $supervisorId = $user->teacher->supervisor->id ?? 0;
     $teacherId = $user->teacher->id ?? 0;
     $avatarUrl = $user->avatar_url

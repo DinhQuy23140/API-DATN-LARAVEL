@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Council extends Model
 {
     use HasFactory;
-    protected $fillable = ['name', 'code', 'description', 'project_term_id', 'department_id', 'address', 'date'];
+    protected $fillable = ['name', 'code', 'description', 'project_term_id', 'department_id', 'address', 'date', 'time'];
 
     public function project_term()
     {

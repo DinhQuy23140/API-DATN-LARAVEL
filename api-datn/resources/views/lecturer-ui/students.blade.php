@@ -26,10 +26,7 @@
       $faculty = $user->faculty_name ?? optional($user->teacher)->faculty ?? '';
       $subtitle = trim(($dept ? "Bộ môn $dept" : '') . (($dept && $faculty) ? ' • ' : '') . ($faculty ? "Khoa $faculty" : ''));
       $degree = $user->teacher->degree ?? '';
-      $expertise = $user->teacher->supervisor->expertise ?? 'null';
-      $data_assignment_supervisors = $user->teacher->supervisor->assignment_supervisors ?? "null";
       $teacherId = $user->teacher->id ?? null;
-      $supervisorId = $user->teacher->supervisor->id ?? null;
       $avatarUrl = $user->avatar_url
         ?? $user->profile_photo_url
         ?? 'https://ui-avatars.com/api/?name=' . urlencode($userName) . '&background=0ea5e9&color=ffffff';

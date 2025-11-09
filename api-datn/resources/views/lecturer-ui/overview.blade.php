@@ -39,9 +39,7 @@
     $faculty = $user->faculty_name ?? optional($user->teacher)->faculty ?? '';
     $subtitle = trim(($dept ? "Bộ môn $dept" : '') . (($dept && $faculty) ? ' • ' : '') . ($faculty ? "Khoa $faculty" : ''));
     $degree = $user->teacher->degree ?? '';
-    $expertise = $user->teacher->supervisor->expertise ?? 'null';
     $data_assignment_supervisors = $assignmentSupervisors;
-    $supervisorId = $user->teacher->supervisor->id ?? 0;
     $teacherId = $user->teacher->id ?? 0;
     $avatarUrl = $user->avatar_url
       ?? $user->profile_photo_url
@@ -246,15 +244,29 @@
                         <col />
                         <col class="w-40" />
                       </colgroup>
-                      <thead class="bg-slate-50 text-slate-600 text-xs uppercase sticky top-0 z-10">
+                      <thead class="bg-gradient-to-r from-slate-50 to-white text-slate-600 text-xs uppercase sticky top-0 z-10">
                         <tr>
-                          <th class="px-4 py-3 text-left">MSSV</th>
-                          <th class="px-4 py-3 text-left">Họ tên</th>
-                          <th class="px-4 py-3 text-left">Email</th>
-                          <th class="px-4 py-3 text-left">Đợt</th>
-                          <th class="px-4 py-3 text-left">Năm học</th>
-                          <th class="px-4 py-3 text-left">Đề tài</th>
-                          <th class="px-4 py-3 text-left">Trạng thái</th>
+                          <th class="px-4 py-3 text-left">
+                            <div class="flex items-center gap-2"><i class="ph ph-hash text-lg text-slate-400"></i><span>MSSV</span></div>
+                          </th>
+                          <th class="px-4 py-3 text-left">
+                            <div class="flex items-center gap-2"><i class="ph ph-user text-lg text-slate-400"></i><span>Họ tên</span></div>
+                          </th>
+                          <th class="px-4 py-3 text-left">
+                            <div class="flex items-center gap-2"><i class="ph ph-envelope text-lg text-slate-400"></i><span>Email</span></div>
+                          </th>
+                          <th class="px-4 py-3 text-left">
+                            <div class="flex items-center gap-2"><i class="ph ph-calendar text-lg text-slate-400"></i><span>Đợt</span></div>
+                          </th>
+                          <th class="px-4 py-3 text-left">
+                            <div class="flex items-center gap-2"><i class="ph ph-calendar-check text-lg text-slate-400"></i><span>Năm học</span></div>
+                          </th>
+                          <th class="px-4 py-3 text-left">
+                            <div class="flex items-center gap-2"><i class="ph ph-notebook text-lg text-slate-400"></i><span>Đề tài</span></div>
+                          </th>
+                          <th class="px-4 py-3 text-left">
+                            <div class="flex items-center gap-2"><i class="ph ph-flag text-lg text-slate-400"></i><span>Trạng thái</span></div>
+                          </th>
                         </tr>
                       </thead>
                       <tbody id="studentsTbody" class="divide-y divide-slate-100">
@@ -290,15 +302,17 @@
                           $statusLabel = $statusMap[$statusKey]['label'] ?? 'Không xác định';
                         @endphp
 
-                        <tr class="hover:bg-slate-50"
-                            data-name="{{ $name }}"
-                            data-year="{{ $yearName }}"
-                            data-term="{{ $stage }}">
+                        <tr class="hover:bg-slate-50" data-name="{{ $name }}" data-year="{{ $yearName }}" data-term="{{ $stage }}">
                           <td class="px-4 py-3 font-medium text-slate-800">{{ $code }}</td>
-                          <td class="px-4 py-3 text-slate-700">{{ $name }}</td>
+                          <td class="px-4 py-3 text-slate-700">
+                            <div class="flex items-center gap-2">
+                              <i class="ph ph-user text-slate-400"></i>
+                              <span>{{ $name }}</span>
+                            </div>
+                          </td>
                           <td class="px-4 py-3">
                             @if ($emailStu && $emailStu !== '—')
-                              <a href="mailto:{{ $emailStu }}" class="text-blue-600 hover:underline">{{ $emailStu }}</a>
+                              <a href="mailto:{{ $emailStu }}" class="text-blue-600 hover:underline inline-flex items-center gap-2"><i class="ph ph-envelope text-slate-400"></i><span>{{ $emailStu }}</span></a>
                             @else
                               <span class="text-slate-500">—</span>
                             @endif
@@ -310,10 +324,16 @@
                           </td>
                           <td class="px-4 py-3">{{ $yearName ?: '—' }}</td>
                           <td class="px-4 py-3">
-                            <div class="truncate max-w-[320px]" title="{{ $topic }}">{{ $topic ?: '—' }}</div>
+                            <div class="truncate max-w-[320px] inline-flex items-center gap-2" title="{{ $topic }}">
+                              <i class="ph ph-notebook text-slate-400"></i>
+                              <span>{{ $topic ?: '—' }}</span>
+                            </div>
                           </td>
                           <td class="px-4 py-3">
-                            <span class="px-2 py-1 rounded-full text-xs {{ $statusClass }}">{{ $statusLabel }}</span>
+                            <div class="inline-flex items-center gap-2">
+                              <i class="ph ph-flag text-slate-400"></i>
+                              <span class="px-2 py-1 rounded-full text-xs {{ $statusClass }}">{{ $statusLabel }}</span>
+                            </div>
                           </td>
                         </tr>
                       @empty

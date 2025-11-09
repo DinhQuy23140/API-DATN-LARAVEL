@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Marjor extends Model
 {
     use HasFactory;
-    protected $fillable = ['code', 'name', 'description', 'faculty_id'];
+    protected $fillable = ['code', 'name', 'description', 'department_id'];
 
     public function department()
     {

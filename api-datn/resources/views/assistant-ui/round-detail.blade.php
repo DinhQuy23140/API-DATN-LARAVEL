@@ -47,8 +47,6 @@
       $faculty = $user->faculty_name ?? optional($user->teacher)->faculty ?? '';
       $subtitle = trim(($dept ? "Bộ môn $dept" : '') . (($dept && $faculty) ? ' • ' : '') . ($faculty ? "Khoa $faculty" : ''));
       $degree = $user->teacher->degree ?? '';
-      $expertise = $user->teacher->supervisor->expertise ?? 'null';
-      $data_assignment_supervisors = $user->teacher->supervisor->assignment_supervisors ?? collect();;
       $avatarUrl = $user->avatar_url
         ?? $user->profile_photo_url
         ?? 'https://ui-avatars.com/api/?name=' . urlencode($userName) . '&background=0ea5e9&color=ffffff';
@@ -2542,6 +2540,10 @@
         class="mt-2 w-full border border-slate-300 rounded-xl px-3 py-2 text-sm shadow-sm 
           focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
       <p class="mt-1 text-sm text-red-600" data-error="date" style="display:none"></p>
+      <label class="block text-sm font-medium text-slate-700 mt-3">Giờ bảo vệ</label>
+      <input type="time" name="time"
+        class="mt-2 w-full border border-slate-300 rounded-xl px-3 py-2 text-sm shadow-sm 
+          focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
     </div>
     <div>
       <label class="block text-sm font-medium text-slate-700">Phòng bảo vệ</label>
@@ -2750,7 +2752,13 @@
             name: (fd.get('name')||'').toString().trim(),
             dept: (fd.get('dept')||'').toString().trim() || null,
             room: (fd.get('room')||'').toString().trim(),
-            date: (fd.get('date')||'').toString().trim(),
+            // include separate time and combine into date (YYYY-MM-DD HH:MM) when time provided
+            time: (fd.get('time')||'').toString().trim() || null,
+            date: (()=>{
+              const d = (fd.get('date')||'').toString().trim();
+              const t = (fd.get('time')||'').toString().trim();
+              return t && d ? `${d} ${t}` : d;
+            })(),
             description: (fd.get('description')||'').toString().trim() || null,
             chutich: fd.get('chutich') || null,
             thuki: fd.get('thuki') || null,
@@ -2997,8 +3005,12 @@ function openEditCouncilModal(data){
     <div>
       <label class="block text-sm font-medium text-slate-700">Ngày bảo vệ</label>
       <input type="date" name="date" value="${data.date||''}"
-             class="mt-2 w-full border border-slate-300 rounded-xl px-3 py-2 text-sm shadow-sm 
-                    focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+        class="mt-2 w-full border border-slate-300 rounded-xl px-3 py-2 text-sm shadow-sm 
+          focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
+      <label class="block text-sm font-medium text-slate-700 mt-3">Giờ bảo vệ</label>
+      <input type="time" name="time" value="${data.time|| (data.date && data.date.includes(' ') ? data.date.split(' ')[1].slice(0,5) : '') }"
+        class="mt-2 w-40 border border-slate-300 rounded-xl px-3 py-2 text-sm shadow-sm 
+          focus:ring-2 focus:ring-blue-500 focus:border-blue-500" />
     </div>
     <div>
       <label class="block text-sm font-medium text-slate-700">Phòng bảo vệ</label>
@@ -3146,7 +3158,13 @@ function openEditCouncilModal(data){
       name: (fd.get('name')||'').toString().trim(),
       dept: (fd.get('dept')||'').toString().trim() || null,
       room: (fd.get('room')||'').toString().trim(),
-      date: (fd.get('date')||'').toString().trim(),
+      // send separate time and also combine into date (YYYY-MM-DD HH:MM) if time provided
+      time: (fd.get('time')||'').toString().trim() || null,
+      date: (()=>{
+        const d = (fd.get('date')||'').toString().trim();
+        const t = (fd.get('time')||'').toString().trim();
+        return t && d ? `${d} ${t}` : d;
+      })(),
       description: (fd.get('description')||'').toString().trim(),
     };
     if (!payload.code) { alert('Mã hội đồng là bắt buộc.'); return; }
@@ -3190,9 +3208,17 @@ function openEditCouncilModal(data){
       td[0].querySelector('a').textContent = json?.data?.code || payload.code;
       td[1].textContent = json?.data?.name || payload.name || 'N/A';
       td[2].textContent = json?.data?.department?.name || td[2].textContent;
-      // Định dạng dd/mm/yyyy
-      const d = payload.date;
-      const dateFmt = d && /^\d{4}-\d{2}-\d{2}$/.test(d) ? `${d.slice(8,10)}/${d.slice(5,7)}/${d.slice(0,4)}` : (d || 'N/A');
+      // Định dạng: nếu có thời gian (YYYY-MM-DD HH:MM) hiển thị 'HH:MM dd/mm/yyyy',
+      // nếu chỉ có ngày (YYYY-MM-DD) hiển thị 'dd/mm/yyyy'
+      const d = payload.date || '';
+      let dateFmt = 'N/A';
+      if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}$/.test(d)) {
+        dateFmt = `${d.slice(11,16)} ${d.slice(8,10)}/${d.slice(5,7)}/${d.slice(0,4)}`;
+      } else if (/^\d{4}-\d{2}-\d{2}$/.test(d)) {
+        dateFmt = `${d.slice(8,10)}/${d.slice(5,7)}/${d.slice(0,4)}`;
+      } else if (d) {
+        dateFmt = d;
+      }
       td[3].textContent = dateFmt || 'N/A';
       td[4].textContent = payload.room || 'N/A';
       // cập nhật data-* cho nút

@@ -24,7 +24,7 @@ class Teacher extends Model
 
     public function supervisor()
     {
-        return $this->hasOne(Supervisor::class);
+        return $this->hasMany(Supervisor::class);
     }
 
     public function department()

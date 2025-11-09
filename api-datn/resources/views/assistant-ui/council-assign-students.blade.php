@@ -22,8 +22,6 @@
       $faculty = $user->faculty_name ?? optional($user->teacher)->faculty ?? '';
       $subtitle = trim(($dept ? "Bộ môn $dept" : '') . (($dept && $faculty) ? ' • ' : '') . ($faculty ? "Khoa $faculty" : ''));
       $degree = $user->teacher->degree ?? '';
-      $expertise = $user->teacher->supervisor->expertise ?? 'null';
-      $data_assignment_supervisors = $user->teacher->supervisor->assignment_supervisors ?? collect();;
       $avatarUrl = $user->avatar_url
         ?? $user->profile_photo_url
         ?? 'https://ui-avatars.com/api/?name=' . urlencode($userName) . '&background=0ea5e9&color=ffffff';
@@ -241,7 +239,7 @@
                       $student_code = $assignment->student->student_code ?? 'NA';
                       $student_name = $assignment->student->user->fullname ?? 'NA';
                       $topic = $assignment->project?->name ?? 'Chưa có đề tài';
-                      $assignment_supervisors = $assignment->assignment_supervisors ?? [];
+                      $assignment_supervisors = $assignment->assignment_supervisors->where('status', 'accepted') ?? [];
                       $department_id = $assignment->student->marjor->department->id ?? '';
                     @endphp
                     <tr class="hover:bg-slate-50" data-assignment-id="{{ $assignment_id }}" data-department-id="{{ $department_id }}">
