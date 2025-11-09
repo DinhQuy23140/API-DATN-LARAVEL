@@ -15,6 +15,7 @@ use App\Http\Controllers\Api\AcademyYearController;
 use App\Http\Controllers\Api\ProjectTermsController;
 use App\Http\Controllers\Api\BatchStudentController;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
+use App\Http\Controllers\Api\ProposedTopicController;
 
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
@@ -113,3 +114,5 @@ Route::post('attachment/create-general', [AttachmentController::class, 'create']
 Route::apiResource('report-files', ReportFilesController::class);
 Route::get('/report-files/project/{projectId}/type/{typeReport}', [ReportFilesController::class, 'getReportFileByProjectAndType']);
 
+//proposed topic
+Route::get('/proposed-topics/assignment/{assignmentId}', [ProposedTopicController::class, 'forAssignment']);
