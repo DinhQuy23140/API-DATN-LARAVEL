@@ -105,7 +105,7 @@
           <div class="flex items-center gap-3 flex-1">
             <button id="openSidebar" class="md:hidden p-2 rounded-lg hover:bg-slate-100"><i class="ph ph-list"></i></button>
             <div>
-              <h1 class="text-lg md:text-xl font-semibold">SV đăng ký làm đồ án</h1>
+              <h1 class="text-lg md:text-xl font-semibold">Danh sách sinh viên hướng dẫn</h1>
               <nav class="text-xs text-slate-500 mt-0.5">Trang chủ / Giảng viên / SV đăng ký</nav>
             </div>
           </div>
@@ -187,21 +187,22 @@
                 <i class="ph ph-magnifying-glass absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
               </div>
             </div>
-            <div class="mt-4 overflow-x-auto">
-              <table class="w-full text-sm border border-slate-200 rounded-xl overflow-hidden">
-                <thead class="bg-slate-50">
-                  <tr class="text-slate-600">
-                    <th class="py-3 px-4 border-b text-center">MSSV</th>
-                    <th class="py-3 px-4 border-b text-left">Họ tên</th>
-                    <th class="py-3 px-4 border-b text-center">Ngành</th>
-                    <th class="py-3 px-4 border-b text-left">Đề tài</th>
-                    <th class="py-3 px-4 border-b text-center">Đợt</th>
-                    <th class="py-3 px-4 border-b text-center">Năm học</th>
-                    <th class="py-3 px-4 border-b text-center">Trạng thái</th>
-                    <th class="py-3 px-4 border-b text-center">Hành động</th>
-                  </tr>
-                </thead>
-                <tbody id="tableBody" class="divide-y divide-slate-200">
+            <div class="mt-4">
+              <!-- Desktop table -->
+              <div class="hidden md:block overflow-x-auto bg-white rounded-xl border border-slate-200 shadow-sm">
+                <table class="min-w-full text-sm">
+                  <thead class="bg-white">
+                    <tr class="text-slate-500 text-xs uppercase tracking-wide">
+                      <th class="py-3 px-4 border-b text-left">MSSV</th>
+                      <th class="py-3 px-4 border-b text-left">Họ tên</th>
+                      <th class="py-3 px-4 border-b text-center">Ngành</th>
+                      <th class="py-3 px-4 border-b text-left">Đề tài</th>
+                      <th class="py-3 px-4 border-b text-center">Đợt</th>
+                      <th class="py-3 px-4 border-b text-center">Năm học</th>
+                      <th class="py-3 px-4 border-b text-center">Trạng thái</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tableBody" class="divide-y divide-slate-100">
                 @php
                   // Lọc bỏ các assignment có trạng thái "pending"
                   $validSupervisors = collect($assignmentSupervisors)->filter(function ($item) {
@@ -225,7 +226,6 @@
                       $yearName  = data_get($assignmentSupervisor, 'assignment.project_term.academy_year.year_name', '');
                       $statusRaw = data_get($assignmentSupervisor, 'assignment.status', 'pending');
 
-                      // Màu sắc cho trạng thái
                       $statusColors = [
                           'pending'   => 'bg-amber-50 text-amber-700',
                           'cancelled' => 'bg-rose-50 text-rose-700',
@@ -235,7 +235,6 @@
                           'approved'  => 'bg-emerald-50 text-emerald-700',
                       ];
 
-                      // Nhãn hiển thị cho trạng thái
                       $statusLabels = [
                           'pending'   => 'Chờ xử lý',
                           'cancelled' => 'Đã hủy',
@@ -250,15 +249,15 @@
                     @endphp
 
                     <tr class="hover:bg-slate-50 transition">
-                      <td class="py-3 px-4 text-left">{{ optional($assignmentSupervisor->assignment->student)->student_code ?? '—' }}</td>
-                      <td class="py-3 px-4 font-medium text-slate-700">{{ optional($assignmentSupervisor->assignment->student->user)->fullname ?? '—' }}</td>
-                      <td class="py-3 px-4 text-center">{{ optional($assignmentSupervisor->assignment->student->marjor)->name ?? 'Chưa có ngành' }}</td>
-                      <td class="py-3 px-4 text-slate-700 truncate max-w-[320px]" title="{{ data_get($assignmentSupervisor, 'assignment.project.name', '—') }}">
+                      <td class="py-3 px-4 text-left align-top">{{ optional($assignmentSupervisor->assignment->student)->student_code ?? '—' }}</td>
+                      <td class="py-3 px-4 font-medium text-slate-700 align-top">{{ optional($assignmentSupervisor->assignment->student->user)->fullname ?? '—' }}</td>
+                      <td class="py-3 px-4 text-center align-top">{{ optional($assignmentSupervisor->assignment->student->marjor)->name ?? 'Chưa có ngành' }}</td>
+                      <td class="py-3 px-4 text-slate-700 max-w-[36ch] truncate align-top" title="{{ data_get($assignmentSupervisor, 'assignment.project.name', '—') }}">
                         {{ data_get($assignmentSupervisor, 'assignment.project.name', '—') }}
                       </td>
-                      <td class="py-3 px-4 text-left">{{ $stage ?: '—' }}</td>
-                      <td class="py-3 px-4 text-left">{{ $yearName ?: '—' }}</td>
-                      <td class="py-3 px-4 text-center">
+                      <td class="py-3 px-4 text-left align-top whitespace-nowrap">{{ $stage ?: '—' }}</td>
+                      <td class="py-3 px-4 text-left align-top whitespace-nowrap">{{ $yearName ?: '—' }}</td>
+                      <td class="py-3 px-4 text-center align-top">
                         <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium {{ $statusClass }}">
                           @if (in_array($statusRaw, ['approved', 'accepted', 'actived']))
                             <i class="ph ph-check-circle"></i>
@@ -270,25 +269,66 @@
                           {{ $statusLabel }}
                         </span>
                       </td>
-                      <td class="py-3 px-4 text-center">
-                        @if ($statusRaw === 'pending')
-                          <div class="flex justify-center gap-3">
-                            <button class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 text-xs font-medium">
-                              <i class="ph ph-check"></i> Duyệt
-                            </button>
-                            <button class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg bg-rose-600 text-white hover:bg-rose-700 text-xs font-medium">
-                              <i class="ph ph-x"></i> Từ chối
-                            </button>
-                          </div>
-                        @else
-                          <span class="text-slate-400 text-xs italic">—</span>
-                        @endif
-                      </td>
                     </tr>
                   @endforeach
                 @endif
-                </tbody>
-              </table>
+                  </tbody>
+                </table>
+              </div>
+
+              <!-- Mobile card list -->
+              <div class="md:hidden space-y-3">
+                @if ($validSupervisors->isEmpty())
+                  <div class="text-center text-slate-500 py-8">
+                    <i class="ph ph-users text-2xl"></i>
+                    <div>Chưa có sinh viên nào trong danh sách hướng dẫn.</div>
+                  </div>
+                @else
+                  @foreach ($validSupervisors as $assignmentSupervisor)
+                    @php
+                      $stage     = data_get($assignmentSupervisor, 'assignment.project_term.stage', '');
+                      $yearName  = data_get($assignmentSupervisor, 'assignment.project_term.academy_year.year_name', '');
+                      $statusRaw = data_get($assignmentSupervisor, 'assignment.status', 'pending');
+                      $statusClass = (
+                        $statusRaw === 'pending' ? 'bg-amber-50 text-amber-700' : (
+                        in_array($statusRaw, ['approved','accepted','actived']) ? 'bg-emerald-50 text-emerald-700' : (
+                        in_array($statusRaw, ['cancelled','stopped']) ? 'bg-rose-50 text-rose-700' : 'bg-slate-100 text-slate-700')));
+                      $statusLabel = [
+                        'pending'=>'Chờ xử lý','cancelled'=>'Đã hủy','actived'=>'Đang hoạt động','stopped'=>'Đã dừng','accepted'=>'Đã chấp nhận','approved'=>'Đã duyệt'
+                      ][$statusRaw] ?? ucfirst($statusRaw);
+                    @endphp
+
+                    <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm hover:shadow-md">
+                      <div class="flex items-start gap-3">
+                        <div class="flex-1">
+                          <div class="flex items-center justify-between gap-3">
+                            <div>
+                              <div class="text-sm font-semibold text-slate-800">{{ optional($assignmentSupervisor->assignment->student->user)->fullname ?? '—' }}</div>
+                              <div class="text-xs text-slate-500">{{ optional($assignmentSupervisor->assignment->student)->student_code ?? '—' }}</div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                              <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium {{ $statusClass }}">{{ $statusLabel }}</span>
+                              <button class="w-9 h-9 grid place-items-center rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200" title="Hành động">
+                                <i class="ph ph-dots-three-vertical"></i>
+                              </button>
+                            </div>
+                          </div>
+
+                          <div class="mt-3 text-sm text-slate-700">
+                            <div class="flex items-center gap-2"><i class="ph ph-book text-slate-400"></i>
+                              <div class="truncate" title="{{ data_get($assignmentSupervisor, 'assignment.project.name', '—') }}">{{ data_get($assignmentSupervisor, 'assignment.project.name', '—') }}</div>
+                            </div>
+                            <div class="mt-2 flex items-center gap-3 text-xs text-slate-500">
+                              <div class="inline-flex items-center gap-1"><i class="ph ph-calendar"></i> {{ $stage ?: '—' }}</div>
+                              <div class="inline-flex items-center gap-1"><i class="ph ph-calendar-check"></i> {{ $yearName ?: '—' }}</div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  @endforeach
+                @endif
+              </div>
             </div>
 
           </section>

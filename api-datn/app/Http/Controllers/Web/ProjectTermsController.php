@@ -575,7 +575,7 @@ public function assignmentSupervisor($departmentId, $termId)
 {
     $projectTerm = ProjectTerm::with([
         'academy_year',
-        'assignments.student.user',
+        'assignments.student.user.userResearches.research',
 
         // Lấy supervisors theo department của teacher
         'supervisors' => function ($query) use ($departmentId, $termId) {
@@ -583,11 +583,11 @@ public function assignmentSupervisor($departmentId, $termId)
                 $teacherQuery->where('department_id', $departmentId);
             })
             ->with([
-                'teacher.user', // Lấy thông tin user của giảng viên
+                'teacher.user.userResearches.research', // Lấy thông tin user của giảng viên
                 'assignment_supervisors' => function ($q) use ($termId) {
                     $q->whereHas('assignment', function ($sub) use ($termId) {
                         $sub->where('project_term_id', $termId);
-                    })->with('assignment.student.user');
+                    })->with('assignment.student.user.userResearches.research');
                 }
             ]);
         },
@@ -598,7 +598,8 @@ public function assignmentSupervisor($departmentId, $termId)
     // Lấy danh sách đề tài chưa được gán GVHD trong bộ môn đó
     $unassignedAssignments = Assignment::with([
         'project',
-        'student.user',
+        'student.user.userResearches.research',
+        'student.marjor.department',
     ])
     ->where('project_term_id', $termId)
     ->whereHas('student.marjor.department', function($q) use ($departmentId) {

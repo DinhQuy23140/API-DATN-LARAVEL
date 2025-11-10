@@ -47,6 +47,23 @@
       ?? 'https://ui-avatars.com/api/?name=' . urlencode($userName) . '&background=0ea5e9&color=ffffff';
     $departmentRole = $user->teacher->departmentRoles->where('role', 'head')->first() ?? null;
     $departmentId = $departmentRole?->department_id ?? 0;
+    $phone = $user->phone ?? '';
+    $address = $user->address ?? optional($user->teacher)->address ?? '';
+    $gender = $user->gender ?? optional($user->teacher)->gender ?? '';
+    $dob = $user->dob ?? optional($user->teacher)->dob ?? '';
+    $teacher_code = optional($user->teacher)->teacher_code ?? $user->teacher_code ?? '';
+    $position = optional($user->teacher)->position ?? $user->position ?? '';
+    // Normalize positions into a list for display (supports array, Collection, comma-separated string)
+    $positions_list = [];
+    if (is_array($position)) {
+      $positions_list = $position;
+    } elseif ($position instanceof \Illuminate\Support\Collection) {
+      $positions_list = $position->toArray();
+    } elseif (is_string($position) && strpos($position, ',') !== false) {
+      $positions_list = array_map('trim', explode(',', $position));
+    } elseif (!empty($position)) {
+      $positions_list = [$position];
+    }
   @endphp
   <div class="flex min-h-screen">
     <aside id="sidebar"
@@ -158,72 +175,262 @@
         </div>
       </header>
 
-      <main class="pt-20 px-4 md:px-6 pb-10">
-        <div class="max-w-6xl mx-auto">
-          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <!-- Sidebar card -->
-            <aside class="bg-white rounded-xl border border-slate-200 p-5">
-              <div class="grid place-items-center">
-                <img id="avatarPreview" class="h-24 w-24 rounded-full object-cover" src="{{ $avatarUrl }}"
-                  alt="avatar" />
-                <div class="mt-3 text-center">
-                  <div class="font-semibold">{{ $user->fullname }}</div>
-                  <div class="text-sm text-slate-500">{{ $user->teacher->position }}</div>
-                </div>
-              </div>
-            </aside>
+<main class="pt-20 px-4 md:px-6 pb-10">
+  <div class="max-w-6xl mx-auto grid grid-cols-1 lg:grid-cols-3 gap-6">
+    
+    <!-- Sidebar card: Avatar -->
+    <aside class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col items-center">
+      <img id="avatarPreview" class="h-24 w-24 rounded-full object-cover" src="{{ $avatarUrl }}" alt="avatar" />
+      <div class="mt-3 text-center">
+        <div class="font-semibold text-lg text-slate-900">{{ $user->fullname }}</div>
+        <div class="text-sm text-slate-500">{{ $user->teacher->position }}</div>
+      </div>
+    </aside>
 
-            <!-- Form -->
-            <section class="bg-white rounded-xl border border-slate-200 p-5 lg:col-span-2">
-              <form class="space-y-4 max-w-2xl" onsubmit="event.preventDefault(); alert('Đã cập nhật!');">
-                <div class="grid sm:grid-cols-2 gap-4">
-                  <div><label class="text-sm font-medium">Họ tên</label><input
-                      class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600"
-                      value="{{ $user->fullname }}" /></div>
-                  <div><label class="text-sm font-medium">Email</label><input type="email"
-                      class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200" value="{{ $user->email }}" />
-                  </div>
-                </div>
-                <div class="grid sm:grid-cols-3 gap-4">
-                  <div><label class="text-sm font-medium">Số điện thoại</label><input
-                      class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200" placeholder="09xxxxxxxx"
-                      value="{{ $user->phone }}" /></div>
-                  <div>
-                    <label class="text-sm font-medium">Học hàm</label>
-                    <select class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200">
-                      <option value="Thạc sĩ" {{ $user->teacher->degree == 'Thạc sĩ' ? 'selected' : '' }}>Thạc sĩ</option>
-                      <option value="Phó Giáo sư" {{ $user->teacher->degree == 'Phó Giáo sư' ? 'selected' : '' }}>Phó Giáo
-                        sư</option>
-                      <option value="Cử nhân" {{ $user->teacher->degree == 'Cử nhân' ? 'selected' : '' }}>Cử nhân</option>
-                      <option value="Giáo sư" {{ $user->teacher->degree == 'Giáo sư' ? 'selected' : '' }}>Giáo sư</option>
-                      <option value="Tiến sĩ" {{ $user->teacher->degree == 'Tiến sĩ' ? 'selected' : '' }}>Tiến sĩ</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label class="text-sm font-medium">Học vị</label>
-                    <select class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200">
-                      <option value="Thạc sĩ" {{ $user->teacher->degree == 'Thạc sĩ' ? 'selected' : '' }}>Thạc sĩ</option>
-                      <option value="Phó Giáo sư" {{ $user->teacher->degree == 'Phó Giáo sư' ? 'selected' : '' }}>Phó Giáo
-                        sư</option>
-                      <option value="Cử nhân" {{ $user->teacher->degree == 'Cử nhân' ? 'selected' : '' }}>Cử nhân</option>
-                      <option value="Giáo sư" {{ $user->teacher->degree == 'Giáo sư' ? 'selected' : '' }}>Giáo sư</option>
-                      <option value="Tiến sĩ" {{ $user->teacher->degree == 'Tiến sĩ' ? 'selected' : '' }}>Tiến sĩ</option>
-                    </select>
-                  </div>
-                </div>
-                <div>
-                  <label class="text-sm font-medium">Ảnh đại diện</label>
-                  <input id="avatarInput" type="file" accept="image/*"
-                    class="mt-1 block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
-                </div>
-                <div class="pt-2">
-                  <button class="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700">Cập nhật</button>
-                </div>
-              </form>
-            </section>
+    <!-- Profile details -->
+    <section class="bg-white rounded-2xl border border-slate-200 p-6 lg:col-span-2 shadow-sm hover:shadow-md transition-all duration-200">
+      <div class="flex items-start justify-between mb-4">
+        <div>
+          <h2 class="text-xl font-semibold text-slate-900 flex items-center gap-2">
+            <i class="ph ph-user-circle text-indigo-500 text-lg"></i>
+            Thông tin cá nhân
+          </h2>
+          <p class="text-sm text-slate-500 mt-1">Thông tin hiển thị công khai trên hồ sơ giảng viên.</p>
+        </div>
+        <div class="text-right">
+          <button id="openEditProfile" type="button" class="text-sm text-blue-600 hover:underline">Chỉnh sửa</button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <!-- Họ và tên -->
+        <div class="flex items-center gap-2 p-4 rounded-lg border border-slate-100 bg-slate-50">
+          <i class="ph ph-user text-indigo-500 text-lg"></i>
+          <div>
+            <div class="text-xs text-slate-500">Họ và tên</div>
+            <div class="mt-1 font-medium text-slate-900">{{ $user->fullname ?? $userName }}</div>
           </div>
         </div>
-      </main>
+
+        <!-- Email -->
+        <div class="flex items-center gap-2 p-4 rounded-lg border border-slate-100 bg-slate-50">
+          <i class="ph ph-envelope text-indigo-500 text-lg"></i>
+          <div>
+            <div class="text-xs text-slate-500">Email</div>
+            <div class="mt-1 font-medium text-slate-900">{{ $email }}</div>
+          </div>
+        </div>
+
+        <!-- Số điện thoại -->
+        <div class="flex items-center gap-2 p-4 rounded-lg border border-slate-100 bg-slate-50">
+          <i class="ph ph-phone text-indigo-500 text-lg"></i>
+          <div>
+            <div class="text-xs text-slate-500">Số điện thoại</div>
+            <div class="mt-1 font-medium text-slate-900">{{ $phone ?: '-' }}</div>
+          </div>
+        </div>
+
+        <!-- Mã giảng viên -->
+        <div class="flex items-center gap-2 p-4 rounded-lg border border-slate-100 bg-slate-50">
+          <i class="ph ph-identification-badge text-indigo-500 text-lg"></i>
+          <div>
+            <div class="text-xs text-slate-500">Mã giảng viên</div>
+            <div class="mt-1 font-medium text-slate-900">{{ $user->teacher->teacher_code ?: '-' }}</div>
+          </div>
+        </div>
+
+        <!-- Địa chỉ -->
+        <div class="flex items-center gap-2 p-4 rounded-lg border border-slate-100 bg-slate-50">
+          <i class="ph ph-map-pin text-indigo-500 text-lg"></i>
+          <div>
+            <div class="text-xs text-slate-500">Địa chỉ</div>
+            <div class="mt-1 font-medium text-slate-900">{{ $address ?: '-' }}</div>
+          </div>
+        </div>
+
+        <!-- Giới tính -->
+        <div class="flex items-center gap-2 p-4 rounded-lg border border-slate-100 bg-slate-50">
+          <i class="ph ph-gender-neuter text-indigo-500 text-lg"></i>
+          <div>
+            <div class="text-xs text-slate-500">Giới tính</div>
+            <div class="mt-1 font-medium text-slate-900">{{ $gender ?: '-' }}</div>
+          </div>
+        </div>
+
+        <!-- Ngày sinh -->
+        <div class="flex items-center gap-2 p-4 rounded-lg border border-slate-100 bg-slate-50">
+          <i class="ph ph-calendar text-indigo-500 text-lg"></i>
+          <div>
+            <div class="text-xs text-slate-500">Ngày sinh</div>
+            <div class="mt-1 font-medium text-slate-900">
+              @if($dob)
+                {{ \Carbon\Carbon::parse($dob)->format('d/m/Y') }}
+              @else
+                -
+              @endif
+            </div>
+          </div>
+        </div>
+
+        <!-- Học vị -->
+        <div class="flex items-center gap-2 p-4 rounded-lg border border-slate-100 bg-slate-50">
+          <i class="ph ph-graduation-cap text-indigo-500 text-lg"></i>
+          <div>
+            <div class="text-xs text-slate-500">Học vị</div>
+            <div class="mt-1 font-medium text-slate-900">{{ $degree ?: ($user->teacher->degree ?? '-') }}</div>
+          </div>
+        </div>
+
+        <!-- Chức vụ -->
+        <div class="flex items-start gap-2 p-4 rounded-lg border border-slate-100 bg-slate-50">
+          <i class="ph ph-briefcase text-indigo-500 text-lg mt-1"></i>
+          <div>
+            <div class="text-xs text-slate-500">Chức vụ</div>
+            @if(count($positions_list))
+              <ul class="mt-1 list-disc list-inside space-y-1 text-slate-900">
+                @foreach($positions_list as $p)
+                  <li class="font-medium">{{ $p }}</li>
+                @endforeach
+              </ul>
+            @else
+              <div class="mt-1 font-medium text-slate-900">-</div>
+            @endif
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <!-- Edit profile modal -->
+<div id="editProfileModal" class="hidden fixed inset-0 z-50 flex items-center justify-center px-4">
+  <!-- Backdrop -->
+  <div class="absolute inset-0 bg-black/40" id="editProfileBackdrop"></div>
+
+  <!-- Modal content -->
+  <div class="relative w-full max-w-5xl bg-white rounded-2xl shadow-xl p-6 sm:p-8 transition-transform transform scale-95 opacity-0 duration-200 max-h-[90vh] overflow-auto lg:px-10"
+    id="editProfileContent">
+
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-lg sm:text-xl font-semibold text-slate-900 flex items-center gap-2">
+        <i class="ph ph-pencil text-indigo-500 text-lg"></i>
+        Chỉnh sửa thông tin cá nhân
+      </h3>
+      <button id="closeEditProfile" class="text-slate-500 hover:text-slate-700 text-2xl">✕</button>
+    </div>
+
+    <!-- Two-column modal: left summary, right form -->
+    <form id="editProfileForm" method="POST" action="" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      @csrf
+      <input type="hidden" name="_method" value="PUT">
+
+      <!-- Left: compact summary / avatar -->
+      <aside class="lg:col-span-4 bg-slate-50 rounded-xl p-4 border border-slate-100 flex flex-col items-center gap-4">
+        <img class="h-24 w-24 rounded-full object-cover shadow-sm" src="{{ $avatarUrl }}" alt="avatar" />
+        <div class="text-center">
+          <div class="text-base font-semibold text-slate-900">{{ $user->fullname }}</div>
+          <div class="text-sm text-slate-500">{{ $email }}</div>
+        </div>
+
+        <div class="w-full mt-1">
+          <dl class="text-sm text-slate-600 space-y-2">
+            <div class="flex justify-between"><dt class="text-slate-500">Mã</dt><dd class="font-medium text-slate-900">{{ $teacher_code ?: '-' }}</dd></div>
+            <div class="flex justify-between"><dt class="text-slate-500">Học vị</dt><dd class="font-medium text-slate-900">{{ $degree ?: '-' }}</dd></div>
+            <div class="flex justify-between"><dt class="text-slate-500">Giới tính</dt><dd class="font-medium text-slate-900">{{ $gender ?: '-' }}</dd></div>
+            <div class="flex justify-between"><dt class="text-slate-500">Ngày sinh</dt><dd class="font-medium text-slate-900">@if($dob){{ \Carbon\Carbon::parse($dob)->format('d/m/Y') }}@else - @endif</dd></div>
+          </dl>
+        </div>
+
+        <div class="w-full mt-2 text-xs text-slate-500">Lưu ý: thay đổi sẽ áp dụng sau khi lưu.</div>
+      </aside>
+
+      <!-- Right: grouped form -->
+      <div class="lg:col-span-8 bg-white rounded-xl p-4 border border-slate-100 max-h-[72vh] overflow-auto">
+        <section class="mb-4">
+          <h4 class="text-sm font-medium text-slate-700 mb-2">Cơ bản</h4>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="text-xs text-slate-500">Họ và tên</label>
+              <input name="fullname" value="{{ $user->fullname }}" placeholder="Họ và tên"
+                     class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 focus:ring-1 focus:ring-indigo-500" />
+            </div>
+            <div>
+              <label class="text-xs text-slate-500">Email</label>
+              <input name="email" type="email" value="{{ $email }}" placeholder="Email"
+                     class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 focus:ring-1 focus:ring-indigo-500" />
+            </div>
+            <div>
+              <label class="text-xs text-slate-500">Số điện thoại</label>
+              <input name="phone" value="{{ $phone }}" placeholder="Số điện thoại"
+                     class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 focus:ring-1 focus:ring-indigo-500" />
+            </div>
+            <div>
+              <label class="text-xs text-slate-500">Mã giảng viên</label>
+              <input name="teacher_code" value="{{ $teacher_code }}" placeholder="Mã giảng viên"
+                     class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 focus:ring-1 focus:ring-indigo-500" />
+            </div>
+          </div>
+        </section>
+
+        <section class="mb-2">
+          <h4 class="text-sm font-medium text-slate-700 mb-2">Chức vụ & Học vị</h4>
+          <div class="grid grid-cols-1 gap-3">
+            <div>
+              <label class="text-xs text-slate-500">Học vị</label>
+              <input name="degree" value="{{ $degree }}" placeholder="Học vị"
+                     class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 focus:ring-1 focus:ring-indigo-500" />
+            </div>
+            <div>
+              <label class="text-xs text-slate-500">Chức vụ (phân cách bằng dấu phẩy)</label>
+              <input name="position" value="{{ is_array($position) ? implode(', ', $position) : $position }}"
+                     placeholder="Chức vụ (phân cách bằng dấu phẩy)"
+                     class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 focus:ring-1 focus:ring-indigo-500" />
+            </div>
+          </div>
+        </section>
+
+        <section class="mb-4">
+          <h4 class="text-sm font-medium text-slate-700 mb-2">Địa chỉ & Thông tin cá nhân</h4>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div class="sm:col-span-2">
+              <label class="text-xs text-slate-500">Địa chỉ</label>
+              <input name="address" value="{{ $address }}" placeholder="Địa chỉ"
+                     class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 focus:ring-1 focus:ring-indigo-500" />
+            </div>
+
+            <div>
+              <label class="text-xs text-slate-500">Giới tính</label>
+              <select name="gender" class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 focus:ring-1 focus:ring-indigo-500">
+                <option value="" {{ $gender=='' ? 'selected' : '' }}>--</option>
+                <option value="Nam" {{ $gender=='Nam' ? 'selected' : '' }}>Nam</option>
+                <option value="Nữ" {{ $gender=='Nữ' ? 'selected' : '' }}>Nữ</option>
+                <option value="Khác" {{ $gender=='Khác' ? 'selected' : '' }}>Khác</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="text-xs text-slate-500">Ngày sinh</label>
+              <input name="dob" type="date" value="{{ $dob ? \Carbon\Carbon::parse($dob)->format('Y-m-d') : '' }}"
+                     class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 focus:ring-1 focus:ring-indigo-500" />
+            </div>
+          </div>
+        </section>
+
+        <!-- Sticky footer inside the scrollable right column -->
+        <div class="mt-4 pt-4 border-t border-slate-100 sticky bottom-0 bg-white -mx-4 px-4 pb-4">
+          <div class="flex items-center justify-end gap-3">
+            <button type="button" id="cancelEditProfile" class="px-4 py-2 rounded-lg border hover:bg-slate-50">Hủy</button>
+            <button type="submit" class="px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700">Lưu thay đổi</button>
+          </div>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+</main>
+
     </div>
   </div>
 
@@ -256,6 +463,44 @@
         btn?.classList.toggle('font-semibold');
       });
     })();
+
+  // Edit profile modal controls (animated show/hide)
+  const openEditProfile = document.getElementById('openEditProfile');
+  const editProfileModal = document.getElementById('editProfileModal');
+  const editProfileContent = document.getElementById('editProfileContent');
+  const closeEditProfile = document.getElementById('closeEditProfile');
+  const cancelEditProfile = document.getElementById('cancelEditProfile');
+  const editProfileBackdrop = document.getElementById('editProfileBackdrop');
+
+  function showEditProfile() {
+    if (!editProfileModal) return;
+    // reveal modal container
+    editProfileModal.classList.remove('hidden');
+    // allow next frame then animate content to visible
+    requestAnimationFrame(() => {
+      if (editProfileContent) {
+        editProfileContent.classList.remove('scale-95', 'opacity-0');
+        editProfileContent.classList.add('scale-100', 'opacity-100');
+      }
+    });
+  }
+
+  function hideEditProfile() {
+    if (!editProfileModal) return;
+    // animate content out
+    if (editProfileContent) {
+      editProfileContent.classList.remove('scale-100', 'opacity-100');
+      editProfileContent.classList.add('scale-95', 'opacity-0');
+    }
+    // after animation duration (match CSS 200ms) hide container
+    setTimeout(() => { editProfileModal.classList.add('hidden'); }, 220);
+  }
+
+  openEditProfile?.addEventListener('click', showEditProfile);
+  closeEditProfile?.addEventListener('click', hideEditProfile);
+  cancelEditProfile?.addEventListener('click', hideEditProfile);
+  editProfileBackdrop?.addEventListener('click', hideEditProfile);
+  document.addEventListener('keyup', (e) => { if (e.key === 'Escape') hideEditProfile(); });
   </script>
 </body>
 

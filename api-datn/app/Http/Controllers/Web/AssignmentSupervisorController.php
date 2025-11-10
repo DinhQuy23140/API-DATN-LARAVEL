@@ -66,7 +66,9 @@ public function getRequestManagementPage($supervisorId, $termId)
             })
             ->get();
 
-        return view('lecturer-ui.supervised-students', compact('items', 'termId', 'supervisorId'));
+        $projectTerm = ProjectTerm::with('academy_year')->find($termId);
+
+        return view('lecturer-ui.supervised-students', compact('items', 'termId', 'supervisorId', 'projectTerm'));
     }
 
 

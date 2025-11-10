@@ -162,23 +162,59 @@
             <div></div>
             <a href="thesis-round-detail.html" class="text-sm text-blue-600 hover:underline"><i class="ph ph-caret-left"></i> Quay lại đợt</a>
           </div>
-    <!-- Stage info banner (modernized) -->
-    <section class="rounded-3xl overflow-hidden mb-6 shadow-lg bg-gradient-to-r from-indigo-600 via-sky-500 to-emerald-400 text-white">
-      <div class="p-5 md:p-6 flex items-center justify-between">
-        <div>
-          <div class="text-xs uppercase opacity-90">Giai đoạn</div>
-          <h2 class="text-2xl font-bold">Giai đoạn 01: Tiếp nhận yêu cầu sinh viên</h2>
-          <div class="text-sm opacity-90 mt-1">
-              Thời gian: {{ \Carbon\Carbon::parse($timeStage->start_date)->format('d/m/Y') }}
-              – {{ \Carbon\Carbon::parse($timeStage->end_date)->format('d/m/Y') }}
-              • Hạn phản hồi chuẩn: 7 ngày
+    <!-- Stage info (modern card, consistent with other pages) -->
+    @php
+      $stageName = $timeStage->name ?? 'Giai đoạn 01: Tiếp nhận yêu cầu sinh viên';
+      $startLabel = $timeStage->start_date ? \Carbon\Carbon::parse($timeStage->start_date)->format('d/m/Y') : '—';
+      $endLabel = $timeStage->end_date ? \Carbon\Carbon::parse($timeStage->end_date)->format('d/m/Y') : '—';
+      $now = \Carbon\Carbon::now();
+      $start = $timeStage->start_date ? \Carbon\Carbon::parse($timeStage->start_date) : null;
+      $end = $timeStage->end_date ? \Carbon\Carbon::parse($timeStage->end_date) : null;
+      if ($start && $end) {
+        if ($now->lt($start)) { $statusText = 'Sắp diễn ra'; $badge = 'bg-yellow-50 text-yellow-700'; $iconClass = 'text-yellow-600'; }
+        elseif ($now->gt($end)) { $statusText = 'Đã kết thúc'; $badge = 'bg-slate-100 text-slate-600'; $iconClass = 'text-slate-500'; }
+        else { $statusText = 'Đang diễn ra'; $badge = 'bg-emerald-50 text-emerald-700'; $iconClass = 'text-emerald-600'; }
+      } else { $statusText = 'Đang diễn ra'; $badge = 'bg-emerald-50 text-emerald-700'; $iconClass = 'text-emerald-600'; }
+
+      $totalRequests = isset($items) ? $items->count() : 0;
+      $pendingRequests = isset($items) ? $items->filter(function ($item) { return optional($item->assignment_supervisors->first())->status === 'pending'; })->count() : 0;
+    @endphp
+
+    <section class="rounded-3xl overflow-hidden mb-6">
+      <div class="bg-gradient-to-r from-indigo-50 to-white border border-slate-200 p-4 md:p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div class="flex items-center gap-4">
+          <div class="h-14 w-14 rounded-lg bg-indigo-600/10 grid place-items-center">
+            <i class="ph ph-chalkboard-teacher text-indigo-600 text-2xl"></i>
+          </div>
+          <div>
+            <div class="text-sm text-slate-500">Giai đoạn</div>
+            <div class="text-lg md:text-xl font-semibold text-slate-900">{{ $stageName }}</div>
+            <div class="mt-1 text-sm text-slate-600 flex items-center gap-2">
+              <i class="ph ph-calendar-dots text-slate-400"></i>
+              <span>Thời gian: {{ $startLabel }} — {{ $endLabel }}</span>
+            </div>
           </div>
         </div>
-        <div class="text-right">
-          <span class="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-white/20 text-sm font-medium">
-            <i class="ph ph-clock"></i>
-            Đang diễn ra
-          </span>
+
+        <div class="flex items-center gap-3 md:gap-4">
+          <div class="hidden md:flex items-center gap-3">
+            <span class="inline-flex items-center gap-2 px-3 py-2 rounded-lg {{ $badge }} text-sm">
+              <i class="ph ph-circle {{ $iconClass }}"></i>
+              {{ $statusText }}
+            </span>
+          </div>
+
+          <div class="grid gap-3">
+            <div class="flex items-center gap-3 bg-white border border-slate-100 rounded-lg px-3 py-2 shadow-sm">
+              <div class="p-2 rounded-md bg-indigo-50 text-indigo-600">
+                <i class="ph ph-clock text-lg"></i>
+              </div>
+              <div>
+                <div class="text-xs text-slate-500">Hạn phản hồi</div>
+                <div class="text-sm font-semibold text-slate-800">7 ngày</div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </section>

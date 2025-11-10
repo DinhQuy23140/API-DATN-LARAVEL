@@ -164,19 +164,76 @@
             <a href="thesis-round-detail.html" class="text-sm text-blue-600 hover:underline"><i class="ph ph-caret-left"></i> Quay lại chi tiết đợt</a>
           </div>
 
-          <section class="bg-white rounded-xl border border-slate-200 p-4">
-            <h2 class="font-semibold text-lg mb-2">Thông tin đợt đồ án</h2>
-            <div class="text-slate-700 text-sm space-y-1">
-              @php
-              $stage = $term->stage;
-              $academicYear = $term->academy_year->year_name ?? 'N/A';
-              $semester = $term->stage;
-              $date = date('d/m/Y', strtotime($term->start_date)) . ' - ' . date('d/m/Y', strtotime($term->end_date));
-              @endphp
-              <div><strong>Đợt:</strong> {{ $stage }} </div>
-              <div><strong>Năm học:</strong> {{ $academicYear }} </div>
-              <div><strong>Học kỳ:</strong> {{ $semester }} </div>
-              <div><strong>Thời gian:</strong> {{ $date }} </div>
+          <!-- Modernized term / committee info card -->
+          @php
+            $stageName = "Đợt" . ' ' . $term->stage ?? 'Đợt';
+            $academicYear = $term->academy_year->year_name ?? 'N/A';
+            $startLabel = $term->start_date ? \Carbon\Carbon::parse($term->start_date)->format('d/m/Y') : '—';
+            $endLabel = $term->end_date ? \Carbon\Carbon::parse($term->end_date)->format('d/m/Y') : '—';
+            $now = \Carbon\Carbon::now();
+            $start = $term->start_date ? \Carbon\Carbon::parse($term->start_date) : null;
+            $end = $term->end_date ? \Carbon\Carbon::parse($term->end_date) : null;
+            if ($start && $end) {
+              if ($now->lt($start)) { $statusText = 'Sắp diễn ra'; $badge = 'bg-yellow-50 text-yellow-700'; $iconClass = 'text-yellow-600'; }
+              elseif ($now->gt($end)) { $statusText = 'Đã kết thúc'; $badge = 'bg-slate-100 text-slate-600'; $iconClass = 'text-slate-500'; }
+              else { $statusText = 'Đang diễn ra'; $badge = 'bg-emerald-50 text-emerald-700'; $iconClass = 'text-emerald-600'; }
+            } else { $statusText = 'Đang diễn ra'; $badge = 'bg-emerald-50 text-emerald-700'; $iconClass = 'text-emerald-600'; }
+
+            $committeeCount = isset($coucilMenbers) ? $coucilMenbers->count() : 0;
+          @endphp
+
+          <section class="rounded-xl overflow-hidden mb-3">
+            <div class="bg-gradient-to-r from-indigo-50 to-white border border-slate-200 p-4 md:p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div class="flex items-center gap-4">
+                <div class="h-14 w-14 rounded-lg bg-indigo-600/10 grid place-items-center">
+                  <i class="ph ph-graduation-cap text-indigo-600 text-2xl"></i>
+                </div>
+                <div>
+                  <div class="text-sm text-slate-500">Đợt / Hội đồng</div>
+                  <div class="text-lg md:text-xl font-semibold text-slate-900">{{ $stageName }}</div>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-3 md:gap-4">
+                <div class="hidden md:flex items-center gap-3">
+                  <span class="inline-flex items-center gap-2 px-3 py-2 rounded-lg {{ $badge }} text-sm">
+                    <i class="ph ph-circle {{ $iconClass }}"></i>
+                    {{ $statusText }}
+                  </span>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 md:grid-cols-3">
+                  <div class="flex items-center gap-3 bg-white border border-slate-100 rounded-lg px-3 py-2 shadow-sm">
+                    <div class="p-2 rounded-md bg-indigo-50 text-indigo-600">
+                      <i class="ph ph-clipboard-text text-lg"></i>
+                    </div>
+                    <div>
+                      <div class="text-xs text-slate-500">Số hội đồng</div>
+                      <div class="text-sm font-semibold text-slate-800">{{ $committeeCount }}</div>
+                    </div>
+                  </div>
+
+                  <div class="flex items-center gap-3 bg-white border border-slate-100 rounded-lg px-3 py-2 shadow-sm">
+                    <div class="p-2 rounded-md bg-indigo-50 text-indigo-600">
+                      <i class="ph ph-buildings text-lg"></i>
+                    </div>
+                    <div>
+                      <div class="text-xs text-slate-500">Năm học</div>
+                      <div class="text-sm font-semibold text-slate-800">{{ $academicYear }}</div>
+                    </div>
+                  </div>
+
+                  <div class="flex items-center gap-3 bg-white border border-slate-100 rounded-lg px-3 py-2 shadow-sm">
+                    <div class="p-2 rounded-md bg-indigo-50 text-indigo-600">
+                      <i class="ph ph-clock text-lg"></i>
+                    </div>
+                    <div>
+                      <div class="text-xs text-slate-500">Khoảng thời gian</div>
+                      <div class="text-sm font-semibold text-slate-800">{{ $startLabel }} — {{ $endLabel }}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </section>
 

@@ -158,6 +158,85 @@
 
       <main class="flex-1 overflow-y-auto px-4 md:px-6 py-6">
         <div class="max-w-6xl mx-auto space-y-4">
+
+        <section class="rounded-xl overflow-hidden">
+          @php
+            $startLabel = (isset($projectTerm) && !empty($projectTerm->start_date)) ? \Carbon\Carbon::parse($projectTerm->start_date)->format('d/m/Y') : '—';
+            $endLabel   = (isset($projectTerm) && !empty($projectTerm->end_date)) ? \Carbon\Carbon::parse($projectTerm->end_date)->format('d/m/Y') : '—';
+            $now = \Carbon\Carbon::now();
+            $supervisorCount = isset($projectTerm->supervisors) ? $projectTerm->supervisors->count() : 0;
+            $pendingCount = isset($unassignedAssignments) ? $unassignedAssignments->count() : 0;
+
+            if ($projectTerm->start_date && $projectTerm->end_date) {
+              $start = \Carbon\Carbon::parse($projectTerm->start_date);
+              $end = \Carbon\Carbon::parse($projectTerm->end_date);
+              if ($now->lt($start)) {
+                $statusText = 'Sắp diễn ra';
+                $badge = 'bg-yellow-50 text-yellow-700';
+                $iconClass = 'text-yellow-600';
+              } elseif ($now->gt($end)) {
+                $statusText = 'Đã kết thúc';
+                $badge = 'bg-slate-100 text-slate-600';
+                $iconClass = 'text-slate-500';
+              } else {
+                $statusText = 'Đang diễn ra';
+                $badge = 'bg-emerald-50 text-emerald-700';
+                $iconClass = 'text-emerald-600';
+              }
+            } else {
+              $statusText = $statusLabel ?? 'Sắp diễn ra';
+              $badge = $statusClass ?? 'bg-yellow-50 text-yellow-700';
+              $iconClass = 'text-yellow-600';
+            }
+          @endphp
+
+          <div class="bg-gradient-to-r from-indigo-50 to-white border border-slate-200 p-4 md:p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div class="flex items-center gap-4">
+              <div class="h-14 w-14 rounded-lg bg-indigo-600/10 grid place-items-center">
+                <i class="ph ph-graduation-cap text-indigo-600 text-2xl"></i>
+              </div>
+              <div>
+                <div class="text-sm text-slate-500">Đợt đồ án</div>
+                <div class="text-lg md:text-xl font-semibold text-slate-900">Đợt {{ $projectTerm->stage }} - {{ $projectTerm->academy_year->year_name }}</div>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-3 md:gap-4 ml-auto">
+
+              <div class="hidden md:flex items-center">
+                <span class="inline-flex items-center gap-2 px-3 py-2 rounded-lg {{ $badge }} text-sm">
+                  <i class="ph ph-circle {{ $iconClass }}"></i>
+                  {{ $statusText }}
+                </span>
+              </div>
+
+              <div class="flex items-center gap-3">
+                <div class="flex items-center gap-3 bg-white border border-slate-100 rounded-lg px-3 py-2 shadow-sm">
+                  <div class="p-2 rounded-md bg-indigo-50 text-indigo-600">
+                    <i class="ph ph-student text-lg"></i>
+                  </div>
+                  <div>
+                    <div class="text-xs text-slate-500">Số sinh viên</div>
+                    <div class="text-sm font-semibold text-slate-800">{{ $pendingCount }}</div>
+                  </div>
+                </div>
+
+                <div class="flex items-center gap-3 bg-white border border-slate-100 rounded-lg px-3 py-2 shadow-sm">
+                  <div class="p-2 rounded-md bg-indigo-50 text-indigo-600">
+                    <i class="ph ph-calendar text-lg"></i>
+                  </div>
+                  <div>
+                    <div class="text-xs text-slate-500">Khoảng thời gian</div>
+                    <div class="text-sm font-semibold text-slate-800">{{ $startLabel }} — {{ $endLabel }}</div>
+                  </div>
+                </div>
+              </div>
+
+
+            </div>
+          </div>
+        </section>
+
           <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
             <div class="relative">
               <i class="ph ph-magnifying-glass absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400"></i>

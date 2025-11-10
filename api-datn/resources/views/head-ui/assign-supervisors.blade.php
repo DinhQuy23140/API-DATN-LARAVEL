@@ -171,68 +171,99 @@
     </header>
 
     <!-- Content scroll -->
-    <main id="mainScroll" class="flex-1 pt-20 h-full overflow-y-auto px-4 md:px-6 pb-10 space-y-6 max-w-7xl mx-auto">
+    <main id="mainScroll" class="flex-1 pt-20 h-full overflow-y-auto px-4 md:px-6 pb-10 space-y-6">
       @php
         $lecturerCount   = is_countable($supervisors ?? []) ? count($supervisors) : 0;
         $unassignedCount = is_countable($students ?? []) ? count($students) : 0;
         $curTotal = 0; $maxTotal = 0;
         foreach(($supervisors ?? []) as $t){ $curTotal += (int)($t['current'] ?? 0); $maxTotal += (int)($t['max'] ?? 0); }
         $pct = $maxTotal > 0 ? min(100, round(($curTotal / $maxTotal) * 100)) : 0;
-        $status = $term->status ?? 'active';
-        $statusLabel = $status === 'active' ? 'Đang mở' : ($status === 'closed' ? 'Đã đóng' : ucfirst($status));
-        $statusClass = $status === 'active' ? 'bg-emerald-100 text-emerald-700' : ($status === 'closed' ? 'bg-slate-200 text-slate-700' : 'bg-amber-100 text-amber-700');
-        $termName = $term->name ?? ('Đợt đồ án #' . $termId);
-        $startLabel = (isset($term) && !empty($term->start_date)) ? \Carbon\Carbon::parse($term->start_date)->format('d/m/Y') : '—';
-        $endLabel   = (isset($term) && !empty($term->end_date)) ? \Carbon\Carbon::parse($term->end_date)->format('d/m/Y') : '—';
+        $termName = $projectTerm->academy_year->year_name ?? $term->academyYear->year_name ?? 'Đồ án tốt nghiệp';
+        $startLabel = (isset($projectTerm) && !empty($projectTerm->start_date)) ? \Carbon\Carbon::parse($projectTerm->start_date)->format('d/m/Y') : '—';
+        $endLabel   = (isset($projectTerm) && !empty($projectTerm->end_date)) ? \Carbon\Carbon::parse($projectTerm->end_date)->format('d/m/Y') : '—';
       @endphp
 
-      <!-- Thông tin đợt đồ án -->
-      <section class="bg-white border border-slate-200 rounded-xl p-4 md:p-5">
-        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-          <div>
-            <div class="text-sm text-slate-500">Đợt đồ án</div>
-            <div class="text-base md:text-lg font-semibold">{{ $termName }}</div>
-            <div class="mt-1 text-sm text-slate-600 flex items-center gap-2">
-              <i class="ph ph-calendar-dots text-slate-500"></i>
-              <span>Thời gian: {{ $startLabel }} - {{ $endLabel }}</span>
+      <!-- Thông tin đợt đồ án (modern card, consistent with blind-review) -->
+      <section class="rounded-xl overflow-hidden">
+        @php
+          $startLabel = (isset($projectTerm) && !empty($projectTerm->start_date)) ? \Carbon\Carbon::parse($projectTerm->start_date)->format('d/m/Y') : '—';
+          $endLabel   = (isset($projectTerm) && !empty($projectTerm->end_date)) ? \Carbon\Carbon::parse($projectTerm->end_date)->format('d/m/Y') : '—';
+          $now = \Carbon\Carbon::now();
+          $supervisorCount = isset($projectTerm->supervisors) ? $projectTerm->supervisors->count() : 0;
+          $pendingCount = isset($unassignedAssignments) ? $unassignedAssignments->count() : 0;
+
+          if ($projectTerm->start_date && $projectTerm->end_date) {
+            $start = \Carbon\Carbon::parse($projectTerm->start_date);
+            $end = \Carbon\Carbon::parse($projectTerm->end_date);
+            if ($now->lt($start)) {
+              $statusText = 'Sắp diễn ra';
+              $badge = 'bg-yellow-50 text-yellow-700';
+              $iconClass = 'text-yellow-600';
+            } elseif ($now->gt($end)) {
+              $statusText = 'Đã kết thúc';
+              $badge = 'bg-slate-100 text-slate-600';
+              $iconClass = 'text-slate-500';
+            } else {
+              $statusText = 'Đang diễn ra';
+              $badge = 'bg-emerald-50 text-emerald-700';
+              $iconClass = 'text-emerald-600';
+            }
+          } else {
+            $statusText = $statusLabel ?? 'Sắp diễn ra';
+            $badge = $statusClass ?? 'bg-yellow-50 text-yellow-700';
+            $iconClass = 'text-yellow-600';
+          }
+        @endphp
+
+        <div class="bg-gradient-to-r from-indigo-50 to-white border border-slate-200 p-4 md:p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div class="flex items-center gap-4">
+            <div class="h-14 w-14 rounded-lg bg-indigo-600/10 grid place-items-center">
+              <i class="ph ph-graduation-cap text-indigo-600 text-2xl"></i>
+            </div>
+            <div>
+              <div class="text-sm text-slate-500">Đợt đồ án</div>
+              <div class="text-lg md:text-xl font-semibold text-slate-900">Đợt {{ $projectTerm->stage }}</div>
+              <div class="text-lg md:text-xl font-semibold text-slate-900">{{ $projectTerm->academy_year->year_name }}</div>
             </div>
           </div>
-          <div>
-            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs {{ $statusClass }}">
-              <i class="ph ph-circle"></i> {{ $statusLabel }}
-            </span>
-          </div>
-        </div>
 
-        <!-- Thêm tên bộ môn -->
-        <div class="mt-4">
-          <div class="text-sm text-slate-500">Bộ môn</div>
-          @php
-            $departmentName = $department->name ?? '—';
-          @endphp
-          <div class="text-base md:text-lg font-semibold">{{ $departmentName }}</div>
-        </div>
-
-        <!-- Thống kê -->
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
-          <div class="rounded-lg border border-slate-200 p-3">
-            <div class="text-xs text-slate-500">Giảng viên</div>
-            <!-- <div class="mt-1 text-lg font-semibold">{{ $lecturerCount }}</div> -->
-            <div class="mt-1 text-lg font-semibold">{{ $projectTerm->supervisors->count() }}</div>
-          </div>
-          <div class="rounded-lg border border-slate-200 p-3">
-            <div class="text-xs text-slate-500">SV chưa có GVHD</div>
-            <div class="mt-1 text-lg font-semibold">{{ $unassignedAssignments->count() }}</div>
-          </div>
-          <div class="rounded-lg border border-slate-200 p-3 col-span-2">
-            <div class="flex items-center justify-between text-xs text-slate-500">
-              <span>Chỉ tiêu sử dụng</span>
-              <span>{{ $curTotal }}/{{ $maxTotal }}</span>
+          <div class="flex items-center gap-3 md:gap-4">
+            <div class="hidden md:flex items-center gap-3">
+              <span class="inline-flex items-center gap-2 px-3 py-2 rounded-lg {{ $badge }} text-sm">
+                <i class="ph ph-circle {{ $iconClass }}"></i>
+                {{ $statusText }}
+              </span>
             </div>
-            <div class="w-full bg-slate-200 rounded-full h-2 mt-1.5">
-              <div
-                class="h-2 rounded-full {{ $pct>=100?'bg-rose-600':($pct>=75?'bg-yellow-600':'bg-emerald-600') }}"
-                style="width: {{ $pct }}%">
+
+            <div class="grid grid-cols-2 gap-3 md:grid-cols-3">
+              <div class="flex items-center gap-3 bg-white border border-slate-100 rounded-lg px-3 py-2 shadow-sm">
+                <div class="p-2 rounded-md bg-indigo-50 text-indigo-600">
+                  <i class="ph ph-chalkboard text-lg"></i>
+                </div>
+                <div>
+                  <div class="text-xs text-slate-500">Giảng viên</div>
+                  <div class="text-sm font-semibold text-slate-800">{{ $supervisorCount }}</div>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-3 bg-white border border-slate-100 rounded-lg px-3 py-2 shadow-sm">
+                <div class="p-2 rounded-md bg-indigo-50 text-indigo-600">
+                  <i class="ph ph-student text-lg"></i>
+                </div>
+                <div>
+                  <div class="text-xs text-slate-500">SV chưa có GVHD</div>
+                  <div class="text-sm font-semibold text-slate-800">{{ $pendingCount }}</div>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-3 bg-white border border-slate-100 rounded-lg px-3 py-2 shadow-sm">
+                <div class="p-2 rounded-md bg-indigo-50 text-indigo-600">
+                  <i class="ph ph-calendar text-lg"></i>
+                </div>
+                <div>
+                  <div class="text-xs text-slate-500">Khoảng thời gian</div>
+                  <div class="text-sm font-semibold text-slate-800">{{ $startLabel }} — {{ $endLabel }}</div>
+                </div>
               </div>
             </div>
           </div>
@@ -249,126 +280,192 @@
           Phân công sinh viên
         </button>
       </div>
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
         <!-- Bảng giảng viên -->
-        <section class="bg-white rounded-xl border border-slate-200">
-          <div class="p-4 border-b flex items-center justify-between">
+        <section class="bg-white rounded-xl border border-slate-200 h-full flex flex-col">
+          <div class="p-3 border-b">
             <div>
               <div class="font-semibold">Giảng viên</div>
               <div class="text-xs text-slate-500">Chọn 1 giảng viên để phân công</div>
             </div>
-            <div class="relative">
-              <input id="searchTeachers" class="pl-9 pr-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 text-sm" placeholder="Tìm theo tên, email">
+          </div>
+          <div class="p-3 border-b">
+            <div class="relative max-w-md">
+              <input id="searchTeachers" class="pl-9 pr-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 text-sm w-full" placeholder="Tìm theo tên, email">
               <i class="ph ph-magnifying-glass absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
             </div>
           </div>
-          <div class="table-wrap">
-            <table class="w-full text-sm">
-              <thead>
-                <tr class="text-left text-slate-500 border-b">
-                  <th class="py-2 px-3 w-10">Chọn</th>
-                  <th class="py-2 px-3">Giảng viên</th>
-                  <th class="py-2 px-3">Chuyên môn</th>
-                  <th class="py-2 px-3">Số SV</th>
-                </tr>
-              </thead>
+          <div class="p-4 flex-1 overflow-auto">
+            <div id="teachersList" class="grid grid-cols-1 gap-3">
               @php
                 $supervisors = $projectTerm->supervisors ?? collect();
               @endphp
-              <tbody id="tbTeachers">
-                @foreach ($supervisors as $t)
-                  @php
-                    $pct = min(100, round(($t->assignment_supervisors->where('status', '!=', 'pending')->count() / max(1,$t->max_students))*100));
-                    // màu thanh tiến độ (gradient)
-                    $barClass = $pct>=100
-                      ? 'bg-gradient-to-r from-rose-500 to-rose-600'
-                      : ($pct>=75
-                        ? 'bg-gradient-to-r from-amber-500 to-amber-600'
-                        : 'bg-gradient-to-r from-emerald-500 to-emerald-600');
-                    // màu badge phần trăm
-                    $pctBadge = $pct>=100
-                      ? 'bg-rose-50 text-rose-700'
-                      : ($pct>=75 ? 'bg-amber-50 text-amber-700' : 'bg-emerald-50 text-emerald-700');
-                  @endphp
-                  <tr class="border-b hover:bg-slate-50"
-                      data-id="{{ $t->id }}"
-                      data-name="{{ $t->teacher->user->fullname }}"
-                      data-current="{{ $t->assignment_supervisors->count() }}"
-                      data-max="{{ $t->max_students }}">
-                    <td class="py-2 px-3 align-top">
-                      <input type="radio" name="teacher" class="mt-2">
-                    </td>
-                    <td class="py-2 px-3">
-                      <div class="font-medium">{{ $t->teacher->user->fullname }}</div>
-                      <div class="text-xs text-slate-500">{{ $t->teacher->user->email }} • {{ $t->teacher->position }}</div>
-                    </td>
-                    <td class="py-2 px-3">{{ $t->expertise }}</td>
-                    <td class="py-2 px-3">
-                      <div class="flex items-center justify-start gap-4 text-xs text-slate-600">
-                        <span class="inline-flex items-center gap-1">
-                          <span class="cur font-medium">{{ $t->assignment_supervisors->where('status', '!=', 'pending')->count() }}</span>/<span class="max">{{ $t->max_students }}</span>
-                        </span>
-                        <span class="pct inline-flex items-center px-1.5 py-0.5 rounded-md text-[11px] font-medium {{ $pctBadge }}">{{ $pct }}%</span>
+              @foreach ($supervisors as $t)
+                @php
+                  $pct = min(100, round(($t->assignment_supervisors->where('status', '!=', 'pending')->count() / max(1,$t->max_students))*100));
+                  // màu thanh tiến độ (gradient)
+                  $barClass = $pct>=100
+                    ? 'bg-gradient-to-r from-rose-500 to-rose-600'
+                    : ($pct>=75
+                      ? 'bg-gradient-to-r from-amber-500 to-amber-600'
+                      : 'bg-gradient-to-r from-emerald-500 to-emerald-600');
+                  // màu badge phần trăm
+                  $pctBadge = $pct>=100
+                    ? 'bg-rose-50 text-rose-700'
+                    : ($pct>=75 ? 'bg-amber-50 text-amber-700' : 'bg-emerald-50 text-emerald-700');
+                @endphp
+                <div class="teacher-card bg-white rounded-2xl p-4 shadow-sm hover:shadow-md border border-slate-100 transition-all duration-200"
+                    data-id="{{ $t->id }}"
+                    data-name="{{ $t->teacher->user->fullname }}"
+                    data-current="{{ $t->assignment_supervisors->count() }}"
+                    data-max="{{ $t->max_students }}"
+                    tabindex="0" role="group" aria-label="Giảng viên {{ $t->teacher->user->fullname }}">
+                  <div class="flex items-start gap-4">
+                    <!-- Radio chọn -->
+                    <div class="flex-shrink-0">
+                      <input type="radio" name="teacher" class="mt-1 w-6 h-6 accent-[#10b981]" title="Chọn giảng viên">
+                    </div>
+
+                    <!-- Thông tin chính -->
+                    <div class="flex-1">
+                      <div class="font-medium text-slate-800 text-base" title="Tên giảng viên">{{ $t->teacher->user->fullname }}</div>
+                      <div class="text-sm text-slate-500 mt-0.5" title="Email và chức vụ">{{ $t->teacher->user->email }} • {{ $t->teacher->position }}</div>
+                      <div class="text-sm text-slate-600 mt-2" title="Chuyên môn / lĩnh vực nghiên cứu">{{ $t->expertise }}</div>
+
+                      <!-- Tiêu đề Hướng nghiên cứu -->
+                      <div class="text-xs font-semibold text-slate-700 mt-3 mb-1">Hướng nghiên cứu:</div>
+
+                      <!-- Thẻ hướng nghiên cứu -->
+                      <div class="flex flex-wrap gap-2">
+                        @php
+                          $teacherReseachAreas = $t->teacher->user->userResearches ?? collect();
+                        @endphp
+                        @if ($teacherReseachAreas != null && $teacherReseachAreas->count() > 0)
+                          @foreach ($teacherReseachAreas as $area)
+                            <span class="px-2 py-0.5 bg-amber-50 text-amber-700 text-xs rounded-full border border-amber-100" title="{{ $area->research->name }}">
+                              {{ $area->research->name }}
+                            </span>
+                          @endforeach
+                        @else
+                          <span class="text-xs text-slate-400 italic" title="Chưa có hướng nghiên cứu">Chưa có hướng nghiên cứu</span>
+                        @endif
                       </div>
-                       <div class="w-full bg-slate-200 rounded-full h-2 mt-1">
-                        <div class="h-2 rounded-full {{ $barClass }}" style="width: {{ $pct }}%"></div>
-                       </div>
-                    </td>
-                  </tr>
-                @endforeach
-              </tbody>
-            </table>
+                    </div>
+
+                    <!-- Thông tin số lượng sinh viên -->
+                    <div class="w-24 text-right">
+                      <div class="text-xs text-slate-500" title="Số sinh viên hiện tại / tối đa">Số SV</div>
+                      <div class="mt-1 text-sm font-medium text-slate-800" title="{{ $t->assignment_supervisors->where('status', '!=', 'pending')->count() }} / {{ $t->max_students }}">
+                        <span class="cur">{{ $t->assignment_supervisors->where('status', '!=', 'pending')->count() }}</span> /
+                        <span class="max">{{ $t->max_students }}</span>
+                      </div>
+                      <div class="mt-2">
+                        <span class="pct inline-flex items-center px-1.5 py-0.5 rounded-md text-[11px] font-medium {{ $pctBadge }}" title="Tỷ lệ sinh viên hiện tại: {{ $pct }}%">
+                          {{ $pct }}%
+                        </span>
+                        <div class="w-full bg-slate-200 rounded-full h-2 mt-2" title="Progress bar số sinh viên">
+                          <div class="h-2 rounded-full {{ $barClass }}" style="width: {{ $pct }}%"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              @endforeach
+            </div>
           </div>
         </section>
 
         <!-- Bảng sinh viên chưa có GVHD -->
-        <section class="bg-white rounded-xl border border-slate-200">
-          <div class="p-4 border-b flex items-center justify-between">
+        <section class="bg-white rounded-xl border border-slate-200 h-full flex flex-col">
+          <div class="p-3 border-b">
             <div>
               <div class="font-semibold">Sinh viên chưa có giảng viên hướng dẫn</div>
               <div class="text-xs text-slate-500">Chọn 1 hoặc nhiều sinh viên để phân công</div>
             </div>
-            <div class="relative">
-              <input id="searchStudents" class="pl-9 pr-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 text-sm" placeholder="Tìm theo tên, mã SV">
-              <i class="ph ph-magnifying-glass absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+          </div>
+          <div class="p-3 border-b">
+            <div class="relative flex items-center gap-3 max-w-full">
+              <div class="ml-3">
+                <input id="chkAll" type="checkbox" class="inline-block" title="Chọn tất cả">
+              </div>
+              <div class="flex-1 md:flex md:items-center md:justify-end">
+                <div class="relative w-full md:w-80">
+                  <input id="searchStudents" class="pl-9 pr-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 text-sm w-full" placeholder="Tìm theo tên, mã SV">
+                  <i class="ph ph-magnifying-glass absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+                </div>
+              </div>
             </div>
           </div>
-          <div class="table-wrap">
+          <div class="p-4 flex-1 overflow-auto">
             @php
               $assignments = $projectTerm->assignments ?? collect();
             @endphp
-            <table class="w-full text-sm">
-              <thead>
-                <tr class="text-left text-slate-500 border-b">
-                  <th class="py-2 px-3 w-10">
-                    <input id="chkAll" type="checkbox">
-                  </th>
-                  <th class="py-2 px-3">Sinh viên</th>
-                  <th class="py-2 px-3">Lớp</th>
-                  <th class="py-2 px-3">Email</th>
-                </tr>
-              </thead>
-              <tbody id="tbStudents">
-                @php
-                  $assignments = $projectTerm->assignments ?? collect();
-                @endphp
-                @foreach ($unassignedAssignments as $s)
-                  @if ($s->status !== 'active') 
-                    <tr class="border-b hover:bg-slate-50" data-id="{{ $s->id }}">
-                      <td class="py-2 px-3 align-top">
-                        <input type="checkbox" class="rowChk mt-2">
-                      </td>
-                      <td class="py-2 px-3">
-                        <div class="font-medium">{{ $s->student->user->fullname }}</div>
-                        <div class="text-xs text-slate-500">{{ $s->student->student_code }}</div>
-                      </td>
-                      <td class="py-2 px-3">{{ $s->student->class_code }}</td>
-                      <td class="py-2 px-3">{{ $s->student->user->email }}</td>
-                    </tr>
-                  @endif
-                @endforeach
-              </tbody>
-            </table>
+            <div id="studentsList" class="grid grid-cols-1 gap-3">
+              @foreach ($unassignedAssignments as $s)
+                @if ($s->status !== 'active')
+                  <div class="student-card bg-gradient-to-r from-white to-blue-50 rounded-2xl p-4 shadow hover:shadow-lg transform hover:-translate-y-0.5 transition-all duration-200 border border-blue-100 flex items-start gap-4" 
+                      data-id="{{ $s->id }}" tabindex="0" role="group" aria-label="Sinh viên {{ $s->student->user->fullname }}">
+
+                    <!-- Checkbox -->
+                    <div class="flex-shrink-0 flex items-start">
+                      <input type="checkbox" class="rowChk accent-[#10b981] w-5 h-5 mt-1.5" aria-label="Chọn sinh viên">
+                    </div>
+
+                    <!-- Avatar -->
+                    <img class="h-12 w-12 rounded-full object-cover flex-shrink-0 ring-2 ring-blue-100" 
+                        src="{{ $s->student->user->avatar_url ?? ('https://ui-avatars.com/api/?name=' . urlencode($s->student->user->fullname) . '&background=f0f9ff&color=0f172a') }}" 
+                        alt="Avatar {{ $s->student->user->fullname }}">
+
+                    <div class="flex-1 min-w-0 space-y-2">
+                      <!-- Tên + Mã + Email -->
+                      <div class="bg-white/70 p-2 rounded-lg">
+                        <div class="flex items-center justify-between gap-3">
+                          <div class="min-w-0">
+                            <div class="text-sm font-semibold text-slate-900 truncate">{{ $s->student->user->fullname }}</div>
+                            <div class="text-xs text-slate-600 truncate">
+                              {{ $s->student->student_code }} • 
+                              <span class="text-blue-600 font-medium">{{ $s->student->class_code }}</span>
+                            </div>
+                          </div>
+                          <div class="flex-shrink-0 text-right ml-3">
+                            <div class="text-xs text-slate-500">{{ $s->student->user->email }}</div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Thông tin lớp / ngành / hướng nghiên cứu (with icons) -->
+                      <div class="flex flex-col gap-2">
+                        <div class="flex items-center gap-2 bg-blue-50/50 p-1.5 rounded-md">
+                          <i class="ph ph-chalkboard text-slate-400 text-sm"></i>
+                          <span class="text-xs font-medium text-slate-700">Lớp</span>
+                          <span class="text-xs font-medium text-slate-700">{{ $s->student->class_code ?? '—' }}</span>
+                        </div>
+                        <div class="flex items-center gap-2 bg-green-50/50 p-1.5 rounded-md">
+                          <i class="ph ph-book-open text-slate-400 text-sm"></i>
+                          <span class="text-xs font-medium text-slate-700">Ngành</span>
+                          <span class="text-xs font-medium text-slate-700">{{ $s->student->marjor->name ?? '—' }}</span>
+                        </div>
+                        <div class="flex items-center gap-2 bg-yellow-50/50 p-1.5 rounded-md">
+                          <i class="ph ph-flask text-slate-400 text-sm"></i>
+                          <span class="text-xs font-medium text-slate-500">Hướng nghiên cứu</span>
+                          @php
+                            $studentResearch = $s->student->user->userResearches ?? [];
+                          @endphp
+                          @if ($studentResearch != null)
+                            @foreach ($studentResearch as $sr)
+                              <span class="inline-block px-2 py-0.5 bg-blue-100 text-blue-700 text-[11px] rounded-full font-medium">{{ $sr->research->name }}</span>
+                            @endforeach
+                          @else
+                            <span class="text-slate-500">—</span>
+                          @endif
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                @endif
+              @endforeach
+            </div>
+            </div>
           </div>
         </section>
       </div>
@@ -428,26 +525,42 @@
 
   const CSRF='{{ csrf_token() }}';
 
-  // Search filters
+  // Search filters (operate on card lists)
   document.getElementById('searchTeachers')?.addEventListener('input', (e)=>{
     const q=(e.target.value||'').toLowerCase();
-    document.querySelectorAll('#tbTeachers tr').forEach(tr=>{
-      tr.style.display = tr.innerText.toLowerCase().includes(q) ? '' : 'none';
+    document.querySelectorAll('#teachersList .teacher-card').forEach(card=>{
+      card.style.display = card.innerText.toLowerCase().includes(q) ? '' : 'none';
     });
   });
   document.getElementById('searchStudents')?.addEventListener('input', (e)=>{
     const q=(e.target.value||'').toLowerCase();
-    document.querySelectorAll('#tbStudents tr').forEach(tr=>{
-      tr.style.display = tr.innerText.toLowerCase().includes(q) ? '' : 'none';
+    document.querySelectorAll('#studentsList .student-card').forEach(card=>{
+      card.style.display = card.innerText.toLowerCase().includes(q) ? '' : 'none';
+    });
+    // When filtering, ensure select-all reflects visible items
+    syncChkAll?.();
+  });
+
+  // Check all students (select visible)
+  document.getElementById('chkAll')?.addEventListener('change', (e)=>{
+    document.querySelectorAll('#studentsList .rowChk').forEach(chk=> {
+      const card = chk.closest('.student-card');
+      if (card && card.style.display !== 'none') chk.checked = e.target.checked;
     });
   });
 
-  // Check all students
-  document.getElementById('chkAll')?.addEventListener('change', (e)=>{
-    document.querySelectorAll('#tbStudents .rowChk').forEach(chk=> {
-      if (chk.closest('tr').style.display !== 'none') chk.checked = e.target.checked;
-    });
-  });
+  // helper to sync header select-all state (exists optionally)
+  function syncChkAll(){
+    const all = Array.from(document.querySelectorAll('#studentsList .student-card')).filter(c=>c.style.display !== 'none');
+    if(all.length===0){ document.getElementById('chkAll') && (document.getElementById('chkAll').indeterminate = false, document.getElementById('chkAll').checked = false); return; }
+    const checks = all.map(c => !!c.querySelector('.rowChk')?.checked);
+    const allTrue = checks.every(Boolean);
+    const noneTrue = checks.every(v=>!v);
+    const chk = document.getElementById('chkAll');
+    if(!chk) return;
+    chk.checked = allTrue;
+    chk.indeterminate = (!allTrue && !noneTrue);
+  }
 
   // Confirm modal
   function openConfirmModal({teacherName, count, onConfirm}) {
@@ -516,14 +629,14 @@
   }
 
   async function doAssign(){
-     const teacherRow = document.querySelector('#tbTeachers input[type="radio"]:checked')?.closest('tr');
+  const teacherRow = document.querySelector('#teachersList input[type="radio"]:checked')?.closest('.teacher-card');
      if(!teacherRow) { toast('Vui lòng chọn giảng viên', 'error'); return; }
      const teacherName = teacherRow.dataset.name;
      const cur = parseInt(teacherRow.dataset.current||'0',10);
      const max = parseInt(teacherRow.dataset.max||'0',10);
 
-     const selectedStudents = Array.from(document.querySelectorAll('#tbStudents .rowChk:checked'))
-       .map(chk => chk.closest('tr'));
+     const selectedStudents = Array.from(document.querySelectorAll('#studentsList .rowChk:checked'))
+       .map(chk => chk.closest('.student-card'));
      if(selectedStudents.length===0){ toast('Vui lòng chọn ít nhất 1 sinh viên', 'error'); return; }
 
      if(cur + selectedStudents.length > max){
@@ -562,14 +675,69 @@
          // Cập nhật UI: số SV + % + thanh tiến độ trong hàng giảng viên
          updateTeacherCapacityRow(teacherRow, selectedStudents.length);
 
-          selectedStudents.forEach(tr => tr.remove());
-          document.getElementById('chkAll')?.checked && (document.getElementById('chkAll').checked = false);
+          selectedStudents.forEach(card => card.remove());
+          // sync select-all header if present
+          syncChkAll?.();
           toast('Phân công thành công');
        }
      });
   }
   document.getElementById('btnAssign')?.addEventListener('click', doAssign);
   document.getElementById('btnAssignMain')?.addEventListener('click', doAssign);
+
+  // keep select-all header in sync when individual checkboxes change
+  document.querySelector('#studentsList')?.addEventListener('change', (e)=>{
+    if(e.target && e.target.matches('.rowChk')){
+      syncChkAll?.();
+      // visual selected state (indigo accent)
+      const card = e.target.closest('.student-card');
+      if(card) {
+        const checked = !!e.target.checked;
+        card.classList.toggle('bg-indigo-50', checked);
+        card.classList.toggle('ring-2', checked);
+        card.classList.toggle('ring-indigo-100', checked);
+      }
+    }
+  });
+
+  // Make student cards clickable to toggle their checkbox (supports multi-select)
+  document.querySelector('#studentsList')?.addEventListener('click', (e) => {
+    const card = e.target.closest('.student-card');
+    if (!card) return;
+    // Ignore clicks on real interactive controls so native behavior is preserved
+    const interactive = e.target.closest('input, a, button, label, select, textarea');
+    if (interactive && interactive !== card) {
+      // allow native checkbox clicks to propagate
+      if (interactive.tagName && interactive.tagName.toLowerCase() === 'input') return;
+      return;
+    }
+    const chk = card.querySelector('.rowChk');
+    if (!chk) return;
+    chk.checked = !chk.checked;
+  // toggle visual state (indigo accent)
+  const checked = !!chk.checked;
+  card.classList.toggle('bg-indigo-50', checked);
+  card.classList.toggle('ring-2', checked);
+  card.classList.toggle('ring-indigo-100', checked);
+    syncChkAll?.();
+  });
+
+  // Keyboard support: Space / Enter toggles selection when card is focused
+  document.querySelector('#studentsList')?.addEventListener('keydown', (e) => {
+    const card = e.target.closest('.student-card');
+    if (!card) return;
+    if (e.key === ' ' || e.key === 'Spacebar' || e.key === 'Enter') {
+      e.preventDefault();
+      const chk = card.querySelector('.rowChk');
+      if (!chk) return;
+      chk.checked = !chk.checked;
+  const checked = !!chk.checked;
+  card.classList.toggle('bg-indigo-50', checked);
+  card.classList.toggle('ring-2', checked);
+  card.classList.toggle('ring-indigo-100', checked);
+      syncChkAll?.();
+    }
+  });
 
   // Toggle submenu "Học phần tốt nghiệp"
   const toggleBtn = document.getElementById('toggleThesisMenu');

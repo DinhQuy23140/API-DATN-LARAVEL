@@ -66,6 +66,7 @@ class UserController extends Controller
         $request->session()->regenerate();
 
         $user->loadMissing([
+            'userResearches.research',
             'teacher.supervisor.assignment_supervisors.assignment.student',
             'teacher.departmentRoles',
         ]);
@@ -88,7 +89,7 @@ class UserController extends Controller
     public function showOverView()
     {
         $id = Auth::id();
-        $user = User::with('teacher.supervisor', 'userResearches.research', 'teacher.departmentRoles')
+        $user = User::with('teacher.supervisor', 'userResearches.research', 'teacher.departmentRoles', 'userResearches.research')
         ->with('teacher.supervisor.assignment_supervisors.assignment.project_term.academy_year')
         ->findOrFail(Auth::id());
         $assignmentSupervisors = AssignmentSupervisor::with(['assignment.student.marjor', 'assignment.project', 'assignment.project_term'])

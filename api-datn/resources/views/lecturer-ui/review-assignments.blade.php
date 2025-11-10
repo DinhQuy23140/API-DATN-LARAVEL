@@ -164,63 +164,149 @@
             <a href="thesis-round-detail.html" class="text-sm text-blue-600 hover:underline"><i class="ph ph-caret-left"></i> Quay lại chi tiết đợt</a>
           </div>
 
-          <section class="bg-white rounded-xl border border-slate-200 p-4">
-            <h2 class="font-semibold text-lg mb-2">Thông tin đợt đồ án</h2>
-            <div class="text-slate-700 text-sm space-y-1">
-              @php
-                $stage = $projectTerm->stage;
-                $termName = $projectTerm->academy_year->name . ' - Học kỳ ' . $stage;
-                $semester = ($stage % 2 == 1) ? '1' : '2';
-                $date = date('d/m/Y', strtotime($projectTerm->start_date)) . ' - ' . date('d/m/Y', strtotime($projectTerm->end_date));
-              @endphp
-              <div><strong>Đợt:</strong> {{ $termName }} </div>
-              <div><strong>Năm học:</strong> {{ $termName }} </div>
-              <div><strong>Học kỳ:</strong> {{ $semester }} </div>
-              <div><strong>Thời gian:</strong> {{ $date }} </div>
+          @php
+            $termName = isset($projectTerm) ? ($projectTerm->academy_year->year_name ?? '—') . ' - Học kỳ ' . ($projectTerm->stage ?? '') : ($termName ?? 'Đợt');
+            $startLabel = isset($projectTerm) && $projectTerm->start_date ? \Carbon\Carbon::parse($projectTerm->start_date)->format('d/m/Y') : '—';
+            $endLabel   = isset($projectTerm) && $projectTerm->end_date ? \Carbon\Carbon::parse($projectTerm->end_date)->format('d/m/Y') : '—';
+            $now = \Carbon\Carbon::now();
+            if (isset($projectTerm) && $projectTerm->start_date && $projectTerm->end_date) {
+              $start = \Carbon\Carbon::parse($projectTerm->start_date);
+              $end = \Carbon\Carbon::parse($projectTerm->end_date);
+              if ($now->lt($start)) { $statusText = 'Sắp diễn ra'; $badge = 'bg-yellow-50 text-yellow-700'; $iconClass = 'text-yellow-600'; }
+              elseif ($now->gt($end)) { $statusText = 'Đã kết thúc'; $badge = 'bg-slate-100 text-slate-600'; $iconClass = 'text-slate-500'; }
+              else { $statusText = 'Đang diễn ra'; $badge = 'bg-emerald-50 text-emerald-700'; $iconClass = 'text-emerald-600'; }
+            } else { $statusText = 'Đang diễn ra'; $badge = 'bg-emerald-50 text-emerald-700'; $iconClass = 'text-emerald-600'; }
+
+            $supervisorCount = isset($projectTerm->supervisors) ? $projectTerm->supervisors->count() : 0;
+            $assignedCount = isset($council_projects) ? $council_projects->count() : 0;
+          @endphp
+
+          <section class="rounded-xl overflow-hidden mb-4">
+            <div class="bg-gradient-to-r from-indigo-50 to-white border border-slate-200 p-4 md:p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div class="flex items-center gap-4">
+                <div class="h-14 w-14 rounded-lg bg-indigo-600/10 grid place-items-center">
+                  <i class="ph ph-graduation-cap text-indigo-600 text-2xl"></i>
+                </div>
+                <div>
+                  <div class="text-sm text-slate-500">Đợt đồ án</div>
+                  <div class="text-lg md:text-xl font-semibold text-slate-900">{{ $termName }}</div>
+                  <div class="mt-1 text-sm text-slate-600 flex items-center gap-2">
+                    <i class="ph ph-calendar-dots text-slate-400"></i>
+                    <span>Thời gian: {{ $startLabel }} — {{ $endLabel }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-3 md:gap-4">
+                <div class="hidden md:flex items-center gap-3">
+                  <span class="inline-flex items-center gap-2 px-3 py-2 rounded-lg {{ $badge }} text-sm">
+                    <i class="ph ph-circle {{ $iconClass }}"></i>
+                    {{ $statusText }}
+                  </span>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 md:grid-cols-3">
+                  <div class="flex items-center gap-3 bg-white border border-slate-100 rounded-lg px-3 py-2 shadow-sm">
+                    <div class="p-2 rounded-md bg-indigo-50 text-indigo-600">
+                      <i class="ph ph-chalkboard text-lg"></i>
+                    </div>
+                    <div>
+                      <div class="text-xs text-slate-500">Giảng viên</div>
+                      <div class="text-sm font-semibold text-slate-800">{{ $supervisorCount }}</div>
+                    </div>
+                  </div>
+
+                  <div class="flex items-center gap-3 bg-white border border-slate-100 rounded-lg px-3 py-2 shadow-sm">
+                    <div class="p-2 rounded-md bg-indigo-50 text-indigo-600">
+                      <i class="ph ph-users-three text-lg"></i>
+                    </div>
+                    <div>
+                      <div class="text-xs text-slate-500">Đã phân công</div>
+                      <div class="text-sm font-semibold text-slate-800">{{ $assignedCount }}</div>
+                    </div>
+                  </div>
+
+                  <div class="flex items-center gap-3 bg-white border border-slate-100 rounded-lg px-3 py-2 shadow-sm">
+                    <div class="p-2 rounded-md bg-indigo-50 text-indigo-600">
+                      <i class="ph ph-calendar text-lg"></i>
+                    </div>
+                    <div>
+                      <div class="text-xs text-slate-500">Khoảng thời gian</div>
+                      <div class="text-sm font-semibold text-slate-800">{{ $startLabel }} — {{ $endLabel }}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </section>
 
-          <section class="bg-white rounded-xl border border-slate-200 p-4 my-6">
-            <h2 class="font-semibold text-lg mb-4">Thông tin hội đồng</h2>
-            <div class="text-slate-700 text-sm space-y-2">
-              @if ($council)
-                <div>
-                  <strong>Tên hội đồng:</strong> {{ $council->name }}
-                </div>
-                <div>
-                  <strong>Mã hội đồng:</strong> {{ $council->code }}
-                </div>
-                <div>
-                  <strong>Mô tả:</strong> {{ $council->description ?? 'Không có mô tả' }}
-                </div>
-                <div>
-                  <strong>Khoa/Bộ môn:</strong> {{ $council->department->name ?? 'N/A' }}
-                </div>
-                <div>
-                  <strong>Địa điểm:</strong> {{ $council->address ?? 'Chưa có' }}
-                </div>
-                <div>
-                  <strong>Ngày bảo vệ:</strong> 
-                  {{ $council->date ? date('d/m/Y', strtotime($council->date)) : 'Chưa có' }}
-                </div>
-                <div>
-                  <strong>Trạng thái:</strong> 
-                  <span class="px-2 py-1 text-xs rounded-full border
-                    {{ $council->status === 'active' 
-                        ? 'bg-green-50 text-green-700 border-green-200' 
-                        : 'bg-slate-50 text-slate-600 border-slate-200' }}">
-                    {{ ucfirst($council->status) }}
-                  </span>
-                </div>
-                <div>
-                  <strong>Thuộc đợt đồ án:</strong> 
-                  {{ $council->project_term->academy_year->name ?? '' }} - Học kỳ {{ $council->project_term->stage ?? '' }}
-                </div>
-              @else
-                <div class="text-slate-500 italic">Chưa có thông tin hội đồng</div>
-              @endif
-            </div>
-          </section>
+          @if ($council)
+            @php
+              $cDate = $council->date ? \Carbon\Carbon::parse($council->date)->format('d/m/Y') : 'Chưa có';
+              $cStatusClass = $council->status === 'active' ? 'bg-green-50 text-green-700' : 'bg-slate-100 text-slate-600';
+            @endphp
+
+<section class="bg-gradient-to-br from-white to-indigo-50 rounded-2xl border border-slate-200 p-6 my-6 shadow-sm hover:shadow-md transition-all duration-200">
+  <h2 class="font-semibold text-xl mb-5 text-slate-800 flex items-center gap-2">
+    <i class="ph ph-users-three text-indigo-500 text-lg"></i>
+    Thông tin hội đồng
+  </h2>
+
+  @if ($council)
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-slate-700">
+
+      <div class="flex items-center gap-2 bg-indigo-50 p-3 rounded-lg border border-indigo-100">
+        <i class="ph ph-file-text text-indigo-500"></i>
+        <span><span class="font-medium text-slate-800">Tên hội đồng:</span> {{ $council->name }}</span>
+      </div>
+
+      <div class="flex items-center gap-2 bg-indigo-50 p-3 rounded-lg border border-indigo-100">
+        <i class="ph ph-hash text-indigo-500"></i>
+        <span><span class="font-medium text-slate-800">Mã hội đồng:</span> {{ $council->code }}</span>
+      </div>
+
+      <div class="flex items-center gap-2 bg-slate-50 p-3 rounded-lg border border-slate-100 md:col-span-2">
+        <i class="ph ph-chat-text text-slate-500"></i>
+        <span><span class="font-medium text-slate-800">Mô tả:</span> {{ $council->description ?? 'Không có mô tả' }}</span>
+      </div>
+
+      <div class="flex items-center gap-2 bg-green-50 p-3 rounded-lg border border-green-100">
+        <i class="ph ph-building text-green-500"></i>
+        <span><span class="font-medium text-slate-800">Khoa/Bộ môn:</span> {{ $council->department->name ?? 'N/A' }}</span>
+      </div>
+
+      <div class="flex items-center gap-2 bg-amber-50 p-3 rounded-lg border border-amber-100">
+        <i class="ph ph-map-pin text-amber-500"></i>
+        <span><span class="font-medium text-slate-800">Địa điểm:</span> {{ $council->address ?? 'Chưa có' }}</span>
+      </div>
+
+      <div class="flex items-center gap-2 bg-purple-50 p-3 rounded-lg border border-purple-100">
+        <i class="ph ph-calendar text-purple-500"></i>
+        <span><span class="font-medium text-slate-800">Ngày bảo vệ:</span> {{ $council->date ? date('d/m/Y', strtotime($council->date)) : 'Chưa có' }}</span>
+      </div>
+
+      <div class="flex items-center gap-2 bg-sky-50 p-3 rounded-lg border border-sky-100">
+        <i class="ph ph-clock text-sky-500"></i>
+        <span><span class="font-medium text-slate-800">Thời gian:</span> {{ $council->time ? date('H:i', strtotime($council->time)) : 'Chưa có' }}</span>
+      </div>
+
+      <div class="flex items-center gap-2 bg-pink-50 p-3 rounded-lg border border-pink-100 md:col-span-2">
+        <i class="ph ph-book text-pink-500"></i>
+        <span>
+          <span class="font-medium text-slate-800">Thuộc đợt đồ án:</span>
+          {{ $council->project_term->academy_year->name ?? '' }} - Học kỳ {{ $council->project_term->stage ?? '' }}
+        </span>
+      </div>
+    </div>
+  @else
+    <div class="text-slate-500 italic">Chưa có thông tin hội đồng</div>
+  @endif
+</section>
+
+
+          @else
+            <div class="text-slate-500 italic">Chưa có thông tin hội đồng</div>
+          @endif
 
           <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
             <div class="relative">

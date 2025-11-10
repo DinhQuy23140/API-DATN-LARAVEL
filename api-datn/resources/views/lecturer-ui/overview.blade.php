@@ -191,20 +191,37 @@
               <div class="flex items-center justify-between">
                 <h2 class="font-semibold">Hướng nghiên cứu</h2>
                 <div class="flex items-center gap-2">
-                  <button id="btnQuickAdd" class="px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-sm"><i class="ph ph-plus"></i> Thêm nhanh</button>
                   <a class="px-3 py-1.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700 text-sm"
                      href="{{ route('web.teacher.research') }}"><i class="ph ph-pencil"></i> Chỉnh sửa</a>
                 </div>
               </div>
               <div id="researchContainer" class="mt-4">
-                <div id="researchEmpty" class="text-sm text-slate-600">
-                  @php
-                    $reSearch = $user->userResearches;
-                  @endphp
-                  @foreach ($reSearch as $uS)
-                      <div>{{ $uS->research->name }}</div>
-                  @endforeach
-                <ul id="researchList" class="mt-2 space-y-3 text-sm"></ul>
+                @php
+                  $researches = $user->userResearches ?? collect();
+                @endphp
+
+                @if($researches->isEmpty())
+                  <div class="text-sm text-slate-600 bg-slate-50 border border-slate-100 rounded-lg px-4 py-3 text-center">
+                    <i class="ph ph-info text-indigo-500 text-base mr-1"></i>
+                    Chưa có hướng nghiên cứu.
+                  </div>
+                @else
+                  <div class="mt-3 grid gap-3 sm:grid-cols-1">
+                    @foreach($researches as $uS)
+                      @php $r = $uS->research ?? null; @endphp
+                      <div class="flex items-center gap-3 bg-white border border-slate-100 rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-200">
+                        <div class="p-2 rounded-md bg-indigo-50 text-indigo-600">
+                          <i class="ph ph-flask text-lg"></i>
+                        </div>
+                        <div class="flex-1">
+                          <div class="font-medium text-slate-900 leading-snug">
+                            {{ $r?->name ?? ($uS->title ?? '—') }}
+                          </div>
+                        </div>
+                      </div>
+                    @endforeach
+                  </div>
+                @endif
               </div>
             </div>
           </section>
@@ -234,19 +251,10 @@
               <div class="mt-4">
                 <div class="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
                   <div class="overflow-x-auto">
-                    <table class="w-full text-sm">
-                      <colgroup>
-                        <col class="w-28" />
-                        <col class="w-56" />
-                        <col class="w-64" />
-                        <col class="w-36" />
-                        <col class="w-36" />
-                        <col />
-                        <col class="w-40" />
-                      </colgroup>
+                    <table class="w-full text-sm table-auto">
                       <thead class="bg-gradient-to-r from-slate-50 to-white text-slate-600 text-xs uppercase sticky top-0 z-10">
                         <tr>
-                          <th class="px-4 py-3 text-left">
+                          <th class="px-4 py-3 text-left whitespace-nowrap">
                             <div class="flex items-center gap-2"><i class="ph ph-hash text-lg text-slate-400"></i><span>MSSV</span></div>
                           </th>
                           <th class="px-4 py-3 text-left">
@@ -255,16 +263,16 @@
                           <th class="px-4 py-3 text-left">
                             <div class="flex items-center gap-2"><i class="ph ph-envelope text-lg text-slate-400"></i><span>Email</span></div>
                           </th>
-                          <th class="px-4 py-3 text-left">
+                          <th class="px-4 py-3 text-left whitespace-nowrap">
                             <div class="flex items-center gap-2"><i class="ph ph-calendar text-lg text-slate-400"></i><span>Đợt</span></div>
                           </th>
-                          <th class="px-4 py-3 text-left">
+                          <th class="px-4 py-3 text-left whitespace-nowrap">
                             <div class="flex items-center gap-2"><i class="ph ph-calendar-check text-lg text-slate-400"></i><span>Năm học</span></div>
                           </th>
                           <th class="px-4 py-3 text-left">
                             <div class="flex items-center gap-2"><i class="ph ph-notebook text-lg text-slate-400"></i><span>Đề tài</span></div>
                           </th>
-                          <th class="px-4 py-3 text-left">
+                          <th class="px-4 py-3 text-left whitespace-nowrap">
                             <div class="flex items-center gap-2"><i class="ph ph-flag text-lg text-slate-400"></i><span>Trạng thái</span></div>
                           </th>
                         </tr>
@@ -303,36 +311,36 @@
                         @endphp
 
                         <tr class="hover:bg-slate-50" data-name="{{ $name }}" data-year="{{ $yearName }}" data-term="{{ $stage }}">
-                          <td class="px-4 py-3 font-medium text-slate-800">{{ $code }}</td>
+                          <td class="px-4 py-3 font-medium text-slate-800 whitespace-nowrap">{{ $code }}</td>
                           <td class="px-4 py-3 text-slate-700">
-                            <div class="flex items-center gap-2">
+                            <div class="flex items-center gap-2 min-w-[160px]">
                               <i class="ph ph-user text-slate-400"></i>
-                              <span>{{ $name }}</span>
+                              <span class="break-words">{{ $name }}</span>
                             </div>
                           </td>
-                          <td class="px-4 py-3">
+                          <td class="px-4 py-3 max-w-[36ch] break-words">
                             @if ($emailStu && $emailStu !== '—')
-                              <a href="mailto:{{ $emailStu }}" class="text-blue-600 hover:underline inline-flex items-center gap-2"><i class="ph ph-envelope text-slate-400"></i><span>{{ $emailStu }}</span></a>
+                              <a href="mailto:{{ $emailStu }}" class="text-blue-600 hover:underline inline-flex items-center gap-2"><i class="ph ph-envelope text-slate-400"></i><span class="truncate" style="max-width:24ch;">{{ $emailStu }}</span></a>
                             @else
                               <span class="text-slate-500">—</span>
                             @endif
                           </td>
-                          <td class="px-4 py-3">
+                          <td class="px-4 py-3 whitespace-nowrap">
                             <span class="inline-flex items-center px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 text-xs">
                               {{ $stage ?: '—' }}
                             </span>
                           </td>
-                          <td class="px-4 py-3">{{ $yearName ?: '—' }}</td>
-                          <td class="px-4 py-3">
-                            <div class="truncate max-w-[320px] inline-flex items-center gap-2" title="{{ $topic }}">
+                          <td class="px-4 py-3 whitespace-nowrap">{{ $yearName ?: '—' }}</td>
+                          <td class="px-4 py-3 max-w-[40ch]">
+                            <div class="inline-flex items-center gap-2">
                               <i class="ph ph-notebook text-slate-400"></i>
-                              <span>{{ $topic ?: '—' }}</span>
+                              <div class="truncate" title="{{ $topic }}">{{ $topic ?: '—' }}</div>
                             </div>
                           </td>
                           <td class="px-4 py-3">
                             <div class="inline-flex items-center gap-2">
                               <i class="ph ph-flag text-slate-400"></i>
-                              <span class="px-2 py-1 rounded-full text-xs {{ $statusClass }}">{{ $statusLabel }}</span>
+                              <span class="px-2 py-1 rounded-full text-xs {{ $statusClass }} whitespace-nowrap">{{ $statusLabel }}</span>
                             </div>
                           </td>
                         </tr>

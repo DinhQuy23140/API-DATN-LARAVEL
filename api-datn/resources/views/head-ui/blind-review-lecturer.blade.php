@@ -154,43 +154,88 @@
 
     <!-- Content -->
     <main class="flex-1 overflow-y-auto max-w-7xl mx-auto px-4 md:px-6 py-6 space-y-6">
-      <!-- Thông tin đợt đồ án -->
-      <section class="bg-white border border-slate-200 rounded-xl p-4 md:p-5">
-        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
-          <div>
-            <div class="text-sm text-slate-500">Đợt đồ án</div>
-            <div class="text-base md:text-lg font-semibold">Đợt {{ $rows->stage }} - Năm học {{ $rows->academy_year->year_name }}</div>
-            <div class="mt-1 text-sm text-slate-600 flex items-center gap-2">
-              <i class="ph ph-calendar-dots text-slate-500"></i>
-              <span>Thời gian: {{ \Carbon\Carbon::parse($rows->start_date)->format('d/m/Y') }} - {{ \Carbon\Carbon::parse($rows->end_date)->format('d/m/Y') }}</span>
+      <!-- Thông tin đợt đồ án (modern card) -->
+      <section class="rounded-xl overflow-hidden">
+        @php
+          $startLabel = (isset($rows) && !empty($rows->start_date)) ? \Carbon\Carbon::parse($rows->start_date)->format('d/m/Y') : '—';
+          $endLabel   = (isset($rows) && !empty($rows->end_date)) ? \Carbon\Carbon::parse($rows->end_date)->format('d/m/Y') : '—';
+          $now = \Carbon\Carbon::now();
+          $supervisorCount = isset($rows->supervisors) ? $rows->supervisors->count() : 0;
+          $pendingCount = isset($assignedAssignments) ? $assignedAssignments->count() : 0;
+
+          // Determine status and matching badge/icon classes
+          if ($rows->start_date && $rows->end_date) {
+            $start = \Carbon\Carbon::parse($rows->start_date);
+            $end = \Carbon\Carbon::parse($rows->end_date);
+            if ($now->lt($start)) {
+              $status = 'Sắp diễn ra';
+              $badge = 'bg-yellow-50 text-yellow-700';
+              $iconClass = 'text-yellow-600';
+            } elseif ($now->gt($end)) {
+              $status = 'Đã kết thúc';
+              $badge = 'bg-slate-100 text-slate-600';
+              $iconClass = 'text-slate-500';
+            } else {
+              $status = 'Đang diễn ra';
+              $badge = 'bg-emerald-50 text-emerald-700';
+              $iconClass = 'text-emerald-600';
+            }
+          } else {
+            $status = 'Sắp diễn ra';
+            $badge = 'bg-yellow-50 text-yellow-700';
+            $iconClass = 'text-yellow-600';
+          }
+        @endphp
+        <div class="bg-gradient-to-r from-indigo-50 to-white border border-slate-200 p-4 md:p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div class="flex items-center gap-4">
+            <div class="h-14 w-14 rounded-lg bg-indigo-600/10 grid place-items-center">
+              <i class="ph ph-graduation-cap text-indigo-600 text-2xl"></i>
+            </div>
+            <div>
+              <div class="text-sm text-slate-500">Đợt đồ án</div>
+              <div class="text-lg md:text-xl font-semibold text-slate-900">Đợt {{ $rows->stage }}</div>
+              <div class="text-lg md:text-xl font-semibold text-slate-900">{{ $rows->academy_year->year_name }}</div>
             </div>
           </div>
-          <div>
-            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs bg-emerald-100 text-emerald-700">
-              @php
-                $listStatus = ['inactive' => 'Sắp diễn ra', 'active' => 'Đang diễn ra', 'ended' => 'Đã kết thúc'];
-                $status = $listStatus[$rows->status] ?? 'inactive';
-              @endphp
-              <i class="ph ph-circle"></i> {{ $status }}
-            </span>
-          </div>
-        </div>
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
-          <div class="rounded-lg border border-slate-200 p-3">
-            <div class="text-xs text-slate-500">Giảng viên</div>
-            <div class="mt-1 text-lg font-semibold">12</div>
-          </div>
-          <div class="rounded-lg border border-slate-200 p-3">
-            <div class="text-xs text-slate-500">SV chưa có GVHD</div>
-            <div class="mt-1 text-lg font-semibold">5</div>
-          </div>
-          <div class="rounded-lg border border-slate-200 p-3 col-span-2">
-            <div class="flex items-center justify-between text-xs text-slate-500">
-              <span>Chỉ tiêu sử dụng</span>
-              <span>45/60</span>
+
+          <div class="flex items-center gap-3 md:gap-4">
+            <div class="hidden md:flex items-center gap-3">
+              <span class="inline-flex items-center gap-2 px-3 py-2 rounded-lg {{ $badge }} text-sm">
+                <i class="ph ph-circle {{ $iconClass }}"></i>
+                {{ $status }}
+              </span>
             </div>
-            <div class="w-full bg-slate-200 rounded-full h-2 mt-1.5">
-              <div class="h-2 rounded-full bg-emerald-600" style="width: 75%"></div>
+
+            <div class="grid grid-cols-2 gap-3 md:grid-cols-3">
+              <div class="flex items-center gap-3 bg-white border border-slate-100 rounded-lg px-3 py-2 shadow-sm">
+                <div class="p-2 rounded-md bg-indigo-50 text-indigo-600">
+                  <i class="ph ph-chalkboard text-lg"></i>
+                </div>
+                <div>
+                  <div class="text-xs text-slate-500">Giảng viên</div>
+                  <div class="text-sm font-semibold text-slate-800">{{ $supervisorCount }}</div>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-3 bg-white border border-slate-100 rounded-lg px-3 py-2 shadow-sm">
+                <div class="p-2 rounded-md bg-indigo-50 text-indigo-600">
+                  <i class="ph ph-student text-lg"></i>
+                </div>
+                <div>
+                  <div class="text-xs text-slate-500">Đề cương chờ</div>
+                  <div class="text-sm font-semibold text-slate-800">{{ $pendingCount }}</div>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-3 bg-white border border-slate-100 rounded-lg px-3 py-2 shadow-sm">
+                <div class="p-2 rounded-md bg-indigo-50 text-indigo-600">
+                  <i class="ph ph-calendar text-lg"></i>
+                </div>
+                <div>
+                  <div class="text-xs text-slate-500">Khoảng thời gian</div>
+                  <div class="text-sm font-semibold text-slate-800">{{ $startLabel }} — {{ $endLabel }}</div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -220,31 +265,26 @@
               <i class="ph ph-magnifying-glass absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
             </div>
           </div>
-          <div class="table-wrap">
-            <table class="w-full text-sm">
-              <thead>
-                <tr class="text-left text-slate-500 border-b">
-                  <th class="py-2 px-3 w-10">Chọn</th>
-                  <th class="py-2 px-3">Giảng viên</th>
-                  <th class="py-2 px-3">Chuyên môn</th>
-                </tr>
-              </thead>
-              <tbody>
-                @php
-                  $listSupervisors = $rows->supervisors ?? collect();
-                @endphp
-                @foreach ($listSupervisors as $supervisor)
-                <tr class="border-b hover:bg-slate-50" data-supervisor-id="{{ $supervisor->id }}">
-                  <td class="py-2 px-3"><input type="radio" name="teacher" class="teacher-radio"></td>
-                  <td class="py-2 px-3">
-                    <div class="font-medium">{{ $supervisor->teacher->user->fullname }}</div>
-                    <div class="text-xs text-slate-500">{{ $supervisor->teacher->user->email }} • {{ $supervisor->teacher->position }}</div>
-                  </td>
-                  <td class="py-2 px-3">{{ $supervisor->teacher->degree }}</td>
-                </tr>
-                @endforeach
-              </tbody>
-            </table>
+          <div class="p-4">
+            @php $listSupervisors = $rows->supervisors ?? collect(); @endphp
+            <div id="supervisorsList" class="grid gap-3">
+              @foreach ($listSupervisors as $supervisor)
+                <div class="supervisor-card bg-white rounded-2xl p-3 flex items-start gap-3 border border-slate-100 shadow-sm hover:shadow-md transition" data-supervisor-id="{{ $supervisor->id }}" tabindex="0">
+                  <div class="flex-shrink-0 flex items-center">
+                    <input type="radio" name="teacher" class="teacher-radio mt-1 w-5 h-5 accent-indigo-500">
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <div class="flex items-center justify-between gap-3">
+                      <div class="min-w-0">
+                        <div class="font-medium text-slate-800 truncate">{{ $supervisor->teacher->user->fullname }}</div>
+                        <div class="text-xs text-slate-500 truncate">{{ $supervisor->teacher->user->email }} • {{ $supervisor->teacher->position }}</div>
+                      </div>
+                      <div class="text-sm text-slate-600 ml-3">{{ $supervisor->teacher->degree }}</div>
+                    </div>
+                  </div>
+                </div>
+              @endforeach
+            </div>
           </div>
         </section>
 
@@ -260,49 +300,57 @@
               <i class="ph ph-magnifying-glass absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
             </div>
           </div>
-          <div class="overflow-x-auto rounded-lg border border-slate-200">
-            <table class="w-full text-sm border-collapse">
-              <thead>
-                <tr class="bg-slate-100 text-slate-600">
-                  <th class="py-3 px-3 w-10 text-center">
-                    <input type="checkbox" class="rounded border-slate-300">
-                  </th>
-                  <th class="py-3 px-3 text-left">Sinh viên</th>
-                  <th class="py-3 px-3 text-left">Email</th>
-                  <th class="py-3 px-3 text-left">Đề tài</th>
-                </tr>
-              </thead>
-              @php
-                $listAssignments = $assignedAssignments ?? collect();
-              @endphp
-              <tbody class="divide-y divide-slate-200">
-                @foreach ($listAssignments as $assignment)
-                  @if ($assignment->counter_argument_id == null)
-                    @php
-                      $fullname = $assignment->student->user->fullname ?? '';
-                      $studentCode = $assignment->student->student_code ?? '';
-                      $email = $assignment->student->user->email ?? '';
-                      $topic = $assignment->project->project_name ?? 'Chưa có đề tài';
-                    @endphp
-                    <tr class="hover:bg-blue-50 odd:bg-white even:bg-slate-50 transition-colors" data-assignment-id="{{ $assignment->id }}">
-                      <td class="py-2 px-3 text-center">
-                        <input type="checkbox" class="rounded border-slate-300 stuChk">
-                      </td>
-                      <td class="py-2 px-3">
-                        <div class="font-medium text-slate-800">{{ $fullname }}</div>
-                        <div class="text-xs text-slate-500">{{ $studentCode }}</div>
-                      </td>
-                      <td class="py-2 px-3 text-slate-700">{{ $email }}</td>
-                      <td class="py-2 px-3 text-right">
-                        <span class="inline-block max-w-xs truncate" title="{{ $topic }}">
-                          {{ $topic }}
+          @php $listAssignments = $assignedAssignments ?? collect(); @endphp
+          <div id="assignmentsList" class="grid gap-3 p-4">
+            @foreach ($listAssignments as $assignment)
+              @if ($assignment->counter_argument_id == null)
+                @php
+                  $fullname = $assignment->student->user->fullname ?? '';
+                  $studentCode = $assignment->student->student_code ?? '';
+                  $email = $assignment->student->user->email ?? '';
+                  $topic = $assignment->project->project_name ?? 'Chưa có đề tài';
+                @endphp
+                <div class="assignment-card bg-gradient-to-r from-white to-indigo-50 rounded-2xl p-4 shadow hover:shadow-lg transform hover:-translate-y-0.5 transition border border-indigo-100 flex items-start gap-4" data-assignment-id="{{ $assignment->id }}">
+                  <div class="flex-shrink-0">
+                    <input type="checkbox" class="rounded border-slate-300 stuChk w-5 h-5 mt-1.5" aria-label="Chọn đề cương">
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <!-- Thông tin sinh viên -->
+                    <div class="flex items-center justify-between gap-3">
+                      <div class="min-w-0">
+                        <div class="text-sm font-semibold text-slate-900 truncate">{{ $fullname }}</div>
+                        <div class="text-xs text-slate-600 truncate">{{ $studentCode }} • <span class="text-indigo-600 font-medium">{{ $assignment->student->class_code ?? '—' }}</span></div>
+                      </div>
+                      <div class="text-xs text-slate-500">{{ $email }}</div>
+                    </div>
+
+                    <!-- Chủ đề / Topic -->
+                    <div class="mt-3 flex items-center gap-2">
+                      <i class="ph ph-file-text text-slate-400"></i>
+                      <div class="inline-block max-w-xl text-sm text-slate-700 truncate">{{ $topic }}</div>
+                    </div>
+
+                    <!-- Thẻ giảng viên hướng dẫn -->
+                    <div class="mt-3 flex flex-wrap gap-2">
+                      @php
+                        $assignment_supervisors = $assignment->assignment_supervisors ?? collect();
+                      @endphp
+                      @if($assignment_supervisors->where('status', '===', 'accepted')->count() > 0)
+                        @foreach ($assignment_supervisors as $as)
+                          <span class="px-2 py-0.5 bg-green-50 text-green-700 text-xs rounded-full border border-green-100" title="Giảng viên hướng dẫn">
+                            {{ $as->supervisor->teacher->user->fullname }}
+                          </span>
+                        @endforeach
+                      @else
+                        <span class="px-2 py-0.5 bg-slate-50 text-slate-400 text-xs rounded-full italic border border-slate-100" title="Chưa có giảng viên hướng dẫn">
+                          Chưa có giảng viên hướng dẫn
                         </span>
-                      </td>
-                    </tr>
-                  @endif
-                @endforeach
-              </tbody>
-            </table>
+                      @endif
+                    </div>
+                  </div>
+                </div>
+              @endif
+            @endforeach
           </div>
         </section>
       </div>
@@ -385,14 +433,14 @@
       function getSelectedTeacher(){
         const r = document.querySelector('.teacher-radio:checked');
         if(!r) return null;
-        const tr = r.closest('tr');
-        const id = tr?.dataset?.supervisorId ? parseInt(tr.dataset.supervisorId,10) : null;
-        const name = tr?.querySelector('.font-medium')?.textContent?.trim() || '';
+        const card = r.closest('.supervisor-card');
+        const id = card?.dataset?.supervisorId ? parseInt(card.dataset.supervisorId,10) : null;
+        const name = card?.querySelector('.font-medium')?.textContent?.trim() || '';
         return id ? { id, name } : null;
       }
       function getSelectedAssignments(){
         return Array.from(document.querySelectorAll('.stuChk:checked'))
-          .map(chk => chk.closest('tr')?.dataset?.assignmentId)
+          .map(chk => chk.closest('.assignment-card')?.dataset?.assignmentId)
           .filter(Boolean)
           .map(v => parseInt(v,10));
       }
@@ -428,8 +476,8 @@
           const data = await res.json();
           // Cập nhật UI tối thiểu: xóa các hàng đã phân công khỏi bảng sinh viên
           ids.forEach(id=>{
-            const tr = document.querySelector(`tr[data-assignment-id="${id}"]`);
-            tr?.parentElement?.removeChild(tr);
+            const card = document.querySelector(`.assignment-card[data-assignment-id="${id}"]`);
+            card?.parentElement?.removeChild(card);
           });
           alert(data.message || 'Phân công thành công');
         } catch(e){

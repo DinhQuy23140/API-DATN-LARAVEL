@@ -200,19 +200,69 @@
       </header>
       <main class="flex-1 overflow-y-auto px-4 md:px-6 py-6 space-y-6">
         <div class="max-w-6xl mx-auto space-y-6">
-          <!-- Round Info -->
-          <section class="bg-white rounded-xl border border-slate-200 p-5">
-            <div class="flex items-center justify-between">
-              <div>
-                <div class="text-sm text-slate-500">Mã đợt: <span
-                    class="font-medium text-slate-700">{{ $rows->id }}</span></div>
-                <h2 class="font-semibold text-lg mt-1">{{ "Đợt ". $rows->stage . " Năm học " . $rows->academy_year->year_name}}</h2>
-                <div class="text-sm text-slate-600">{{ date('d/m/Y', strtotime($rows->start_date)) }} - {{ date('d/m/Y', strtotime($rows->end_date)) }}</div>
+          <!-- Round Info (modern card) -->
+          @php
+            $termName = ($rows->academy_year->year_name ?? '—') . ' - Học kỳ ' . ($rows->stage ?? '');
+            $startLabel = $rows->start_date ? Carbon::parse($rows->start_date)->format('d/m/Y') : '—';
+            $endLabel = $rows->end_date ? Carbon::parse($rows->end_date)->format('d/m/Y') : '—';
+            $now = Carbon::now();
+            if ($rows->start_date && $rows->end_date) {
+              $s = Carbon::parse($rows->start_date); $e = Carbon::parse($rows->end_date);
+              if ($now->lt($s)) { $statusText = 'Sắp diễn ra'; $badge = 'bg-yellow-50 text-yellow-700'; $iconClass = 'text-yellow-600'; }
+              elseif ($now->gt($e)) { $statusText = 'Đã kết thúc'; $badge = 'bg-slate-100 text-slate-600'; $iconClass = 'text-slate-500'; }
+              else { $statusText = 'Đang diễn ra'; $badge = 'bg-emerald-50 text-emerald-700'; $iconClass = 'text-emerald-600'; }
+            } else { $statusText = 'Sắp diễn ra'; $badge = 'bg-yellow-50 text-yellow-700'; $iconClass = 'text-yellow-600'; }
+
+            $supervisorCount = isset($rows->supervisors) ? $rows->supervisors->count() : 0;
+            $studentCount = isset($assignments) ? $assignments->count() : 0;
+            $councilCount = isset($councils) ? $councils->count() : 0;
+          @endphp
+
+          <section class="rounded-xl overflow-hidden mb-4">
+            <div class="bg-gradient-to-r from-indigo-50 to-white border border-slate-200 p-4 md:p-5 flex flex-col md:flex-row md:items-center gap-4">
+              <div class="flex items-center gap-4">
+                <div class="h-14 w-14 rounded-lg bg-indigo-600/10 grid place-items-center">
+                  <i class="ph ph-graduation-cap text-indigo-600 text-2xl"></i>
+                </div>
+                <div>
+                  <div class="text-sm text-slate-500">Đợt đồ án</div>
+                  <div class="text-lg md:text-xl font-semibold text-slate-900">{{ $termName }}</div>
+                  <div class="mt-1 text-sm text-slate-600 flex items-center gap-2">
+                    <i class="ph ph-calendar-dots text-slate-400"></i>
+                    <span>{{ $startLabel }} — {{ $endLabel }}</span>
+                  </div>
+                </div>
               </div>
-              <div class="text-right">
-                <div class="text-sm text-slate-500">Vai trò của bạn</div>
-                <div class="font-medium text-blue-600">Giảng viên hướng dẫn • Thành viên hội đồng</div>
-                <div class="text-xs text-slate-500 mt-1">{{$assignments->count()}} sinh viên hướng dẫn • {{ $councils->count() }} hội đồng tham gia</div>
+
+              <div class="flex items-center gap-3 md:gap-4 ml-auto">
+                <div class="flex items-center gap-3">
+                  <div class="flex items-center gap-3 bg-white border border-slate-100 rounded-lg px-3 py-2 shadow-sm">
+                    <div class="p-2 rounded-md bg-indigo-50 text-indigo-600">
+                      <i class="ph ph-student text-lg"></i>
+                    </div>
+                    <div>
+                      <div class="text-xs text-slate-500">Số sinh viên</div>
+                      <div class="text-sm font-semibold text-slate-800">{{ $studentCount }}</div>
+                    </div>
+                  </div>
+
+                  <div class="flex items-center gap-3 bg-white border border-slate-100 rounded-lg px-3 py-2 shadow-sm">
+                    <div class="p-2 rounded-md bg-indigo-50 text-indigo-600">
+                      <i class="ph ph-users-three text-lg"></i>
+                    </div>
+                    <div>
+                      <div class="text-xs text-slate-500">Số hội đồng</div>
+                      <div class="text-sm font-semibold text-slate-800">{{ $councilCount }}</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="hidden md:flex items-center">
+                  <span class="inline-flex items-center gap-2 px-3 py-2 rounded-lg {{ $badge }} text-sm">
+                    <i class="ph ph-circle {{ $iconClass }}"></i>
+                    {{ $statusText }}
+                  </span>
+                </div>
               </div>
             </div>
           </section>

@@ -210,7 +210,9 @@ class AssignmentController extends Controller
             ->where('counter_argument_id', $supervisorId)
             ->get();
 
-        return view('lecturer-ui.outline-review-assignments', compact('rows', 'termId', 'supervisorId'));
+        $projectTerm = ProjectTerm::with('academy_year')->find($termId);
+
+        return view('lecturer-ui.outline-review-assignments', compact('rows', 'termId', 'supervisorId', 'projectTerm'));
     }
 
     public function setCounterStatus(Request $request, Assignment $assignment, ReportFiles $reportFile)
