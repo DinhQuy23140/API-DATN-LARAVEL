@@ -35,23 +35,23 @@
   <body class="bg-slate-50 text-slate-800">
     <div class="min-h-screen flex">
       <!-- Sidebar -->
-      <aside id="sidebar" class="sidebar fixed inset-y-0 left-0 z-30 bg-white border-r border-slate-200 flex flex-col transition-transform transform -translate-x-full md:translate-x-0">
-        <div class="h-16 px-4 border-b border-slate-200 flex items-center gap-3">
+      <aside id="sidebar" class="sidebar fixed inset-y-0 left-0 z-30 bg-white border-r border-slate-200 flex flex-col transition-all">
+        <div class="h-16 flex items-center gap-3 px-4 border-b border-slate-200">
           <div class="h-9 w-9 grid place-items-center rounded-lg bg-blue-600 text-white"><i class="ph ph-buildings"></i></div>
           <div class="sidebar-label">
-            <div class="font-semibold leading-5">Assistant</div>
+            <div class="font-semibold">Assistant</div>
             <div class="text-xs text-slate-500">Quản trị khoa</div>
           </div>
         </div>
         <nav class="flex-1 overflow-y-auto p-3">
-          <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-gauge"></i><span class="sidebar-label">Bảng điều khiển</span></a>
-          <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-buildings"></i><span class="sidebar-label">Bộ môn</span></a>
-          <a href="#" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-book-open-text"></i><span class="sidebar-label">Ngành</span></a>
+          <a href="{{ route('web.assistant.dashboard') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-gauge"></i><span class="sidebar-label">Bảng điều khiển</span></a>
+          <a href="{{ route('web.assistant.manage_departments') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-buildings"></i><span class="sidebar-label">Bộ môn</span></a>
+          <a href="{{ route('web.assistant.manage_majors') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-book-open-text"></i><span class="sidebar-label">Ngành</span></a>
           <a href="{{ route('web.assistant.manage_staffs') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-chalkboard-teacher"></i><span class="sidebar-label">Giảng viên</span></a>
-          <a href="assign-head.html" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-user-switch"></i><span class="sidebar-label">Gán trưởng bộ môn</span></a>
+          <a href="{{ route('web.assistant.assign_head') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-user-switch"></i><span class="sidebar-label">Gán trưởng bộ môn</span></a>
 
           <div class="graduation-item">
-            <div class="flex items-center justify-between px-3 py-2 cursor-pointer toggle-button bg-slate-100 font-semibold">
+            <div class="flex items-center justify-between px-3 py-2 cursor-pointer toggle-button font-semibold bg-slate-100">
               <span class="flex items-center gap-3">
                 <i class="ph ph-graduation-cap"></i>
                 <span class="sidebar-label">Học phần tốt nghiệp</span>
@@ -67,9 +67,7 @@
           </div>
         </nav>
         <div class="p-3 border-t border-slate-200">
-          <button id="collapseBtn" class="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-100 text-slate-700">
-            <i class="ph ph-sidebar"></i><span class="sidebar-label">Thu gọn</span>
-          </button>
+          <button id="toggleSidebar" class="w-full flex items-center justify-center gap-2 px-3 py-2 text-slate-600 hover:bg-slate-100 rounded-lg"><i class="ph ph-sidebar"></i><span class="sidebar-label">Thu gọn</span></button>
         </div>
       </aside>
 
@@ -337,12 +335,8 @@
         const main=document.querySelector('main');
         if(c){
           htmlEl.classList.add('sidebar-collapsed');
-          header?.classList.add('md:left-[72px]');  header?.classList.remove('md:left-[260px]');
-          main?.classList.add('md:pl-[72px]');      main?.classList.remove('md:pl-[260px]');
         } else {
           htmlEl.classList.remove('sidebar-collapsed');
-          header?.classList.remove('md:left-[72px]'); header?.classList.add('md:left-[260px]');
-          main?.classList.remove('md:pl-[72px]');     main?.classList.add('md:pl-[260px]');
         }
       }
       document.getElementById('collapseBtn')?.addEventListener('click',()=>{
@@ -610,6 +604,8 @@
             supTbody.querySelectorAll('input[type=checkbox][data-email]').forEach(cb=> cb.checked=false);
             syncSelectAll();
             updateBtn();
+            // Reload so server-side changes are reflected (short delay to allow toast to be seen)
+            setTimeout(() => { location.reload(); }, 700);
           }
         }catch(e){
           pushToast('Lỗi mạng khi thêm giảng viên');
@@ -635,6 +631,32 @@
         // Ensure highlight for "Đồ án tốt nghiệp"
         const thesisLink = menu?.querySelector('a[href*="rounds"]');
         thesisLink?.classList.add('bg-slate-100','font-semibold');
+        // Also run the global nav-highlighting so sidebar reflects current page
+        function setActiveNav() {
+          const currentPath = location.pathname.replace(/\/$/, '');
+          document.querySelectorAll('aside nav a').forEach(a => {
+            if (a.hasAttribute('aria-current')) { a.classList.add('bg-slate-100','font-semibold','text-slate-900'); return; }
+            const href = a.getAttribute('href') || '';
+            if (!href || href === '#') { a.classList.remove('bg-slate-100','font-semibold','text-slate-900'); return; }
+            try {
+              const url = new URL(href, location.origin);
+              const path = url.pathname.replace(/\/$/, '');
+              const active = (path === currentPath) || (path !== '' && currentPath.startsWith(path + '/')) || (path !== '' && currentPath === path);
+              a.classList.toggle('bg-slate-100', active);
+              a.classList.toggle('font-semibold', active);
+              a.classList.toggle('text-slate-900', active);
+            } catch (e) {
+              const last = href.split('/').filter(Boolean).pop() || '';
+              const curLast = currentPath.split('/').filter(Boolean).pop() || '';
+              const active = last && last === curLast;
+              a.classList.toggle('bg-slate-100', active);
+              a.classList.toggle('font-semibold', active);
+              a.classList.toggle('text-slate-900', active);
+            }
+          });
+        }
+        setActiveNav();
+        window.addEventListener('popstate', setActiveNav);
       });
 
       // profile dropdown

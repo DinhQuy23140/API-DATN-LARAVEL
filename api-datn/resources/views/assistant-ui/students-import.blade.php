@@ -56,30 +56,23 @@
       ?? 'https://ui-avatars.com/api/?name=' . urlencode($userName) . '&background=0ea5e9&color=ffffff';
   @endphp
   <div class="flex min-h-screen">
-    <aside id="sidebar"
-      class="sidebar fixed inset-y-0 left-0 z-30 bg-white border-r border-slate-200 flex flex-col transition-transform transform -translate-x-full md:translate-x-0">
-      <div class="h-16 flex items-center gap-3 px-4 border-b border-slate-200">
-        <div class="h-9 w-9 grid place-items-center rounded-lg bg-blue-600 text-white"><i class="ph ph-buildings"></i>
+      <aside id="sidebar" class="sidebar fixed inset-y-0 left-0 z-30 bg-white border-r border-slate-200 flex flex-col transition-all">
+        <div class="h-16 flex items-center gap-3 px-4 border-b border-slate-200">
+          <div class="h-9 w-9 grid place-items-center rounded-lg bg-blue-600 text-white"><i class="ph ph-buildings"></i></div>
+          <div class="sidebar-label">
+            <div class="font-semibold">Assistant</div>
+            <div class="text-xs text-slate-500">Quản trị khoa</div>
+          </div>
         </div>
-        <div class="sidebar-label">
-          <div class="font-semibold">Assistant</div>
-          <div class="text-xs text-slate-500">Quản trị khoa</div>
-        </div>
-      </div>
-      <nav class="flex-1 overflow-y-auto p-3">
-        <a href="dashboard.html" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i
-            class="ph ph-gauge"></i><span class="sidebar-label">Bảng điều khiển</span></a>
-        <a href="manage-departments.html" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i
-            class="ph ph-buildings"></i><span class="sidebar-label">Bộ môn</span></a>
-        <a href="manage-majors.html" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i
-            class="ph ph-book-open-text"></i><span class="sidebar-label">Ngành</span></a>
-        <a href="manage-staff.html" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i
-            class="ph ph-chalkboard-teacher"></i><span class="sidebar-label">Giảng viên</span></a>
-        <a href="assign-head.html" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i
-            class="ph ph-user-switch"></i><span class="sidebar-label">Gán trưởng bộ môn</span></a>
+        <nav class="flex-1 overflow-y-auto p-3">
+          <a href="{{ route('web.assistant.dashboard') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-gauge"></i><span class="sidebar-label">Bảng điều khiển</span></a>
+          <a href="{{ route('web.assistant.manage_departments') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-buildings"></i><span class="sidebar-label">Bộ môn</span></a>
+          <a href="{{ route('web.assistant.manage_majors') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-book-open-text"></i><span class="sidebar-label">Ngành</span></a>
+          <a href="{{ route('web.assistant.manage_staffs') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-chalkboard-teacher"></i><span class="sidebar-label">Giảng viên</span></a>
+          <a href="{{ route('web.assistant.assign_head') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-user-switch"></i><span class="sidebar-label">Gán trưởng bộ môn</span></a>
 
           <div class="graduation-item">
-            <div class="flex items-center justify-between px-3 py-2 cursor-pointer toggle-button bg-slate-100 font-semibold">
+            <div class="flex items-center justify-between px-3 py-2 cursor-pointer toggle-button font-semibold bg-slate-100">
               <span class="flex items-center gap-3">
                 <i class="ph ph-graduation-cap"></i>
                 <span class="sidebar-label">Học phần tốt nghiệp</span>
@@ -93,13 +86,11 @@
                  aria-current="page"><i class="ph ph-calendar"></i> Đồ án tốt nghiệp</a>
             </div>
           </div>
-      </nav>
-      <div class="p-3 border-t border-slate-200">
-        <button id="toggleSidebar"
-          class="w-full flex items-center justify-center gap-2 px-3 py-2 text-slate-600 hover:bg-slate-100 rounded-lg"><i
-            class="ph ph-sidebar"></i><span class="sidebar-label">Thu gọn</span></button>
-      </div>
-    </aside>
+        </nav>
+        <div class="p-3 border-t border-slate-200">
+          <button id="toggleSidebar" class="w-full flex items-center justify-center gap-2 px-3 py-2 text-slate-600 hover:bg-slate-100 rounded-lg"><i class="ph ph-sidebar"></i><span class="sidebar-label">Thu gọn</span></button>
+        </div>
+      </aside>
 
     <div class="flex-1">
       <header
@@ -163,8 +154,8 @@
           <section class="bg-white rounded-xl border border-slate-200 p-5">
             <h2 class="font-semibold">Thêm thủ công</h2>
 
-            <div class="mt-3 grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <!-- Cột trái: Tìm kiếm + danh sách tất cả SV (checkbox) -->
+            <div class="mt-3 grid grid-cols-1 gap-6">
+              <!-- Danh sách tất cả SV (checkbox) - chiếm toàn bộ chiều ngang -->
               <div class="rounded-xl border border-slate-200">
                 <div class="p-4 border-b border-slate-200">
                   <div class="relative w-full">
@@ -200,7 +191,7 @@
                             $semail= optional($s->user)->email ?? $s->email ?? '';
                             $smajor= optional($s->major)->name ?? ($s->major ?? 'CNTT');
                           @endphp
-                          <tr class="hover:bg-slate-50">
+                          <tr class="hover:bg-slate-50 cursor-pointer select-none" data-id-row="{{ $sid }}">
                             <td class="py-2 px-3">
                               <input type="checkbox"
                                      class="rounded border-slate-300"
@@ -221,34 +212,11 @@
                     </tbody>
                   </table>
                 </div>
-              </div>
-
-              <!-- Cột phải: Bảng SV đã chọn + nút Thêm -->
-              <div class="rounded-xl border border-slate-200 flex flex-col">
-                <div class="p-4 border-b border-slate-200 flex items-center justify-between">
-                  <div class="font-medium">Sinh viên đã chọn</div>
+                <div class="p-4 border-t border-slate-200 flex items-center justify-end">
                   <button id="btnAddSelected" disabled
                     class="px-4 py-2 rounded-lg bg-blue-400 text-white text-sm disabled:opacity-60 disabled:cursor-not-allowed hover:bg-blue-500">
                     Thêm sinh viên (0)
                   </button>
-                </div>
-                <div class="flex-1 overflow-auto">
-                  <table class="w-full text-sm">
-                    <thead class="sticky top-0 bg-slate-50 border-b border-slate-200">
-                      <tr>
-                        <th class="text-left py-2 px-3 font-medium text-slate-600">MSSV</th>
-                        <th class="text-left py-2 px-3 font-medium text-slate-600">Họ tên</th>
-                        <th class="text-left py-2 px-3 font-medium text-slate-600">Email</th>
-                        <th class="text-left py-2 px-3 font-medium text-slate-600">Ngành</th>
-                        <th class="text-right py-2 px-3 font-medium text-slate-600">Thao tác</th>
-                      </tr>
-                    </thead>
-                    <tbody id="selectedTbody">
-                      <tr>
-                        <td colspan="5" class="py-4 px-3 text-slate-500">Chưa chọn sinh viên nào.</td>
-                      </tr>
-                    </tbody>
-                  </table>
                 </div>
               </div>
             </div>
@@ -284,19 +252,42 @@
     profileBtn?.addEventListener('click', () => profileMenu.classList.toggle('hidden'));
     document.addEventListener('click', (e) => { if (!profileBtn?.contains(e.target) && !profileMenu?.contains(e.target)) profileMenu?.classList.add('hidden'); });
 
-    // auto active nav highlight
-    (function () {
-      const current = location.pathname.split('/').pop();
+    // Auto-highlight sidebar nav link based on current pathname.
+    // Uses full pathname comparison (robust to trailing slashes and nested routes).
+    function setActiveNav() {
+      const currentPath = location.pathname.replace(/\/$/, '');
       document.querySelectorAll('aside nav a').forEach(a => {
-        // Bỏ qua link đã được đánh dấu thủ công
-        if (a.hasAttribute('aria-current')) return;
+        // If link manually marked current via aria-current, respect it
+        if (a.hasAttribute('aria-current')) {
+          a.classList.add('bg-slate-100', 'font-semibold', 'text-slate-900');
+          return;
+        }
         const href = a.getAttribute('href') || '';
-        const active = href.endsWith(current);
-        a.classList.toggle('bg-slate-100', active);
-        a.classList.toggle('font-semibold', active);
-        a.classList.toggle('text-slate-900', active);
+        if (!href || href === '#') {
+          a.classList.remove('bg-slate-100', 'font-semibold', 'text-slate-900');
+          return;
+        }
+        try {
+          const url = new URL(href, location.origin);
+          const path = url.pathname.replace(/\/$/, '');
+          const active = (path === currentPath) || (path !== '' && currentPath.startsWith(path + '/')) || (path !== '' && currentPath === path);
+          a.classList.toggle('bg-slate-100', active);
+          a.classList.toggle('font-semibold', active);
+          a.classList.toggle('text-slate-900', active);
+        } catch (e) {
+          // fallback to last segment match
+          const last = href.split('/').filter(Boolean).pop() || '';
+          const curLast = currentPath.split('/').filter(Boolean).pop() || '';
+          const active = last && last === curLast;
+          a.classList.toggle('bg-slate-100', active);
+          a.classList.toggle('font-semibold', active);
+          a.classList.toggle('text-slate-900', active);
+        }
       });
-    })();
+    }
+    // Run on load and when history changes (popstate)
+    setActiveNav();
+    window.addEventListener('popstate', setActiveNav);
 
     // Toast helper
     function toast(msg) {
@@ -315,57 +306,21 @@
       const searchInput = document.getElementById('manualSearch');
       const manualTbody = document.getElementById('manualTbody');
       const selectAllEl = document.getElementById('selectAllCandidates');
-      const selectedTbody = document.getElementById('selectedTbody');
       const btnAddSelected = document.getElementById('btnAddSelected');
 
       // State chọn
       const selected = new Set();
       const selectedData = new Map(); // id -> {id,name,email,major}
- 
-       function updateAddBtn() {
-         const n = selected.size;
-         btnAddSelected.disabled = n === 0;
-         btnAddSelected.textContent = `Thêm sinh viên (${n})`;
-         btnAddSelected.classList.toggle('bg-blue-400', n === 0);
-         btnAddSelected.classList.toggle('bg-blue-600', n > 0);
-         btnAddSelected.classList.toggle('hover:bg-blue-700', n > 0);
-       }
- 
-       function renderSelected() {
-         if (selected.size === 0) {
-           selectedTbody.innerHTML = `<tr><td colspan="5" class="py-4 px-3 text-slate-500">Chưa chọn sinh viên nào.</td></tr>`;
-           updateAddBtn();
-           return;
-         }
-        const rows = [...selected].map(id => {
-          const s = selectedData.get(id);
-          if (!s) return '';
-           return `<tr class="border-b">
-             <td class="py-2 px-3 font-medium">${s.id}</td>
-             <td class="py-2 px-3">${s.name}</td>
-             <td class="py-2 px-3">${s.email || '-'}</td>
-             <td class="py-2 px-3">${s.major || ''}</td>
-             <td class="py-2 px-3 text-right">
-               <button class="px-2 py-1 text-xs rounded border border-slate-200 hover:bg-slate-50" data-unselect="${s.id}">Bỏ chọn</button>
-             </td>
-           </tr>`;
-         }).join('');
-         selectedTbody.innerHTML = rows;
-         selectedTbody.querySelectorAll('[data-unselect]').forEach(b => {
-           b.addEventListener('click', () => {
-             const id = b.getAttribute('data-unselect');
-             selected.delete(id);
-            selectedData.delete(id);
-             renderSelected();
-             // sync checkbox trong danh sách trái
-             const cb = manualTbody.querySelector(`input[type=checkbox][data-id="${id}"]`);
-             if (cb) cb.checked = false;
-             updateAddBtn();
-           });
-         });
-         updateAddBtn();
-       }
- 
+
+      function updateAddBtn() {
+        const n = selected.size;
+        btnAddSelected.disabled = n === 0;
+        btnAddSelected.textContent = `Thêm sinh viên (${n})`;
+        btnAddSelected.classList.toggle('bg-blue-400', n === 0);
+        btnAddSelected.classList.toggle('bg-blue-600', n > 0);
+        btnAddSelected.classList.toggle('hover:bg-blue-700', n > 0);
+      }
+
       // Gán events cho checkbox đã render sẵn bằng Blade
       function bindManualListEvents() {
         manualTbody.querySelectorAll('input[type=checkbox][data-id]').forEach(cb => {
@@ -383,27 +338,43 @@
               selected.delete(id);
               selectedData.delete(id);
             }
-            renderSelected();
             updateAddBtn();
             syncSelectAllState();
           });
         });
+
+        // Click row to toggle selection (but ignore clicks on the checkbox itself)
+        manualTbody.querySelectorAll('tr[data-id-row]').forEach(tr => {
+          tr.addEventListener('click', (ev) => {
+            // if clicked element is an input, button or link, don't toggle twice
+            const tag = ev.target && ev.target.tagName && ev.target.tagName.toLowerCase();
+            if (tag === 'input' || tag === 'button' || tag === 'a' || ev.target.closest('label')) return;
+            const id = tr.getAttribute('data-id-row');
+            const cb = tr.querySelector(`input[type=checkbox][data-id="${id}"]`);
+            if (!cb) return;
+            cb.checked = !cb.checked;
+            // trigger change event manually
+            cb.dispatchEvent(new Event('change', { bubbles: true }));
+          });
+        });
+
         syncSelectAllState();
       }
- 
-       function syncSelectAllState() {
-         if (!selectAllEl) return;
-         const boxes = [...manualTbody.querySelectorAll('tr:not([style*="display: none"]) input[type=checkbox][data-id]:not([disabled])')];
-         const allChecked = boxes.length > 0 && boxes.every(cb => cb.checked);
-         selectAllEl.checked = allChecked;
-         selectAllEl.indeterminate = !allChecked && boxes.some(cb => cb.checked);
-       }
-       selectAllEl?.addEventListener('change', () => {
-         const target = selectAllEl.checked;
-         manualTbody.querySelectorAll('tr:not([style*="display: none"]) input[type=checkbox][data-id]:not([disabled])').forEach(cb => {
-           cb.checked = target;
-           const id = cb.getAttribute('data-id');
-           if (target) selected.add(id); else selected.delete(id);
+
+      function syncSelectAllState() {
+        if (!selectAllEl) return;
+        const boxes = [...manualTbody.querySelectorAll('tr:not([style*="display: none"]) input[type=checkbox][data-id]:not([disabled])')];
+        const allChecked = boxes.length > 0 && boxes.every(cb => cb.checked);
+        selectAllEl.checked = allChecked;
+        selectAllEl.indeterminate = !allChecked && boxes.some(cb => cb.checked);
+      }
+
+      selectAllEl?.addEventListener('change', () => {
+        const target = selectAllEl.checked;
+        manualTbody.querySelectorAll('tr:not([style*="display: none"]) input[type=checkbox][data-id]:not([disabled])').forEach(cb => {
+          cb.checked = target;
+          const id = cb.getAttribute('data-id');
+          if (target) selected.add(id); else selected.delete(id);
           if (target) {
             selectedData.set(id, {
               id,
@@ -414,12 +385,11 @@
           } else {
             selectedData.delete(id);
           }
-         });
-         renderSelected();
-         updateAddBtn();
-         syncSelectAllState();
-       });
- 
+        });
+        updateAddBtn();
+        syncSelectAllState();
+      });
+
       // GỌI API: chỉ giữ 1 listener (xóa listener cũ reset UI)
       btnAddSelected?.addEventListener('click', async () => {
         if (selected.size === 0) return;
@@ -427,7 +397,7 @@
         if (!termId) { toast('Thiếu thông tin đợt đồ án'); return; }
         const students = [...selectedData.values()].map(s => s.id); // id hoặc student_code
 
-         // UI loading
+        // UI loading
         const prevText = btnAddSelected.textContent;
         btnAddSelected.disabled = true;
         btnAddSelected.textContent = 'Đang thêm...';
@@ -454,19 +424,20 @@
             // Reset chọn
             selected.clear();
             selectedData.clear();
-            renderSelected();
             manualTbody.querySelectorAll('input[type=checkbox][data-id]').forEach(cb => cb.checked = false);
             syncSelectAllState();
+            updateAddBtn();
+            // Reload page shortly so server-side changes are reflected
+            setTimeout(() => { location.reload(); }, 700);
           }
         } catch (e) {
           toast('Lỗi mạng khi thêm sinh viên');
         } finally {
           btnAddSelected.disabled = false;
           btnAddSelected.textContent = prevText;
-          updateAddBtn();
         }
       });
- 
+
       // Search ẩn/hiện hàng theo nội dung
       function applySearch() {
         const q = (searchInput?.value || '').toLowerCase();
@@ -477,12 +448,11 @@
         syncSelectAllState();
       }
       searchInput?.addEventListener('input', applySearch);
- 
-       // Initial render
-      renderSelected();
+
+      // Initial bind
       bindManualListEvents();
       applySearch();
-     })();
+    })();
 
     // Mở sẵn submenu "Học phần tốt nghiệp"
     document.addEventListener('DOMContentLoaded', () => {
