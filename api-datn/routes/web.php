@@ -321,4 +321,5 @@ Route::middleware(['auth','verified'])->prefix('assistant')->name('web.assistant
         return view('assistant-ui.deferments', ['termId' => $termId]);
     })->name('deferred_students');
     Route::patch('deferments.update', [WebAssignmentController::class, 'updateDeferment'])->name('deferments.update');
+    Route::view('/registered-students', 'assistant-ui.assignment-registration')->name('registered_students');
 });

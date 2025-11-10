@@ -723,6 +723,31 @@
                   </div>
                 </a>
 
+                <!-- Sinh viên đăng ký tham gia -->
+                <a href="{{ route('web.assistant.registered_students', [$round_detail->id]) }}"
+                  class="group relative flex flex-col border border-slate-200 rounded-2xl bg-gradient-to-br from-white to-emerald-50/40 p-5 shadow-sm hover:shadow-md hover:-translate-y-1 transition-all duration-300 min-h-[230px] overflow-hidden">
+                  
+                  <div class="absolute top-0 right-0 w-20 h-20 bg-emerald-100/30 rounded-bl-[100%] opacity-0 group-hover:opacity-100 transition-opacity"></div>
+
+                  <div class="flex items-start gap-3 z-10">
+                    <div class="h-12 w-12 rounded-xl grid place-items-center bg-emerald-50 text-emerald-600 group-hover:bg-emerald-100 transition-transform duration-300 group-hover:scale-110 shadow-inner">
+                      <i class="ph ph-user-check text-lg"></i>
+                    </div>
+                    <div class="flex-1">
+                      <h3 class="font-semibold text-slate-800 text-base mb-1">Danh sách sinh viên đăng ký tham gia đồ án</h3>
+                      <p class="text-sm text-slate-500 leading-snug">
+                        Xem danh sách sinh viên đã đăng ký và được duyệt tham gia trong đợt đồ án này.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div class="absolute bottom-4 left-5">
+                    <span class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-600 text-white text-sm shadow-sm hover:bg-emerald-700 hover:shadow-md transition">
+                      <i class="ph ph-list-bullets text-sm"></i> Mở danh sách
+                    </span>
+                  </div>
+                </a>
+
               </div>
 
               <!-- Tabs -->
