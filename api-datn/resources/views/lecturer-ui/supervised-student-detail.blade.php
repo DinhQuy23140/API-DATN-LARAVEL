@@ -465,7 +465,7 @@
                 </td>
 
                 <td class="py-3 px-4">
-                  <a href="{{ route('web.teacher.weekly_log_detail', ['progressLogId' => $w->id]) }}"
+                  <a href="{{ route('web.teacher.weekly_log_detail', ['supervisorId' => $supervisorId, 'progressLogId' => $w->id]) }}"
                      class="text-blue-600 hover:underline font-medium">
                     {{ $w->title ?? '-' }}
                   </a>
@@ -495,7 +495,7 @@
                 </td>
 
                 <td class="py-3 px-4 text-center">
-                  <a href="{{ route('web.teacher.weekly_log_detail', ['progressLogId' => $w->id]) }}"
+                  <a href="{{ route('web.teacher.weekly_log_detail', ['supervisorId' => $supervisorId, 'progressLogId' => $w->id]) }}"
                      class="inline-flex items-center gap-1 text-indigo-600 hover:text-indigo-800 font-medium transition">
                     <i class="ph ph-eye text-base"></i> Xem chi tiết
                   </a>

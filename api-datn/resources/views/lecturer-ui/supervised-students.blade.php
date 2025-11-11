@@ -245,8 +245,7 @@
               </div>
             </div>
             <div class="flex items-center gap-2">
-              <button class="px-3 py-1.5 bg-emerald-600 text-white rounded-full text-sm shadow-sm hover:shadow-md flex items-center gap-2"><i class="ph ph-plus"></i><span class="hidden sm:inline">Thêm SV</span></button>
-              <button class="px-3 py-1.5 border border-slate-200 rounded-full text-sm flex items-center gap-2"><i class="ph ph-export"></i><span class="hidden sm:inline">Xuất danh sách</span></button>
+              <!-- <button class="px-3 py-1.5 bg-emerald-600 text-white rounded-full text-sm shadow-sm hover:shadow-md flex items-center gap-2"><i class="ph ph-plus"></i><span class="hidden sm:inline">Thêm SV</span></button> -->
             </div>
           </div>
           <div class="overflow-x-auto bg-white border rounded-2xl shadow-sm">

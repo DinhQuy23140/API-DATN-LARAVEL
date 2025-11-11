@@ -25,6 +25,7 @@ class ProgressLogController extends Controller
             'student_status' => 'required|string',
             'instructor_status' => 'nullable|string',
             'instructor_comment' => 'nullable|string',
+            'content' => 'nullable|string',
         ]);
 
         $log = ProgressLog::create($data);

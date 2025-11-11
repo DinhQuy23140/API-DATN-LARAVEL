@@ -215,83 +215,130 @@
       $start_date = Carbon::parse($progress_log->start_date_time)->format('H:i d/m/Y');
       $end_date   = Carbon::parse($progress_log->end_date_time)->format('H:i d/m/Y');
     @endphp
-    <section class="grid grid-cols-1 md:grid-cols-3 gap-6">
-      <div class="md:col-span-2 bg-white border border-slate-100 rounded-2xl p-6 shadow-sm hover:shadow-md transition">
-        <div class="flex items-start justify-between">
-          <h3 class="text-lg font-semibold flex items-center gap-3 text-slate-800"><i class="ph ph-clipboard-text text-indigo-600"></i> Tổng quan tuần</h3>
-          <div class="text-sm text-slate-500">Từ <span class="font-medium">{{ $start_date }}</span></div>
-        </div>
-        <div class="mt-4">
-          <div class="text-sm text-slate-500 mb-1">Tiêu đề</div>
-          <div class="text-xl font-bold text-slate-800">{{ $titleProgress }}</div>
-        </div>
-        <!-- Description moved below 'Công việc trong tuần' as requested -->
+<!-- SECTION 1: TỔNG QUAN TUẦN -->
+<section class="grid grid-cols-1 md:grid-cols-2 gap-6">
+  <!-- Tổng quan -->
+  <div class="md:col-span-2 bg-gradient-to-br from-indigo-50 via-white to-slate-50 border border-slate-100 rounded-2xl p-6 shadow-sm hover:shadow-md transition">
+    <div class="flex items-center justify-between">
+      <h3 class="text-lg font-semibold flex items-center gap-2 text-slate-800">
+        <span class="p-2 rounded-lg bg-indigo-100 text-indigo-600">
+          <i class="ph ph-clipboard-text text-xl"></i>
+        </span>
+        Tổng quan tuần
+      </h3>
+      <div class="flex items-center gap-2 text-sm text-slate-600 bg-white px-3 py-1.5 rounded-lg border border-slate-200 shadow-sm">
+        <i class="ph ph-calendar text-slate-500"></i>
+        <span>Từ <span class="font-medium text-slate-800">{{ $start_date }}</span> đến <span class="font-medium text-slate-800">{{ $end_date }}</span></span>
       </div>
+    </div>
 
-      <aside class="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm hover:shadow-md transition">
-        <div class="flex items-center justify-between">
-          <div class="text-sm text-slate-500">Thời gian kết thúc</div>
-          <div class="text-sm font-medium text-slate-800">{{ $end_date }}</div>
-        </div>
-        <div class="mt-4 border-t pt-4">
-          <div class="text-sm text-slate-500">Tệp đính kèm</div>
-          @php
-            $latestAttachment = $progress_log->attachments->last() ?? null;
-            $latestAttachmentId = $latestAttachment->id ?? null;
-            $latestAttachmentName = $latestAttachment->file_name ?? ($latestAttachment->name ?? 'Tệp đính kèm');
-            $latestAttachmentUrl = $latestAttachment->file_url ?? ($latestAttachment->url ?? '#');
-          @endphp
-          @if($latestAttachmentId)
-            <a href="{{ $latestAttachmentUrl }}" target="_blank" class="mt-2 inline-flex items-center gap-2 text-indigo-600 hover:underline font-medium">
-              <i class="ph ph-paperclip"></i> {{ $latestAttachmentName }}
+    <div class="mt-6 space-y-2">
+      <div class="text-sm font-medium text-slate-500 flex items-center gap-1">
+        <i class="ph ph-bookmark-simple text-indigo-500"></i>
+        Tiêu đề
+      </div>
+      <div class="text-2xl font-bold text-slate-800 leading-tight">
+        {{ $titleProgress }}
+      </div>
+    </div>
+
+    <div class="mt-6">
+      <div class="text-sm font-medium text-slate-500 flex items-center gap-1 mb-1">
+        <i class="ph ph-text-align-left text-indigo-500"></i>
+        Mô tả
+      </div>
+      <div class="bg-white border border-slate-100 rounded-xl p-4 text-sm text-slate-700 leading-relaxed shadow-inner">
+        {{ $description }}
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- SECTION 2: CÔNG VIỆC & TỆP ĐÍNH KÈM -->
+<section class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-8">
+  <!-- Công việc trong tuần -->
+  <div class="lg:col-span-2 bg-white border border-slate-100 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all duration-200">
+    <h4 class="font-semibold text-slate-800 flex items-center gap-2">
+      <div class="h-8 w-8 rounded-lg bg-emerald-50 text-emerald-600 grid place-items-center">
+        <i class="ph ph-list-checks text-lg"></i>
+      </div>
+      Công việc trong tuần
+    </h4>
+
+    <ul class="mt-5 space-y-3 text-sm text-slate-700">
+      @php
+        $tasks = preg_split("/\r\n|\n|\r/", $progress_log->content ?? '');
+      @endphp
+
+      @php $hasTask = false; @endphp
+      @foreach ($tasks as $task)
+        @if (trim($task) !== '')
+          @php $hasTask = true; @endphp
+          <li class="flex items-start gap-3 group animate-fade-in">
+            <div class="h-6 w-6 rounded-full bg-emerald-100 text-emerald-600 grid place-items-center group-hover:bg-emerald-200 transition">
+              <i class="ph ph-check-circle"></i>
+            </div>
+            <div class="flex-1 leading-relaxed text-slate-700">{{ trim($task) }}</div>
+          </li>
+        @endif
+      @endforeach
+
+      @if (!$hasTask)
+        <li class="text-sm text-slate-400 italic">Chưa có công việc nào được ghi chú.</li>
+      @endif
+    </ul>
+  </div>
+
+  <!-- Báo cáo & Tệp đính kèm -->
+  <div class="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm hover:shadow-md transition-all duration-200">
+    <h4 class="font-semibold text-slate-800 flex items-center gap-2">
+      <div class="h-8 w-8 rounded-lg bg-indigo-50 text-indigo-600 grid place-items-center">
+        <i class="ph ph-file-text text-lg"></i>
+      </div>
+      Báo cáo & tệp đính kèm
+    </h4>
+
+    @php
+      $attachments = $progress_log->attachments ?? [];
+      $latestAttachment = $attachments->last() ?? null;
+    @endphp
+
+    <div class="mt-5 space-y-3">
+      @if ($latestAttachment)
+        <div class="bg-indigo-50 border border-indigo-100 rounded-lg p-3 text-sm text-indigo-700 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <i class="ph ph-star text-indigo-600"></i>
+            <span class="font-medium">Báo cáo mới nhất:</span>
+            <a href="{{ $latestAttachment->file_url ?? '#' }}" target="_blank" class="underline hover:text-indigo-800 transition">
+              {{ $latestAttachment->file_name ?? 'Không có tên' }}
             </a>
-            <input type="hidden" id="attachmentId" value="{{ $latestAttachmentId }}">
-          @else
-            <div class="text-sm text-slate-400 mt-2">Chưa có tệp đính kèm.</div>
-          @endif
+          </div>
+          <i class="ph ph-arrow-up-right text-indigo-600"></i>
         </div>
-      </aside>
-    </section>
+      @endif
 
-    <!-- Tasks + Reports -->
-    <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      <div class="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm hover:shadow-md transition">
-        <h4 class="font-semibold text-slate-800 flex items-center gap-2"><i class="ph ph-list-checks text-emerald-600"></i> Công việc trong tuần</h4>
-        <ul class="mt-4 space-y-3 text-sm text-slate-700">
-          <li class="flex items-start gap-3"><div class="h-6 w-6 rounded-full bg-emerald-100 text-emerald-600 grid place-items-center"><i class="ph ph-check-circle"></i></div><div>Khảo sát yêu cầu</div></li>
-          <li class="flex items-start gap-3"><div class="h-6 w-6 rounded-full bg-emerald-100 text-emerald-600 grid place-items-center"><i class="ph ph-check-circle"></i></div><div>Phân tích use case</div></li>
-          <li class="flex items-start gap-3 text-slate-400"><div class="h-6 w-6 rounded-full bg-slate-100 text-slate-400 grid place-items-center"><i class="ph ph-circle"></i></div><div>Thiết kế ERD</div></li>
+      @if (count($attachments) > 0)
+        <ul class="space-y-2 mt-4">
+          @foreach ($attachments as $att)
+            @php
+              $attName = $att->file_name ?? ($att->name ?? 'Tệp đính kèm');
+              $attUrl = $att->file_url ?? ($att->url ?? '#');
+            @endphp
+            <li class="flex items-center justify-between group">
+              <a href="{{ $attUrl }}" target="_blank" class="flex items-center gap-2 text-indigo-600 font-medium group-hover:text-indigo-700 transition">
+                <i class="ph ph-download-simple text-lg"></i>
+                <span>{{ $attName }}</span>
+              </a>
+            </li>
+          @endforeach
         </ul>
-
-        <!-- Moved description: appears below Công việc trong tuần -->
-        <div class="mt-6">
-          <div class="text-sm text-slate-500 mb-1">Mô tả</div>
-          <div class="mt-2 text-slate-700 leading-relaxed text-sm bg-slate-50 border border-slate-100 rounded-xl p-4">{{ $description }}</div>
-        </div>
-      </div>
-
-      <div class="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm hover:shadow-md transition">
-        <h4 class="font-semibold text-slate-800 flex items-center gap-2"><i class="ph ph-file-text text-indigo-600"></i> Báo cáo & tệp</h4>
-        <div class="mt-4 text-sm text-slate-700">
-          @php $attachments = $progress_log->attachments ?? []; @endphp
-          @if (count($attachments) > 0)
-            <ul class="space-y-2">
-              @foreach ($attachments as $att)
-                @php
-                  $attName = $att->file_name ?? ($att->name ?? 'Tệp đính kèm');
-                  $attUrl = $att->file_url ?? ($att->url ?? '#');
-                @endphp
-                <li class="flex items-center justify-between">
-                  <a href="{{ $attUrl }}" target="_blank" class="text-indigo-600 font-medium hover:underline"><i class="ph ph-download"></i> {{ $attName }}</a>
-                </li>
-              @endforeach
-            </ul>
-          @else
-            <div class="text-sm text-slate-400">Chưa có báo cáo hoặc tệp đính kèm.</div>
-          @endif
-        </div>
-      </div>
-    </section>
+      @else
+        <div class="text-sm text-slate-400 italic mt-2">Chưa có báo cáo hoặc tệp đính kèm.</div>
+      @endif
+    </div>
+  </div>
+</section>
 
     <!-- Comments -->
     <section class="bg-white border border-slate-100 rounded-2xl p-6 shadow-sm hover:shadow-md transition">
@@ -420,10 +467,9 @@
         not_achieved:  { label: 'Chưa đạt',     cls: 'border-rose-200 bg-rose-50 text-rose-700' },
         need_editing: { label: 'Cần chỉnh sửa',cls: 'border-amber-200 bg-amber-50 text-amber-700' }
       };
-      const sel = document.getElementById('selWeeklyStatus');
-      const btn = document.getElementById('btnConfirmStatus');
-      const curr = document.getElementById('currentStatus');
-      const idEl = document.getElementById('attachmentId');
+  const sel = document.getElementById('selWeeklyStatus');
+  const btn = document.getElementById('btnConfirmStatus');
+  const curr = document.getElementById('currentStatus');
 
       function render(val) {
         const m = STATUS_MAP[val];
@@ -432,9 +478,7 @@
       }
 
       btn?.addEventListener('click', async () => {
-        const attachmentId = idEl?.value || '';
         const status = sel?.value || '';
-        if (!attachmentId) { alert('Không xác định được tệp đính kèm để cập nhật.'); return; }
         if (!status) { alert('Vui lòng chọn trạng thái.'); return; }
         const token = document.querySelector('meta[name="csrf-token"]')?.content || '';
         // Tạo URL trực tiếp từ Blade, tránh dùng biến JS không tồn tại
@@ -442,18 +486,18 @@
         btn.disabled = true; const old = btn.innerHTML;
         btn.innerHTML = '<i class="ph ph-spinner-gap animate-spin"></i> Đang cập nhật...';
         try {
-          const res = await fetch(url, {
-            method: 'PATCH',
-            credentials: 'same-origin', // gửi cookie phiên
-            headers: {
-              'Content-Type': 'application/json',
-              'Accept': 'application/json',
-              'X-Requested-With': 'XMLHttpRequest',
-              'X-CSRF-TOKEN': token || ''
-            },
-            // Gửi kèm attachment_id nếu backend cần
-            body: JSON.stringify({ status, attachment_id: attachmentId })
-          });
+            const res = await fetch(url, {
+              method: 'PATCH',
+              credentials: 'same-origin', // gửi cookie phiên
+              headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': token || ''
+              },
+              // Gửi kèm progress_log_id và token
+              body: JSON.stringify({ status, progress_log_id: @json($progress_log->id), _token: token })
+            });
           const js = await res.json().catch(() => ({}));
           if (!res.ok || js.ok === false) {
             alert(js.message || 'Cập nhật thất bại.');
@@ -489,7 +533,7 @@
               'X-Requested-With': 'XMLHttpRequest',
               'X-CSRF-TOKEN': token || ''
             },
-            body: JSON.stringify({ content })
+            body: JSON.stringify({ content, supervisor_id: @json($supervisorId ?? null) })
           });
           const js = await res.json().catch(() => ({}));
           if (!res.ok || js.ok === false) {

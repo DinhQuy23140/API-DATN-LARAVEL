@@ -236,7 +236,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/teacher/thesis-rounds/{teacherId}', [WebProjectTermsController::class, 'getProjectTermByTeacherId'])->name('web.teacher.thesis_rounds');
     Route::get('/teacher/all-thesis-rounds/{teacherId}', [WebProjectTermsController::class, 'getAllProjectTermsByHead'])->name('web.teacher.all_thesis_rounds');
     Route::get('/teacher/thesis-round-detail/{termId}/supervisor/{supervisorId}', [WebProjectTermsController::class, 'getDetailProjectTermByTeacherId'])->name('web.teacher.thesis_round_detail');
-    Route::get('/teacher/weekly-log-detail/{progressLogId}', [WebProgressLogController::class, 'getProgressLogById'])->name('web.teacher.weekly_log_detail');
+    Route::get('/teacher/weekly-log-detail/supervisor/{supervisorId}/progressLog/{progressLogId}', [WebProgressLogController::class, 'getProgressLogById'])->name('web.teacher.weekly_log_detail');
     //thesis round detail
     
     //stage 1 
@@ -259,7 +259,8 @@ Route::middleware('auth')->group(function () {
 
     Route::patch('/report-files/{report_file}/status', [WebReportFilesController::class, 'update'])
         ->name('web.teacher.report_files.update_status');
-    Route::patch('/attachments/{progress_log}/status', [WebAttachmentController::class, 'updateStatus'])
+    // Update instructor status on a progress log (used by lecturer UI)
+    Route::patch('/progress-logs/{progress_log}/instructor-status', [WebProgressLogController::class, 'updateInstructorStatus'])
         ->name('web.teacher.attachments.update_status');
     //stage 5
 

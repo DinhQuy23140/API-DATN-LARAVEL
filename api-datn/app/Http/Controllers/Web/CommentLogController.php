@@ -18,18 +18,20 @@ class CommentLogController extends Controller
     {
         $data = $request->validate([
             'content' => ['required', 'string', 'max:2000'],
+            'supervisor_id' => ['required', 'integer', 'exists:supervisors,id'],
         ]);
 
-        $user = Auth::user();
-        $supervisorId = null;
-        // Try to resolve supervisor id from authenticated user if available
-        if ($user) {
-            // common pattern: $user->teacher->supervisor
-            if (isset($user->teacher) && isset($user->teacher->supervisor) && isset($user->teacher->supervisor->id)) {
-                $supervisorId = $user->teacher->supervisor->id;
-            } elseif (isset($user->supervisor_id)) {
-                $supervisorId = $user->supervisor_id;
-            }
+        $supervisorId = $data['supervisor_id'];
+
+        // Ensure that the supervisor_id belongs to the assignment related to this progress log
+        $assignment = optional($progress_log->project)->assignment;
+        if (!$assignment) {
+            return response()->json(['ok' => false, 'message' => 'Không tìm thấy assignment cho nhật ký này.'], 400);
+        }
+
+        $isLinked = $assignment->assignment_supervisors()->where('supervisor_id', $supervisorId)->exists();
+        if (!$isLinked) {
+            return response()->json(['ok' => false, 'message' => 'Supervisor không được liên kết với assignment này.'], 403);
         }
 
         $comment = CommentLog::create([

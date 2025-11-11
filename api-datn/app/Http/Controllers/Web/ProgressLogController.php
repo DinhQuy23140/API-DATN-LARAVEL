@@ -34,6 +34,7 @@ class ProgressLogController extends Controller
             'student_status' => 'required|string',
             'instructor_status' => 'nullable|string',
             'instructor_comment' => 'nullable|string',
+            'content' => 'nullable|string',
         ]);
         $log = ProgressLog::create($data);
         return redirect()->route('web.progress_logs.show', $log)->with('status','Tạo thành công');
@@ -79,7 +80,7 @@ class ProgressLogController extends Controller
         return view('lecturer-ui.weekly-log-detail', compact('progress_log', 'student'));
     }
 
-    public function getProgressLogById($progressLogId)
+    public function getProgressLogById($supervisorId, $progressLogId)
     {
         $progress_log = ProgressLog::with([
             'attachments',
@@ -95,7 +96,31 @@ class ProgressLogController extends Controller
             }
         ])->findOrFail($progressLogId);
 
-        return view('lecturer-ui.weekly-log-detail', compact('progress_log'));
+        return view('lecturer-ui.weekly-log-detail', compact('progress_log', 'supervisorId'));
+    }
+
+    /**
+     * Update only the instructor_status of a ProgressLog (AJAX from lecturer UI)
+     * Expects JSON: { status: 'approved'|'not_achieved'|'need_editing' }
+     */
+    public function updateInstructorStatus(Request $request, ProgressLog $progress_log)
+    {
+        $this->middleware('auth');
+
+        $data = $request->validate([
+            'status' => ['required','string','in:approved,not_achieved,need_editing']
+        ]);
+
+        // Basic authorization: only authenticated teachers can update instructor status.
+        $user = auth()->user();
+        if (!$user || !$user->teacher) {
+            return response()->json(['ok' => false, 'message' => 'Không có quyền.'], 403);
+        }
+
+        $progress_log->instructor_status = $data['status'];
+        $progress_log->save();
+
+        return response()->json(['ok' => true, 'status' => $progress_log->instructor_status]);
     }
 
 }

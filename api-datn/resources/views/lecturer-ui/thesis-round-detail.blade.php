@@ -1015,7 +1015,7 @@
           <td class="py-3 px-4 text-center font-mono text-slate-700">{{ $student_code }}</td>
 
           <!-- Tuần gần nhất -->
-          <td class="py-3 px-4 text-slate-700">{{ $lastestTitle }}</td>
+          <td class="py-3 px-4 text-slate-700 text-center font-medium">{{ $lastestTitle }}</td>
 
           <!-- Trạng thái -->
           <td class="py-3 px-4 text-center">
@@ -1026,7 +1026,7 @@
           </td>
 
           <!-- Thời gian -->
-          <td class="py-3 px-4 text-slate-600">{{ $lastestTime }}</td>
+          <td class="py-3 px-4 text-slate-600 text-center">{{ $lastestTime }}</td>
 
           <!-- Hành động -->
           <td class="py-3 px-4 text-center">

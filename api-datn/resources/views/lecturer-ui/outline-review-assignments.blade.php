@@ -258,6 +258,7 @@
         <th class="py-3 px-3 text-left">Sinh viên</th>
         <th class="py-3 px-3 text-left">MSSV</th>
         <th class="py-3 px-3 text-left">Đề tài</th>
+        <th class="py-3 px-3 text-center">Đề cương</th>
         <th class="py-3 px-3 text-center">Trạng thái chấm</th>
         <th class="py-3 px-3 text-center">Thời gian nộp</th>
         <th class="py-3 px-3 text-center">Hành động</th>
@@ -286,6 +287,18 @@
           <td class="py-3 px-3 text-left">{{ $fullname }}</td>
           <td class="py-3 px-3 text-left">{{ $student_code }}</td>
           <td class="py-3 px-3 text-left max-w-xs break-words">{{ $topic }}</td>
+          <td class="py-3 px-3 text-center">
+            @if ($lastOutline && $lastOutline->file_url)
+              <a href="{{ $lastOutline->file_url }}" target="_blank"
+                class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-slate-700 bg-white hover:bg-slate-50 shadow-sm transition">
+                <i class="ph ph-download text-slate-500"></i>
+                {{ Str::limit($lastOutline->file_name, 20) }}
+              </a>
+            @else
+              Chưa nộp
+            @endif
+          </td>
+
           <td class="py-3 px-3 text-center">
             <span class="px-2 py-1 rounded-full text-xs font-medium {{ $st['color'] }}" data-status-pill>
               {{ $st['label'] }}
