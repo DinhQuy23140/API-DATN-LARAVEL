@@ -235,34 +235,39 @@
               </div>
 
               <div class="flex items-center gap-3 md:gap-4 ml-auto">
-                <div class="flex items-center gap-3">
-                  <div class="flex items-center gap-3 bg-white border border-slate-100 rounded-lg px-3 py-2 shadow-sm">
-                    <div class="p-2 rounded-md bg-indigo-50 text-indigo-600">
-                      <i class="ph ph-student text-lg"></i>
-                    </div>
-                    <div>
-                      <div class="text-xs text-slate-500">Số sinh viên</div>
-                      <div class="text-sm font-semibold text-slate-800">{{ $studentCount }}</div>
-                    </div>
-                  </div>
-
-                  <div class="flex items-center gap-3 bg-white border border-slate-100 rounded-lg px-3 py-2 shadow-sm">
-                    <div class="p-2 rounded-md bg-indigo-50 text-indigo-600">
-                      <i class="ph ph-users-three text-lg"></i>
-                    </div>
-                    <div>
-                      <div class="text-xs text-slate-500">Số hội đồng</div>
-                      <div class="text-sm font-semibold text-slate-800">{{ $councilCount }}</div>
-                    </div>
-                  </div>
-                </div>
-
                 <div class="hidden md:flex items-center">
                   <span class="inline-flex items-center gap-2 px-3 py-2 rounded-lg {{ $badge }} text-sm">
                     <i class="ph ph-circle {{ $iconClass }}"></i>
                     {{ $statusText }}
                   </span>
                 </div>
+
+                <div class="flex items-center gap-3">
+                  <a href="{{ route('web.teacher.student_supervisor_term', ['supervisorId' => $supervisorId, 'termId' => $rows->id]) }}">
+                    <div class="flex items-center gap-3 bg-white border border-slate-100 rounded-lg px-3 py-2 shadow-sm">
+                      <div class="p-2 rounded-md bg-indigo-50 text-indigo-600">
+                        <i class="ph ph-student text-lg"></i>
+                      </div>
+                      <div>
+                        <div class="text-xs text-slate-500">Số sinh viên</div>
+                        <div class="text-sm font-semibold text-slate-800">{{ $studentCount }}</div>
+                      </div>
+                    </div>
+                  </a>
+
+                  <a href="{{ route('web.teacher.my_committees', ['supervisorId' => $supervisorId, 'termId' => $rows->id]) }}">
+                    <div class="flex items-center gap-3 bg-white border border-slate-100 rounded-lg px-3 py-2 shadow-sm">
+                      <div class="p-2 rounded-md bg-indigo-50 text-indigo-600">
+                        <i class="ph ph-users-three text-lg"></i>
+                      </div>
+                      <div>
+                        <div class="text-xs text-slate-500">Số hội đồng</div>
+                        <div class="text-sm font-semibold text-slate-800">{{ $councilCount }}</div>
+                      </div>
+                    </div>
+                  </a>
+                </div>
+              
               </div>
             </div>
           </section>
@@ -1625,6 +1630,31 @@
               </div>
             </div>
           </a>
+
+          <a href=""
+            class="group rounded-xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md hover:border-indigo-300 transition">
+            <div class="flex items-start gap-3">
+              <!-- Icon -->
+              <div class="h-10 w-10 rounded-lg grid place-items-center bg-gradient-to-br from-indigo-50 to-indigo-100 text-indigo-600 group-hover:from-indigo-100 group-hover:to-indigo-200 transition">
+                <i class="ph ph-file-text"></i>
+              </div>
+
+              <!-- Content -->
+              <div class="flex-1">
+                <div class="font-medium text-slate-900">Quản lý báo cáo sau bảo vệ</div>
+                <div class="text-xs text-slate-500 mt-0.5">
+                  Theo dõi, đánh giá và xác nhận các báo cáo của sinh viên hướng dẫn sau khi bảo vệ.
+                </div>
+
+                <div class="mt-3">
+                  <span class="inline-flex items-center gap-1.5 text-indigo-700 text-sm group-hover:gap-2 transition-all">
+                    Vào quản lý <i class="ph ph-arrow-right"></i>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </a>
+
         </div>
         <!-- Giữ nguyên bảng -->
         <div id="stage8-managed" class="bg-white border rounded-xl p-4">

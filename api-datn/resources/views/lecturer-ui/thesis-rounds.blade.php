@@ -47,8 +47,8 @@
     $departmentId = $departmentRole?->department_id ?? 0;
   @endphp
   <div class="flex min-h-screen">
-    <aside id="sidebar"
-      class="sidebar fixed inset-y-0 left-0 z-30 bg-white border-r border-slate-200 flex flex-col transition-all">
+    <aside class="sidebar fixed inset-y-0 left-0 z-30 bg-white border-r border-slate-200 flex flex-col transition-all"
+      id="sidebar">
       <div class="h-16 flex items-center gap-3 px-4 border-b border-slate-200">
         <div class="h-9 w-9 grid place-items-center rounded-lg bg-blue-600 text-white"><i
             class="ph ph-chalkboard-teacher"></i></div>
@@ -58,7 +58,13 @@
         </div>
       </div>
       @php
-        $isThesisOpen = request()->routeIs('web.teacher.thesis_internship') || request()->routeIs('web.teacher.thesis_rounds');
+        // Mở nhóm "Học phần tốt nghiệp" nếu vào các trang liên quan (kể cả trang chi tiết)
+        $isThesisOpen = request()->routeIs('web.teacher.thesis_internship')
+          || request()->routeIs('web.teacher.thesis_rounds')
+          || request()->routeIs('web.teacher.thesis_round_detail'); // thêm route detail nếu có
+        // Active item "Đồ án tốt nghiệp" trong submenu cho cả list + detail
+        $isThesisRoundsActive = request()->routeIs('web.teacher.thesis_rounds')
+          || request()->routeIs('web.teacher.thesis_round_detail');
       @endphp
       <nav class="flex-1 overflow-y-auto p-3">
         <a href="{{ route('web.teacher.overview') }}"
@@ -77,26 +83,22 @@
         </a>
 
         @if ($user->teacher && $user->teacher->supervisor)
-          <a href="{{ route('web.teacher.students', ['teacherId' => $teacherId]) }}"
-            class="flex items-center gap-3 px-3 py-2 rounded-lg">
-            <i class="ph ph-student"></i><span class="sidebar-label">Sinh viên</span>
-          </a>
+          <a id="menuStudents"
+            href="{{ route('web.teacher.students', ['teacherId' => $teacherId]) }}"
+            class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"
+            data-skip-active="1">
+             <i class="ph ph-student"></i><span class="sidebar-label">Sinh viên</span>
+           </a>
         @else
-          <a href=""
-            class="flex items-center gap-3 px-3 py-2 rounded-lg">
-            <i class="ph ph-student"></i><span class="sidebar-label">Sinh viên</span>
-          </a>
+          <span class="text-slate-400">Chưa có supervisor</span>
         @endif
 
         @php
           $isThesisOpen = request()->routeIs('web.teacher.thesis_internship') || request()->routeIs('web.teacher.thesis_rounds');
         @endphp
-        <button
-          type="button"
-          id="toggleThesisMenu"
-          aria-controls="thesisSubmenu"
+        <button type="button" id="toggleThesisMenu" aria-controls="thesisSubmenu"
           aria-expanded="{{ $isThesisOpen ? 'true' : 'false' }}"
-          class="w-full flex items-center justify-between px-3 py-2 rounded-lg mt-3 {{ $isThesisOpen ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}">
+          class="w-full flex items-center justify-between px-3 py-2 rounded-lg mt-3 {{ $isThesisOpen ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }} bg-slate-100 font-semibold">
           <span class="flex items-center gap-3">
             <i class="ph ph-graduation-cap"></i>
             <span class="sidebar-label">Học phần tốt nghiệp</span>
@@ -106,29 +108,29 @@
 
         <div id="thesisSubmenu" class="mt-1 pl-3 space-y-1 {{ $isThesisOpen ? '' : 'hidden' }}">
           <a href="{{ route('web.teacher.thesis_internship') }}"
-             class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('web.teacher.thesis_internship') ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}"
-             @if(request()->routeIs('web.teacher.thesis_internship')) aria-current="page" @endif>
+            class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('web.teacher.thesis_internship') ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}"
+            @if(request()->routeIs('web.teacher.thesis_internship')) aria-current="page" @endif>
             <i class="ph ph-briefcase"></i><span class="sidebar-label">Thực tập tốt nghiệp</span>
           </a>
           @if ($departmentRole)
           <a href="{{ route('web.teacher.all_thesis_rounds', ['teacherId' => $teacherId]) }}"
-             class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('web.teacher.thesis_rounds') ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}"
-             @if(request()->routeIs('web.teacher.thesis_rounds')) aria-current="page" @endif>
+            class="flex items-center gap-3 px-3 py-2 rounded-lg {{ $isThesisRoundsActive ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}"
+            @if($isThesisRoundsActive) aria-current="page" @endif>
             <i class="ph ph-calendar"></i><span class="sidebar-label">Đồ án tốt nghiệp</span>
           </a>
           @else
           <a href="{{ route('web.teacher.thesis_rounds', ['teacherId' => $teacherId]) }}"
-             class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('web.teacher.thesis_rounds') ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}"
-             @if(request()->routeIs('web.teacher.thesis_rounds')) aria-current="page" @endif>
+            class="flex items-center gap-3 px-3 py-2 rounded-lg {{ $isThesisRoundsActive ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}"
+            @if($isThesisRoundsActive) aria-current="page" @endif>
             <i class="ph ph-calendar"></i><span class="sidebar-label">Đồ án tốt nghiệp</span>
           </a>
           @endif
         </div>
       </nav>
       <div class="p-3 border-t border-slate-200">
-        <button id="toggleSidebar"
-          class="w-full flex items-center justify-center gap-2 px-3 py-2 text-slate-600 hover:bg-slate-100 rounded-lg"><i
-            class="ph ph-sidebar"></i><span class="sidebar-label">Thu gọn</span></button>
+        <button
+          class="w-full flex items-center justify-center gap-2 px-3 py-2 text-slate-600 hover:bg-slate-100 rounded-lg"
+          id="toggleSidebar"><i class="ph ph-sidebar"></i><span class="sidebar-label">Thu gọn</span></button>
       </div>
     </aside>
 
@@ -279,6 +281,49 @@
       const expanded = !isHidden;
       toggleBtn?.setAttribute('aria-expanded', expanded ? 'true' : 'false');
       thesisCaret?.classList.toggle('rotate-180', expanded);
+    });
+
+    // Auto active nav highlight (bỏ qua link đã có aria-current)
+    (function () {
+       const current = location.pathname.split('/').pop();
+       document.querySelectorAll('aside nav a').forEach(a => {
+        if (a.hasAttribute('aria-current') || a.dataset.skipActive != null) return;
+         const href = a.getAttribute('href') || '';
+         const active = href.endsWith(current);
+         a.classList.toggle('bg-slate-100', active);
+         a.classList.toggle('font-semibold', active);
+       });
+     })();
+
+    // Sync initial UI (in case server-rendered aria-expanded and class hidden disagree).
+    // Also force-open if any submenu child is marked as the current page (aria-current or highlight class).
+    (function syncThesisMenuState(){
+      if (!toggleBtn || !thesisMenu) return;
+      // If a child link is marked as current by server (aria-current="page") or has the active classes,
+      // we should ensure the submenu is visible.
+      const hasCurrentChild = !!thesisMenu.querySelector('[aria-current="page"], .bg-slate-100, .font-semibold');
+      const isHidden = thesisMenu.classList.contains('hidden');
+      if (hasCurrentChild && isHidden) {
+        thesisMenu.classList.remove('hidden');
+      }
+      // Update aria-expanded and caret based on actual visibility
+      const nowHidden = thesisMenu.classList.contains('hidden');
+      toggleBtn.setAttribute('aria-expanded', nowHidden ? 'false' : 'true');
+      thesisCaret.classList.toggle('rotate-180', !nowHidden);
+    })();
+
+    toggleBtn?.addEventListener('click', () => {
+      if (!thesisMenu) return;
+      const isHidden = thesisMenu.classList.contains('hidden');
+      if (isHidden) {
+        thesisMenu.classList.remove('hidden');
+        toggleBtn.setAttribute('aria-expanded', 'true');
+        thesisCaret?.classList.add('rotate-180');
+      } else {
+        thesisMenu.classList.add('hidden');
+        toggleBtn.setAttribute('aria-expanded', 'false');
+        thesisCaret?.classList.remove('rotate-180');
+      }
     });
 
   </script>

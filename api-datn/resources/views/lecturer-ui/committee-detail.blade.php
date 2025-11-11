@@ -238,19 +238,11 @@
               <!-- Trạng thái -->
               <div>
                 <h3 class="text-sm font-semibold text-slate-500 flex items-center gap-1">
-                  <i class="ph ph-activity text-emerald-500"></i> Trạng thái
+                  <i class="ph ph-activity text-emerald-500"></i> Thời gian
                 </h3>
                 <p class="mt-1">
-                  <span class="px-3 py-1 text-sm rounded-full font-medium
-                    @if($council->status == 'active')
-                      bg-emerald-50 text-emerald-700 border border-emerald-200
-                    @elseif($council->status == 'stopped')
-                      bg-slate-50 text-slate-600 border border-slate-200
-                    @else
-                      bg-rose-50 text-rose-700 border border-rose-200
-                    @endif
-                  ">
-                    {{ ucfirst($council->status) }}
+                  <span class="px-3 py-1 text-sm rounded-full font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+                    {{ ucfirst($council->time) }}
                   </span>
                 </p>
               </div>
