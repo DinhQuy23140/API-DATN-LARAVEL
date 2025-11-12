@@ -168,8 +168,20 @@ Route::middleware('auth')->prefix('head')->name('web.head.')->group(function () 
     Route::get ('head/assign-students/department/{departmentId}/term/{termId}', [WebProjectTermsController::class, 'assignmentSupervisor'])->name('thesis_round_supervision');
     Route::post('head/assign-supervisors/bulk', [AssignmentSupervisorController::class, 'storeBulk'])
     ->name('assign_supervisors.bulk');
+    // API: list assignments supervised by a supervisor in a term (JSON)
+    Route::get('assignments/supervisor/{supervisorId}/term/{termId}/list', [AssignmentSupervisorController::class, 'listBySupervisorTerm'])
+        ->name('assign_supervisors.list');
+    // API: list assignments where a supervisor is the counter-reviewer in a term (JSON)
+    Route::get('assignments/counter/supervisor/{supervisorId}/term/{termId}/list', [WebAssignmentController::class, 'listCounterBySupervisorTerm'])
+        ->name('assignments.counter.list');
+    // API: delete a specific AssignmentSupervisor (by id)
+    Route::delete('assignment-supervisors/{assignmentSupervisor}', [AssignmentSupervisorController::class, 'destroy'])
+        ->name('assign_supervisors.destroy');
     Route::get('bind-review-lecturers/department/{departmentId}/term/{termId}', [WebProjectTermsController::class, 'getProjectTermBtId'])->name('blind_review_lecturers');
     Route::post('/blind-review/assign', [WebAssignmentController::class, 'assign'])->name('blind_review.assign');
+    // Unset counter reviewer for a specific assignment (AJAX)
+    Route::patch('/assignments/{assignment}/unset-counter', [WebAssignmentController::class, 'unsetCounter'])
+        ->name('assignments.unset_counter');
 });
 
 Route::middleware('auth')->prefix('assistant')->name('web.assistant.')->group(function () {
@@ -196,6 +208,10 @@ Route::middleware('auth')->prefix('assistant')->name('web.assistant.')->group(fu
     Route::post('/batch-students/bulk', [WebAssignmentController::class,'storeBulk'])->name('batch_students.bulk_store');
     Route::post('/supervisors/bulk', [WebSupervisorController::class,'storeBulk'])->name('supervisors.bulk_store');
     Route::post('/councils', [CouncilController::class, 'store'])->name('councils.store');
+    // Delete an assignment (assistant) - used by assistant UI to remove a student's assignment
+    Route::delete('/assignments/{assignment}', [WebAssignmentController::class, 'destroy'])->name('assistant.assignments.destroy');
+    // Delete a supervisor (assistant) - used by assistant UI to remove a supervisor
+    Route::delete('/supervisors/{supervisor}', [WebSupervisorController::class, 'destroy'])->name('assistant.supervisors.destroy');
     Route::post('/councils/{council}/roles', [CouncilController::class, 'updateRoles'])->name('councils.update_roles');
     Route::get('/terms/{term}/councils/roles', [WebCouncilController::class, 'getCouncilByTermId'])->name('councils.roles');
     Route::patch('/councils/{council}', [CouncilController::class, 'update'])->name('councils.update');

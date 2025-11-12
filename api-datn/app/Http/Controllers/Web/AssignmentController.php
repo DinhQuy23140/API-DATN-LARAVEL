@@ -56,7 +56,21 @@ class AssignmentController extends Controller
         $assignment->update($data);
         return redirect()->route('web.assignments.show',$assignment)->with('status','Cập nhật thành công');
     }
-    public function destroy(Assignment $assignment){$assignment->delete(); return redirect()->route('web.assignments.index')->with('status','Đã xóa');}
+    public function destroy(Assignment $assignment)
+    {
+        try {
+            $assignment->delete();
+            if (request()->expectsJson()) {
+                return response()->json(["ok" => true, "id" => $assignment->id, "message" => 'Đã xóa phân công.']);
+            }
+            return redirect()->route('web.assignments.index')->with('status','Đã xóa');
+        } catch (\Exception $e) {
+            if (request()->expectsJson()) {
+                return response()->json(["ok" => false, "message" => 'Không thể xóa phân công', 'error' => $e->getMessage()], 500);
+            }
+            return redirect()->back()->with('error','Không thể xóa phân công');
+        }
+    }
 
     public function getStudentNotInProjectTerm($termId)
     {
@@ -213,6 +227,40 @@ class AssignmentController extends Controller
         $projectTerm = ProjectTerm::with('academy_year')->find($termId);
 
         return view('lecturer-ui.outline-review-assignments', compact('rows', 'termId', 'supervisorId', 'projectTerm'));
+    }
+
+    /**
+     * JSON API: list assignments in a project term where the given supervisor is the counter-reviewer
+     * Used by head UI / AJAX to populate modals.
+     *
+     * @param  int  $termId
+     * @param  int  $supervisorId
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function listCounterBySupervisorTerm($termId, $supervisorId)
+    {
+        $rows = Assignment::with(['student.user', 'project'])
+            ->where('project_term_id', $termId)
+            ->where('counter_argument_id', $supervisorId)
+            ->get();
+
+        return response()->json(['data' => $rows]);
+    }
+
+    /**
+     * Unset counter reviewer for an assignment (set counter_argument_id to null)
+     * Accessible from head UI via AJAX PATCH
+     */
+    public function unsetCounter(Assignment $assignment)
+    {
+        $assignment->counter_argument_id = null;
+        $assignment->save();
+
+        return response()->json([
+            'ok' => true,
+            'id' => $assignment->id,
+            'message' => 'Đã bỏ phân công phản biện.'
+        ]);
     }
 
     public function setCounterStatus(Request $request, Assignment $assignment, ReportFiles $reportFile)

@@ -244,4 +244,55 @@ public function getRequestManagementPage($supervisorId, $termId)
         ]);
 
     }
+
+    /**
+     * Return JSON list of assignments supervised by a given supervisor in a specific project term.
+     * GET /assignments/supervisor/{supervisorId}/term/{termId}/list
+     */
+    public function listBySupervisorTerm($supervisorId, $termId)
+    {
+        // Find AssignmentSupervisor rows for this supervisor where the related assignment belongs to the term
+        $rows = AssignmentSupervisor::with(['assignment.student.user'])
+            ->where('supervisor_id', $supervisorId)
+            ->whereHas('assignment', function($q) use ($termId){
+                $q->where('project_term_id', $termId);
+            })
+            ->get();
+
+        $data = $rows->map(function($r){
+            return [
+                'id' => $r->id,
+                'assignment_id' => $r->assignment_id,
+                'status' => $r->status,
+                'score_report' => $r->score_report,
+                'comments' => $r->comments,
+                'student' => $r->assignment ? (
+                    [
+                        'id' => $r->assignment->student->id ?? null,
+                        'name' => $r->assignment->student->user->fullname ?? ($r->assignment->student->user->name ?? ''),
+                        'code' => $r->assignment->student->student_code ?? '',
+                        'email' => $r->assignment->student->user->email ?? '',
+                        'class' => $r->assignment->student->class_code ?? ''
+                    ]
+                ) : null
+            ];
+        });
+
+        return response()->json(['data' => $data]);
+    }
+
+    /**
+     * Delete an AssignmentSupervisor record.
+     * DELETE /head/assignment-supervisors/{assignmentSupervisor}
+     */
+    public function destroy(AssignmentSupervisor $assignmentSupervisor)
+    {
+        // Optionally, you can check permissions/ownership here.
+        try {
+            $assignmentSupervisor->delete();
+            return response()->json(['ok' => true, 'message' => 'Xóa phân công thành công', 'id' => $assignmentSupervisor->id]);
+        } catch (\Exception $e) {
+            return response()->json(['ok' => false, 'message' => 'Không thể xóa phân công', 'error' => $e->getMessage()], 500);
+        }
+    }
 }

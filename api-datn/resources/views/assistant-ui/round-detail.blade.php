@@ -794,12 +794,13 @@
                         <th class="px-4 py-2 text-left">Họ tên</th>
                         <th class="px-4 py-2 text-left">Ngành</th>
                         <th class="px-4 py-2 text-left">Đề tài</th>
+                        <th class="px-4 py-2 text-left">Hành động</th>
                       </tr>
                     </thead>
                     <tbody id="studentTableBody" class="divide-y divide-slate-100">
                       @if ($assignments->isEmpty())
                         <tr>
-                          <td colspan="4" class="px-4 py-6 text-center text-sm text-slate-400 italic">
+                          <td colspan="5" class="px-4 py-6 text-center text-sm text-slate-400 italic">
                             Chưa có sinh viên nào được phân công.
                           </td>
                         </tr>
@@ -811,11 +812,14 @@
                             $topic = $a->project->name ?? 'Chưa có đề tài';
                             $marjor = $a->student->marjor->name ?? 'N/A';
                           @endphp
-                          <tr class="student-row">
+                          <tr class="student-row" data-assignment-id="{{ $a->id }}">
                             <td class="px-4 py-2 font-semibold text-emerald-700">{{ $student_id }}</td>
                             <td class="px-4 py-2 font-medium text-slate-800">{{ $name }}</td>
                             <td class="px-4 py-2">{{ $marjor }}</td>
                             <td class="px-4 py-2 text-emerald-600 font-medium">{{ $topic }}</td>
+                            <td class="px-4 py-2">
+                              <button data-assignment-id="{{ $a->id }}" class="btn-delete-assignment inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-rose-50 text-rose-600 hover:bg-rose-100 text-sm">Xóa</button>
+                            </td>
                           </tr>
                         @endforeach
                       @endif
@@ -856,12 +860,13 @@
                         <th class="px-4 py-2 text-left">Họ tên</th>
                         <th class="px-4 py-2 text-left">Bộ môn</th>
                         <th class="px-4 py-2 text-left">Số SV hướng dẫn</th>
+                        <th class="px-4 py-2 text-left">Hành động</th>
                       </tr>
                     </thead>
                     <tbody id="lecturerTableBody" class="divide-y divide-slate-100">
                       @if ($supervisors->isEmpty())
                         <tr>
-                          <td colspan="4" class="px-4 py-6 text-center text-sm text-slate-400 italic">
+                          <td colspan="5" class="px-4 py-6 text-center text-sm text-slate-400 italic">
                             Chưa có giảng viên hướng dẫn nào.
                           </td>
                         </tr>
@@ -873,11 +878,14 @@
                             $department = $s->teacher->department->name ?? 'N/A';
                             $studentCount = $s->assignment_supervisors->where('assignment.project_term_id', $round_detail->id)->count() ?? 0;
                           @endphp
-                          <tr class="lecturer-row">
+                          <tr class="lecturer-row" data-supervisor-id="{{ $s->id }}">
                             <td class="px-4 py-2 font-semibold text-lime-700">{{ $teacherCode }}</td>
                             <td class="px-4 py-2 font-medium text-slate-800">{{ $teacherName }}</td>
                             <td class="px-4 py-2">{{ $department }}</td>
                             <td class="px-4 py-2 text-lime-700 font-medium">{{ $studentCount }}</td>
+                            <td class="px-4 py-2">
+                              <button data-supervisor-id="{{ $s->id }}" class="btn-delete-supervisor inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-rose-50 text-rose-600 hover:bg-rose-100 text-sm">Xóa</button>
+                            </td>
                           </tr>
                         @endforeach
                       @endif
@@ -949,6 +957,58 @@
             }
             lecturerInput?.addEventListener('input', applyLecturerFilter);
             applyLecturerFilter();
+
+            // CSRF token for AJAX deletes
+            const _csrfAssistant = '{{ csrf_token() }}';
+
+            // Delete assignment (student row) - delegation
+            studentBody?.addEventListener('click', (ev)=>{
+              const btn = ev.target.closest('.btn-delete-assignment');
+              if (!btn) return;
+              const id = btn.dataset.assignmentId;
+              if (!id) return;
+              if (!confirm('Bạn có chắc muốn xóa phân công của sinh viên này?')) return;
+              fetch(`/assistant/assignments/${id}`, {
+                method: 'DELETE',
+                headers: {
+                  'X-CSRF-TOKEN': _csrfAssistant,
+                  'Accept': 'application/json'
+                }
+              }).then(r=>{
+                if (r.ok) return r.json();
+                throw new Error('Network response was not ok');
+              }).then(json=>{
+                // reload to reflect authoritative server state
+                window.location.reload();
+              }).catch(err=>{
+                console.error(err);
+                alert('Không thể xóa phân công. Vui lòng thử lại.');
+              });
+            });
+
+            // Delete supervisor (lecturer row) - delegation
+            lectBody?.addEventListener('click', (ev)=>{
+              const btn = ev.target.closest('.btn-delete-supervisor');
+              if (!btn) return;
+              const id = btn.dataset.supervisorId;
+              if (!id) return;
+              if (!confirm('Bạn có chắc muốn xóa giảng viên này khỏi hệ thống?')) return;
+              fetch(`/assistant/supervisors/${id}`, {
+                method: 'DELETE',
+                headers: {
+                  'X-CSRF-TOKEN': _csrfAssistant,
+                  'Accept': 'application/json'
+                }
+              }).then(r=>{
+                if (r.ok) return r.json();
+                throw new Error('Network response was not ok');
+              }).then(json=>{
+                window.location.reload();
+              }).catch(err=>{
+                console.error(err);
+                alert('Không thể xóa giảng viên. Vui lòng thử lại.');
+              });
+            });
 
             // Nút scroll tới bảng SV
             stageContent.querySelector('#btnToggleTables')?.addEventListener('click', (e)=>{

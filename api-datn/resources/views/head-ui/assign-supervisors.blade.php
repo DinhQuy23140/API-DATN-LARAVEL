@@ -314,11 +314,12 @@
                     ? 'bg-rose-50 text-rose-700'
                     : ($pct>=75 ? 'bg-amber-50 text-amber-700' : 'bg-emerald-50 text-emerald-700');
                 @endphp
-                <div class="teacher-card bg-white rounded-2xl p-4 shadow-sm hover:shadow-md border border-slate-100 transition-all duration-200"
-                    data-id="{{ $t->id }}"
-                    data-name="{{ $t->teacher->user->fullname }}"
-                    data-current="{{ $t->assignment_supervisors->count() }}"
-                    data-max="{{ $t->max_students }}"
+        <div class="teacher-card bg-white rounded-2xl p-4 shadow-sm hover:shadow-md border border-slate-100 transition-all duration-200"
+          data-id="{{ $t->id }}"
+          data-name="{{ $t->teacher->user->fullname }}"
+          data-current="{{ $t->assignment_supervisors->count() }}"
+          data-max="{{ $t->max_students }}"
+          data-expertise="{{ $t->expertise }}"
                     tabindex="0" role="group" aria-label="Giảng viên {{ $t->teacher->user->fullname }}">
                   <div class="flex items-start gap-4">
                     <!-- Radio chọn -->
@@ -367,6 +368,10 @@
                           <div class="h-2 rounded-full {{ $barClass }}" style="width: {{ $pct }}%"></div>
                         </div>
                       </div>
+                    </div>
+                    <!-- Action: xem thông tin -->
+                    <div class="flex-shrink-0 ml-3">
+                      <button type="button" class="btnViewSupervisor text-sm text-blue-600 hover:underline" data-id="{{ $t->id }}">Xem</button>
                     </div>
                   </div>
                 </div>
@@ -473,6 +478,30 @@
   </div>
 </div>
 
+@php
+  // Build a simple map of supervisor id => assigned students for the current term
+  $assignedMap = [];
+  $supCollection = $projectTerm->supervisors ?? collect();
+  foreach($supCollection as $sup){
+    $arr = [];
+    // assignment_supervisors holds the pivot/assignment entries for this supervisor
+    $assignments = $sup->assignment_supervisors ?? collect();
+    foreach($assignments->where('status','!=','pending') as $as){
+      $s = $as->student;
+      if(!$s) continue;
+      $arr[] = [
+        'assignment_id' => $as->id,
+        'student_id' => $s->id,
+        'name' => $s->user->fullname ?? ($s->user->name ?? ''),
+        'code' => $s->student_code ?? '',
+        'email' => $s->user->email ?? '',
+        'class' => $s->class_code ?? ''
+      ];
+    }
+    $assignedMap[$sup->id] = $arr;
+  }
+@endphp
+
 <script>
   // Sidebar/header logic giống round-detail
   const html=document.documentElement, sidebar=document.getElementById('sidebar');
@@ -524,6 +553,8 @@
   mainEl.classList.add('overflow-y-scroll');
 
   const CSRF='{{ csrf_token() }}';
+  // assignedMap: supervisor id -> array of assigned students for the current term
+  const assignedMap = @json($assignedMap ?? []);
 
   // Search filters (operate on card lists)
   document.getElementById('searchTeachers')?.addEventListener('input', (e)=>{
@@ -562,22 +593,26 @@
     chk.indeterminate = (!allTrue && !noneTrue);
   }
 
-  // Confirm modal
-  function openConfirmModal({teacherName, count, onConfirm}) {
-    const wrap=document.createElement('div');
-    wrap.className='fixed inset-0 z-50 flex items-center justify-center px-4';
+  // Confirm modal (customizable)
+  // options: { teacherName, count, onConfirm, title, message }
+  function openConfirmModal({teacherName, count, onConfirm, title, message}) {
+  const wrap=document.createElement('div');
+  // use Tailwind-supported z-index so confirm modal appears above supervisor modal
+  wrap.className='fixed inset-0 z-50 flex items-center justify-center px-4';
+    const modalTitle = title || 'Xác nhận phân công';
+    const modalMessage = message || `Phân công <span class="font-semibold">${count}</span> sinh viên cho <span class="font-semibold">${escapeHtml(teacherName)}</span>?`;
     wrap.innerHTML=`
       <div class="absolute inset-0 bg-slate-900/50" data-close></div>
       <div class="relative w-full max-w-md bg-white rounded-2xl border border-slate-200 shadow-xl overflow-hidden">
         <div class="px-5 py-4 border-b flex items-center justify-between">
           <div class="flex items-center gap-2">
             <div class="h-9 w-9 grid place-items-center rounded-lg bg-amber-50 text-amber-600"><i class="ph ph-user-switch"></i></div>
-            <h3 class="font-semibold text-lg">Xác nhận phân công</h3>
+            <h3 class="font-semibold text-lg">${escapeHtml(modalTitle)}</h3>
           </div>
           <button class="p-2 rounded-lg hover:bg-slate-100" data-close><i class="ph ph-x"></i></button>
         </div>
         <div class="p-5">
-          <p class="text-sm text-slate-700">Phân công <span class="font-semibold">${count}</span> sinh viên cho <span class="font-semibold">${teacherName}</span>?</p>
+          <p class="text-sm text-slate-700">${modalMessage}</p>
         </div>
         <div class="px-5 py-4 border-t bg-slate-50 flex items-center justify-end gap-2">
           <button class="px-3 py-2 rounded-lg border hover:bg-slate-100 text-sm" data-close>Hủy</button>
@@ -674,6 +709,19 @@
 
          // Cập nhật UI: số SV + % + thanh tiến độ trong hàng giảng viên
          updateTeacherCapacityRow(teacherRow, selectedStudents.length);
+        // Update assignedMap so modal shows newly assigned students without reload
+        try{
+          const supId = teacherRow.dataset.id;
+          assignedMap[supId] = assignedMap[supId] || [];
+          selectedStudents.forEach(card => {
+            const name = card.querySelector('.text-sm.font-semibold')?.innerText.trim() || (card.querySelector('img')?.alt || '').replace(/^Avatar\s*/,'');
+            const codeText = card.querySelector('.text-xs.text-slate-600')?.innerText || '';
+            const code = (codeText.split('•')[0]||'').trim() || card.dataset.code || '';
+            const cls = card.querySelector('.text-blue-600')?.innerText?.trim() || '';
+            const email = card.querySelector('.text-xs.text-slate-500')?.innerText?.trim() || '';
+            assignedMap[supId].push({ assignment_id: card.dataset.id, student_id: card.dataset.id, name, code, email, class: cls });
+          });
+        }catch(e){ /* ignore */ }
 
           selectedStudents.forEach(card => card.remove());
           // sync select-all header if present
@@ -748,6 +796,143 @@
     const expanded = !isHidden;
     toggleBtn?.setAttribute('aria-expanded', expanded ? 'true' : 'false');
     thesisCaret?.classList.toggle('rotate-180', expanded);
+  });
+
+  // --- Supervisor modal logic (fetch assignments from server) ---
+  // build API URL template (replace __SUPID__ with supervisor id at runtime)
+  const supervisorListApiTemplate = "{{ url('head/assignments/supervisor/__SUPID__/term/'.$termId.'/list') }}";
+
+  async function openSupervisorModal(supId){
+    const teacherCard = document.querySelector(`#teachersList .teacher-card[data-id="${supId}"]`);
+    const dataName = teacherCard?.dataset?.name || 'Giảng viên';
+    const current = teacherCard?.dataset?.current || '0';
+    const max = teacherCard?.dataset?.max || '0';
+    const expertise = teacherCard?.dataset?.expertise || '';
+
+    // fetch assignments from server
+    let students = [];
+    try{
+      const url = supervisorListApiTemplate.replace('__SUPID__', encodeURIComponent(supId));
+      const res = await fetch(url, { headers: { 'Accept':'application/json' } });
+      if(res.ok){
+        const j = await res.json();
+        if(j && Array.isArray(j.data)){
+          students = j.data.map(row => ({
+            // assignment_id here must be the AssignmentSupervisor (pivot) id so
+            // delete (which uses AssignmentSupervisor implicit binding) works.
+            assignment_id: row.id ?? row.assignment_supervisor_id ?? row.assignment_id,
+            student_id: row.student?.id ?? null,
+            name: row.student?.name ?? '',
+            code: row.student?.code ?? '',
+            email: row.student?.email ?? '',
+            class: row.student?.class ?? ''
+          }));
+        }
+      } else {
+        // fallback to client-side assignedMap if available
+        students = (assignedMap && assignedMap[supId]) ? assignedMap[supId] : [];
+      }
+    }catch(e){
+      students = (assignedMap && assignedMap[supId]) ? assignedMap[supId] : [];
+    }
+
+  const wrap=document.createElement('div');
+  // place supervisor modal under confirm modal (lower z-index)
+  wrap.className='fixed inset-0 z-40 flex items-center justify-center px-4';
+    wrap.innerHTML = `
+      <div class="absolute inset-0 bg-slate-900/50" data-close></div>
+      <div class="relative w-full max-w-2xl bg-white rounded-2xl border border-slate-200 shadow-xl overflow-hidden">
+        <div class="px-5 py-4 border-b flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="h-9 w-9 grid place-items-center rounded-lg bg-blue-50 text-blue-600"><i class="ph ph-user"></i></div>
+            <div>
+              <div class="font-semibold text-lg">${escapeHtml(dataName)}</div>
+              <div class="text-xs text-slate-500">SV hiện tại: ${escapeHtml(current)} / ${escapeHtml(max)}</div>
+            </div>
+          </div>
+          <button class="p-2 rounded-lg hover:bg-slate-100" data-close><i class="ph ph-x"></i></button>
+        </div>
+        <div class="p-5 space-y-4">
+          <div class="text-sm text-slate-700">Chuyên môn: <span class="font-medium">${escapeHtml(expertise)}</span></div>
+          <div>
+            <div class="text-sm font-semibold mb-2">Danh sách sinh viên đang hướng dẫn</div>
+            <div class="overflow-auto max-h-64 border rounded-md">
+              <table class="w-full text-sm">
+                <thead class="bg-slate-50 text-slate-600 text-xs"><tr><th class="p-2 text-left">Mã</th><th class="p-2 text-left">Họ tên</th><th class="p-2 text-left">Lớp</th><th class="p-2 text-left">Email</th><th class="p-2 text-left">Hành động</th></tr></thead>
+                <tbody class="align-top">${students.length>0 ? students.map(s => `
+                  <tr class="border-b last:border-b-0" data-assignment-id="${s.assignment_id}">
+                    <td class="p-2 align-top">${escapeHtml(s.code)}</td>
+                    <td class="p-2 align-top">${escapeHtml(s.name)}</td>
+                    <td class="p-2 align-top">${escapeHtml(s.class)}</td>
+                    <td class="p-2 align-top">${escapeHtml(s.email)}</td>
+                    <td class="p-2 align-top"><button data-assign-id="${s.assignment_id}" class="deleteAssignmentBtn text-rose-600 text-sm hover:underline">Xóa</button></td>
+                  </tr>`).join('') : `<tr><td class="p-4" colspan="5">Chưa có sinh viên được phân công.</td></tr>`}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div class="px-5 py-4 border-t bg-slate-50 flex items-center justify-end gap-2">
+          <button class="px-3 py-2 rounded-lg border hover:bg-slate-100 text-sm" data-close>Đóng</button>
+        </div>
+      </div>
+    `;
+    function close(){ wrap.remove(); document.removeEventListener('keydown', esc); }
+    function esc(e){ if(e.key==='Escape') close(); }
+    wrap.addEventListener('click', (e)=>{ if(e.target.hasAttribute('data-close')||e.target===wrap) close(); });
+    document.addEventListener('keydown', esc);
+    document.body.appendChild(wrap);
+
+    // attach delete handlers for rows in this modal
+    wrap.querySelectorAll('.deleteAssignmentBtn').forEach(btn => {
+      btn.addEventListener('click', async (ev) => {
+        ev.stopPropagation();
+        const asId = btn.dataset.assignId;
+        if(!asId) return;
+        openConfirmModal({
+          teacherName: dataName,
+          count: 1,
+          title: 'Xác nhận xóa',
+          message: `Bạn có chắc muốn xóa phân công của <span class="font-semibold">${escapeHtml(dataName)}</span>?`,
+          onConfirm: async () => {
+          try{
+            const delUrl = `{{ url('head/assignment-supervisors') }}/${encodeURIComponent(asId)}`;
+            const res = await fetch(delUrl, { method: 'DELETE', headers: { 'X-CSRF-TOKEN': CSRF, 'Accept':'application/json' } });
+            const j = await res.json();
+            if(!res.ok){ toast(j.message || 'Lỗi khi xóa', 'error'); return; }
+            // remove from DOM row
+            const row = btn.closest('tr');
+            if(row) row.remove();
+            // update client-side assignedMap and teacher counts
+            try{
+              // `supId` is captured from the outer scope (openSupervisorModal parameter)
+              if(typeof supId !== 'undefined'){
+                const supKey = String(supId);
+                if(window.assignedMap && assignedMap[supKey]){
+                  assignedMap[supKey] = assignedMap[supKey].filter(x => String(x.assignment_id) !== String(asId));
+                }
+                // update capacity visual (decrement by 1)
+                const teacherCardNode = document.querySelector(`#teachersList .teacher-card[data-id="${supId}"]`);
+                updateTeacherCapacityRow(teacherCardNode, -1);
+              }
+            }catch(e){ /* ignore */ }
+            toast('Xóa phân công thành công');
+          }catch(err){ toast('Lỗi khi xóa', 'error'); }
+        }});
+      });
+    });
+  }
+
+  // small helper to escape html when injecting strings
+  function escapeHtml(str){ if(!str && str!==0) return ''; return String(str).replace(/[&<>"']/g, function(m){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[m]; }); }
+
+  // wire click handlers for view buttons (event delegation)
+  document.getElementById('teachersList')?.addEventListener('click', (e)=>{
+    const btn = e.target.closest('.btnViewSupervisor');
+    if(!btn) return;
+    e.stopPropagation();
+    const id = btn.dataset.id;
+    if(id) openSupervisorModal(id);
   });
 </script>
 <div id="toastHost" class="fixed top-4 right-4 z-50 space-y-2"></div>

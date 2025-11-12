@@ -39,7 +39,22 @@ class SupervisorController extends Controller
         $supervisor->update($data);
         return redirect()->route('web.supervisors.show',$supervisor)->with('status','Cập nhật thành công');
     }
-    public function destroy(Supervisor $supervisor){$supervisor->delete(); return redirect()->route('web.supervisors.index')->with('status','Đã xóa');}
+    public function destroy(Supervisor $supervisor)
+    {
+        try {
+            $id = $supervisor->id;
+            $supervisor->delete();
+            if (request()->expectsJson()) {
+                return response()->json(["ok" => true, "id" => $id, "message" => 'Đã xóa giảng viên.']);
+            }
+            return redirect()->route('web.supervisors.index')->with('status','Đã xóa');
+        } catch (\Exception $e) {
+            if (request()->expectsJson()) {
+                return response()->json(["ok" => false, "message" => 'Không thể xóa giảng viên', 'error' => $e->getMessage()], 500);
+            }
+            return redirect()->back()->with('error','Không thể xóa giảng viên');
+        }
+    }
 
 // WebSupervisorController.php
     // public function getStudentBySupervisor($supervisorId)

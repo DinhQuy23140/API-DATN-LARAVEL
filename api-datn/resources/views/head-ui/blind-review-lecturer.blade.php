@@ -237,7 +237,43 @@
                 </div>
               </div>
             </div>
-          </div>
+
+              <!-- moved modals placed here so they are siblings of the page root, not nested in assignModal -->
+              <!-- Modal: show assignments assigned as counter-review for a supervisor -->
+              <div id="blindViewModal" class="fixed inset-0 z-40 hidden">
+                <div class="absolute inset-0 bg-black/40" data-close></div>
+                <div class="relative mx-auto my-16 w-[92%] max-w-3xl bg-white border border-slate-200 rounded-xl shadow-xl overflow-auto">
+                  <div class="p-4 border-b flex items-center justify-between">
+                    <div class="font-semibold">Danh sách đề cương - Phản biện</div>
+                    <button class="p-2 rounded-lg hover:bg-slate-100" data-close><i class="ph ph-x"></i></button>
+                  </div>
+                  <div class="p-4" id="blindViewContent">
+                    <!-- populated by JS -->
+                  </div>
+                  <div class="p-3 border-t flex items-center justify-end">
+                    <button class="px-3 py-1.5 rounded-lg border" data-close>Đóng</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Modal: show students currently assigned to a supervisor -->
+              <div id="supervisorAssignedModal" class="fixed inset-0 z-40 hidden">
+                <div class="absolute inset-0 bg-black/40" data-close></div>
+                <div class="relative mx-auto my-16 w-[92%] max-w-3xl bg-white border border-slate-200 rounded-xl shadow-xl overflow-auto">
+                  <div class="p-4 border-b flex items-center justify-between">
+                    <div class="font-semibold">Danh sách sinh viên được phân</div>
+                    <button class="p-2 rounded-lg hover:bg-slate-100" data-close><i class="ph ph-x"></i></button>
+                  </div>
+                  <div class="p-4" id="supervisorAssignedContent">
+                    <!-- populated by JS -->
+                  </div>
+                  <div class="p-3 border-t flex items-center justify-end">
+                    <button class="px-3 py-1.5 rounded-lg border" data-close>Đóng</button>
+                  </div>
+                </div>
+              </div>
+
+            </div>
         </div>
       </section>
               
@@ -269,7 +305,7 @@
             @php $listSupervisors = $rows->supervisors ?? collect(); @endphp
             <div id="supervisorsList" class="grid gap-3">
               @foreach ($listSupervisors as $supervisor)
-                <div class="supervisor-card bg-white rounded-2xl p-3 flex items-start gap-3 border border-slate-100 shadow-sm hover:shadow-md transition" data-supervisor-id="{{ $supervisor->id }}" tabindex="0">
+                  <div class="supervisor-card bg-white rounded-2xl p-3 flex items-start gap-3 border border-slate-100 shadow-sm hover:shadow-md transition" data-supervisor-id="{{ $supervisor->id }}" tabindex="0">
                   <div class="flex-shrink-0 flex items-center">
                     <input type="radio" name="teacher" class="teacher-radio mt-1 w-5 h-5 accent-indigo-500">
                   </div>
@@ -282,6 +318,9 @@
                       <div class="text-sm text-slate-600 ml-3">{{ $supervisor->teacher->degree }}</div>
                     </div>
                   </div>
+                    <div class="ml-3 flex-shrink-0">
+                      <button type="button" class="btnViewBlind text-sm text-blue-600 hover:underline" data-id="{{ $supervisor->id }}">Xem đề cương</button>
+                    </div>
                 </div>
               @endforeach
             </div>
@@ -362,6 +401,7 @@
          <div class="p-4 border-b">
            <div class="font-semibold">Xác nhận phân công phản biện</div>
          </div>
+        <!-- two modals (blind view and supervisor-assigned) were moved below so they are not nested inside #assignModal -->
          <div class="p-4 text-sm text-slate-700">
            <p>Giảng viên: <span id="mdlTeacher" class="font-medium">—</span></p>
            <p class="mt-1">Số đề cương sẽ phân công: <span id="mdlCount" class="font-medium">0</span></p>
@@ -418,8 +458,7 @@
     thesisCaret?.classList.toggle('rotate-180', expanded);
   });
     })();
-
-    // Assign events
+  // Assign events
     (function assignEvents(){
       const btn = document.getElementById('btnAssignMain');
       const modal = document.getElementById('assignModal');
@@ -474,12 +513,8 @@
           });
           if(!res.ok){ throw new Error('Request failed'); }
           const data = await res.json();
-          // Cập nhật UI tối thiểu: xóa các hàng đã phân công khỏi bảng sinh viên
-          ids.forEach(id=>{
-            const card = document.querySelector(`.assignment-card[data-assignment-id="${id}"]`);
-            card?.parentElement?.removeChild(card);
-          });
-          alert(data.message || 'Phân công thành công');
+          // reload the page so server-side state is authoritative and all lists update
+          window.location.reload();
         } catch(e){
           alert('Có lỗi xảy ra khi phân công. Vui lòng thử lại.');
         } finally{
@@ -488,6 +523,204 @@
         }
       });
     })();
+
+  // Build a map supervisorId -> assignments assigned as counter-review
+  @php
+    $counterMap = [];
+    foreach($assignedAssignments as $a){
+      if(!empty($a->counter_argument_id)){
+        $sid = $a->counter_argument_id;
+        $counterMap[$sid] = $counterMap[$sid] ?? [];
+        $counterMap[$sid][] = [
+          'id' => $a->id,
+          'student_name' => $a->student->user->fullname ?? '',
+          'student_code' => $a->student->student_code ?? '',
+          'class' => $a->student->class_code ?? '',
+          'topic' => $a->project->project_name ?? ''
+        ];
+      }
+    }
+  @endphp
+
+  const blindCounterMap = @json($counterMap);
+
+  // Build a map supervisorId -> students/assignments where they are primary supervisor
+  @php
+    $supervisorAssigned = [];
+    foreach($assignedAssignments as $a){
+      $assignment_supervisors = $a->assignment_supervisors ?? collect();
+      foreach($assignment_supervisors as $as){
+        $sid = $as->supervisor_id ?? null;
+        if(!$sid) continue;
+        $supervisorAssigned[$sid] = $supervisorAssigned[$sid] ?? [];
+        $supervisorAssigned[$sid][] = [
+          'assignment_id' => $a->id,
+          // include the pivot id so we can delete the specific AssignmentSupervisor row
+          'assignment_supervisor_id' => $as->id ?? null,
+          'student_name' => $a->student->user->fullname ?? '',
+          'student_code' => $a->student->student_code ?? '',
+          'class' => $a->student->class_code ?? '',
+          'topic' => $a->project->project_name ?? ''
+        ];
+      }
+    }
+  @endphp
+
+  const supervisorAssignedMap = @json($supervisorAssigned);
+
+  // Wire view buttons to open blindViewModal and render assignments
+  document.getElementById('supervisorsList')?.addEventListener('click', (e)=>{
+    // If user clicked the "Xem đề cương" button, handle blind view
+    const btnBlind = e.target.closest('.btnViewBlind');
+    if(btnBlind){
+      const supId = btnBlind.dataset.id;
+      openBlindViewModal(supId);
+      return;
+    }
+
+    // Ignore clicks on the radio or inner controls; handle card click to show assigned students
+    if(e.target.closest('input[type="radio"]')) return;
+    const card = e.target.closest('.supervisor-card');
+    if(!card) return;
+    const supId = card.dataset.supervisorId;
+    if(!supId) return;
+    openSupervisorAssignedModal(supId);
+  });
+
+  // small helper to escape HTML when injecting strings
+  function escapeHtml(str){ if(!str && str!==0) return ''; return String(str).replace(/[&<>\"]/g, function(m){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[m]; }); }
+
+  function openBlindViewModal(supId){
+    const modal = document.getElementById('blindViewModal');
+    const host = document.getElementById('blindViewContent');
+    host.innerHTML = '';
+    const rows = blindCounterMap[supId] || [];
+    if(rows.length === 0){
+      host.innerHTML = '<div class="p-4 text-sm text-slate-600">Chưa có đề cương nào được phân phản biện cho giảng viên này.</div>';
+    } else {
+      const table = document.createElement('table');
+      table.className = 'w-full text-sm';
+      table.innerHTML = `
+        <thead class="bg-slate-50 text-slate-600 text-xs"><tr>
+          <th class="p-2 text-left">Mã SV</th>
+          <th class="p-2 text-left">Họ tên</th>
+          <th class="p-2 text-left">Lớp</th>
+          <th class="p-2 text-left">Đề tài</th>
+          <th class="p-2 text-left">Hành động</th>
+        </tr></thead>
+        <tbody class="align-top"></tbody>`;
+      const tbody = table.querySelector('tbody');
+      rows.forEach(r => {
+        const tr = document.createElement('tr');
+        tr.className = 'border-b last:border-b-0';
+        const assId = r.id || '';
+        tr.innerHTML = `
+          <td class="p-2">${escapeHtml(r.student_code)}</td>
+          <td class="p-2">${escapeHtml(r.student_name)}</td>
+          <td class="p-2">${escapeHtml(r.class)}</td>
+          <td class="p-2">${escapeHtml(r.topic)}</td>
+          <td class="p-2 text-right">
+            ${assId ? `<button type="button" class="btnUnsetCounter inline-flex items-center px-2 py-1 text-sm rounded bg-amber-50 text-amber-700 border border-amber-100" data-ass-id="${assId}">Bỏ phân công</button>` : ''}
+          </td>`;
+        tbody.appendChild(tr);
+      });
+      host.appendChild(table);
+
+      // attach unset handlers
+      host.querySelectorAll('.btnUnsetCounter').forEach(btn => {
+        btn.addEventListener('click', async (ev) => {
+          ev.stopPropagation();
+          const assId = btn.dataset.assId;
+          if(!assId) return;
+          if(!confirm('Bạn có chắc muốn bỏ phân công phản biện cho đề cương này?')) return;
+          try{
+            btn.disabled = true;
+            btn.textContent = 'Đang...';
+            const patchUrl = `{{ url('head/assignments') }}/${assId}/unset-counter`;
+            const res = await fetch(patchUrl, {
+              method: 'PATCH',
+              headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '', 'Accept':'application/json' }
+            });
+            if(!res.ok){ throw new Error('unset failed'); }
+            window.location.reload();
+          } catch(err){
+            alert('Hành động không thành công. Vui lòng thử lại.');
+            btn.disabled = false; btn.textContent = 'Bỏ phân công';
+          }
+        });
+      });
+    }
+    modal.classList.remove('hidden');
+    // close handlers
+    modal.querySelectorAll('[data-close]').forEach(el => el.addEventListener('click', ()=> modal.classList.add('hidden')));
+  }
+
+  // Open modal that lists students currently assigned to the supervisor
+  function openSupervisorAssignedModal(supId){
+    const modal = document.getElementById('supervisorAssignedModal');
+    const host = document.getElementById('supervisorAssignedContent');
+    host.innerHTML = '';
+    const rows = supervisorAssignedMap[supId] || [];
+    if(rows.length === 0){
+      host.innerHTML = '<div class="p-4 text-sm text-slate-600">Giảng viên này hiện chưa hướng dẫn sinh viên nào.</div>';
+    } else {
+      const table = document.createElement('table');
+      table.className = 'w-full text-sm';
+      table.innerHTML = `
+        <thead class="bg-slate-50 text-slate-600 text-xs"><tr>
+          <th class="p-2 text-left">Mã SV</th>
+          <th class="p-2 text-left">Họ tên</th>
+          <th class="p-2 text-left">Lớp</th>
+          <th class="p-2 text-left">Đề tài</th>
+          <th class="p-2 text-left">Hành động</th>
+        </tr></thead>
+        <tbody class="align-top"></tbody>`;
+      const tbody = table.querySelector('tbody');
+      rows.forEach(r => {
+        const tr = document.createElement('tr');
+        tr.className = 'border-b last:border-b-0';
+        const asId = r.assignment_supervisor_id || '';
+        tr.innerHTML = `
+          <td class="p-2">${escapeHtml(r.student_code)}</td>
+          <td class="p-2">${escapeHtml(r.student_name)}</td>
+          <td class="p-2">${escapeHtml(r.class)}</td>
+          <td class="p-2">${escapeHtml(r.topic)}</td>
+          <td class="p-2 text-right">
+            ${asId ? `<button type="button" class="btnDeleteAssigned inline-flex items-center px-2 py-1 text-sm rounded bg-rose-50 text-rose-600 border border-rose-100" data-as-id="${asId}">Xóa</button>` : ''}
+          </td>`;
+        tbody.appendChild(tr);
+      });
+      host.appendChild(table);
+
+      // attach delete handlers
+      host.querySelectorAll('.btnDeleteAssigned').forEach(btn => {
+        btn.addEventListener('click', async (ev) => {
+          ev.stopPropagation();
+          const asId = btn.dataset.asId;
+          if(!asId) return;
+          if(!confirm('Bạn có chắc muốn xóa phân công này?')) return;
+          try{
+            btn.disabled = true;
+            btn.textContent = 'Đang xóa...';
+            const delUrl = `{{ url('head/assignment-supervisors') }}/${asId}`;
+            const res = await fetch(delUrl, {
+              method: 'DELETE',
+              headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '', 'Accept':'application/json' }
+            });
+            if(!res.ok){ throw new Error('delete failed'); }
+            // reload so counts and lists are consistent
+            window.location.reload();
+          } catch(err){
+            alert('Xóa không thành công. Vui lòng thử lại.');
+            btn.disabled = false;
+            btn.textContent = 'Xóa';
+          }
+        });
+      });
+    }
+    modal.classList.remove('hidden');
+    modal.querySelectorAll('[data-close]').forEach(el => el.addEventListener('click', ()=> modal.classList.add('hidden')));
+  }
 </script>
 
 </body>
