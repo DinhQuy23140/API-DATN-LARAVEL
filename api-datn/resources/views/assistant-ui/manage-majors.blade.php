@@ -122,7 +122,7 @@
           class="ph ph-chalkboard-teacher"></i><span class="sidebar-label">Giảng viên</span></a>
       <a href="{{ route('web.assistant.assign_head') }}"
         class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-user-switch"></i><span
-          class="sidebar-label">Gán trưởng bộ môn</span></a>
+          class="sidebar-label">Phân trưởng bộ môn</span></a>
 
           <div class="graduation-item">
             <div class="flex items-center justify-between px-3 py-2 cursor-pointer toggle-button">

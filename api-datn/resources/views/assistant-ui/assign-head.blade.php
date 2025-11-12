@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Gán trưởng bộ môn</title>
+    <title>Phân trưởng bộ môn</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- CSRF -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
@@ -55,7 +55,7 @@
           <a href="{{ route('web.assistant.manage_departments') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-buildings"></i><span class="sidebar-label">Bộ môn</span></a>
           <a href="{{ route('web.assistant.manage_majors') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-book-open-text"></i><span class="sidebar-label">Ngành</span></a>
           <a href="{{ route('web.assistant.manage_staffs') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100"><i class="ph ph-chalkboard-teacher"></i><span class="sidebar-label">Giảng viên</span></a>
-          <a href="{{ route('web.assistant.assign_head') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg bg-slate-100 font-semibold"><i class="ph ph-user-switch"></i><span class="sidebar-label">Gán trưởng bộ môn</span></a>
+          <a href="{{ route('web.assistant.assign_head') }}" class="flex items-center gap-3 px-3 py-2 rounded-lg bg-slate-100 font-semibold"><i class="ph ph-user-switch"></i><span class="sidebar-label">Phân trưởng bộ môn</span></a>
 
           <div class="graduation-item">
             <div class="flex items-center justify-between px-3 py-2 cursor-pointer toggle-button">
@@ -82,7 +82,7 @@
             <button id="openSidebar" class="md:hidden p-2 rounded-lg hover:bg-slate-100"><i class="ph ph-list"></i></button>
             <div>
               <h1 class="text-lg md:text-xl font-semibold">Gán quyền Trưởng bộ môn</h1>
-              <nav class="text-xs text-slate-500 mt-0.5">Trang chủ / Trợ lý khoa / Gán quyền Trưởng bộ môn</nav>
+              <nav class="text-xs text-slate-500 mt-0.5">Trang chủ / Trợ lý khoa / Phân trưởng bộ môn</nav>
             </div>
           </div>
           <div class="relative">
