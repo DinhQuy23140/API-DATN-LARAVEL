@@ -122,7 +122,7 @@
         <div class="flex items-center gap-3 flex-1">
           <button id="openSidebar" class="md:hidden p-2 rounded-lg hover:bg-slate-100"><i class="ph ph-list"></i></button>
           <div>
-            <h1 class="text-lg md:text-xl font-semibold">Phản biện của sinh viên (đang hướng dẫn)</h1>
+            <h1 class="text-lg md:text-xl font-semibold">Thông tin bảo vệ đồ án của sinh viên hướng dẫn</h1>
             <nav class="text-xs text-slate-500 mt-0.5">
               <a href="overview.html" class="hover:underline text-slate-600">Trang chủ</a>
               <span class="mx-1">/</span>
@@ -170,10 +170,11 @@
             </h2>
 
             @php
-              $stage = $rows->stage;
-              $term = $rows->academy_year->name . ' - Học kỳ ' . $rows->stage;
-              $semester = ($rows->stage % 2 == 1) ? '1' : '2';
-              $date = date('d/m/Y', strtotime($rows->start_date)) . ' - ' . date('d/m/Y', strtotime($rows->end_date));
+              $termName = $rows->stage ?? 'Chưa có';
+              $year = $rows->academy_year->year_name ?? 'N/A';
+              $semester = $rows->stage ?? 'N/A';
+              $start = $rows->start_date ? \Carbon\Carbon::parse($rows->start_date)->format('d/m/Y') : 'N/A';
+              $end = $rows->end_date ? \Carbon\Carbon::parse($rows->end_date)->format('d/m/Y') : 'N/A';
             @endphp
 
             <!-- Grid thông tin -->
@@ -181,31 +182,22 @@
               <!-- Đợt -->
               <div class="flex items-center gap-2">
                 <i class="ph ph-flag text-rose-500"></i>
-                <span class="text-slate-500 font-medium">Đợt:</span>
-                <span class="text-slate-700 font-semibold">{{ $term }}</span>
+                <span class="text-slate-500 font-medium">Học kỳ:</span>
+                <span class="text-slate-700 font-semibold">{{ $termName }}</span>
               </div>
 
               <!-- Năm học -->
               <div class="flex items-center gap-2">
                 <i class="ph ph-calendar-blank text-indigo-500"></i>
                 <span class="text-slate-500 font-medium">Năm học:</span>
-                <span class="text-indigo-600 font-semibold">{{ $rows->academy_year->name }}</span>
-              </div>
-
-              <!-- Học kỳ -->
-              <div class="flex items-center gap-2">
-                <i class="ph ph-books text-blue-500"></i>
-                <span class="text-slate-500 font-medium">Học kỳ:</span>
-                <span class="inline-block px-3 py-1 text-xs font-medium rounded-full bg-blue-50 text-blue-700 border border-blue-200">
-                  {{ $semester }}
-                </span>
+                <span class="text-indigo-600 font-semibold">{{ $year }}</span>
               </div>
 
               <!-- Thời gian -->
               <div class="flex items-center gap-2">
                 <i class="ph ph-clock text-emerald-500"></i>
                 <span class="text-slate-500 font-medium">Thời gian:</span>
-                <span class="text-emerald-700 font-semibold">{{ $date }}</span>
+                <span class="text-emerald-700 font-semibold">{{ $start }} – {{ $end }}</span>
               </div>
             </div>
           </section>
@@ -221,14 +213,27 @@
             <table id="studentTable" class="w-full text-sm">
               <thead class="bg-slate-50 border-b">
                 <tr class="text-left text-slate-600">
-                  <th class="py-3 px-4 font-semibold">Sinh viên</th>
-                  <th class="py-3 px-4 font-semibold">MSSV</th>
-                  <th class="py-3 px-4 font-semibold">Hội đồng</th>
-                  <th class="py-3 px-4 font-semibold">GV phản biện</th>
-                  <th class="py-3 px-4 font-semibold">STT PB</th>
-                  <th class="py-3 px-4 font-semibold">Thời gian</th>
-                  <th class="py-3 px-4 font-semibold">Phòng</th>
-                  <th class="py-3 px-4 font-semibold text-center">Hành động</th>
+                  <th class="py-3 px-4 font-semibold">
+                    <i class="ph ph-student text-indigo-500 mr-2"></i> Sinh viên
+                  </th>
+                  <th class="py-3 px-4 font-semibold">
+                    <i class="ph ph-identification-badge text-emerald-500 mr-2"></i> MSSV
+                  </th>
+                  <th class="py-3 px-4 font-semibold text-center">
+                    <i class="ph ph-chalkboard-teacher text-sky-500 mr-2"></i> Hội đồng
+                  </th>
+                  <th class="py-3 px-4 font-semibold text-center">
+                    <i class="ph ph-chalkboard-teacher text-violet-500 mr-2"></i> Điểm bảo vệ
+                  </th>
+                  <th class="py-3 px-4 font-semibold">
+                    <i class="ph ph-list-numbers text-amber-500 mr-2"></i> Kết quả
+                  </th>
+                  <th class="py-3 px-4 font-semibold text-center">
+                    <i class="ph ph-clock text-emerald-500 mr-2"></i> Nhận xét
+                  </th>
+                  <th class="py-3 px-4 font-semibold text-center">
+                    <i class="ph ph-gear-six text-rose-500 mr-2"></i> Hành động
+                  </th>
                 </tr>
               </thead>
               <tbody id="studentTable" class="divide-y divide-slate-100">
@@ -241,12 +246,27 @@
                   $studentName = $student ? $student->user->fullname : 'N/A';
                   $studentCode = $student ? $student->student_code : 'N/A';
                   $council = $assignment->council_project?->council->name ?? 'N/A';
-                  $reviewer = $assignment->council_project?->council->council_member?->supervisor->teacher->user->fullname ?? 'N/A';
-                  $index = $loop->index + 1;
-                  $time = $assignment->council_project->time ?? 'N/A';
-                  $date = $assignment->council_project->date ?? 'N/A';
-                  $room = $assignment->council_project->room ?? 'N/A';
                   $councilId = $assignment->council_project->council_id ?? null;
+                  $list_score_defences = $assignment->council_project?->council_project_defences ?? [];
+                    if(count($list_score_defences) > 0) {
+                      $totalScore = 0;
+                      $countScores = 0;
+                      foreach ($list_score_defences as $score_defence) {
+                        if ($score_defence->score !== null) {
+                          $totalScore += $score_defence->score;
+                          $countScores++;
+                        }
+                      }
+                      $score = $countScores > 0 ? round($totalScore / $countScores, 2) : null;
+                      $comment = "Trình bày tốt, trả lời câu hỏi rõ ràng.";
+                      $resultClass = "bg-emerald-100 text-emerald-700";
+                      $result = "Đạt"; // Hoặc tính theo điểm
+                    } else {
+                      $score     = "Chưa có";
+                      $result    = "Chưa có";
+                      $comment   = "Chưa có";
+                      $resultClass = "bg-slate-100 text-slate-600";
+                    }
                 @endphp
                   <tr class="hover:bg-slate-50">
                     <td class="py-3 px-4 font-medium text-slate-700">
@@ -255,11 +275,18 @@
                       </a>
                     </td>
                     <td class="py-3 px-4 text-slate-600">{{ $studentCode }}</td>
-                    <td class="py-3 px-4">{{ $council }}</td>
-                    <td class="py-3 px-4">{{ $reviewer }}</td>
-                    <td class="py-3 px-4 text-center">{{ $index }}</td>
-                    <td class="py-3 px-4">{{ $date }} - {{ $time }}</td>
-                    <td class="py-3 px-4">{{ $room }}</td>
+                    <td class="py-3 px-4 text-center">{{ $council }}</td>
+                    <td class="py-3 px-4 text-center font-semibold">
+                      <span class="inline-block px-2 py-1 text-xs font-medium rounded-full {{ $resultClass }} whitespace-nowrap">
+                        <i class="ph ph-check-circle text-xs mr-1"></i>{{ $score }}
+                      </span>
+                    </td>
+                    <td class="py-3 px-4 text-center">
+                      <span class="inline-block px-2 py-1 text-xs font-medium rounded-full {{ $resultClass }} whitespace-nowrap">
+                        <i class="ph ph-check-circle text-xs mr-1"></i>{{ $result }}
+                      </span>
+                    </td>
+                    <td class="py-3 px-4 text-center">{{ $comment }}</td>
                     <td class="py-3 px-4 text-center">
                       <div class="flex items-center justify-center gap-2">
                         <a href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $assignment->student->id, 'termId' => $rows->id, 'supervisorId'=>$supervisorId]) }}"

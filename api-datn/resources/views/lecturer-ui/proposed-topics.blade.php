@@ -226,97 +226,171 @@
       </div>
     </div>
 
-    <!-- Topics list -->
-    <div id="topicsList" class="grid grid-cols-1 gap-3"></div>
-  </div>
+    <!-- Topics list rendered server-side -->
+    <div id="topicsList" class="grid grid-cols-1 gap-3">
+      @php
+        // provide fallback topics when controller does not pass $topics
+        $defaultTopics = [
+          ['id'=>'T001','title'=>'Hệ thống quản lý học tập trực tuyến (LMS)','description'=>'Xây dựng LMS với quản lý khóa học, bài tập, đánh giá; ưu tiên stack Node.js + React.','tags'=>['Web','Node.js','React'],'slots'=>2,'registered'=>1,'status'=>'Mở','updatedAt'=>'15/07/2025'],
+          ['id'=>'T002','title'=>'Ứng dụng thương mại điện tử','description'=>'E-commerce full-stack, tích hợp thanh toán, quản lý đơn hàng.','tags'=>['Web','React'],'slots'=>3,'registered'=>2,'status'=>'Mở','updatedAt'=>'20/07/2025'],
+        ];
+        $topicsToShow = isset($topics) ? $topics : $defaultTopics;
+      @endphp
 
-  <script>
-    // In-memory topics store
-    const topics = [
-      { id: 'T001', title: 'Hệ thống quản lý học tập trực tuyến (LMS)', description: 'Xây dựng LMS với quản lý khóa học, bài tập, đánh giá; ưu tiên stack Node.js + React.', tags: ['Web','Node.js','React'], slots: 2, registered: 1, status: 'Mở', updatedAt: '15/07/2025' },
-      { id: 'T002', title: 'Ứng dụng thương mại điện tử', description: 'E-commerce full-stack, tích hợp thanh toán, quản lý đơn hàng.', tags: ['Web','React'], slots: 3, registered: 2, status: 'Mở', updatedAt: '20/07/2025' },
-      { id: 'T003', title: 'AI Chatbot tư vấn', description: 'Chatbot NLP tư vấn hỗ trợ người dùng; ưu tiên Python.', tags: ['AI','NLP','Python'], slots: 1, registered: 0, status: 'Đóng', updatedAt: '05/07/2025' }
-    ];
+      @foreach($topicsToShow as $t)
+        @php
+          // allow both array and object shapes
+          $id = is_object($t) ? ($t->id ?? '') : ($t['id'] ?? '');
+          $title = is_object($t) ? ($t->title ?? '') : ($t['title'] ?? '');
+          $description = is_object($t) ? ($t->description ?? '') : ($t['description'] ?? '');
+          $tags = is_object($t) ? ($t->tags ?? []) : ($t['tags'] ?? []);
+          $slots = is_object($t) ? ($t->slots ?? 0) : ($t['slots'] ?? 0);
+          $registered = is_object($t) ? ($t->registered ?? 0) : ($t['registered'] ?? 0);
+          $status = is_object($t) ? ($t->status ?? 'Mở') : ($t['status'] ?? 'Mở');
+          $updatedAt = is_object($t) ? ($t->updatedAt ?? ($t->updated_at ?? '')) : ($t['updatedAt'] ?? ($t['updated_at'] ?? ''));
+          if(is_string($tags)) { $tags = array_filter(array_map('trim', preg_split('/[;,]/', $tags))); }
+        @endphp
 
-    const listEl = document.getElementById('topicsList');
-    const searchEl = document.getElementById('searchBox');
-    const statusEl = document.getElementById('statusFilter');
-
-    function statusPill(s){
-      return s==='Mở'?'bg-green-50 text-green-600':'bg-slate-100 text-slate-700';
-    }
-
-    function updateStats(){
-      document.getElementById('stTotal').textContent = topics.length;
-      document.getElementById('stOpen').textContent = topics.filter(t=>t.status==='Mở').length;
-      document.getElementById('stSlots').textContent = topics.reduce((a,t)=>a+(t.slots||0),0);
-      document.getElementById('stReg').textContent = topics.reduce((a,t)=>a+(t.registered||0),0);
-    }
-
-    function render(){
-      updateStats();
-      const q = (searchEl?.value||'').toLowerCase();
-      const st = statusEl?.value || '';
-      const filtered = topics.filter(t=>{
-        const hit = t.title.toLowerCase().includes(q) || (t.tags||[]).join(' ').toLowerCase().includes(q);
-        const ok = !st || t.status===st;
-        return hit && ok;
-      });
-      listEl.innerHTML = filtered.map(t=>`
-        <article class="border rounded-xl p-4 bg-white shadow-sm hover:shadow-md transition" data-id="${t.id}">
+        <article data-topic-id="{{ $id }}" data-status="{{ $status }}" data-slots="{{ $slots }}" data-registered="{{ $registered }}" class="border rounded-xl p-4 bg-white shadow-sm hover:shadow-md transition">
           <div class="flex items-start justify-between gap-4">
             <div class="flex-1">
               <div class="flex items-center gap-3">
                 <div class="h-10 w-10 rounded-lg bg-blue-50 text-blue-600 grid place-items-center"><i class="ph ph-notebook text-lg"></i></div>
                 <div>
-                  <h5 class="font-semibold text-slate-800">${t.title}</h5>
-                  <div class="text-xs text-slate-500 mt-1 inline-flex items-center gap-2"><i class="ph ph-calendar text-slate-400"></i><span>Cập nhật: ${t.updatedAt||'-'}</span></div>
+                  <h5 class="font-semibold text-slate-800">{{ $title }}</h5>
+                  <div class="text-xs text-slate-500 mt-1 inline-flex items-center gap-2"><i class="ph ph-calendar text-slate-400"></i><span>Cập nhật: {{ $updatedAt }}</span></div>
                 </div>
               </div>
-              <p class="text-sm text-slate-600 mt-3">${t.description||''}</p>
+              <p class="text-sm text-slate-600 mt-3">{{ $description }}</p>
               <div class="mt-3 flex items-center gap-2 flex-wrap text-xs">
                 <div class="inline-flex items-center gap-2 text-slate-500"><i class="ph ph-tag text-slate-400"></i>
-                  ${(t.tags||[]).map(tag=>`<span class="px-2 py-0.5 rounded-full text-xs bg-slate-100 text-slate-700">${tag}</span>`).join('')}
+                  @if(!empty($tags))
+                    @foreach($tags as $tag)
+                      <span class="tag-chip">{{ $tag }}</span>
+                    @endforeach
+                  @else
+                    <span class="text-xs text-slate-400">Chưa có thẻ</span>
+                  @endif
                 </div>
               </div>
             </div>
             <aside class="w-40 flex-shrink-0 text-right">
-              <div class="text-sm text-slate-700"><i class="ph ph-users-three text-slate-400"></i> <span class="font-semibold">${t.registered||0}</span>/<span>${t.slots||0}</span></div>
-              <div class="mt-2"><span class="px-2 py-1 rounded-full text-xs ${statusPill(t.status)}">${t.status}</span></div>
+              <div class="text-sm text-slate-700"><i class="ph ph-users-three text-slate-400"></i> <span class="font-semibold">{{ $registered }}</span>/<span>{{ $slots }}</span></div>
+              <div class="mt-2"><span class="px-2 py-1 rounded-full text-xs {{ $status==='Mở' ? 'bg-green-50 text-green-600' : 'bg-slate-100 text-slate-700' }}">{{ $status }}</span></div>
               <div class="mt-3 flex justify-end gap-2">
-                <button data-id="${t.id}" class="edit-topic-btn px-2 py-1 text-sm bg-yellow-50 text-yellow-700 rounded hover:bg-yellow-100 flex items-center gap-2"><i class="ph ph-pencil"></i><span class="hidden sm:inline">Sửa</span></button>
-                <button data-id="${t.id}" class="delete-topic-btn px-2 py-1 text-sm bg-rose-50 text-rose-700 rounded hover:bg-rose-100 flex items-center gap-2"><i class="ph ph-trash"></i><span class="hidden sm:inline">Xóa</span></button>
+                <button data-id="{{ $id }}" class="edit-topic-btn px-2 py-1 text-sm bg-yellow-50 text-yellow-700 rounded hover:bg-yellow-100 flex items-center gap-2"><i class="ph ph-pencil"></i><span class="hidden sm:inline">Sửa</span></button>
+                <button data-id="{{ $id }}" class="delete-topic-btn px-2 py-1 text-sm bg-rose-50 text-rose-700 rounded hover:bg-rose-100 flex items-center gap-2"><i class="ph ph-trash"></i><span class="hidden sm:inline">Xóa</span></button>
               </div>
             </aside>
           </div>
         </article>
-      `).join('');
+      @endforeach
+    </div>
+  </div>
+
+  <script>
+    // DOM-based topic handlers (server-rendered cards)
+    const listEl = document.getElementById('topicsList');
+    const searchEl = document.getElementById('searchBox');
+    const statusEl = document.getElementById('statusFilter');
+
+    function computeStats(){
+      const cards = Array.from(document.querySelectorAll('#topicsList [data-topic-id]'));
+      const total = cards.length;
+      const open = cards.filter(c => (c.dataset.status||'').trim() === 'Mở').length;
+      const slots = cards.reduce((s,c) => s + Number(c.dataset.slots||0), 0);
+      const reg = cards.reduce((s,c) => s + Number(c.dataset.registered||0), 0);
+      document.getElementById('stTotal').textContent = total;
+      document.getElementById('stOpen').textContent = open;
+      document.getElementById('stSlots').textContent = slots;
+      document.getElementById('stReg').textContent = reg;
     }
 
-    // Edit/Delete handlers (delegated)
-    function openEditTopicModal(id){
-      const topic = topics.find(t=>t.id===id);
-      if(!topic){ alert('Không tìm thấy đề tài'); return; }
+    // Create article element from payload
+    function createArticleElement(t){
+      const wrap = document.createElement('article');
+      wrap.className = 'border rounded-xl p-4 bg-white shadow-sm hover:shadow-md transition';
+      wrap.setAttribute('data-topic-id', t.id);
+      wrap.setAttribute('data-status', t.status || 'Mở');
+      wrap.setAttribute('data-slots', t.slots || 0);
+      wrap.setAttribute('data-registered', t.registered || 0);
+      const tagsHtml = (t.tags||[]).length ? (t.tags||[]).map(tag=>`<span class="tag-chip">${tag}</span>`).join(' ') : '<span class="text-xs text-slate-400">Chưa có thẻ</span>';
+      wrap.innerHTML = `
+        <div class="flex items-start justify-between gap-4">
+          <div class="flex-1">
+            <div class="flex items-center gap-3">
+              <div class="h-10 w-10 rounded-lg bg-blue-50 text-blue-600 grid place-items-center"><i class="ph ph-notebook text-lg"></i></div>
+              <div>
+                <h5 class="font-semibold text-slate-800">${t.title}</h5>
+                <div class="text-xs text-slate-500 mt-1 inline-flex items-center gap-2"><i class="ph ph-calendar text-slate-400"></i><span>Cập nhật: ${t.updatedAt||''}</span></div>
+              </div>
+            </div>
+            <p class="text-sm text-slate-600 mt-3">${t.description||''}</p>
+            <div class="mt-3 flex items-center gap-2 flex-wrap text-xs">
+              <div class="inline-flex items-center gap-2 text-slate-500"><i class="ph ph-tag text-slate-400"></i>${tagsHtml}</div>
+            </div>
+          </div>
+          <aside class="w-40 flex-shrink-0 text-right">
+            <div class="text-sm text-slate-700"><i class="ph ph-users-three text-slate-400"></i> <span class="font-semibold">${t.registered||0}</span>/<span>${t.slots||0}</span></div>
+            <div class="mt-2"><span class="px-2 py-1 rounded-full text-xs ${t.status==='Mở' ? 'bg-green-50 text-green-600' : 'bg-slate-100 text-slate-700'}">${t.status||'Mở'}</span></div>
+            <div class="mt-3 flex justify-end gap-2">
+              <button data-id="${t.id}" class="edit-topic-btn px-2 py-1 text-sm bg-yellow-50 text-yellow-700 rounded hover:bg-yellow-100 flex items-center gap-2"><i class="ph ph-pencil"></i><span class="hidden sm:inline">Sửa</span></button>
+              <button data-id="${t.id}" class="delete-topic-btn px-2 py-1 text-sm bg-rose-50 text-rose-700 rounded hover:bg-rose-100 flex items-center gap-2"><i class="ph ph-trash"></i><span class="hidden sm:inline">Xóa</span></button>
+            </div>
+          </aside>
+        </div>
+      `;
+      return wrap;
+    }
+
+    // Delegated edit/delete handlers (operate on DOM)
+    listEl.addEventListener('click', (e)=>{
+      const editBtn = e.target.closest('.edit-topic-btn');
+      if(editBtn){
+        const id = editBtn.getAttribute('data-id');
+        openEditModalForId(id);
+        return;
+      }
+      const delBtn = e.target.closest('.delete-topic-btn');
+      if(delBtn){
+        const id = delBtn.getAttribute('data-id');
+        if(!confirm('Bạn có chắc muốn xóa đề tài này?')) return;
+        const el = document.querySelector(`#topicsList [data-topic-id="${id}"]`);
+        el?.remove();
+        computeStats();
+        return;
+      }
+    });
+
+    function openEditModalForId(id){
+      const el = document.querySelector(`#topicsList [data-topic-id="${id}"]`);
+      if(!el) return alert('Không tìm thấy đề tài');
+      const title = el.querySelector('h5')?.textContent || '';
+      const desc = el.querySelector('p')?.textContent || '';
+      const tags = Array.from(el.querySelectorAll('.tag-chip')).map(x=>x.textContent.trim()).join(', ');
+      const slots = el.dataset.slots || 1;
+      const status = el.dataset.status || 'Mở';
+
       const formHTML = `
         <form id="topicEditForm" class="space-y-6">
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div class="floating-label">
               <label>Tiêu đề *</label>
-              <input name="title" required maxlength="180" class="${baseInputCls()}" placeholder=" " />
+              <input name="title" required maxlength="180" class="${baseInputCls()}" placeholder=" " value="${escapeHtml(title)}" />
             </div>
             <div class="floating-label">
               <label>Chỉ tiêu (SV)</label>
-              <input type="number" name="slots" min="1" class="${baseInputCls()}" placeholder=" " />
+              <input type="number" name="slots" min="1" class="${baseInputCls()}" placeholder=" " value="${escapeHtml(slots)}" />
             </div>
           </div>
           <div class="floating-label">
             <label>Mô tả</label>
-            <textarea name="desc" rows="5" class="${baseInputCls('resize-y')}" placeholder=" "></textarea>
+            <textarea name="desc" rows="5" class="${baseInputCls('resize-y')}" placeholder="">${escapeHtml(desc)}</textarea>
           </div>
           <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div class="floating-label md:col-span-2">
               <label>Thẻ (ngăn cách phẩy / chấm phẩy)</label>
-              <input name="tags" class="${baseInputCls()}" placeholder=" " />
+              <input name="tags" class="${baseInputCls()}" placeholder=" " value="${escapeHtml(tags)}" />
               ${chipsPreviewTemplate()}
             </div>
             <div class="floating-label">
@@ -331,104 +405,42 @@
       `;
       const modal = createModal({ title: 'Sửa đề tài', content: formHTML });
       document.body.appendChild(modal.el);
-
       const form = modal.el.querySelector('#topicEditForm');
-      const titleInput = form.querySelector('input[name="title"]');
-      const slotsInput = form.querySelector('input[name="slots"]');
-      const descInput = form.querySelector('textarea[name="desc"]');
       const tagsInput = form.querySelector('input[name="tags"]');
-      const statusSel = form.querySelector('select[name="status"]');
       const tagsPreview = modal.el.querySelector('#tagsPreview');
-
-      // populate values
-      titleInput.value = topic.title || '';
-      slotsInput.value = topic.slots || 1;
-      descInput.value = topic.description || '';
-      tagsInput.value = (topic.tags||[]).join(', ');
-      statusSel.value = topic.status || 'Mở';
       renderTagPreview(tagsPreview, tagsInput.value || '');
-
       tagsInput?.addEventListener('input', ()=> renderTagPreview(tagsPreview, tagsInput.value || ''));
+      // set select value
+      form.querySelector('select[name="status"]').value = status;
 
       form.addEventListener('submit', (e)=>{
         e.preventDefault();
         const fd = new FormData(form);
-        const title = String(fd.get('title')||'').trim();
-        if(!title) return alert('Tiêu đề không được để trống');
-        topic.title = title;
-        topic.description = String(fd.get('desc')||'').trim();
-        topic.tags = String(fd.get('tags')||'').split(/[;,]/).map(x=>x.trim()).filter(Boolean);
-        topic.slots = Math.max(1, Number(fd.get('slots')||1));
-        topic.status = fd.get('status')||'Mở';
-        topic.updatedAt = new Date().toLocaleDateString('vi-VN');
+        const newTitle = String(fd.get('title')||'').trim();
+        if(!newTitle) return alert('Tiêu đề không được để trống');
+        el.querySelector('h5').textContent = newTitle;
+        el.querySelector('p').textContent = String(fd.get('desc')||'').trim();
+        const newTags = String(fd.get('tags')||'').split(/[;,]/).map(x=>x.trim()).filter(Boolean);
+        const tagsContainer = el.querySelector('.tag-chip')?.parentElement || el.querySelector('.inline-flex');
+        // rebuild tags
+        const tagsWrap = el.querySelector('.inline-flex.items-center') || el.querySelector('.mt-3');
+        const tagHtml = newTags.length ? newTags.map(t=>`<span class="tag-chip">${t}</span>`).join(' ') : '<span class="text-xs text-slate-400">Chưa có thẻ</span>';
+        const tagsArea = el.querySelector('.mt-3 .inline-flex') || el.querySelector('.mt-3');
+        if(tagsArea) tagsArea.innerHTML = `<i class="ph ph-tag text-slate-400"></i> ${tagHtml}`;
+        el.dataset.slots = Number(fd.get('slots')||1);
+        el.dataset.status = fd.get('status')||'Mở';
+        // update status pill
+        const pill = el.querySelector('aside .px-2.py-1');
+        if(pill) pill.textContent = fd.get('status')||'Mở';
         modal.destroy();
-        render();
+        computeStats();
       });
     }
 
-    function deleteTopic(id){
-      if(!confirm('Bạn có chắc muốn xóa đề tài này?')) return;
-      const idx = topics.findIndex(t=>t.id===id);
-      if(idx>=0){ topics.splice(idx,1); render(); }
-    }
+    // escape helper for inserting into HTML
+    function escapeHtml(s){ return String(s||'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;'); }
 
-    // Delegated click handlers for edit/delete
-    listEl.addEventListener('click', (e)=>{
-      const editBtn = e.target.closest('.edit-topic-btn');
-      if(editBtn){ const id = editBtn.getAttribute('data-id'); openEditTopicModal(id); return; }
-      const delBtn = e.target.closest('.delete-topic-btn');
-      if(delBtn){ const id = delBtn.getAttribute('data-id'); deleteTopic(id); return; }
-    });
-
-    // Modern modal helper
-    function createModal(opts){
-      const { title, content, width='max-w-3xl' } = opts;
-      const wrap = document.createElement('div');
-      wrap.className = 'modal-overlay fixed inset-0 z-50 flex items-center justify-center px-4';
-      wrap.innerHTML = `
-        <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm"></div>
-        <div class="modal-shell relative bg-white/95 supports-[backdrop-filter]:bg-white/80 border border-slate-200 shadow-xl rounded-2xl w-full ${width} max-h-[92vh] flex flex-col overflow-hidden">
-          <div class="px-5 py-4 border-b border-slate-200 flex items-center justify-between bg-gradient-to-r from-white/90 to-white/40 backdrop-blur-md">
-            <div class="flex items-center gap-2">
-              <div class="h-9 w-9 rounded-lg bg-blue-600/10 text-blue-600 grid place-items-center"><i class="ph ph-plus"></i></div>
-              <h3 class="font-semibold text-lg">${title}</h3>
-            </div>
-            <button type="button" data-close class="p-2 rounded-lg hover:bg-slate-100 text-slate-500 hover:text-slate-700 transition"><i class="ph ph-x text-lg"></i></button>
-          </div>
-          <div class="flex-1 overflow-y-auto custom-scroll px-6 py-6">
-            ${content}
-          </div>
-          <div class="px-6 py-4 border-t border-slate-200 bg-slate-50/80 backdrop-blur-sm flex items-center justify-end gap-3">
-            <button type="button" data-close class="px-4 py-2 text-sm font-medium rounded-lg border border-slate-300 hover:bg-slate-100">Hủy</button>
-            <button type="submit" form="topicForm" class="px-4 py-2 text-sm font-semibold rounded-lg bg-blue-600 text-white hover:bg-blue-700 shadow-sm flex items-center gap-2">
-              <i class="ph ph-check-circle"></i><span>Lưu đề tài</span>
-            </button>
-          </div>
-        </div>
-      `;
-      wrap.addEventListener('click', e => { if(e.target === wrap) destroy(); });
-      function destroy(){ wrap.classList.add('opacity-0'); setTimeout(()=>wrap.remove(),150); }
-      wrap.querySelectorAll('[data-close]').forEach(btn => btn.addEventListener('click', destroy));
-      document.addEventListener('keydown', escHandler);
-      function escHandler(e){ if(e.key==='Escape'){ destroy(); document.removeEventListener('keydown', escHandler);} }
-      return { el: wrap, destroy };
-    }
-
-    // Enhanced input decorator
-    function baseInputCls(extra=''){
-      return `w-full rounded-lg border border-slate-200 bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 transition px-3 py-2 text-sm ${extra}`;
-    }
-
-    function chipsPreviewTemplate(){
-      return `<div id="tagsPreview" class="flex flex-wrap gap-1 mt-1"></div>`;
-    }
-
-    function renderTagPreview(container, raw){
-      const tags = raw.split(/[;,]/).map(t=>t.trim()).filter(Boolean);
-      container.innerHTML = tags.map(t=>`<span class="tag-chip flex items-center gap-1">${t}</span>`).join('') || '<span class="text-xs text-slate-400">Chưa có thẻ</span>';
-    }
-
-    // Add topic (modern modal)
+    // Add topic (uses createModal defined below)
     document.getElementById('btnAdd').addEventListener('click', () => {
       const formHTML = `
         <form id="topicForm" class="space-y-6">
@@ -461,19 +473,6 @@
               </select>
             </div>
           </div>
-          <fieldset class="border border-slate-200 rounded-xl p-4">
-            <legend class="px-2 text-xs font-semibold text-slate-500">Tùy chọn nâng cao</legend>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <label class="flex items-center gap-3 text-sm">
-                <input type="checkbox" name="allow_edit" class="rounded border-slate-300">
-                Cho phép SV tùy chỉnh tiêu đề
-              </label>
-              <label class="flex items-center gap-3 text-sm">
-                <input type="checkbox" name="require_outline" class="rounded border-slate-300">
-                Yêu cầu nộp đề cương sớm
-              </label>
-            </div>
-          </fieldset>
         </form>
       `;
       const modal = createModal({ title: 'Thêm đề tài mới', content: formHTML });
@@ -486,7 +485,6 @@
       tagsInput?.addEventListener('input', updateTags);
       updateTags();
 
-      // Submit
       modal.el.querySelector('#topicForm')?.addEventListener('submit', (e) => {
         e.preventDefault();
         const fd = new FormData(e.target);
@@ -502,13 +500,14 @@
           registered: 0,
           updatedAt: new Date().toLocaleDateString('vi-VN')
         };
-        topics.unshift(payload);
+        const node = createArticleElement(payload);
+        listEl.prepend(node);
         modal.destroy();
-        render();
+        computeStats();
       });
     });
 
-    // Import from Excel
+    // Import from Excel: create DOM nodes per row
     document.getElementById('btnImport').addEventListener('click', ()=>{
       const html = `
         <div class="space-y-3">
@@ -520,11 +519,12 @@
             <button id="cancelImp" class="px-3 py-1.5 border border-slate-200 rounded text-sm">Hủy</button>
           </div>
         </div>`;
-      const m = createModal('Import danh sách đề tài', html);
-      document.body.appendChild(m);
-      m.querySelector('#cancelImp').addEventListener('click',()=>m.remove());
-      m.querySelector('#importBtn').addEventListener('click',()=>{
-        const file = m.querySelector('#fileInput').files[0];
+      const m = createModal({ title: 'Import danh sách đề tài', content: html });
+      document.body.appendChild(m.el || m);
+      const root = m.el || m; // support earlier return shapes
+      root.querySelector('#cancelImp').addEventListener('click',()=> root.remove());
+      root.querySelector('#importBtn').addEventListener('click',()=>{
+        const file = root.querySelector('#fileInput').files[0];
         if(!file){ alert('Vui lòng chọn file'); return; }
         const reader = new FileReader();
         reader.onload = (e)=>{
@@ -554,11 +554,13 @@
               const tags = String(r.Tags||r.tags||'').split(/[;,]/).map(x=>x.trim()).filter(Boolean);
               const slots = Math.max(1, Number(r.Slots||r.slots||1));
               const status = ((r.Status||r.status||'Mở').trim()==='Đóng')?'Đóng':'Mở';
-              topics.push({ id:'T'+Math.floor(Math.random()*900+100), title, description:desc, tags, slots, status, registered:0, updatedAt: new Date().toLocaleDateString('vi-VN') });
+              const payload = { id:'T'+Math.floor(Math.random()*900+100), title, description:desc, tags, slots, status, registered:0, updatedAt: new Date().toLocaleDateString('vi-VN') };
+              const node = createArticleElement(payload);
+              listEl.prepend(node);
               added.push(title);
             });
-            m.remove();
-            render();
+            root.remove();
+            computeStats();
             if(added.length) alert(`Đã import ${added.length} đề tài.`);
           }catch(err){ console.error(err); alert('Không thể đọc file. Vui lòng kiểm tra định dạng.'); }
         };
@@ -570,7 +572,7 @@
     // Download template (CSV)
     document.getElementById('btnTemplate').addEventListener('click', ()=>{
       const header = 'Title,Description,Tags,Slots,Status\n';
-  const example = 'Hệ thống quản lý thư viện,Mô tả ví dụ,Web;React;Node.js,2,Mở\n';
+      const example = 'Hệ thống quản lý thư viện,Mô tả ví dụ,Web;React;Node.js,2,Mở\n';
       const blob = new Blob([header + example], {type:'text/csv;charset=utf-8;'});
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -578,13 +580,25 @@
       URL.revokeObjectURL(url);
     });
 
-    // Filters
-    document.getElementById('resetBtn').addEventListener('click',()=>{ if(searchEl) searchEl.value=''; if(statusEl) statusEl.value=''; render(); });
-    searchEl?.addEventListener('input', render);
-    statusEl?.addEventListener('change', render);
+    // Filters: search and status filter operate on DOM elements
+    document.getElementById('resetBtn').addEventListener('click',()=>{ if(searchEl) searchEl.value=''; if(statusEl) statusEl.value=''; applyFilters(); });
+    searchEl?.addEventListener('input', applyFilters);
+    statusEl?.addEventListener('change', applyFilters);
 
-    // Initial render
-    render();
+    function applyFilters(){
+      const q = (searchEl?.value||'').toLowerCase().trim();
+      const st = (statusEl?.value||'').trim();
+      document.querySelectorAll('#topicsList [data-topic-id]').forEach(card=>{
+        const text = (card.innerText||'').toLowerCase();
+        const matchesQ = !q || text.includes(q);
+        const matchesStatus = !st || (card.dataset.status||'') === st;
+        card.style.display = (matchesQ && matchesStatus) ? '' : 'none';
+      });
+      computeStats();
+    }
+
+    // Initial compute
+    computeStats();
 
     // Sidebar/header interactions (outside of templates)
     (function(){

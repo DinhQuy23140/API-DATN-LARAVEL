@@ -223,9 +223,8 @@
                 <tr class="text-left text-slate-600">
                   <th class="py-3 px-4 font-semibold">Sinh viên</th>
                   <th class="py-3 px-4 font-semibold">MSSV</th>
-                  <th class="py-3 px-4 font-semibold">Hội đồng</th>
+                  <th class="py-3 px-4 font-semibold text-center">Hội đồng</th>
                   <th class="py-3 px-4 font-semibold">GV phản biện</th>
-                  <th class="py-3 px-4 font-semibold">STT PB</th>
                   <th class="py-3 px-4 font-semibold">Thời gian</th>
                   <th class="py-3 px-4 font-semibold">Phòng</th>
                   <th class="py-3 px-4 font-semibold text-center">Hành động</th>
@@ -236,38 +235,62 @@
                   $assignments = $rows->assignments;
                 @endphp
                 @foreach ($assignments as $assignment)
-                @php
-                  $student = $assignment->student;
-                  $studentName = $student ? $student->user->fullname : 'N/A';
-                  $studentCode = $student ? $student->student_code : 'N/A';
-                  $council = $assignment->council_project?->council->name ?? 'N/A';
-                  $reviewer = $assignment->council_project?->council->council_member?->supervisor->teacher->user->fullname ?? 'N/A';
-                  $index = $loop->index + 1;
-                  $time = $assignment->council_project->time ?? 'N/A';
-                  $date = $assignment->council_project->date ?? 'N/A';
-                  $room = $assignment->council_project->room ?? 'N/A';
-                  $councilId = $assignment->council_project->council_id ?? null;
-                @endphp
-                  <tr class="hover:bg-slate-50">
+                  @php
+                    $student = $assignment->student;
+                    $studentName = $student ? $student->user->fullname : 'N/A';
+                    $studentCode = $student ? $student->student_code : 'N/A';
+                    $council = $assignment->council_project?->council->name ?? 'Chưa có hội đồng';
+                    $reviewer = $assignment->council_project?->council_member?->supervisor->teacher->user->fullname ?? 'Chưa có giảng viên';
+                    $index = $loop->index + 1;
+                    $time = $assignment->council_project->time ?? 'N/A';
+                    $date = $assignment->council_project->date ?? 'N/A';
+                    $room = $assignment->council_project->room ?? 'Chưa có phòng';
+                    $councilId = $assignment->council_project->council_id ?? null;
+
+                    // Icon và màu sắc cho hội đồng
+                    $councilIcon = $council === 'Chưa có hội đồng' ? 'ph-question' : 'ph-users-three';
+                    $councilColor = $council === 'Chưa có hội đồng' ? 'text-slate-400' : 'text-indigo-500';
+                  @endphp
+
+                  <tr class="hover:bg-slate-50 transition-colors">
+                    <!-- Sinh viên -->
                     <td class="py-3 px-4 font-medium text-slate-700">
-                      <a class="text-blue-600 hover:underline" href="supervised-student-detail.html?id={{ $student->id ?? '' }}">
+                      <a href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $student?->id, 'termId' => $rows->id, 'supervisorId'=>$supervisorId]) }}"
+                        class="text-blue-600 hover:underline">
                         {{ $studentName }}
                       </a>
                     </td>
-                    <td class="py-3 px-4 text-slate-600">{{ $studentCode }}</td>
-                    <td class="py-3 px-4">{{ $council }}</td>
-                    <td class="py-3 px-4">{{ $reviewer }}</td>
-                    <td class="py-3 px-4 text-center">{{ $index }}</td>
-                    <td class="py-3 px-4">{{ $date }} - {{ $time }}</td>
-                    <td class="py-3 px-4">{{ $room }}</td>
+
+                    <!-- MSSV -->
+                    <td class="py-3 px-4 text-center font-mono text-slate-700">{{ $studentCode }}</td>
+
+                    <!-- Hội đồng -->
                     <td class="py-3 px-4 text-center">
-                      <div class="flex items-center justify-center gap-2">
-                        <a href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $assignment->student->id, 'termId' => $rows->id, 'supervisorId'=>$supervisorId]) }}"
+                      <div class="inline-flex items-center gap-1 justify-center">
+                        <i class="ph {{ $councilIcon }} {{ $councilColor }} text-lg"></i>
+                        <span>{{ $council }}</span>
+                      </div>
+                    </td>
+
+                    <!-- GV phản biện -->
+                    <td class="py-3 px-4 text-slate-700">{{ $reviewer }}</td>
+
+                    <!-- Thời gian -->
+                    <td class="py-3 px-4 text-slate-600">{{ $date }} - {{ $time }}</td>
+
+                    <!-- Phòng -->
+                    <td class="py-3 px-4 text-slate-600">{{ $room }}</td>
+
+                    <!-- Hành động -->
+                    <td class="py-3 px-4 text-center">
+                      <div class="flex justify-center gap-2">
+                        <a href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $student?->id, 'termId' => $rows->id, 'supervisorId'=>$supervisorId]) }}"
                           class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 text-xs font-medium transition">
                           <i class="ph ph-user text-sm"></i> SV
                         </a>
+
                         @if ($councilId)
-                          <a href="{{ route('web.teacher.committee_detail', ['councilId'=>$councilId, 'termId'=>$rows->id, 'supervisorId' => $supervisorId]) }}"
+                          <a href="{{ route('web.teacher.committee_detail', ['councilId'=>$councilId, 'termId'=>$rows->id, 'supervisorId'=>$supervisorId]) }}"
                             class="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-slate-50 text-slate-600 hover:bg-slate-100 text-xs font-medium transition">
                             <i class="ph ph-chalkboard-teacher text-sm"></i> Hội đồng
                           </a>

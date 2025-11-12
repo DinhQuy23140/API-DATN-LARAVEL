@@ -123,7 +123,7 @@
         <div class="flex items-center gap-3 flex-1">
           <button id="openSidebar" class="md:hidden p-2 rounded-lg hover:bg-slate-100"><i class="ph ph-list"></i></button>
           <div>
-            <h1 class="text-lg md:text-xl font-semibold">Chấm đề cương - Phân công</h1>
+            <h1 class="text-lg md:text-xl font-semibold">Chấm đề cương được phân công</h1>
             <nav class="text-xs text-slate-500 mt-0.5">
               <a href="overview.html" class="hover:underline text-slate-600">Trang chủ</a>
               <span class="mx-1">/</span>

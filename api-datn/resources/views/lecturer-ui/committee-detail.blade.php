@@ -287,16 +287,6 @@
               </h3>
               <p class="mt-1 text-slate-600 leading-snug">{{ $council->description ?? 'Không có mô tả' }}</p>
             </div>
-
-            <!-- Sơ đồ phòng -->
-            <div>
-              <h3 class="text-sm font-semibold text-slate-500 flex items-center gap-1">
-                <i class="ph ph-layout text-slate-500"></i> Sơ đồ phòng: Phòng {{ $council->address }}
-              </h3>
-              <div class="mt-3 h-44 bg-slate-50 border-2 border-dashed rounded-xl flex items-center justify-center text-slate-400 text-sm">
-                <i class="ph ph-layout text-lg mr-2"></i> Sơ đồ phòng (placeholder)
-              </div>
-            </div>
           </section>
 
           @php
@@ -347,14 +337,24 @@
                     </span>
                   </div>
 
-                  <div class="mt-auto pt-3">
-                    <button data-midx="${idx}" 
-                      class="w-full inline-flex items-center justify-center gap-2 px-3 py-2 
-                            border border-slate-200 rounded-lg text-sm font-medium text-slate-700 
-                            hover:bg-slate-50 transition">
-                      <i class="ph ph-address-book"></i> Xem thông tin
-                    </button>
-                  </div>
+                    @php
+                      $avatarUrl = $council_member->supervisor->teacher->user->profile_photo_url
+                        ?? 'https://ui-avatars.com/api/?name=' . urlencode($name) . '&background=0ea5e9&color=ffffff';
+                    @endphp
+                    <div class="mt-auto pt-3">
+                      <button type="button"
+                        class="btnMemberInfo w-full inline-flex items-center justify-center gap-2 px-3 py-2 
+                              border border-slate-200 rounded-lg text-sm font-medium text-slate-700 
+                              hover:bg-slate-50 transition"
+                        data-member-id="{{ $council_member->id }}"
+                        data-member-name="{{ $name }}"
+                        data-member-role="{{ $role }}"
+                        data-member-email="{{ $email }}"
+                        data-member-phone="{{ $phone }}"
+                        data-member-avatar="{{ $avatarUrl }}">
+                        <i class="ph ph-address-book"></i> Xem thông tin
+                      </button>
+                    </div>
                 </div>
               @endforeach
             </div>
@@ -389,58 +389,123 @@
 
   <!-- Table -->
   <div class="overflow-x-auto border rounded-lg">
-    <table class="w-full text-sm">
-      <thead>
-        <tr class="bg-slate-50 text-slate-600 border-b">
-          <th class="py-3 px-4 text-left font-medium"><i class="ph ph-user text-slate-400"></i> Sinh viên</th>
-          <th class="py-3 px-4 text-left font-medium"><i class="ph ph-identification-badge text-slate-400"></i> MSSV</th>
-          <th class="py-3 px-4 text-left font-medium"><i class="ph ph-book text-slate-400"></i> Lớp</th>
-          <th class="py-3 px-4 text-left font-medium"><i class="ph ph-book text-slate-400"></i> Đề tài</th>
-          <th class="py-3 px-4 text-left font-medium"><i class="ph ph-chalkboard-teacher text-slate-400"></i> Giảng viên hướng dẫn</th>
-          <th class="py-3 px-4 text-left font-medium"><i class="ph ph-gear text-slate-400"></i> Hành động</th>
-        </tr>
-      </thead>
-      <tbody id="studentRows">
-        @foreach ($council_projects as $council_project)
-          @php
-            $student = $council_project->assignment->student ?? null;
-            $name = $student->user->fullname ?? 'N/A';
-            $class = $student->class_code ?? 'N/A';
-            $id = $student->student_code ?? 'N/A';
-            $topic = $council_project->assignment->project->name ?? 'N/A';
-            $time = $council_project->time ?? 'N/A';
-            $assignment_supervisors = $council_project->assignment->assignment_supervisors ?? collect();
-          @endphp
-          <tr class="border-b last:border-0 hover:bg-slate-50 transition">
-            <td class="py-3 px-4">
-              <a href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $student->id, 'termId' => $termId, 'supervisorId' => $supervisorId])}}"
-                 class="text-blue-600 font-medium hover:underline">
+<table class="w-full text-sm border border-slate-100 rounded-xl overflow-hidden">
+  <thead>
+    <tr class="bg-slate-50 text-slate-600 border-b">
+      <th class="py-3 px-4 text-left font-semibold"><i class="ph ph-user text-indigo-500 mr-2"></i> Sinh viên</th>
+      <th class="py-3 px-4 text-center font-semibold"><i class="ph ph-identification-badge text-emerald-500 mr-2"></i> MSSV</th>
+      <th class="py-3 px-4 text-center font-semibold"><i class="ph ph-books text-amber-500 mr-2"></i> Lớp</th>
+      <th class="py-3 px-4 text-left font-semibold"><i class="ph ph-book-open text-sky-500 mr-2"></i> Đề tài</th>
+      <th class="py-3 px-4 text-left font-semibold"><i class="ph ph-chalkboard-teacher text-violet-500 mr-2"></i> Giảng viên hướng dẫn</th>
+      <th class="py-3 px-4 text-center font-semibold"><i class="ph ph-gear-six text-rose-500 mr-2"></i> Hành động</th>
+    </tr>
+  </thead>
+
+  <tbody id="studentRows" class="divide-y divide-slate-100">
+    @foreach ($council_projects as $council_project)
+      @php
+        $student = $council_project->assignment->student ?? null;
+        $name = $student->user->fullname ?? 'N/A';
+        $class = $student->class_code ?? 'N/A';
+        $id = $student->student_code ?? 'N/A';
+        $topic = $council_project->assignment->project->name ?? 'N/A';
+        $assignment_supervisors = $council_project->assignment->assignment_supervisors ?? collect();
+      @endphp
+
+      <tr class="hover:bg-slate-50 transition-colors">
+        <!-- Sinh viên -->
+        <td class="py-3 px-4">
+          <div class="flex items-center gap-2">
+            <div class="h-8 w-8 rounded-full bg-indigo-50 text-indigo-600 grid place-items-center">
+              <i class="ph ph-student text-base"></i>
+            </div>
+            <div>
+              <a href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $student->id, 'termId' => $termId, 'supervisorId' => $supervisorId]) }}"
+                class="text-slate-800 font-semibold hover:text-indigo-600 transition">
                 {{ $name }}
               </a>
-            </td>
-            <td class="py-3 px-4 text-slate-700">{{ $class }}</td>
-            <td class="py-3 px-4 text-slate-700">{{ $id }}</td>
-            <td class="py-3 px-4 text-slate-700">{{ $topic }}</td>
-            <td class="py-3 px-4 text-slate-700 space-y-1">
-              @foreach ($assignment_supervisors as $assignment_supervisor)
-                <span class="block">{{ $assignment_supervisor->supervisor->teacher->user->fullname }}</span>
-              @endforeach
-            </td>
-            <td class="py-3 px-4">
-              <div class="flex items-center gap-2">
-                <a href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $student->id, 'termId' => $termId, 'supervisorId' => $supervisorId])}}"
-                   class="px-2 py-1 rounded-lg text-xs font-medium border border-slate-200 text-slate-600 hover:bg-slate-100 flex items-center gap-1">
-                  <i class="ph ph-eye"></i> Xem SV
-                </a>
+            </div>
+          </div>
+        </td>
+
+        <!-- MSSV -->
+        <td class="py-3 px-4 text-center">
+          <span class="inline-flex items-center justify-center gap-1 bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full font-mono font-medium">
+            <i class="ph ph-identification-badge text-sm"></i> {{ $id }}
+          </span>
+        </td>
+
+        <!-- Lớp -->
+        <td class="py-3 px-4 text-center">
+          <span class="inline-flex items-center justify-center gap-1 bg-amber-50 text-amber-700 px-3 py-1 rounded-full font-medium">
+            <i class="ph ph-graduation-cap text-sm"></i> {{ $class }}
+          </span>
+        </td>
+
+        <!-- Đề tài -->
+        <td class="py-3 px-4 text-slate-700">
+          <div class="flex items-start gap-2">
+            <i class="ph ph-book-open text-sky-500 mt-0.5"></i>
+            <span class="font-medium">{{ $topic }}</span>
+          </div>
+        </td>
+
+        <!-- Giảng viên hướng dẫn -->
+        <td class="py-3 px-4 text-slate-600">
+          @foreach ($assignment_supervisors as $assignment_supervisor)
+            @php
+              $supervisorName = $assignment_supervisor->supervisor->teacher->user->fullname ?? 'Chưa có';
+            @endphp
+            <div class="flex items-center gap-2 mb-1 last:mb-0">
+              <div class="h-6 w-6 rounded-md bg-violet-50 text-violet-600 grid place-items-center">
+                <i class="ph ph-chalkboard-teacher text-sm"></i>
               </div>
-            </td>
-          </tr>
-        @endforeach
-      </tbody>
-    </table>
+              <span>{{ $supervisorName }}</span>
+            </div>
+          @endforeach
+        </td>
+
+        <!-- Hành động -->
+        <td class="py-3 px-4 text-center">
+          <div class="flex justify-center gap-2">
+            <a href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $student->id, 'termId' => $termId, 'supervisorId' => $supervisorId]) }}"
+              class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-slate-700 hover:bg-slate-100 hover:text-indigo-600 transition">
+              <i class="ph ph-eye"></i> Xem SV
+            </a>
+          </div>
+        </td>
+      </tr>
+    @endforeach
+  </tbody>
+</table>
+
   </div>
 </section>
 
+
+          <!-- Modal: Xem thông tin thành viên hội đồng -->
+          <div id="memberInfoModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4" role="dialog" aria-modal="true">
+            <div class="absolute inset-0 bg-black/40" data-close-member></div>
+            <div class="relative z-10 bg-white w-full max-w-md rounded-2xl shadow-lg">
+              <div class="px-5 py-4 border-b flex items-start gap-4">
+                <div class="flex items-center gap-4">
+                  <img id="memberAvatar" src="" alt="avatar" class="h-16 w-16 rounded-full object-cover" />
+                  <div>
+                    <h3 id="memberName" class="text-lg font-semibold text-slate-800">&nbsp;</h3>
+                    <div id="memberRole" class="text-sm text-slate-500 mt-1">&nbsp;</div>
+                  </div>
+                </div>
+                <button data-close-member class="ml-auto text-slate-500 hover:text-slate-700"><i class="ph ph-x"></i></button>
+              </div>
+              <div class="p-5">
+                <div class="text-sm text-slate-600 mb-3"><strong>Email:</strong> <span id="memberEmail">&nbsp;</span></div>
+                <div class="text-sm text-slate-600"><strong>Phone:</strong> <span id="memberPhone">&nbsp;</span></div>
+              </div>
+              <div class="px-5 py-4 border-t flex items-center justify-end gap-2">
+                <button data-close-member class="px-3 py-1.5 rounded-lg border text-sm hover:bg-slate-50">Đóng</button>
+              </div>
+            </div>
+          </div>
 
           <!-- Modal: Phân công sinh viên -->
           <div id="assignModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4 md:p-6" role="dialog" aria-modal="true">
@@ -657,6 +722,49 @@
         btn.disabled = false; btn.innerHTML = old;
       }
     });
+  </script>
+  <script>
+    // Member info modal wiring
+    (function(){
+      const modal = document.getElementById('memberInfoModal');
+      if(!modal) return;
+      const avatar = modal.querySelector('#memberAvatar');
+      const nameEl = modal.querySelector('#memberName');
+      const roleEl = modal.querySelector('#memberRole');
+      const emailEl = modal.querySelector('#memberEmail');
+      const phoneEl = modal.querySelector('#memberPhone');
+
+      function openMemberModal(data){
+        avatar.src = data.avatar || avatar.src;
+        nameEl.textContent = data.name || '';
+        roleEl.textContent = data.role || '';
+        emailEl.textContent = data.email || '';
+        phoneEl.textContent = data.phone || '';
+        modal.classList.remove('hidden');
+        document.body.classList.add('overflow-hidden');
+      }
+      function closeMemberModal(){
+        modal.classList.add('hidden');
+        document.body.classList.remove('overflow-hidden');
+      }
+
+      modal.addEventListener('click', (e)=>{ if(e.target.closest('[data-close-member]')) closeMemberModal(); });
+
+      document.querySelectorAll('.btnMemberInfo').forEach(btn=>{
+        btn.addEventListener('click', (e)=>{
+          const b = e.currentTarget;
+          const data = {
+            id: b.dataset.memberId,
+            name: b.dataset.memberName,
+            role: b.dataset.memberRole,
+            email: b.dataset.memberEmail,
+            phone: b.dataset.memberPhone,
+            avatar: b.dataset.memberAvatar
+          };
+          openMemberModal(data);
+        });
+      });
+    })();
   </script>
 </body>
 </html>

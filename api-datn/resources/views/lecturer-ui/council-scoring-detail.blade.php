@@ -326,8 +326,8 @@
                       $studentCode = $student ? $student->student_code : 'N/A';
                       $topic = $council_project->assignment->project?->name ?? 'N/A';
                       $advisor = $council_project->assignment->assignment_supervisors ?? [];
-                      $reportUrl = $council_project->assignment->reportFiles?->sortByDesc('created_at')->first()?->file_url
-                                    ?? $council_project->assignment->reportFiles?->sortByDesc('created_at')->first()?->file_path
+                      $reportUrl = $council_project->assignment->project?->reportFiles?->sortByDesc('created_at')->where('type_report', 'report')->first()?->file_url
+                                    ?? $council_project->assignment->project?->reportFiles?->sortByDesc('created_at')->first()?->file_path
                                     ?? '#';
                       $index = $loop->index + 1;
 

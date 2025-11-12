@@ -158,41 +158,61 @@
       <main class="flex-1 overflow-y-auto px-4 md:px-6 py-6">
         <div class="max-w-6xl mx-auto space-y-4">
 
-          <section class="bg-white rounded-xl border border-slate-200 p-4">
-            <h2 class="font-semibold text-lg mb-2">Thông tin đợt đồ án</h2>
-            <div class="text-slate-700 text-sm space-y-2">
-              @php
-              $stage = $rows->stage;
-              $term = $rows->academy_year->name . ' - Học kỳ ' . $rows->stage;
-              $semester = ($rows->stage % 2 == 1) ? '1' : '2';
-              $date = date('d/m/Y', strtotime($rows->start_date)) . ' - ' . date('d/m/Y', strtotime($rows->end_date));
-              @endphp
-              <div class="flex items-center gap-3">
-                <div class="h-8 w-8 rounded-md bg-indigo-50 text-indigo-600 grid place-items-center">
-                  <i class="ph ph-calendar"></i>
-                </div>
-                <div><strong class="text-indigo-700">Đợt:</strong> <span class="text-slate-700">{{ $term }}</span></div>
+        <section class="bg-white rounded-xl border border-slate-200 p-4">
+          <h2 class="font-semibold text-lg mb-3">Thông tin đợt đồ án</h2>
+          @php
+            $stage = $rows->stage;
+            $term = $rows->academy_year->name . ' - Học kỳ ' . $rows->stage;
+            $semester = ($rows->stage % 2 == 1) ? '1' : '2';
+            $date = date('d/m/Y', strtotime($rows->start_date)) . ' - ' . date('d/m/Y', strtotime($rows->end_date));
+          @endphp
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-slate-700 text-sm">
+            <!-- Đợt -->
+            <div class="flex items-center gap-3 bg-slate-50 rounded-lg p-3">
+              <div class="h-9 w-9 rounded-md bg-indigo-50 text-indigo-600 grid place-items-center">
+                <i class="ph ph-calendar text-lg"></i>
               </div>
-              <div class="flex items-center gap-3">
-                <div class="h-8 w-8 rounded-md bg-emerald-50 text-emerald-600 grid place-items-center">
-                  <i class="ph ph-book-open"></i>
-                </div>
-                <div><strong class="text-emerald-700">Năm học:</strong> <span class="text-slate-700">{{ $term }}</span></div>
-              </div>
-              <div class="flex items-center gap-3">
-                <div class="h-8 w-8 rounded-md bg-amber-50 text-amber-600 grid place-items-center">
-                  <i class="ph ph-graduation-cap"></i>
-                </div>
-                <div><strong class="text-amber-700">Học kỳ:</strong> <span class="text-slate-700">{{ $semester }}</span></div>
-              </div>
-              <div class="flex items-center gap-3">
-                <div class="h-8 w-8 rounded-md bg-violet-50 text-violet-600 grid place-items-center">
-                  <i class="ph ph-clock"></i>
-                </div>
-                <div><strong class="text-violet-700">Thời gian:</strong> <span class="text-slate-700">{{ $date }}</span></div>
+              <div>
+                <strong class="text-indigo-700 block">Đợt</strong>
+                <span class="text-slate-700">{{ $term }}</span>
               </div>
             </div>
-          </section>
+
+            <!-- Năm học -->
+            <div class="flex items-center gap-3 bg-slate-50 rounded-lg p-3">
+              <div class="h-9 w-9 rounded-md bg-emerald-50 text-emerald-600 grid place-items-center">
+                <i class="ph ph-book-open text-lg"></i>
+              </div>
+              <div>
+                <strong class="text-emerald-700 block">Năm học</strong>
+                <span class="text-slate-700">{{ $term }}</span>
+              </div>
+            </div>
+
+            <!-- Học kỳ -->
+            <div class="flex items-center gap-3 bg-slate-50 rounded-lg p-3">
+              <div class="h-9 w-9 rounded-md bg-amber-50 text-amber-600 grid place-items-center">
+                <i class="ph ph-graduation-cap text-lg"></i>
+              </div>
+              <div>
+                <strong class="text-amber-700 block">Học kỳ</strong>
+                <span class="text-slate-700">{{ $semester }}</span>
+              </div>
+            </div>
+
+            <!-- Thời gian -->
+            <div class="flex items-center gap-3 bg-slate-50 rounded-lg p-3">
+              <div class="h-9 w-9 rounded-md bg-violet-50 text-violet-600 grid place-items-center">
+                <i class="ph ph-clock text-lg"></i>
+              </div>
+              <div>
+                <strong class="text-violet-700 block">Thời gian</strong>
+                <span class="text-slate-700">{{ $date }}</span>
+              </div>
+            </div>
+          </div>
+        </section>
 
           <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
             <div class="relative w-full md:w-auto">
@@ -202,72 +222,121 @@
             <a href="thesis-round-detail.html" class="text-sm text-sky-600 hover:underline flex items-center gap-2"><i class="ph ph-caret-left"></i><span>Quay lại chi tiết đợt</span></a>
           </div>
 
-<div class="bg-white border rounded-2xl shadow-sm overflow-hidden">
-  <div class="overflow-x-auto">
-    <table id="studentTable" class="w-full text-sm border-collapse">
-      <thead class="bg-slate-50 border-b sticky top-0">
-        <tr class="text-slate-600">
-          <th class="py-3 px-4 text-left font-semibold"><i class="ph ph-user mr-2"></i> Sinh viên</th>
-          <th class="py-3 px-4 text-left font-semibold"><i class="ph ph-hash mr-2"></i> MSSV</th>
-          <th class="py-3 px-4 text-left font-semibold"><i class="ph ph-file-text mr-2"></i> Đề tài</th>
-          <th class="py-3 px-4 text-left font-semibold"><i class="ph ph-chalkboard-teacher mr-2"></i> Hội đồng</th>
-          <th class="py-3 px-4 text-left font-semibold"><i class="ph ph-calendar mr-2"></i> Lịch bảo vệ</th>
-          <th class="py-3 px-4 text-left font-semibold"><i class="ph ph-map-pin mr-2"></i> Phòng</th>
-          <th class="py-3 px-4 text-center font-semibold"><i class="ph ph-gear-six mr-2"></i> Hành động</th>
-        </tr>
-      </thead>
-      <tbody id="committeesTableBody" class="divide-y divide-slate-100">
-        @php
-          $assignments = $rows->assignments;
-        @endphp
-  @foreach ($assignments as $assignment)
-          @php
-            $fullname = $assignment->student->user->fullname;
-            $student_code = $assignment->student->code;
-            $topic = $assignment->project->name ?? 'Chưa có đề tài';
-            $council_name = $assignment->council_project->council->name ?? 'Chưa có hội đồng';
-            $date = $assignment->council_project->council->date ?? 'Chưa có lịch';
-            $room = $assignment->council_project->council->address ?? 'Chưa có phòng';
-            $councilId = $assignment->council_project->council->id ?? null;
-          @endphp
-          <tr class="hover:bg-slate-50 transition group">
-            <td class="py-3 px-4 font-medium text-slate-700">
-              <a class="text-sky-600 hover:underline font-medium" href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $assignment->student->id, 'termId' => $rows->id, 'supervisorId' => $supervisorId]) }}">
-                {{ $fullname }}
-              </a>
-              <div class="text-xs text-slate-500 mt-1">{{ $topic }}</div>
-            </td>
-            <td class="py-3 px-4 text-slate-600">{{ $student_code }}</td>
-            <td class="py-3 px-4 text-slate-700">{{ $topic }}</td>
-            <td class="py-3 px-4 text-slate-700">{{ $council_name }}</td>
-            <td class="py-3 px-4 text-slate-600">{{ $date }}</td>
-            <td class="py-3 px-4 text-slate-600">{{ $room }}</td>
-            <td class="py-3 px-4 text-center">
-              <div class="flex items-center justify-center gap-2">
-                <a href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $assignment->student->id, 'termId' => $rows->id, 'supervisorId' => $supervisorId]) }}"
-                  class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-sky-50 text-sky-600 hover:bg-sky-100 text-xs font-medium transition">
-                  <i class="ph ph-user text-sm"></i>
-                  <span class="hidden sm:inline">SV</span>
-                </a>
-                @if ($councilId)
-                <a href="{{ route('web.teacher.committee_detail', ['councilId'=>$councilId, 'termId'=>$rows->id, 'supervisorId' => $supervisorId]) }}"
-                  class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-50 text-slate-600 hover:bg-slate-100 text-xs font-medium transition">
-                  <i class="ph ph-chalkboard-teacher text-sm"></i>
-                  <span class="hidden sm:inline">Hội đồng</span>
-                </a>
-                @endif
-              </div>
-            </td>
-          </tr>
-        @endforeach
-      </tbody>
-    </table>
-  </div>
-</div>
+          <div class="bg-white border rounded-2xl shadow-sm overflow-hidden">
+            <div class="overflow-x-auto">
+              <table id="studentTable" class="w-full text-sm border-collapse">
+                <thead class="bg-slate-50 border-b sticky top-0 z-10">
+                  <tr class="text-slate-600">
+                    <th class="py-3 px-4 text-left font-semibold">
+                      <i class="ph ph-user-circle mr-2 text-slate-500"></i> Sinh viên
+                    </th>
+                    <th class="py-3 px-4 text-left font-semibold">
+                      <i class="ph ph-hash mr-2 text-slate-500"></i> MSSV
+                    </th>
+                    <th class="py-3 px-4 text-center font-semibold">
+                      <i class="ph ph-book mr-2 text-slate-500"></i> Đề tài
+                    </th>
+                    <th class="py-3 px-4 text-center font-semibold">
+                      <i class="ph ph-users-three mr-2 text-slate-500"></i> Hội đồng
+                    </th>
+                    <th class="py-3 px-4 text-left font-semibold">
+                      <i class="ph ph-calendar-check mr-2 text-slate-500"></i> Lịch bảo vệ
+                    </th>
+                    <th class="py-3 px-4 text-left font-semibold">
+                      <i class="ph ph-map-pin-line mr-2 text-slate-500"></i> Phòng
+                    </th>
+                    <th class="py-3 px-4 text-center font-semibold">
+                      <i class="ph ph-gear-six mr-2 text-slate-500"></i> Hành động
+                    </th>
+                  </tr>
+                </thead>
 
+                <tbody id="committeesTableBody" class="divide-y divide-slate-100 text-slate-700">
+                  @php $assignments = $rows->assignments; @endphp
+                  @foreach ($assignments as $assignment)
+                    @php
+                      $student = $assignment->student;
+                      $fullname = $student->user->fullname;
+                      $student_code = $student->student_code;
+                      $topic = $assignment->project->name ?? 'Chưa có đề tài';
+                      $council = $assignment->council_project->council ?? null;
+                      $council_name = $council->name ?? 'Chưa có hội đồng';
+                      $date = $council->date ?? 'Chưa có lịch';
+                      $room = $council->address ?? 'Chưa có phòng';
+                      $councilId = $council->id ?? null;
+                    @endphp
+
+                    <tr class="hover:bg-slate-50 transition-colors group">
+                      <!-- Sinh viên -->
+                      <td class="py-3 px-4">
+                        <a href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $student->id, 'termId' => $rows->id, 'supervisorId' => $supervisorId]) }}"
+                          class="inline-flex items-center gap-2 text-indigo-600 hover:text-indigo-800 font-medium transition">
+                          <i class="ph ph-user-circle text-base"></i>
+                          <span>{{ $fullname }}</span>
+                        </a>
+                      </td>
+
+                      <!-- MSSV -->
+                      <td class="py-3 px-4 font-mono text-slate-600">
+                        <span class="bg-slate-50 px-2 py-1 rounded text-xs">{{ $student_code }}</span>
+                      </td>
+
+                      <!-- Đề tài -->
+                      <td class="py-3 px-4 text-slate-700 text-center">
+                        <div class="flex gap-2">
+                          <i class="ph ph-book text-slate-400 mt-0.5"></i>
+                          <span>{{ $topic }}</span>
+                        </div>
+                      </td>
+
+                      <!-- Hội đồng -->
+                      <td class="py-3 px-4 text-slate-700 text-center">
+                        <div class="inline-flex items-center gap-2 bg-indigo-50 text-indigo-700 px-3 py-1 rounded-full text-xs font-medium">
+                          <i class="ph ph-users-three text-base"></i>
+                          {{ $council_name }}
+                        </div>
+                      </td>
+
+                      <!-- Lịch bảo vệ -->
+                      <td class="py-3 px-4 text-slate-600">
+                        <div class="flex items-center gap-2">
+                          <i class="ph ph-calendar text-slate-400"></i>
+                          <span>{{ $date }}</span>
+                        </div>
+                      </td>
+
+                      <!-- Phòng -->
+                      <td class="py-3 px-4 text-slate-600">
+                        <div class="flex items-center gap-2">
+                          <i class="ph ph-map-pin text-slate-400"></i>
+                          <span>{{ $room }}</span>
+                        </div>
+                      </td>
+
+                      <!-- Hành động -->
+                      <td class="py-3 px-4 text-center">
+                        <div class="flex justify-center gap-2">
+                          <a href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $student->id, 'termId' => $rows->id, 'supervisorId' => $supervisorId]) }}"
+                            class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-sky-50 text-sky-600 hover:bg-sky-100 text-xs font-medium transition">
+                            <i class="ph ph-user text-sm"></i> SV
+                          </a>
+                          @if ($councilId)
+                            <a href="{{ route('web.teacher.committee_detail', ['councilId' => $councilId, 'termId' => $rows->id, 'supervisorId' => $supervisorId]) }}"
+                              class="inline-flex items-center gap-1 px-3 py-1.5 rounded-full bg-indigo-50 text-indigo-600 hover:bg-indigo-100 text-xs font-medium transition">
+                              <i class="ph ph-users-three text-sm"></i> Hội đồng
+                            </a>
+                          @else
+                            <span class="text-xs text-slate-400 italic">Chưa có hội đồng</span>
+                          @endif
+                        </div>
+                      </td>
+                    </tr>
+                  @endforeach
+                </tbody>
+              </table>
+            </div>
+          </div>
           <div id="noResults" class="hidden p-6 text-center text-slate-500">Không tìm thấy kết quả nào.</div>
-
-
         </div>
       </main>
     </div>

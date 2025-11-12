@@ -59,8 +59,17 @@
       ?? $user->profile_photo_url
       ?? 'https://ui-avatars.com/api/?name=' . urlencode($userName) . '&background=0ea5e9&color=ffffff';
     $assignments = $rows->assignments;
-    $stage = $rows->stagetimelines->sortBy('number_of_rounds');
-    $stageTimeline = $rows->stageTimelines?->sortBy('number_of_rounds') ?? collect();
+  $stage = $rows->stagetimelines->sortBy('number_of_rounds');
+  $stageTimeline = $rows->stageTimelines?->sortBy('number_of_rounds') ?? collect();
+  // Precompute progress percentage (number of completed stages / total stages)
+  $progressWidth = 0;
+  foreach ($stageTimeline as $st) {
+    $endDate = $st->end_date ?? null;
+    if ($endDate && Carbon::parse($endDate)->isPast()) $progressWidth++;
+  }
+  $totalStages = max(1, $stageTimeline->count());
+  $pct = ($progressWidth * 100) / $totalStages;
+  $pct = max(0, min(100, round($pct)));
     $departmentRole = $user->teacher->departmentRoles->where('role', 'head')->first() ?? null;
     $departmentId = $departmentRole?->department_id ?? 0;
   @endphp
@@ -276,9 +285,14 @@
             <div class="flex items-center justify-between mb-6">
               <h3 class="font-semibold">Tiến độ giai đoạn hướng dẫn</h3>
               <div class="flex items-center gap-2 text-sm">
-                <span class="font-medium" id="progressText">25%</span>
+                @php
+                  // Calculate progress percentage based on number of completed stages
+                  $progressWidth = 0;
+                  $totalStages = max(1, $stageTimeline->count());
+                @endphp
+                <span class="font-medium" id="progressText">{{ $pct }}%</span>
                 <div class="w-40 h-2 rounded-full bg-slate-100 overflow-hidden">
-                  <div class="h-full bg-blue-600" id="progressBar" style="width:25%"></div>
+                  <div class="h-full bg-blue-600" id="progressBar" style="width:{{ $pct }}%"></div>
                 </div>
               </div>
             </div>
@@ -287,17 +301,20 @@
               <!-- Progress Line -->
             <div class="absolute top-6 left-8 right-8 h-0.5 bg-slate-200">
               @php
-                $progressWidth = 0;
-              @endphp
-              @foreach ($stageTimeline as $index => $stageDate)
-                @php
-                  $endDate = $stageDate->end_date ?? null;
-                  if( $endDate && Carbon::parse($endDate)->isPast() ) {
-                    $progressWidth ++;
+                  // Count completed stages
+                  $progressWidth = 0;
+                  foreach ($stageTimeline as $index => $stageDate) {
+                      $endDate = $stageDate->end_date ?? null;
+                      if ($endDate && Carbon::parse($endDate)->isPast()) {
+                          $progressWidth++;
+                      }
                   }
-                @endphp
-              @endforeach
-                <div class="h-full bg-emerald-600" style="width: {{ $progressWidth/8 * 100 }}%"></div>
+                  $totalStages = max(1, $stageTimeline->count());
+                  $pct = ($progressWidth * 100) / $totalStages;
+                  // clamp 0..100 and format
+                  $pct = max(0, min(100, round($pct)));
+              @endphp
+                  <div class="h-full bg-emerald-600" style="width: {{ $pct }}%"></div>
             </div>
               <!-- Timeline Items -->
               <div class="grid grid-cols-8 gap-4 relative">
@@ -725,7 +742,7 @@
                 <i class="ph ph-files"></i>
               </div>
               <div class="flex-1">
-                <div class="font-medium">Danh sách báo cáo đề cương</div>
+                <div class="font-medium">Danh sách đề cương của sinh viên hướng dẫn</div>
                 <div class="text-xs text-slate-500 mt-0.5">Theo dõi các lần nộp đề cương, trạng thái và thao tác.</div>
                 <div class="mt-3">
                   <span class="inline-flex items-center gap-1.5 text-indigo-700 text-sm group-hover:gap-2 transition-all">
@@ -1231,7 +1248,7 @@
               </thead>
 
               <!-- Body -->
-              <tbody class="divide-y divide-slate-100">
+              <tbody class="divide-y divide-slate-100 text-sm text-slate-700">
                 @foreach ($assignments as $assignment)
                   @php
                     $student = $assignment->student;
@@ -1241,44 +1258,65 @@
                     $topic = $assignment->project?->name ?? 'Chưa có đề tài';
                     $assignment_supervisors = $assignment->assignment_supervisors->where('status', 'accepted') ?? [];
 
-                    $committee = $assignment->council_project?->council->name ?? 'Chưa có hội đồng'; // demo
+                    $committee = $assignment->council_project?->council->name ?? 'Chưa có hội đồng';
                     $councilId = $assignment->council_project?->council_id;
-                    $schedule  = $assignment->council_project?->council?->date ?? 'Chưa có lịch'; // demo
-                    $room = $assignment->council_project?->council?->address ?? 'Chưa có phòng'; // demo
+                    $schedule  = $assignment->council_project?->council?->date ?? 'Chưa có lịch';
+                    $room = $assignment->council_project?->council?->address ?? 'Chưa có phòng';
                   @endphp
 
                   <tr class="hover:bg-slate-50 transition-colors">
                     <!-- Họ tên -->
                     <td class="py-3 px-4">
                       <a href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $rows->id, 'supervisorId' => $supervisorId]) }}"
-                        class="text-blue-600 hover:underline font-medium">
-                        {{ $fullname }}
+                        class="inline-flex items-center gap-2 text-indigo-600 hover:text-indigo-800 font-medium transition">
+                        <i class="ph ph-user-circle text-base"></i>
+                        <span>{{ $fullname }}</span>
                       </a>
                     </td>
 
                     <!-- MSSV -->
-                    <td class="py-3 px-4 text-center font-mono text-slate-700">{{ $student_code }}</td>
+                    <td class="py-3 px-4 text-center font-mono text-slate-600">
+                      <span class="bg-slate-50 px-2 py-1 rounded-md text-xs">{{ $student_code }}</span>
+                    </td>
 
                     <!-- Đề tài -->
-                    <td class="py-3 px-4 text-slate-700">{{ $topic }}</td>
+                    <td class="py-3 px-4 text-slate-700">
+                      <div class="flex items-start gap-2">
+                        <i class="ph ph-book text-slate-400 mt-0.5"></i>
+                        <span>{{ $topic }}</span>
+                      </div>
+                    </td>
 
                     <!-- Giảng viên hướng dẫn -->
-                    <td class="py-3 px-4 text-slate-600">
-                    @foreach ($assignment_supervisors as $assignment_supervisor)
-                      @php
-                        $supervisorName = $assignment_supervisor->supervisor->teacher->user->fullname ?? 'Chưa có';
-                      @endphp
-                      <div class="mb-1 last:mb-0">
-                        <i class="ph ph-user text-slate-400 mr-1"></i> {{ $supervisorName }}
-                      </div>
-                    @endforeach
+                    <td class="py-3 px-4 text-slate-700">
+                      @forelse ($assignment_supervisors as $assignment_supervisor)
+                        @php
+                          $supervisorName = $assignment_supervisor->supervisor->teacher->user->fullname ?? 'Chưa có';
+                        @endphp
+                        <div class="flex items-center gap-2 mb-1 last:mb-0">
+                          <i class="ph ph-chalkboard-teacher text-slate-400"></i>
+                          <span>{{ $supervisorName }}</span>
+                        </div>
+                      @empty
+                        <span class="text-slate-400 italic">Chưa có GVHD</span>
+                      @endforelse
                     </td>
 
                     <!-- Hội đồng -->
-                    <td class="py-3 px-4 text-center">{{ $committee }}</td>
+                    <td class="py-3 px-4 text-center">
+                      <span class="inline-flex items-center gap-2 bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-full text-xs font-medium">
+                        <i class="ph ph-users-three text-base"></i>
+                        {{ $committee }}
+                      </span>
+                    </td>
 
                     <!-- Phòng -->
-                    <td class="py-3 px-4 text-center">{{ $room }}</td>
+                    <td class="py-3 px-4 text-center">
+                      <div class="inline-flex items-center gap-1 text-slate-600">
+                        <i class="ph ph-map-pin text-slate-400"></i>
+                        <span>{{ $room }}</span>
+                      </div>
+                    </td>
 
                     <!-- Hành động -->
                     <td class="py-3 px-4 text-center">
@@ -1287,13 +1325,13 @@
                           class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-slate-600 hover:bg-slate-100 transition">
                           <i class="ph ph-user"></i> SV
                         </a>
-                        @if($councilId !== null)
-                            <a href="{{ route('web.teacher.committee_detail', ['councilId'=>$councilId, 'termId'=>$rows->id, 'supervisorId'=>$supervisorId]) }}"
-                              class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-indigo-600 hover:bg-indigo-50 transition">
-                              <i class="ph ph-users-three"></i> Hội đồng
-                            </a>
+                        @if($councilId)
+                          <a href="{{ route('web.teacher.committee_detail', ['councilId' => $councilId, 'termId' => $rows->id, 'supervisorId' => $supervisorId]) }}"
+                            class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-indigo-200 text-xs font-medium text-indigo-600 hover:bg-indigo-50 transition">
+                            <i class="ph ph-users-three"></i> Hội đồng
+                          </a>
                         @else
-                            <span class="text-xs text-slate-400 italic">Chưa có hội đồng</span>
+                          <span class="text-xs text-slate-400 italic">Chưa có hội đồng</span>
                         @endif
                       </div>
                     </td>
@@ -1377,84 +1415,96 @@
               </thead>
 
               <!-- Body -->
-              <tbody class="divide-y divide-slate-100">
-                @foreach ($assignments as $assignment)
-                  @php
-                    $student = $assignment->student;
-                    $fullname = $student->user->fullname;
-                    $student_code = $student->student_code;
-                    $studentId = $student->id;
-                    $topic = $assignment->project->title ?? 'Chưa có đề tài';
-                    $councilId = $assignment->council_project?->council_id;
-                    $committee = $assignment->council_project?->council->name ?? 'Chưa có hội đồng';
-                    $reviewer = $assignment->council_project?->council_member?->supervisor->teacher->user->fullname ?? 'Chưa có giảng viên';
-                    $role     = $assignment->council_project?->council_member?->role ?? 'NA';
-                    $listRole = [
-                    '5' => 'Chủ tịch',
-                    '4' => 'Thư ký',
-                    '3' => 'Ủy viên 1',
-                    '2' => 'Ủy viên 2',
-                    '1' => 'Ủy viên 3',];
-                    $role = $listRole[$role] ?? 'NA';
-                    $order    = $loop->index + 1;
-                    $time = $assignment->council_project && $assignment->council_project->date
-                    ? Carbon::parse($assignment->council_project->date)->format('H:i d/m/Y')
-                    : 'Chưa có lịch';
-                  @endphp
+<tbody class="divide-y divide-slate-100">
+  @foreach ($assignments as $assignment)
+    @php
+      $student = $assignment->student;
+      $fullname = $student->user->fullname;
+      $student_code = $student->student_code;
+      $studentId = $student->id;
+      $topic = $assignment->project->title ?? 'Chưa có đề tài';
+      $councilId = $assignment->council_project?->council_id;
+      $committee = $assignment->council_project?->council->name ?? 'Chưa có hội đồng';
+      $reviewer = $assignment->council_project?->council_member?->supervisor->teacher->user->fullname ?? 'Chưa có giảng viên';
+      $role     = $assignment->council_project?->council_member?->role ?? 'NA';
+      $listRole = [
+        '5' => 'Chủ tịch',
+        '4' => 'Thư ký',
+        '3' => 'Ủy viên 1',
+        '2' => 'Ủy viên 2',
+        '1' => 'Ủy viên 3',
+      ];
+      $role = $listRole[$role] ?? 'NA';
+      $order = $loop->index + 1;
+      $time = $assignment->council_project && $assignment->council_project->date
+        ? Carbon::parse($assignment->council_project->date)->format('H:i d/m/Y')
+        : 'Chưa có lịch';
 
-                  <tr class="hover:bg-slate-50 transition-colors">
-                    <!-- Sinh viên -->
-                    <td class="px-4 py-3">
-                      <a href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $rows->id, 'supervisorId' => $supervisorId]) }}"
-                        class="text-blue-600 hover:underline font-medium">
-                        {{ $fullname }}
-                      </a>
-                    </td>
+      // Icon cho hội đồng
+      $icon = $committee === 'Chưa có hội đồng' ? 'ph-question' : 'ph-users-three';
+      $color = $committee === 'Chưa có hội đồng' ? 'text-slate-400' : 'text-indigo-500';
+    @endphp
 
-                    <!-- MSSV -->
-                    <td class="px-4 py-3 text-center font-mono text-slate-700">{{ $student_code }}</td>
+    <tr class="hover:bg-slate-50 transition-colors">
+      <!-- Sinh viên -->
+      <td class="px-4 py-3">
+        <a href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $rows->id, 'supervisorId' => $supervisorId]) }}"
+           class="text-blue-600 hover:underline font-medium">
+          {{ $fullname }}
+        </a>
+      </td>
 
-                    <!-- Hội đồng -->
-                    <td class="px-4 py-3 text-center">{{ $committee }}</td>
+      <!-- MSSV -->
+      <td class="px-4 py-3 text-center font-mono text-slate-700">{{ $student_code }}</td>
 
-                    <!-- GV phản biện -->
-                    <td class="px-4 py-3 text-slate-700">{{ $reviewer }}</td>
+      <!-- Hội đồng -->
+      <td class="px-4 py-3 text-center">
+        <div class="inline-flex items-center justify-center gap-1.5 text-slate-700">
+          <i class="ph {{ $icon }} {{ $color }} text-lg"></i>
+          <span>{{ $committee }}</span>
+        </div>
+      </td>
 
-                    <!-- Chức vụ -->
-                    <td class="px-4 py-3 text-center">
-                      <span class="inline-block whitespace-nowrap px-2 py-1 text-xs rounded-full bg-indigo-50 text-indigo-700 font-medium">
-                        {{ $role }}
-                      </span>
-                    </td>
+      <!-- GV phản biện -->
+      <td class="px-4 py-3 text-slate-700">{{ $reviewer }}</td>
 
-                    <!-- STT PB -->
-                    <td class="px-4 py-3 text-center">
-                      <span class="px-2 py-1 text-xs rounded-md bg-slate-100 text-slate-700">{{ $order }}</span>
-                    </td>
+      <!-- Chức vụ -->
+      <td class="px-4 py-3 text-center">
+        <span class="inline-block whitespace-nowrap px-2 py-1 text-xs rounded-full bg-indigo-50 text-indigo-700 font-medium">
+          {{ $role }}
+        </span>
+      </td>
 
-                    <!-- Thời gian -->
-                    <td class="px-4 py-3 text-slate-600">{{ $time }}</td>
+      <!-- STT PB -->
+      <td class="px-4 py-3 text-center">
+        <span class="px-2 py-1 text-xs rounded-md bg-slate-100 text-slate-700">{{ $order }}</span>
+      </td>
 
-                    <!-- Hành động -->
-                    <td class="px-4 py-3 text-center">
-                      <div class="flex justify-center gap-2">
-                        <a href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $rows->id, 'supervisorId' => $supervisorId]) }}"
-                          class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-slate-600 hover:bg-slate-50 transition">
-                          <i class="ph ph-user"></i> SV
-                        </a>
-                        @if($councilId !== null)
-                            <a href="{{ route('web.teacher.committee_detail', ['councilId'=>$councilId, 'termId'=>$rows->id, 'supervisorId' => $supervisorId]) }}"
-                              class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-indigo-600 hover:bg-indigo-50 transition">
-                              <i class="ph ph-users-three"></i> Hội đồng
-                            </a>
-                        @else
-                            <span class="text-xs text-slate-400 italic">Chưa có hội đồng</span>
-                        @endif
-                      </div>
-                    </td>
-                  </tr>
-                @endforeach
-              </tbody>
+      <!-- Thời gian -->
+      <td class="px-4 py-3 text-slate-600">{{ $time }}</td>
+
+      <!-- Hành động -->
+      <td class="px-4 py-3 text-center">
+        <div class="flex justify-center gap-2">
+          <a href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $rows->id, 'supervisorId' => $supervisorId]) }}"
+             class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-slate-600 hover:bg-slate-50 transition">
+            <i class="ph ph-user"></i> SV
+          </a>
+
+          @if($councilId !== null)
+            <a href="{{ route('web.teacher.committee_detail', ['councilId' => $councilId, 'termId' => $rows->id, 'supervisorId' => $supervisorId]) }}"
+               class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-indigo-600 hover:bg-indigo-50 transition">
+              <i class="ph ph-users-three"></i> Hội đồng
+            </a>
+          @else
+            <span class="text-xs text-slate-400 italic">Chưa có hội đồng</span>
+          @endif
+        </div>
+      </td>
+    </tr>
+  @endforeach
+</tbody>
+
             </table>
           </div>
         </div>`;
@@ -1494,7 +1544,6 @@
                   <th class="py-3 px-4 font-semibold text-center">MSSV</th>
                   <th class="py-3 px-4 font-semibold text-center">Hội đồng</th>
                   <th class="py-3 px-4 font-semibold text-center">Kết quả phản biện</th>
-                  <th class="py-3 px-4 font-semibold text-center">STT bảo vệ</th>
                   <th class="py-3 px-4 font-semibold text-left">Thời gian bảo vệ</th>
                   <th class="py-3 px-4 font-semibold text-center">Hành động</th>
                 </tr>
@@ -1510,10 +1559,9 @@
                     $studentId = $student->id;
                     $topic = $assignment->project->title ?? 'Chưa có đề tài';
                     $councilId = $assignment->council_project?->council_id;
-                    $committee = $assignment->council_project?->council?->name ?? 'Chưa có hội đồng'; // ví dụ
-                    $score = $assignment->council_project?->review_score ?? null; // ví dụ
+                    $committee = $assignment->council_project?->council?->name ?? 'Chưa có hội đồng';
+                    $score = $assignment->council_project?->review_score ?? null;
                     if ($score !== null) {
-                      $resultClass = "bg-emerald-100 text-emerald-700"; // ví dụ
                       if ($score >= 5) {
                         $result = 'Đạt';
                         $resultClass = 'bg-emerald-100 text-emerald-700';
@@ -1525,13 +1573,14 @@
                       $result = 'Chưa có';
                       $resultClass = 'bg-slate-100 text-slate-600';
                     }
-                    $order     = $loop->index + 1; // ví dụ
-                    $time      = $assignment->council_project?->council?->date ?? 'Chưa có lịch';
+                    $order = $loop->index + 1;
+                    $time = $assignment->council_project?->council?->date ?? 'Chưa có lịch';
                   @endphp
 
                   <tr class="hover:bg-slate-50 transition-colors">
                     <!-- Sinh viên -->
                     <td class="px-4 py-3">
+                      <i class="ph ph-user-circle text-slate-400 mr-1"></i>
                       <a href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $rows->id, 'supervisorId' => $supervisorId]) }}"
                         class="text-blue-600 hover:underline font-medium">
                         {{ $fullname }}
@@ -1539,25 +1588,26 @@
                     </td>
 
                     <!-- MSSV -->
-                    <td class="px-4 py-3 text-center font-mono text-slate-700">{{ $student_code }}</td>
+                    <td class="px-4 py-3 text-center font-mono text-slate-700">
+                      <i class="ph ph-hash text-slate-400 mr-1"></i>{{ $student_code }}
+                    </td>
 
                     <!-- Hội đồng -->
-                    <td class="px-4 py-3 text-center">{{ $committee }}</td>
+                    <td class="px-4 py-3 text-center">
+                      <i class="ph ph-users text-slate-400 mr-1"></i>{{ $committee }}
+                    </td>
 
                     <!-- Kết quả phản biện -->
                     <td class="px-4 py-3 text-center">
                       <span class="px-2 py-1 text-xs font-medium rounded-full {{ $resultClass }}">
-                        {{ $result }}
+                        <i class="ph ph-check-circle text-xs mr-1"></i>{{ $result }}
                       </span>
                     </td>
 
-                    <!-- STT bảo vệ -->
-                    <td class="px-4 py-3 text-center">
-                      <span class="px-2 py-1 text-xs rounded-md bg-slate-100 text-slate-700">{{ $order }}</span>
+                    <!-- Thời gian bảo vệ -->
+                    <td class="px-4 py-3 text-slate-600">
+                      <i class="ph ph-clock text-slate-400 mr-1"></i>{{ $time }}
                     </td>
-
-                    <!-- Thời gian -->
-                    <td class="px-4 py-3 text-slate-600">{{ $time }}</td>
 
                     <!-- Hành động -->
                     <td class="px-4 py-3 text-center">
@@ -1567,12 +1617,12 @@
                           <i class="ph ph-user"></i> SV
                         </a>
                         @if($councilId !== null)
-                            <a href="{{ route('web.teacher.committee_detail', ['councilId'=>$councilId, 'termId'=>$rows->id, 'supervisorId' => $supervisorId]) }}"
-                              class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-indigo-600 hover:bg-indigo-50 transition">
-                              <i class="ph ph-users-three"></i> Hội đồng
-                            </a>
+                          <a href="{{ route('web.teacher.committee_detail', ['councilId'=>$councilId, 'termId'=>$rows->id, 'supervisorId' => $supervisorId]) }}"
+                            class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-indigo-600 hover:bg-indigo-50 transition">
+                            <i class="ph ph-users-three"></i> Hội đồng
+                          </a>
                         @else
-                            <span class="text-xs text-slate-400 italic">Chưa có hội đồng</span>
+                          <span class="text-xs text-slate-400 italic">Chưa có hội đồng</span>
                         @endif
                       </div>
                     </td>
@@ -1674,12 +1724,12 @@
               <!-- Header -->
               <thead class="bg-slate-50 border-b border-slate-200">
                 <tr class="text-slate-700">
-                  <th class="py-3 px-4 font-semibold text-left">Sinh viên</th>
+                  <th class="py-3 px-4 font-semibold text-center">Sinh viên</th>
                   <th class="py-3 px-4 font-semibold text-center">MSSV</th>
                   <th class="py-3 px-4 font-semibold text-center">Hội đồng</th>
                   <th class="py-3 px-4 font-semibold text-center">Điểm bảo vệ</th>
                   <th class="py-3 px-4 font-semibold text-center">Kết quả</th>
-                  <th class="py-3 px-4 font-semibold text-left">Nhận xét</th>
+                  <th class="py-3 px-4 font-semibold text-center">Nhận xét</th>
                   <th class="py-3 px-4 font-semibold text-center">Hành động</th>
                 </tr>
               </thead>
@@ -1707,64 +1757,71 @@
                       $score = $countScores > 0 ? round($totalScore / $countScores, 2) : null;
                       $comment = "Trình bày tốt, trả lời câu hỏi rõ ràng.";
                       $resultClass = "bg-emerald-100 text-emerald-700";
+                      $result = "Đạt"; // Hoặc tính theo điểm
                     } else {
                       $score     = "Chưa có";
                       $result    = "Chưa có";
-                      $comment      = "Chưa có";
+                      $comment   = "Chưa có";
                       $resultClass = "bg-slate-100 text-slate-600";
                     }
                   @endphp
 
                   <tr class="hover:bg-slate-50 transition">
                     <!-- Sinh viên -->
-                    <td class="px-4 py-3">
+                    <td class="px-4 py-3 max-w-xs break-words text-center">
+                      <i class="ph ph-user-circle text-slate-400 mr-1"></i>
                       <a href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $rows->id, 'supervisorId' => $supervisorId]) }}"
-                        class="text-blue-600 hover:underline font-medium">
+                        class="text-blue-600 hover:underline font-medium break-words">
                         {{ $fullname }}
                       </a>
                     </td>
 
                     <!-- MSSV -->
-                    <td class="px-4 py-3 text-center font-mono text-slate-700">{{ $student_code }}</td>
+                    <td class="px-4 py-3 text-center font-mono text-slate-700 truncate max-w-[100px]">
+                      <i class="ph ph-hash text-slate-400 mr-1"></i>{{ $student_code }}
+                    </td>
 
                     <!-- Hội đồng -->
-                    <td class="px-4 py-3 text-center">{{ $committee }}</td>
+                    <td class="px-4 py-3 text-center max-w-[150px] break-words">
+                      <i class="ph ph-users text-slate-400 mr-1"></i>{{ $committee }}
+                    </td>
 
-                    <!-- Điểm -->
-                    <td class="px-4 py-3 text-center font-semibold text-slate-800">{{ $score }}</td>
+                    <!-- Điểm bảo vệ -->
+                    <td class="px-4 py-3 text-center font-semibold text-slate-800 min-w-[60px]">{{ $score }}</td>
 
                     <!-- Kết quả -->
-                    <td class="px-4 py-3 text-center">
-                      <span class="px-2 py-1 text-xs font-medium rounded-full {{ $resultClass }}">
-                        {{ $result }}
+                    <td class="px-4 py-3 text-center min-w-[90px]">
+                      <span class="inline-block px-2 py-1 text-xs font-medium rounded-full {{ $resultClass }} whitespace-nowrap">
+                        <i class="ph ph-check-circle text-xs mr-1"></i>{{ $result }}
                       </span>
                     </td>
 
                     <!-- Nhận xét -->
-                    <td class="px-4 py-3 text-slate-600 max-w-xs whitespace-normal">
-                      {{ $comment }}
+                    <td class="px-4 py-3 text-slate-600 max-w-xs break-words text-center">
+                      <i class="ph ph-chat-text text-slate-400 mr-1"></i>{{ $comment }}
                     </td>
 
                     <!-- Hành động -->
-                    <td class="px-4 py-3 text-center">
-                      <div class="flex justify-center gap-2">
+                    <td class="px-4 py-3 text-center min-w-[120px]">
+                      <div class="flex justify-center gap-2 flex-wrap">
                         <a href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $rows->id, 'supervisorId' => $supervisorId]) }}"
                           class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-slate-600 hover:bg-slate-50 transition">
                           <i class="ph ph-user"></i> SV
                         </a>
                         @if($councilId !== null)
-                            <a href="{{ route('web.teacher.committee_detail', ['councilId'=>$councilId, 'termId'=>$rows->id, 'supervisorId' => $supervisorId]) }}"
-                              class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-indigo-600 hover:bg-indigo-50 transition">
-                              <i class="ph ph-users-three"></i> Hội đồng
-                            </a>
+                          <a href="{{ route('web.teacher.committee_detail', ['councilId'=>$councilId, 'termId'=>$rows->id, 'supervisorId' => $supervisorId]) }}"
+                            class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-indigo-600 hover:bg-indigo-50 transition">
+                            <i class="ph ph-users-three"></i> Hội đồng
+                          </a>
                         @else
-                            <span class="text-xs text-slate-400 italic">Chưa có hội đồng</span>
+                          <span class="text-xs text-slate-400 italic">Chưa có hội đồng</span>
                         @endif
                       </div>
                     </td>
                   </tr>
                 @endforeach
               </tbody>
+
             </table>
           </div>
         </div>`;
