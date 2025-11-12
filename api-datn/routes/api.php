@@ -95,6 +95,7 @@ Route::apiResource('academy-years', AcademyYearController::class);
 //project-terms
 Route::apiResource('project-terms', ProjectTermsController::class);
 Route::get('/project-terms/student/{studentId}', [ProjectTermsController::class, 'getProjectTermbyStudentId']);
+Route::get('/project_terms/new_terms', [ProjectTermsController::class, 'getNewProjectTerm']);
 
 //batch-students
 Route::apiResource('batch-students', BatchStudentController::class);

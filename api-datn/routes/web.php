@@ -234,6 +234,8 @@ Route::middleware(['web','auth'])->prefix('admin')->name('web.admin.')->group(fu
     Route::get('/manage_assistants', [WebFacultiesController::class, 'getAssistants'])->name('manage_assistants');
     Route::get('/manage_faculties', [WebFacultiesController::class, 'load_dashboard'])->name('manage_faculties');
     Route::post('/faculties', [WebFacultiesController::class, 'store'])->name('faculties.store');
+    // Assign a teacher as faculty assistant (AJAX)
+    Route::post('/faculties/assign-assistant', [WebFacultiesController::class, 'assignAssistant'])->name('faculties.assign_assistant');
     Route::patch('/faculties/{faculty}', [WebFacultiesController::class, 'update'])->name('faculties.update');
     Route::delete('/faculties/{faculty}', [WebFacultiesController::class, 'destroy'])->name('faculties.destroy');
 });

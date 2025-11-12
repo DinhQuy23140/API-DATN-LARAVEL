@@ -10,7 +10,7 @@ class SupervisorController extends Controller
 {
     public function index(Request $request)
     {
-        $supervisors = Supervisor::with(['teacher.user','project_term.academy_year'])->get();
+        $supervisors = Supervisor::with(['teacher.user.userResearches.research','project_term.academy_year'])->get();
         return response()->json($supervisors);
     }
 

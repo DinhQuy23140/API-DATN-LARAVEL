@@ -105,6 +105,9 @@
             <button id="btnAdd" class="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm">
               <i class="ph ph-plus"></i> Thêm giảng viên
             </button>
+            <button id="btnAssignAssistant" class="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm">
+              <i class="ph ph-user-list"></i> Phân trợ lý khoa
+            </button>
             <button id="btnExport" class="inline-flex items-center gap-2 px-3 py-2 rounded-lg border text-slate-700 hover:bg-slate-50 text-sm">
               <i class="ph ph-download-simple"></i> Xuất danh sách
             </button>
@@ -120,6 +123,18 @@
               <option value="probation">Thử việc</option>
               <option value="inactive">Ngừng công tác</option>
             </select>
+          </div>
+        </section>
+
+        <!-- Current faculty assistant session -->
+        <section id="assistantSession" class="bg-white rounded-xl border border-slate-200 p-4 mt-4 hidden md:block">
+          <div class="flex items-center gap-4">
+            <div class="h-12 w-12 rounded-full bg-emerald-50 text-emerald-700 grid place-items-center text-xl"><i class="ph ph-user-circle"></i></div>
+            <div>
+              <div class="text-sm text-slate-500">Trợ lý khoa hiện tại</div>
+              <div id="assistantName" class="font-medium text-slate-800">Chưa có</div>
+              <div id="assistantEmail" class="text-xs text-slate-500">—</div>
+            </div>
           </div>
         </section>
 
@@ -186,80 +201,173 @@
 <!-- Modal: Thêm/Sửa giảng viên -->
 <div id="lecturerModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
   <div class="absolute inset-0 bg-black/40" data-close></div>
-  <div class="relative z-10 bg-white w-full max-w-xl rounded-2xl shadow-lg flex flex-col max-h-[calc(100vh-4rem)]">
-    <div class="flex items-center justify-between px-5 py-4 border-b">
-      <h3 id="modalTitle" class="font-semibold">Thêm giảng viên</h3>
-      <button class="text-slate-500 hover:text-slate-700" data-close><i class="ph ph-x"></i></button>
-    </div>
-      <div class="p-5 space-y-3 overflow-y-auto">
-      <input type="hidden" id="gvId">
-      <div>
-        <label class="text-sm text-slate-600">Mã GV</label>
-        <input id="gvCode" class="mt-1 w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600">
+  <div class="relative z-10 bg-white w-full max-w-5xl rounded-2xl shadow-2xl overflow-hidden md:overflow-visible max-h-[calc(100vh-2rem)]">
+    <div class="md:flex">
+      <!-- Left accent panel -->
+      <div class="hidden md:flex md:w-1/3 bg-gradient-to-b from-indigo-600 to-blue-600 text-white p-6 flex-col items-center justify-center gap-4">
+        <div class="h-20 w-20 rounded-full bg-white/10 grid place-items-center text-white text-3xl font-bold">
+          <i class="ph ph-chalkboard-teacher"></i>
+        </div>
+        <div class="text-center">
+          <h3 id="modalTitle" class="text-lg font-semibold">Thêm giảng viên</h3>
+          <p class="text-sm opacity-90">Quản lý thông tin giảng viên & tài khoản</p>
+        </div>
+        <div class="text-xs text-white/80">Các thay đổi sẽ cập nhật ngay sau khi lưu.</div>
       </div>
-      <div>
-        <label class="text-sm text-slate-600">Họ tên</label>
-        <input id="gvName" class="mt-1 w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600">
-      </div>
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div>
-          <label class="text-sm text-slate-600">Bộ môn</label>
-          @php
-            // fallback departments list when controller doesn't provide $departments
-            $deptOptions = isset($departments) ? $departments : collect([
-              (object)['code'=>'KTPM','name'=>'Kỹ thuật phần mềm'],
-              (object)['code'=>'HTTT','name'=>'Hệ thống thông tin'],
-              (object)['code'=>'CNPM','name'=>'Công nghệ phần mềm'],
-            ]);
-          @endphp
-          <select id="gvDept" class="mt-1 w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600">
-            @foreach($deptOptions as $d)
+
+      <!-- Form area -->
+      <div class="w-full md:w-2/3 bg-white p-6">
+        <div class="flex items-start justify-between mb-4">
+          <div class="flex items-center gap-3">
+            <div class="md:hidden h-12 w-12 rounded-full bg-indigo-600 grid place-items-center text-white text-xl"><i class="ph ph-chalkboard-teacher"></i></div>
+            <div>
+              <h3 id="modalTitleMobile" class="font-semibold">Thêm giảng viên</h3>
+              <p class="text-sm text-slate-500">Điền đầy đủ thông tin, sau đó nhấn Lưu</p>
+            </div>
+          </div>
+          <button class="text-slate-500 hover:text-slate-700" data-close aria-label="Đóng"><i class="ph ph-x"></i></button>
+        </div>
+
+  <div class="space-y-4 overflow-y-auto md:overflow-visible max-h-[60vh] md:max-h-none pr-2">
+          <input type="hidden" id="gvId">
+
+          <div class="grid grid-cols-1 gap-3">
+            <label class="text-xs text-slate-500">Mã GV</label>
+            <div class="flex items-center gap-2">
+              <span class="inline-flex items-center justify-center h-9 w-9 rounded-md bg-indigo-50 text-indigo-600"><i class="ph ph-hash"></i></span>
+              <input id="gvCode" class="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" placeholder="VD: GV001">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 gap-3">
+            <label class="text-xs text-slate-500">Họ tên</label>
+            <div class="flex items-center gap-2">
+              <span class="inline-flex items-center justify-center h-9 w-9 rounded-md bg-emerald-50 text-emerald-600"><i class="ph ph-user"></i></span>
+              <input id="gvName" class="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400" placeholder="Họ và tên">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="text-xs text-slate-500">Bộ môn</label>
               @php
-                $val = is_object($d) ? ($d->code ?? $d->name ?? '') : (is_array($d) ? ($d['code'] ?? $d['name'] ?? '') : $d);
-                $label = is_object($d) ? ($d->name ?? $d->code ?? $d->id ?? '') : (is_array($d) ? ($d['name'] ?? $d['code'] ?? '') : $d);
+                $deptOptions = isset($departments) ? $departments : collect([
+                  (object)['code'=>'KTPM','name'=>'Kỹ thuật phần mềm'],
+                  (object)['code'=>'HTTT','name'=>'Hệ thống thông tin'],
+                  (object)['code'=>'CNPM','name'=>'Công nghệ phần mềm'],
+                ]);
               @endphp
-              <option value="{{ $val }}">{{ $label }}</option>
-            @endforeach
-          </select>
-        </div>
-        <div>
-          <label class="text-sm text-slate-600">Email</label>
-          <input id="gvEmail" type="email" class="mt-1 w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600">
-        </div>
-      </div>
+              <div class="flex items-center gap-2">
+                <span class="inline-flex items-center justify-center h-9 w-9 rounded-md bg-sky-50 text-sky-600"><i class="ph ph-building"></i></span>
+                <select id="gvDept" class="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-sky-400 focus:border-sky-400">
+                  @foreach($deptOptions as $d)
+                    @php
+                      $val = is_object($d) ? ($d->code ?? $d->name ?? '') : (is_array($d) ? ($d['code'] ?? $d['name'] ?? '') : $d);
+                      $label = is_object($d) ? ($d->name ?? $d->code ?? $d->id ?? '') : (is_array($d) ? ($d['name'] ?? $d['code'] ?? '') : $d);
+                    @endphp
+                    <option value="{{ $val }}">{{ $label }}</option>
+                  @endforeach
+                </select>
+              </div>
+            </div>
 
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div>
-          <label class="text-sm text-slate-600">Mật khẩu (để trống nếu không đổi)</label>
-          <input id="gvPassword" type="password" class="mt-1 w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600" placeholder="••••••••">
-        </div>
-        <div>
-          <label class="text-sm text-slate-600">Ngày sinh</label>
-          <input id="gvDob" type="date" class="mt-1 w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600">
-        </div>
-      </div>
+            <div>
+              <label class="text-xs text-slate-500">Email</label>
+              <div class="flex items-center gap-2">
+                <span class="inline-flex items-center justify-center h-9 w-9 rounded-md bg-amber-50 text-amber-600"><i class="ph ph-envelope"></i></span>
+                <input id="gvEmail" type="email" class="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-amber-400 focus:border-amber-400" placeholder="email@domain.edu">
+              </div>
+            </div>
+          </div>
 
-      <div>
-        <label class="text-sm text-slate-600">Địa chỉ</label>
-        <input id="gvAddress" class="mt-1 w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600">
-      </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="text-xs text-slate-500">Mật khẩu (để trống nếu không đổi)</label>
+              <div class="flex items-center gap-2">
+                <span class="inline-flex items-center justify-center h-9 w-9 rounded-md bg-rose-50 text-rose-600"><i class="ph ph-key"></i></span>
+                <input id="gvPassword" type="password" class="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-rose-400 focus:border-rose-400" placeholder="••••••••">
+              </div>
+            </div>
 
-      <div>
-        <label class="text-sm text-slate-600">Trạng thái</label>
-        <select id="gvStatus" class="mt-1 w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600">
-          <option value="active">Đang công tác</option>
-          <option value="probation">Thử việc</option>
-          <option value="inactive">Ngừng công tác</option>
-        </select>
+            <div>
+              <label class="text-xs text-slate-500">Ngày sinh</label>
+              <div class="flex items-center gap-2">
+                <span class="inline-flex items-center justify-center h-9 w-9 rounded-md bg-violet-50 text-violet-600"><i class="ph ph-calendar"></i></span>
+                <input id="gvDob" type="date" class="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-violet-400 focus:border-violet-400">
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <label class="text-xs text-slate-500">Địa chỉ</label>
+            <div class="flex items-center gap-2">
+              <span class="inline-flex items-center justify-center h-9 w-9 rounded-md bg-slate-50 text-slate-600"><i class="ph ph-map-pin"></i></span>
+              <input id="gvAddress" class="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-slate-400 focus:border-slate-400">
+            </div>
+          </div>
+
+          <div>
+            <label class="text-xs text-slate-500">Trạng thái</label>
+            <div class="flex items-center gap-2">
+              <span class="inline-flex items-center justify-center h-9 w-9 rounded-md bg-slate-50 text-slate-600"><i class="ph ph-activity"></i></span>
+              <select id="gvStatus" class="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                <option value="active">Đang công tác</option>
+                <option value="probation">Thử việc</option>
+                <option value="inactive">Ngừng công tác</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-4 flex items-center justify-end gap-3">
+          <button class="px-4 py-2 rounded-lg border text-sm hover:bg-slate-50" data-close>Đóng</button>
+          <button id="btnSave" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm">
+            <i class="ph ph-check"></i> Lưu
+          </button>
+        </div>
       </div>
-    </div>
-    <div class="px-5 py-4 border-t flex items-center justify-end gap-2">
-      <button class="px-3 py-1.5 rounded-lg border text-sm hover:bg-slate-50" data-close>Đóng</button>
-      <button id="btnSave" class="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm">
-        <i class="ph ph-check"></i> Lưu
-      </button>
     </div>
   </div>
+
+        <!-- Modal: Phân trợ lý khoa -->
+        <div id="assignAssistantModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
+          <div class="absolute inset-0 bg-black/40" data-close></div>
+          <div class="relative z-10 bg-white w-full max-w-3xl rounded-2xl shadow-2xl overflow-hidden">
+            <div class="p-6">
+              <div class="flex items-start justify-between mb-4">
+                <div>
+                  <h3 id="assignAssistantModalTitle" class="text-lg font-semibold">Phân trợ lý khoa</h3>
+                  <p class="text-sm text-slate-500">Xem trợ lý khoa hiện tại và chọn giảng viên làm trợ lý mới</p>
+                </div>
+                <button class="text-slate-500 hover:text-slate-700" data-close aria-label="Đóng"><i class="ph ph-x"></i></button>
+              </div>
+
+              <div class="space-y-4">
+                <div>
+                  <div class="text-xs text-slate-500">Trợ lý khoa hiện tại</div>
+                  <div id="currentAssistantBlock" class="mt-2 p-3 border rounded-lg bg-slate-50">
+                    <div id="currentAssistantName" class="font-medium">Chưa có</div>
+                    <div id="currentAssistantEmail" class="text-xs text-slate-500">—</div>
+                  </div>
+                </div>
+
+                <div>
+                  <label class="text-xs text-slate-500">Chọn giảng viên</label>
+                  <select id="assistantSelect" class="mt-2 w-full border border-slate-200 rounded-lg px-3 py-2 text-sm">
+                    <option value="">-- Chọn giảng viên --</option>
+                    @foreach($teachers as $t)
+                      <option value="{{ $t->id }}" data-name="{{ $t->fullname ?? ($t->user->fullname ?? '') }}" data-email="{{ $t->email ?? ($t->user->email ?? '') }}">{{ $t->fullname ?? ($t->user->fullname ?? '') }} — {{ $t->teacher_code ?? ($t->code ?? '') }}</option>
+                    @endforeach
+                  </select>
+                </div>
+
+                <div class="text-right">
+                  <button id="btnAssignAssistantConfirm" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm">Xác nhận</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
 </div>
 
 <script>
@@ -286,9 +394,28 @@
 
   // Modal helpers
   const modal = document.getElementById('lecturerModal');
+  // Also grab assign modal early so modal-manager helpers can reference it safely
+  const assignModal = document.getElementById('assignAssistantModal');
+  // Normalize event target to an Element (skip text nodes) so .matches/.closest won't throw
+  function getEventElement(e){
+    let el = e.target;
+    while(el && el.nodeType !== 1){ el = el.parentNode; }
+    return el;
+  }
   function openModal(){ modal.classList.remove('hidden'); document.body.classList.add('overflow-hidden'); }
   function closeModal(){ modal.classList.add('hidden'); document.body.classList.remove('overflow-hidden'); }
-  modal?.addEventListener('click',(e)=>{ if(e.target.matches('[data-close]')) closeModal(); });
+  modal?.addEventListener('click',(e)=>{ const el = getEventElement(e); if(el && el.matches('[data-close]')) closeModal(); });
+
+  // Ensure openModal hides assign modal so buttons open the correct modal only
+  const origOpenModal = openModal;
+  function openModalExclusive(){
+    // hide assign modal if open
+    assignModal?.classList.add('hidden');
+    origOpenModal();
+  }
+  // Replace openModal references in local scope by pointing name to exclusive variant
+  // (handlers below use openModal(), so overwrite it)
+  openModal = openModalExclusive;
 
   // Toolbar actions
   document.getElementById('btnAdd')?.addEventListener('click', () => {
@@ -323,7 +450,8 @@
 
   // Edit row
   document.getElementById('tableBody')?.addEventListener('click', (e)=>{
-    const btn = e.target.closest('.btnEdit');
+    const el = getEventElement(e);
+    const btn = el ? el.closest('.btnEdit') : null;
     if(!btn) return;
     document.getElementById('modalTitle').textContent = 'Sửa giảng viên';
     document.getElementById('gvId').value = btn.dataset.id || '';
@@ -341,7 +469,8 @@
 
   // Delete row (confirm)
   document.getElementById('tableBody')?.addEventListener('click', async (e)=>{
-    const btn = e.target.closest('.btnDelete');
+    const el = getEventElement(e);
+    const btn = el ? el.closest('.btnDelete') : null;
     if(!btn) return;
     const id = btn.dataset.id;
     if(!id) return alert('Thiếu ID giảng viên');
@@ -349,10 +478,6 @@
 
     const old = btn.innerHTML; btn.disabled = true; btn.innerHTML = '<i class="ph ph-spinner-gap animate-spin"></i>';
     try {
-      // TODO: gọi API xóa khi có route:
-      // const res = await fetch(url, { method:'DELETE', headers:{'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content, 'Accept':'application/json'} });
-      // const data = await res.json().catch(()=>({}));
-      // if(!res.ok || data.ok===false) throw new Error(data.message || 'Xóa thất bại');
       btn.closest('tr')?.remove();
     } catch (err) {
       console.error(err);
@@ -374,17 +499,6 @@
     if(!code || !name){ alert('Vui lòng nhập Mã GV và Họ tên'); return; }
 
     try {
-      // TODO: gọi API khi có route:
-      // const method = id ? 'PATCH' : 'POST';
-      // const url = id
-      // const res = await fetch(url, {
-      //   method, headers:{'Content-Type':'application/json','Accept':'application/json','X-CSRF-TOKEN':document.querySelector('meta[name="csrf-token"]')?.content},
-      //   body: JSON.stringify({ lecturer_code:code, fullname:name, department_name:dept, email, status })
-      // });
-      // const data = await res.json().catch(()=>({}));
-      // if(!res.ok || data.ok===false) throw new Error(data.message || 'Lưu thất bại');
-
-      // Demo: cập nhật UI cục bộ
       if(id){
         const tr = [...document.querySelectorAll('#tableBody tr')].find(x => x.querySelector('.btnEdit')?.dataset.id === id);
         if(tr){
@@ -432,6 +546,92 @@
     } catch (err) {
       console.error(err);
       alert('Không thể lưu. Vui lòng thử lại.');
+    }
+  });
+
+  // Assign assistant modal behavior
+  const assistantSession = document.getElementById('assistantSession');
+  const assistantNameEl = document.getElementById('assistantName');
+  const assistantEmailEl = document.getElementById('assistantEmail');
+  const currentAssistantName = document.getElementById('currentAssistantName');
+  const currentAssistantEmail = document.getElementById('currentAssistantEmail');
+
+  function openAssignModal(){
+    // hide other modal to avoid both showing at once
+    modal?.classList.add('hidden');
+    assignModal.classList.remove('hidden');
+    document.body.classList.add('overflow-hidden');
+  }
+  function closeAssignModal(){ assignModal.classList.add('hidden'); document.body.classList.remove('overflow-hidden'); }
+  assignModal?.addEventListener('click',(e)=>{ const el = getEventElement(e); if(el && el.matches('[data-close]')) closeAssignModal(); });
+
+  // Initialize session with server-provided assistant if present
+  @if(isset($departmentAssistant) && $departmentAssistant)
+    assistantNameEl.textContent = "{{ $departmentAssistant->fullname ?? $departmentAssistant->name ?? '—' }}";
+    assistantEmailEl.textContent = "{{ $departmentAssistant->email ?? '—' }}";
+    currentAssistantName.textContent = "{{ $departmentAssistant->fullname ?? $departmentAssistant->name ?? '—' }}";
+    currentAssistantEmail.textContent = "{{ $departmentAssistant->email ?? '—' }}";
+    assistantSession?.classList.remove('hidden');
+  @endif
+
+  // Click handler for 'Phân trợ lý khoa' — normalize event and open assign modal exclusively
+  (function(){
+    const btn = document.getElementById('btnAssignAssistant');
+    btn?.addEventListener('click', (e)=>{
+      e.preventDefault();
+      e.stopPropagation();
+      // reset select
+      const sel = document.getElementById('assistantSelect');
+      if(sel) sel.value = '';
+      openAssignModal();
+      // focus the select for keyboard users
+      setTimeout(()=>{ try{ sel?.focus(); }catch(err){} }, 50);
+    });
+  })();
+
+  document.getElementById('assistantSelect')?.addEventListener('change', (e)=>{
+    const opt = e.target.selectedOptions[0];
+    if(opt && opt.dataset){
+      currentAssistantName.textContent = opt.dataset.name || '—';
+      currentAssistantEmail.textContent = opt.dataset.email || '—';
+    }
+  });
+
+  document.getElementById('btnAssignAssistantConfirm')?.addEventListener('click', async ()=>{
+    const sel = document.getElementById('assistantSelect');
+    const id = sel?.value;
+    if(!id){ alert('Vui lòng chọn một giảng viên'); return; }
+    // Call backend to persist assignment
+    try {
+      const url = '{{ route('web.admin.faculties.assign_assistant') }}';
+      const resp = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+        },
+        body: JSON.stringify({ teacher_id: id })
+      });
+      const json = await resp.json();
+      if(!resp.ok || !json.ok){
+        console.error('Assign assistant error', json);
+        alert(json.message || 'Không thể phân trợ lý.');
+        return;
+      }
+
+      const name = json.assistant.fullname || (sel.selectedOptions[0]?.dataset?.name) || '—';
+      const email = json.assistant.email || (sel.selectedOptions[0]?.dataset?.email) || '—';
+      assistantNameEl.textContent = name;
+      assistantEmailEl.textContent = email;
+      currentAssistantName.textContent = name;
+      currentAssistantEmail.textContent = email;
+      assistantSession?.classList.remove('hidden');
+      closeAssignModal();
+      // optionally show a brief success toast
+      alert('Đã phân trợ lý khoa.');
+    } catch (err) {
+      console.error(err);
+      alert('Lỗi khi liên hệ máy chủ. Vui lòng thử lại.');
     }
   });
 </script>

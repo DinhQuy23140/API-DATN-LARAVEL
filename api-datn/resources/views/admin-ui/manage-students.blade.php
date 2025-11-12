@@ -176,65 +176,125 @@
 <!-- Modal: Thêm/Sửa sinh viên -->
 <div id="studentModal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
   <div class="absolute inset-0 bg-black/40" data-close></div>
-  <div class="relative z-10 bg-white w-full max-w-xl rounded-2xl shadow-lg flex flex-col max-h-[calc(100vh-4rem)]">
-    <div class="flex items-center justify-between px-5 py-4 border-b">
-      <h3 id="modalTitle" class="font-semibold">Thêm sinh viên</h3>
-      <button class="text-slate-500 hover:text-slate-700" data-close><i class="ph ph-x"></i></button>
-    </div>
-    <div class="p-5 space-y-3 overflow-y-auto">
-      <input type="hidden" id="stId">
-      <div>
-        <label class="text-sm text-slate-600">MSSV</label>
-        <input id="stCode" class="mt-1 w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600">
-      </div>
-      <div>
-        <label class="text-sm text-slate-600">Họ tên</label>
-        <input id="stName" class="mt-1 w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600">
-      </div>
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div>
-          <label class="text-sm text-slate-600">Lớp</label>
-          <input id="stClass" class="mt-1 w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600">
+  <div class="relative z-10 bg-white w-full max-w-5xl rounded-2xl shadow-2xl overflow-hidden md:overflow-visible max-h-[calc(100vh-2rem)]">
+    <div class="md:flex">
+      <!-- Left accent panel -->
+      <div class="hidden md:flex md:w-1/3 bg-gradient-to-b from-indigo-600 to-blue-600 text-white p-6 flex-col items-center justify-center gap-4">
+        <div class="h-20 w-20 rounded-full bg-white/10 grid place-items-center text-white text-3xl font-bold">
+          <i class="ph ph-users"></i>
         </div>
-        <div>
-          <label class="text-sm text-slate-600">Email</label>
-          <input id="stEmail" type="email" class="mt-1 w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600">
+        <div class="text-center">
+          <h3 id="modalTitle" class="text-lg font-semibold">Thêm sinh viên</h3>
+          <p class="text-sm opacity-90">Quản lý thông tin sinh viên & tài khoản</p>
+        </div>
+        <div class="text-xs text-white/80">Các thay đổi sẽ cập nhật ngay sau khi lưu.</div>
+      </div>
+
+      <!-- Form area -->
+      <div class="w-full md:w-2/3 bg-white p-6">
+        <div class="flex items-start justify-between mb-4">
+          <div class="flex items-center gap-3">
+            <div class="md:hidden h-12 w-12 rounded-full bg-indigo-600 grid place-items-center text-white text-xl"><i class="ph ph-users"></i></div>
+            <div>
+              <h3 id="modalTitleMobile" class="font-semibold">Thêm sinh viên</h3>
+              <p class="text-sm text-slate-500">Điền đầy đủ thông tin, sau đó nhấn Lưu</p>
+            </div>
+          </div>
+          <button class="text-slate-500 hover:text-slate-700" data-close aria-label="Đóng"><i class="ph ph-x"></i></button>
+        </div>
+
+        <div class="space-y-4 overflow-y-auto md:overflow-visible max-h-[60vh] md:max-h-none pr-2">
+          <input type="hidden" id="stId">
+
+          <div>
+            <label class="text-xs text-slate-500">MSSV</label>
+            <div class="flex items-center gap-2">
+              <span class="inline-flex items-center justify-center h-9 w-9 rounded-md bg-indigo-50 text-indigo-600"><i class="ph ph-hash"></i></span>
+              <input id="stCode" class="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500" placeholder="VD: 20190001">
+            </div>
+          </div>
+
+          <div>
+            <label class="text-xs text-slate-500">Họ tên</label>
+            <div class="flex items-center gap-2">
+              <span class="inline-flex items-center justify-center h-9 w-9 rounded-md bg-emerald-50 text-emerald-600"><i class="ph ph-user"></i></span>
+              <input id="stName" class="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-400 focus:border-emerald-400" placeholder="Họ và tên">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="text-xs text-slate-500">Lớp</label>
+              <div class="flex items-center gap-2">
+                <span class="inline-flex items-center justify-center h-9 w-9 rounded-md bg-sky-50 text-sky-600"><i class="ph ph-chalkboard"></i></span>
+                <input id="stClass" class="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-sky-400 focus:border-sky-400">
+              </div>
+            </div>
+
+            <div>
+              <label class="text-xs text-slate-500">Email</label>
+              <div class="flex items-center gap-2">
+                <span class="inline-flex items-center justify-center h-9 w-9 rounded-md bg-amber-50 text-amber-600"><i class="ph ph-envelope"></i></span>
+                <input id="stEmail" type="email" class="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-amber-400 focus:border-amber-400" placeholder="email@domain.edu">
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="text-xs text-slate-500">Mật khẩu (mới)</label>
+              <div class="flex items-center gap-2">
+                <span class="inline-flex items-center justify-center h-9 w-9 rounded-md bg-rose-50 text-rose-600"><i class="ph ph-key"></i></span>
+                <input id="stPassword" type="password" class="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-rose-400 focus:border-rose-400" placeholder="Để trống nếu không đổi">
+              </div>
+            </div>
+
+            <div>
+              <label class="text-xs text-slate-500">Ngành học</label>
+              <div class="flex items-center gap-2">
+                <span class="inline-flex items-center justify-center h-9 w-9 rounded-md bg-violet-50 text-violet-600"><i class="ph ph-books"></i></span>
+                <input id="stMajor" class="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-violet-400 focus:border-violet-400" placeholder="Ví dụ: Công nghệ phần mềm">
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div>
+              <label class="text-xs text-slate-500">Số điện thoại</label>
+              <div class="flex items-center gap-2">
+                <span class="inline-flex items-center justify-center h-9 w-9 rounded-md bg-slate-50 text-slate-600"><i class="ph ph-phone"></i></span>
+                <input id="stPhone" class="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-slate-400 focus:border-slate-400" placeholder="Số điện thoại">
+              </div>
+            </div>
+            <div>
+              <label class="text-xs text-slate-500">Ngày sinh</label>
+              <div class="flex items-center gap-2">
+                <span class="inline-flex items-center justify-center h-9 w-9 rounded-md bg-sky-50 text-sky-600"><i class="ph ph-calendar"></i></span>
+                <input id="stDob" type="date" class="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-sky-400 focus:border-sky-400">
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <label class="text-xs text-slate-500">Trạng thái</label>
+            <div class="flex items-center gap-2">
+              <span class="inline-flex items-center justify-center h-9 w-9 rounded-md bg-slate-50 text-slate-600"><i class="ph ph-activity"></i></span>
+              <select id="stStatus" class="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+                <option value="active">Đang học</option>
+                <option value="pending">Chờ xác nhận</option>
+                <option value="paused">Tạm dừng</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-4 flex items-center justify-end gap-3">
+          <button class="px-4 py-2 rounded-lg border text-sm hover:bg-slate-50" data-close>Đóng</button>
+          <button id="btnSave" class="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm">
+            <i class="ph ph-check"></i> Lưu
+          </button>
         </div>
       </div>
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div>
-          <label class="text-sm text-slate-600">Mật khẩu (mới)</label>
-          <input id="stPassword" type="password" class="mt-1 w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600" placeholder="Để trống nếu không đổi">
-        </div>
-        <div>
-          <label class="text-sm text-slate-600">Ngành học</label>
-          <input id="stMajor" class="mt-1 w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600" placeholder="Ví dụ: Công nghệ phần mềm">
-        </div>
-      </div>
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div>
-          <label class="text-sm text-slate-600">Số điện thoại</label>
-          <input id="stPhone" class="mt-1 w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600" placeholder="Số điện thoại">
-        </div>
-        <div>
-          <label class="text-sm text-slate-600">Ngày sinh</label>
-          <input id="stDob" type="date" class="mt-1 w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600">
-        </div>
-      </div>
-      <div>
-        <label class="text-sm text-slate-600">Trạng thái</label>
-        <select id="stStatus" class="mt-1 w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600">
-          <option value="active">Đang học</option>
-          <option value="pending">Chờ xác nhận</option>
-          <option value="paused">Tạm dừng</option>
-        </select>
-      </div>
-    </div>
-    <div class="px-5 py-4 border-t flex items-center justify-end gap-2">
-      <button class="px-3 py-1.5 rounded-lg border text-sm hover:bg-slate-50" data-close>Đóng</button>
-      <button id="btnSave" class="px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm">
-        <i class="ph ph-check"></i> Lưu
-      </button>
     </div>
   </div>
 </div>

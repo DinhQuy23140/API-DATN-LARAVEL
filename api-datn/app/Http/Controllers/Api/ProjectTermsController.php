@@ -70,4 +70,13 @@ class ProjectTermsController extends Controller
         ->get();
         return response()->json($terms);
     }
+
+    public function getNewProjectTerm() {
+        $now = now()->toDateString();
+        $terms = ProjectTerm::with('academy_year')
+            ->where('start_date', '>=', $now)
+            ->latest('id')
+            ->get();
+        return response()->json($terms);
+    }
 }
