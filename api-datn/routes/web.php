@@ -221,6 +221,8 @@ Route::middleware('auth')->prefix('assistant')->name('web.assistant.')->group(fu
     Route::get ('/assistant-ui/council-assign-students/{termId}', [WebCouncilController::class, 'getCouncilAndAssignmentByTermId'])->name('council_assign_students');
     Route::post('/councils/{council}/assign-students', [WebCouncilProjectController::class, 'assignStudents'])
         ->name('councils.assign_students');
+    // Remove a student from a council (assistant UI)
+    Route::delete('/council-projects/{council_project}', [CouncilProjectsController::class, 'destroy'])->name('council_projects.destroy');
     // JSON show used by assistant modal to display council students
     Route::get('/councils/{council}', [CouncilController::class, 'show'])->name('councils.show');
 });

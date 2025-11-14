@@ -511,7 +511,7 @@ document.getElementById('btnAssignStudents')?.addEventListener('click', async ()
           return;
         }
 
-        // Populate table
+        // Populate table (include remove button)
         students.forEach(s => {
           const row = document.createElement('tr');
           row.className = 'hover:bg-slate-50';
@@ -519,8 +519,48 @@ document.getElementById('btnAssignStudents')?.addEventListener('click', async ()
           const nameCell = document.createElement('td'); nameCell.className='py-3 px-4'; nameCell.textContent = s.student_name || s.name || '-';
           const topicCell = document.createElement('td'); topicCell.className='py-3 px-4'; topicCell.textContent = s.topic || '-';
           const supCell = document.createElement('td'); supCell.className='py-3 px-4'; supCell.textContent = s.supervisor_name || '-';
-          row.appendChild(codeCell); row.appendChild(nameCell); row.appendChild(topicCell); row.appendChild(supCell);
+          // action cell
+          const actionCell = document.createElement('td'); actionCell.className = 'py-3 px-4 text-right';
+          const delBtn = document.createElement('button');
+          delBtn.type = 'button';
+          delBtn.className = 'px-2 py-1 text-sm rounded bg-rose-50 text-rose-600 hover:bg-rose-100 btnRemoveFromCouncil';
+          delBtn.textContent = 'Xóa';
+          delBtn.dataset.councilProjectId = s.council_project_id || '';
+          actionCell.appendChild(delBtn);
+
+          row.appendChild(codeCell); row.appendChild(nameCell); row.appendChild(topicCell); row.appendChild(supCell); row.appendChild(actionCell);
           councilStudentsTbody.appendChild(row);
+
+          // Wire delete click
+          delBtn.addEventListener('click', async (ev) => {
+            ev.stopPropagation();
+            const cpId = delBtn.dataset.councilProjectId;
+            if (!cpId) { alert('Không xác định được bản ghi.'); return; }
+            if (!confirm('Bạn có chắc muốn xóa sinh viên này khỏi hội đồng?')) return;
+
+            const token = document.querySelector('meta[name="csrf-token"]')?.content || '';
+            const urlTpl = `{{ route('web.assistant.council_projects.destroy', ['council_project' => 0]) }}`.replace('/0','/'+cpId);
+            try {
+              const res = await fetch(urlTpl, { method: 'DELETE', headers: {'Accept':'application/json','X-CSRF-TOKEN': token} });
+              const data = await res.json().catch(()=> ({}));
+              if (!res.ok || data.ok === false) { alert(data.message || 'Xóa thất bại.'); return; }
+
+              // remove row from modal
+              row.remove();
+              // decrement count in modal meta and main table
+              const currentCount = parseInt((councilMeta.textContent.match(/\d+/)||['0'])[0]) || 0;
+              const newCount = Math.max(0, currentCount - 1);
+              councilMeta.textContent = `Số sinh viên: ${newCount}`;
+              // update main table count cell for this council row
+              const mainTr = document.querySelector(`#councilTbody tr[data-council-id="${councilId}"]`);
+              if (mainTr) {
+                const countCell = mainTr.querySelector('td:nth-child(5)');
+                if (countCell) countCell.textContent = newCount;
+              }
+            } catch (err) {
+              alert('Lỗi mạng khi xóa.');
+            }
+          });
         });
         councilStudentsTable.classList.remove('hidden');
       } catch (err) {

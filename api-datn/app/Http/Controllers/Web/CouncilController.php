@@ -341,6 +341,7 @@ class CouncilController extends Controller
             }
 
             $students[] = [
+                'council_project_id' => $cp->id,
                 'assignment_id'   => $assignment->id,
                 'student_code'    => $student->student_code ?? null,
                 'student_name'    => $user->fullname ?? $user->name ?? null,

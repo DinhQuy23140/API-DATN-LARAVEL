@@ -202,4 +202,17 @@ public function show(CouncilProjects $council_project)
             'data' => array_merge($data, ['scores' => $scores]),
         ]);
     }
+
+    /**
+     * Remove a council_project (remove a student from a council)
+     */
+    public function destroy(CouncilProjects $council_project)
+    {
+        try {
+            $council_project->delete();
+            return response()->json(['ok' => true, 'message' => 'Đã xóa sinh viên khỏi hội đồng.']);
+        } catch (\Throwable $e) {
+            return response()->json(['ok' => false, 'message' => 'Xóa thất bại.'], 500);
+        }
+    }
 }
