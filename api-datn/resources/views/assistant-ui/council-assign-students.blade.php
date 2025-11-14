@@ -545,18 +545,9 @@ document.getElementById('btnAssignStudents')?.addEventListener('click', async ()
               const data = await res.json().catch(()=> ({}));
               if (!res.ok || data.ok === false) { alert(data.message || 'Xóa thất bại.'); return; }
 
-              // remove row from modal
-              row.remove();
-              // decrement count in modal meta and main table
-              const currentCount = parseInt((councilMeta.textContent.match(/\d+/)||['0'])[0]) || 0;
-              const newCount = Math.max(0, currentCount - 1);
-              councilMeta.textContent = `Số sinh viên: ${newCount}`;
-              // update main table count cell for this council row
-              const mainTr = document.querySelector(`#councilTbody tr[data-council-id="${councilId}"]`);
-              if (mainTr) {
-                const countCell = mainTr.querySelector('td:nth-child(5)');
-                if (countCell) countCell.textContent = newCount;
-              }
+              // Reload the page to ensure the main table and counts are in sync
+              // after the server-side deletion.
+              location.reload();
             } catch (err) {
               alert('Lỗi mạng khi xóa.');
             }
