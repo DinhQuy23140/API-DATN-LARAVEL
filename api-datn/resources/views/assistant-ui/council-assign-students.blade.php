@@ -150,8 +150,9 @@
             <div class="overflow-x-auto">
               <table class="min-w-full table-auto text-sm">
                 <thead class="bg-slate-50">
-                  <tr class="text-left text-slate-600 border-b">
+                    <tr class="text-left text-slate-600 border-b">
                     <th class="py-3 px-4 w-10"><input type="checkbox" disabled /></th>
+                    <th class="py-3 px-4">Hành động</th>
                     <th class="py-3 px-4">Mã</th>
                     <th class="py-3 px-4">Tên</th>
                     <th class="py-3 px-4 text-right">Số sinh viên</th>
@@ -172,11 +173,14 @@
                       $department_id = $council->department->id ?? '';
                     @endphp
                     <tr class="hover:bg-slate-50" data-council-id="{{ $council->id }}" data-department-id="{{ $department_id }}">
-                      <td class="py-3 px-4"><input type="checkbox" class="council-check" value="{{ $council->id }}" /></td>
-                      <td class="py-3 px-4 font-medium text-slate-700">{{ $code }}</td>
-                      <td class="py-3 px-4">{{ $name }}</td>
-                      <td class="py-3 px-4 text-right text-slate-600">{{ $count }}</td>
-                    </tr>
+                        <td class="py-3 px-4"><input type="checkbox" class="council-check" value="{{ $council->id }}" /></td>
+                        <td class="py-3 px-4 font-medium text-slate-700">{{ $code }}</td>
+                        <td class="py-3 px-4">{{ $name }}</td>
+                        <td class="py-3 px-4 text-right text-slate-600">{{ $count }}</td>
+                        <td class="py-3 px-4">
+                          <button type="button" class="btnViewCouncil px-2 py-1 text-sm rounded bg-blue-50 text-blue-700 hover:bg-blue-100">Xem thông tin</button>
+                        </td>
+                      </tr>
                   @endforeach
                 </tbody>
               </table>
@@ -277,6 +281,43 @@
 
         </div>
       </main>
+    </div>
+  </div>
+
+  <!-- Council details modal -->
+  <div id="councilDetailsModal" class="hidden fixed inset-0 z-50 flex items-center justify-center px-4">
+    <div class="absolute inset-0 bg-black/40" id="councilDetailsBackdrop"></div>
+
+    <div id="councilDetailsContent" class="relative w-full max-w-4xl bg-white rounded-2xl shadow-xl p-6 sm:p-8 transition-transform transform scale-95 opacity-0 duration-200 max-h-[80vh] overflow-auto">
+      <div class="flex items-start justify-between mb-4">
+        <div>
+          <h3 id="councilTitle" class="text-lg font-semibold text-slate-900">Hội đồng</h3>
+          <div id="councilMeta" class="text-sm text-slate-500 mt-1">Mã • Ngày • Phòng</div>
+        </div>
+        <button id="closeCouncilDetails" class="text-slate-500 hover:text-slate-700 text-2xl">✕</button>
+      </div>
+
+      <div id="councilStudentsContainer">
+        <div id="councilStudentsLoading" class="py-8 text-center text-slate-500">Đang tải danh sách sinh viên…</div>
+        <div id="councilStudentsEmpty" class="hidden py-6 text-center text-slate-500">Chưa có sinh viên trong hội đồng này.</div>
+        <div id="councilStudentsTable" class="hidden overflow-x-auto">
+          <table class="min-w-full table-auto text-sm">
+            <thead class="bg-slate-50">
+              <tr class="text-left text-slate-600 border-b">
+                <th class="py-3 px-4">Mã SV</th>
+                <th class="py-3 px-4">Họ tên</th>
+                <th class="py-3 px-4">Đề tài</th>
+                <th class="py-3 px-4">GVHD</th>
+              </tr>
+            </thead>
+            <tbody id="councilStudentsTbody" class="divide-y divide-slate-200"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="mt-4 text-right">
+        <button id="closeCouncilDetailsFooter" class="px-4 py-2 rounded-lg border hover:bg-slate-50">Đóng</button>
+      </div>
     </div>
   </div>
 <script>
@@ -393,6 +434,102 @@ document.getElementById('btnAssignStudents')?.addEventListener('click', async ()
   const profileMenu=document.getElementById('profileMenu');
   profileBtn?.addEventListener('click', ()=> profileMenu.classList.toggle('hidden'));
   document.addEventListener('click', (e)=>{ if(!profileBtn?.contains(e.target) && !profileMenu?.contains(e.target)) profileMenu?.classList.add('hidden'); });
+
+  // Council details modal logic
+  const councilDetailsModal = document.getElementById('councilDetailsModal');
+  const councilDetailsContent = document.getElementById('councilDetailsContent');
+  const councilDetailsBackdrop = document.getElementById('councilDetailsBackdrop');
+  const closeCouncilDetails = document.getElementById('closeCouncilDetails');
+  const closeCouncilDetailsFooter = document.getElementById('closeCouncilDetailsFooter');
+  const councilTitle = document.getElementById('councilTitle');
+  const councilMeta = document.getElementById('councilMeta');
+  const councilStudentsLoading = document.getElementById('councilStudentsLoading');
+  const councilStudentsEmpty = document.getElementById('councilStudentsEmpty');
+  const councilStudentsTable = document.getElementById('councilStudentsTable');
+  const councilStudentsTbody = document.getElementById('councilStudentsTbody');
+
+  function showCouncilDetails() {
+    if (!councilDetailsModal) return;
+    councilDetailsModal.classList.remove('hidden');
+    requestAnimationFrame(() => {
+      councilDetailsContent.classList.remove('scale-95','opacity-0');
+      councilDetailsContent.classList.add('scale-100','opacity-100');
+    });
+  }
+  function hideCouncilDetails() {
+    if (!councilDetailsModal) return;
+    councilDetailsContent.classList.remove('scale-100','opacity-100');
+    councilDetailsContent.classList.add('scale-95','opacity-0');
+    setTimeout(()=> councilDetailsModal.classList.add('hidden'), 220);
+  }
+
+  closeCouncilDetails?.addEventListener('click', hideCouncilDetails);
+  closeCouncilDetailsFooter?.addEventListener('click', hideCouncilDetails);
+  councilDetailsBackdrop?.addEventListener('click', hideCouncilDetails);
+  document.addEventListener('keyup', (e)=>{ if (e.key === 'Escape') hideCouncilDetails(); });
+
+  // Open council modal when clicking the view button
+  document.querySelectorAll('.btnViewCouncil').forEach(btn => {
+    btn.style.cursor = 'pointer';
+    btn.addEventListener('click', async (ev) => {
+      ev.stopPropagation();
+      const tr = btn.closest('tr');
+      if (!tr) return;
+      const councilId = tr.getAttribute('data-council-id');
+      if (!councilId) return;
+
+      // Read basic details from row cells (adjusted for new column positions)
+      const code = tr.querySelector('td:nth-child(3)')?.innerText?.trim() || '';
+      const name = tr.querySelector('td:nth-child(4)')?.innerText?.trim() || '';
+      const countText = tr.querySelector('td:nth-child(5)')?.innerText?.trim() || '';
+      councilTitle.textContent = `${code} — ${name}`;
+      councilMeta.textContent = `Số sinh viên: ${countText}`;
+
+      // show modal and loading
+      councilStudentsTbody.innerHTML = '';
+      councilStudentsLoading.classList.remove('hidden');
+      councilStudentsEmpty.classList.add('hidden');
+      councilStudentsTable.classList.add('hidden');
+      showCouncilDetails();
+
+      try {
+        const token = document.querySelector('meta[name="csrf-token"]')?.content || '';
+        const urlTpl = `{{ route('web.assistant.councils.show', ['council' => 0]) }}`;
+        const url = urlTpl.replace('/0','/'+councilId);
+        const res = await fetch(url, { headers: { 'Accept': 'application/json','X-CSRF-TOKEN': token } });
+        const data = await res.json().catch(()=> ({}));
+        councilStudentsLoading.classList.add('hidden');
+        if (!res.ok || !data || data.ok === false) {
+          councilStudentsEmpty.textContent = data.message || 'Không thể tải sinh viên.';
+          councilStudentsEmpty.classList.remove('hidden');
+          return;
+        }
+
+        const students = data.students || [];
+        if (!students.length) {
+          councilStudentsEmpty.classList.remove('hidden');
+          return;
+        }
+
+        // Populate table
+        students.forEach(s => {
+          const row = document.createElement('tr');
+          row.className = 'hover:bg-slate-50';
+          const codeCell = document.createElement('td'); codeCell.className='py-3 px-4 font-medium text-slate-700'; codeCell.textContent = s.student_code || s.code || '-';
+          const nameCell = document.createElement('td'); nameCell.className='py-3 px-4'; nameCell.textContent = s.student_name || s.name || '-';
+          const topicCell = document.createElement('td'); topicCell.className='py-3 px-4'; topicCell.textContent = s.topic || '-';
+          const supCell = document.createElement('td'); supCell.className='py-3 px-4'; supCell.textContent = s.supervisor_name || '-';
+          row.appendChild(codeCell); row.appendChild(nameCell); row.appendChild(topicCell); row.appendChild(supCell);
+          councilStudentsTbody.appendChild(row);
+        });
+        councilStudentsTable.classList.remove('hidden');
+      } catch (err) {
+        councilStudentsLoading.classList.add('hidden');
+        councilStudentsEmpty.textContent = 'Lỗi khi tải dữ liệu.';
+        councilStudentsEmpty.classList.remove('hidden');
+      }
+    });
+  });
 </script>
 </body>
 </html>

@@ -312,6 +312,46 @@ class CouncilController extends Controller
         return response()->json(['ok'=>true,'inserted'=>$inserted,'updated'=>$updated,'deleted'=>$deleted,'message'=>'Đã lưu thành viên hội đồng.']);
     }
 
+    /**
+     * Return JSON list of students assigned to a council (for assistant UI modal)
+     * GET /assistant/councils/{council}
+     */
+    public function show(Council $council)
+    {
+        $council->load([
+            'council_projects.assignment.student.user',
+            'council_projects.assignment.project',
+            'council_projects.assignment.assignment_supervisors.supervisor.teacher.user'
+        ]);
+
+        $students = [];
+        foreach ($council->council_projects as $cp) {
+            $assignment = $cp->assignment;
+            if (!$assignment) continue;
+            $student = $assignment->student;
+            $user = $student->user ?? null;
+
+            // pick first accepted supervisor as display name (if any)
+            $supName = null;
+            if ($assignment->assignment_supervisors) {
+                $accepted = $assignment->assignment_supervisors->firstWhere('status', 'accepted');
+                if ($accepted && $accepted->supervisor && $accepted->supervisor->teacher && $accepted->supervisor->teacher->user) {
+                    $supName = $accepted->supervisor->teacher->user->fullname ?? null;
+                }
+            }
+
+            $students[] = [
+                'assignment_id'   => $assignment->id,
+                'student_code'    => $student->student_code ?? null,
+                'student_name'    => $user->fullname ?? $user->name ?? null,
+                'topic'           => $assignment->project->name ?? null,
+                'supervisor_name' => $supName,
+            ];
+        }
+
+        return response()->json(['ok' => true, 'students' => $students]);
+    }
+
     // Trang phân công vai trò (đổi mapping role -> số)
     public function rolesPage(Request $request, $term)
     {

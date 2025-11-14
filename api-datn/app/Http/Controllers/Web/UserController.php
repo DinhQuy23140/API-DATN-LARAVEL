@@ -110,6 +110,40 @@ class UserController extends Controller
         $user = User::with('teacher.supervisor', 'teacher.departmentRoles')->findOrFail($id);
         return view('lecturer-ui.profile', compact('user'));
     }
+
+    /**
+     * Handle change password request from profile page.
+     * Accepts: current_password, new_password, new_password_confirmation
+     */
+    public function changePassword(Request $request)
+    {
+        $data = $request->validate([
+            'current_password' => ['required','string'],
+            'new_password' => ['required','string','min:6','confirmed'],
+        ]);
+
+        $user = Auth::user();
+
+        // Support both hashed and legacy-plain passwords: prefer Hash::check
+        $currentOk = false;
+        if (Hash::check($data['current_password'], $user->password)) {
+            $currentOk = true;
+        } elseif ($user->password === $data['current_password']) {
+            $currentOk = true;
+        }
+
+        if (!$currentOk) {
+            return back()->withErrors(['current_password' => 'Mật khẩu hiện tại không đúng'])->withInput();
+        }
+
+        $user->password = Hash::make($data['new_password']);
+        $user->save();
+
+        // Regenerate session to prevent fixation
+        $request->session()->regenerate();
+
+        return redirect()->back()->with('status', 'Đã đổi mật khẩu thành công');
+    }
     
     //login 
     // public function login(Request $request)

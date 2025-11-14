@@ -198,7 +198,10 @@
           <p class="text-sm text-slate-500 mt-1">Thông tin hiển thị công khai trên hồ sơ giảng viên.</p>
         </div>
         <div class="text-right">
-          <button id="openEditProfile" type="button" class="text-sm text-blue-600 hover:underline">Chỉnh sửa</button>
+            <div class="flex items-center gap-2 justify-end">
+              <button id="openChangePassword" type="button" class="text-sm text-amber-600 hover:underline">Đổi mật khẩu</button>
+              <button id="openEditProfile" type="button" class="text-sm text-blue-600 hover:underline">Chỉnh sửa</button>
+            </div>
         </div>
       </div>
 
@@ -429,6 +432,59 @@
 </div>
 
 
+<!-- Change password modal -->
+<div id="changePasswordModal" class="hidden fixed inset-0 z-50 flex items-center justify-center px-4">
+  <div class="absolute inset-0 bg-black/40" id="changePasswordBackdrop"></div>
+
+  <div class="relative w-full max-w-3xl bg-white rounded-2xl shadow-xl p-6 sm:p-8 transition-transform transform scale-95 opacity-0 duration-200 max-h-[80vh] overflow-auto"
+    id="changePasswordContent">
+
+    <div class="flex items-center justify-between mb-4">
+      <h3 class="text-lg sm:text-xl font-semibold text-slate-900 flex items-center gap-2">
+        <i class="ph ph-key text-amber-500 text-lg"></i>
+        Đổi mật khẩu
+      </h3>
+      <button id="closeChangePassword" class="text-slate-500 hover:text-slate-700 text-2xl">✕</button>
+    </div>
+
+    <form id="changePasswordForm" method="POST" action="{{ route('web.user.change_password') }}" class="space-y-4">
+      @csrf
+      <div>
+        <label class="text-xs text-slate-500">Mật khẩu hiện tại</label>
+        <input name="current_password" type="password" required placeholder="Mật khẩu hiện tại"
+               class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 focus:ring-1 focus:ring-amber-400" />
+        @error('current_password')
+          <div class="text-sm text-rose-600 mt-1">{{ $message }}</div>
+        @enderror
+      </div>
+
+      <div>
+        <label class="text-xs text-slate-500">Mật khẩu mới</label>
+        <input name="new_password" id="newPassword" type="password" required placeholder="Mật khẩu mới"
+               class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 focus:ring-1 focus:ring-amber-400" />
+        @error('new_password')
+          <div class="text-sm text-rose-600 mt-1">{{ $message }}</div>
+        @enderror
+      </div>
+
+      <div>
+        <label class="text-xs text-slate-500">Xác nhận mật khẩu mới</label>
+        <input name="new_password_confirmation" id="newPasswordConfirm" type="password" required placeholder="Xác nhận mật khẩu"
+               class="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 focus:ring-1 focus:ring-amber-400" />
+        @error('new_password_confirmation')
+          <div class="text-sm text-rose-600 mt-1">{{ $message }}</div>
+        @enderror
+      </div>
+
+      <div class="text-right pt-2">
+        <button type="button" id="cancelChangePassword" class="px-4 py-2 rounded-lg border hover:bg-slate-50 mr-2">Hủy</button>
+        <button type="submit" class="px-4 py-2 rounded-lg bg-amber-600 text-white hover:bg-amber-700">Đổi mật khẩu</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+
 </main>
 
     </div>
@@ -501,7 +557,87 @@
   cancelEditProfile?.addEventListener('click', hideEditProfile);
   editProfileBackdrop?.addEventListener('click', hideEditProfile);
   document.addEventListener('keyup', (e) => { if (e.key === 'Escape') hideEditProfile(); });
+
+  // Change password modal controls
+  const openChangePassword = document.getElementById('openChangePassword');
+  const changePasswordModal = document.getElementById('changePasswordModal');
+  const changePasswordContent = document.getElementById('changePasswordContent');
+  const closeChangePassword = document.getElementById('closeChangePassword');
+  const cancelChangePassword = document.getElementById('cancelChangePassword');
+  const changePasswordBackdrop = document.getElementById('changePasswordBackdrop');
+
+  function showChangePassword() {
+    if (!changePasswordModal) return;
+    changePasswordModal.classList.remove('hidden');
+    requestAnimationFrame(() => {
+      if (changePasswordContent) {
+        changePasswordContent.classList.remove('scale-95', 'opacity-0');
+        changePasswordContent.classList.add('scale-100', 'opacity-100');
+      }
+    });
+  }
+
+  function hideChangePassword() {
+    if (!changePasswordModal) return;
+    if (changePasswordContent) {
+      changePasswordContent.classList.remove('scale-100', 'opacity-100');
+      changePasswordContent.classList.add('scale-95', 'opacity-0');
+    }
+    setTimeout(() => { changePasswordModal.classList.add('hidden'); }, 220);
+  }
+
+  openChangePassword?.addEventListener('click', showChangePassword);
+  closeChangePassword?.addEventListener('click', hideChangePassword);
+  cancelChangePassword?.addEventListener('click', hideChangePassword);
+  changePasswordBackdrop?.addEventListener('click', hideChangePassword);
+  // Escape key closes both modals
+  document.addEventListener('keyup', (e) => { if (e.key === 'Escape') { hideEditProfile(); hideChangePassword(); } });
+
+  // Change password form validation/submit
+  const changePasswordForm = document.getElementById('changePasswordForm');
+  changePasswordForm?.addEventListener('submit', function (ev) {
+    const newPwd = document.getElementById('newPassword')?.value || '';
+    const conf = document.getElementById('newPasswordConfirm')?.value || '';
+    if (newPwd.length < 6) { ev.preventDefault(); alert('Mật khẩu mới cần ít nhất 6 ký tự'); return; }
+    if (newPwd !== conf) { ev.preventDefault(); alert('Mật khẩu mới không khớp'); return; }
+
+    // If form action is empty, treat as demo and close modal
+    if (!this.action || this.action.trim() === ''){
+      ev.preventDefault();
+      hideChangePassword();
+      alert('Đổi mật khẩu (demo): chưa có endpoint backend.');
+      return;
+    }
+    // otherwise allow normal submit (server will handle)
+  });
   </script>
+
+  @if(session('status'))
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        const msg = @json(session('status')) || '';
+        if (!msg) return;
+        const toast = document.createElement('div');
+        toast.id = 'statusToast';
+        toast.className = 'fixed top-4 right-4 z-50 bg-emerald-600 text-white px-4 py-2 rounded shadow-lg';
+        toast.textContent = msg;
+        document.body.appendChild(toast);
+        setTimeout(() => {
+          toast.style.transition = 'opacity .25s';
+          toast.style.opacity = '0';
+          setTimeout(() => toast.remove(), 300);
+        }, 3800);
+      });
+    </script>
+  @endif
+
+  @if($errors->any() && ($errors->has('current_password') || $errors->has('new_password') || $errors->has('new_password_confirmation')))
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        try { showChangePassword(); } catch (e) { /* modal function missing => ignore */ }
+      });
+    </script>
+  @endif
 </body>
 
 </html>

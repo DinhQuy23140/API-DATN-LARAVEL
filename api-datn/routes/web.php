@@ -221,6 +221,8 @@ Route::middleware('auth')->prefix('assistant')->name('web.assistant.')->group(fu
     Route::get ('/assistant-ui/council-assign-students/{termId}', [WebCouncilController::class, 'getCouncilAndAssignmentByTermId'])->name('council_assign_students');
     Route::post('/councils/{council}/assign-students', [WebCouncilProjectController::class, 'assignStudents'])
         ->name('councils.assign_students');
+    // JSON show used by assistant modal to display council students
+    Route::get('/councils/{council}', [CouncilController::class, 'show'])->name('councils.show');
 });
 
 Route::middleware(['web','auth'])->prefix('admin')->name('web.admin.')->group(function () {
@@ -245,6 +247,9 @@ Route::middleware('auth')->group(function () {
     // Lecturer UI pages
     Route::get('/teacher/overview', [WebUserController::class, 'showOverView'])->name('web.teacher.overview'); // trang tổng quan
     Route::get('/teacher/profile', [WebUserController::class, 'showProfile'])->name('web.teacher.profile');
+
+    // Change password (web form from profile)
+    Route::post('/user/change-password', [WebUserController::class, 'changePassword'])->name('web.user.change_password');
     Route::get('/teacher/research', [WebUserController::class, 'loadResearch'])->name('web.teacher.research');
     // Create and delete user research entries
     Route::post('/teacher/user-research', [WebUserResearchController::class, 'store'])->name('web.teacher.user_research.store');
