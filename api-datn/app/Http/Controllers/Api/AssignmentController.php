@@ -171,7 +171,7 @@ class AssignmentController extends Controller
             'council_project.council.council_members.supervisor.teacher.user',
         ])
         ->where('student_id', $studentId)
-        ->latest('id')
+        ->orderBy('project_term_id', 'desc')
         ->first();
         return response()->json($assignment);
     }
