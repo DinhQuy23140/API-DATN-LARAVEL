@@ -91,92 +91,43 @@
             </div>
           </div>
 
-          <!-- Table / Cards -->
-          <div id="reportsArea" class="bg-white rounded-xl border border-slate-200 overflow-hidden">
-            <div class="hidden md:block">
-              <table class="w-full text-sm" id="reportsTable">
-                <thead class="bg-slate-50 text-slate-600">
-                  <tr>
-                    <th class="text-left px-4 py-3 font-medium">Sinh viên</th>
-                    <th class="text-left px-4 py-3 font-medium">Mã SV</th>
-                    <th class="text-left px-4 py-3 font-medium">Đề tài</th>
-                    <th class="text-left px-4 py-3 font-medium">Ngày nộp</th>
-                    <th class="text-center px-4 py-3 font-medium">Trạng thái</th>
-                    <th class="text-right px-4 py-3 font-medium">Hành động</th>
-                  </tr>
-                </thead>
-                <tbody class="divide-y divide-slate-100">
-                  @php $__reports = $reports ?? []; @endphp
-                  @if(count($__reports) > 0)
-                    @foreach($__reports as $r)
-                      <tr class="hover:bg-slate-50">
-                        <td class="px-4 py-3 font-medium text-slate-800">{{ $r->student_name ?? 'N/A' }}</td>
-                        <td class="px-4 py-3">{{ $r->student_code ?? '—' }}</td>
-                        <td class="px-4 py-3">{{ \Illuminate\Support\Str::limit($r->topic ?? '—', 60) }}</td>
-                        <td class="px-4 py-3 text-slate-600">{{ $r->submitted_at ?? '—' }}</td>
-                        <td class="px-4 py-3 text-center">
-                          @php $st = $r->status ?? 'pending'; @endphp
-                          @if($st === 'approved')
-                            <span class="px-2 py-1 rounded-full text-xs bg-emerald-50 text-emerald-700">Đã duyệt</span>
-                          @elseif($st === 'rejected')
-                            <span class="px-2 py-1 rounded-full text-xs bg-rose-50 text-rose-700">Từ chối</span>
-                          @else
-                            <span class="px-2 py-1 rounded-full text-xs bg-yellow-50 text-yellow-700">Chờ duyệt</span>
-                          @endif
-                        </td>
-                        <td class="px-4 py-3 text-right">
-                          <div class="inline-flex items-center gap-2">
-                            <button onclick="openReportModal({{ $r->id ?? 0 }})" class="px-3 py-1.5 rounded-lg bg-blue-600 text-white hover:bg-blue-700 text-sm inline-flex items-center gap-2"><i class="ph ph-eye"></i> Xem</button>
-                            <a href="{{ $r->file_url ?? '#' }}" class="px-3 py-1.5 rounded-lg bg-white border border-slate-200 text-sm hover:bg-slate-50">Tải</a>
-                          </div>
-                        </td>
-                      </tr>
-                    @endforeach
-                  @else
-                    <tr>
-                      <td colspan="6" class="px-4 py-6 text-center text-slate-500">Chưa có báo cáo</td>
-                    </tr>
-                  @endif
-                </tbody>
-              </table>
-            </div>
-
-            <!-- Mobile cards -->
-            <div class="md:hidden space-y-3 p-4">
-              @php $__reports = $reports ?? []; @endphp
-              @if(count($__reports) > 0)
+          <!-- Reports: server-rendered static cards (single source of truth) -->
+          <div id="reportsArea" class="bg-white rounded-xl border border-slate-200 p-4">
+            @php $__reports = $reports ?? []; @endphp
+            @if(count($__reports) > 0)
+              <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                 @foreach($__reports as $r)
-                  <div class="bg-white border border-slate-100 rounded-xl p-3 shadow-sm">
-                    <div class="flex items-start justify-between gap-3">
-                      <div>
-                        <div class="text-sm font-semibold">{{ $r->student_name ?? 'N/A' }}</div>
-                        <div class="text-xs text-slate-500">{{ $r->student_code ?? '—' }}</div>
-                        <div class="text-sm mt-2 text-slate-700">{{ \Illuminate\Support\Str::limit($r->topic ?? '—', 120) }}</div>
-                      </div>
-                      <div class="text-right">
-                        <div class="text-xs text-slate-500">{{ $r->submitted_at ?? '—' }}</div>
-                        <div class="mt-2">
-                          @php $st = $r->status ?? 'pending'; @endphp
-                          @if($st === 'approved')
-                            <span class="px-2 py-1 rounded-full text-xs bg-emerald-50 text-emerald-700">Đã duyệt</span>
-                          @elseif($st === 'rejected')
-                            <span class="px-2 py-1 rounded-full text-xs bg-rose-50 text-rose-700">Từ chối</span>
-                          @else
-                            <span class="px-2 py-1 rounded-full text-xs bg-yellow-50 text-yellow-700">Chờ duyệt</span>
-                          @endif
-                        </div>
+                  @php $st = $r->status ?? 'pending'; @endphp
+                  <article class="report-card bg-white border border-slate-100 rounded-xl p-4 shadow-sm flex flex-col justify-between">
+                    <div>
+                      <div class="text-sm font-semibold text-slate-800">{{ $r->student_name ?? 'N/A' }}</div>
+                      <div class="text-xs text-slate-500">{{ $r->student_code ?? '—' }}</div>
+                      <div class="text-sm text-slate-700 mt-2">{{ \Illuminate\Support\Str::limit($r->topic ?? '—', 140) }}</div>
+                    </div>
+
+                    <div class="mt-4 flex items-center justify-between">
+                      <div class="text-xs text-slate-500">{{ $r->submitted_at ?? '—' }}</div>
+                      <div class="ml-2">
+                        @if($st === 'approved')
+                          <span class="px-2 py-1 rounded-full text-xs bg-emerald-50 text-emerald-700">Đã duyệt</span>
+                        @elseif($st === 'rejected')
+                          <span class="px-2 py-1 rounded-full text-xs bg-rose-50 text-rose-700">Từ chối</span>
+                        @else
+                          <span class="px-2 py-1 rounded-full text-xs bg-yellow-50 text-yellow-700">Chờ duyệt</span>
+                        @endif
                       </div>
                     </div>
-                    <div class="mt-3 flex items-center gap-2">
+
+                    <div class="mt-4 flex items-center gap-2">
                       <button onclick="openReportModal({{ $r->id ?? 0 }})" class="flex-1 text-sm px-3 py-2 rounded-lg bg-blue-600 text-white">Xem</button>
                       <a href="{{ $r->file_url ?? '#' }}" class="text-sm px-3 py-2 rounded-lg bg-white border border-slate-200">Tải</a>
                     </div>
-                  </div>
+                  </article>
                 @endforeach
-              @else
-                <div class="text-center text-slate-500">Chưa có báo cáo</div>
-              @endif
-            </div>
+              </div>
+            @else
+              <div class="text-center text-slate-500 py-8">Chưa có báo cáo</div>
+            @endif
           </div>
 
         </div>
@@ -215,16 +166,11 @@
     profileBtn?.addEventListener('click', ()=> profileMenu.classList.toggle('hidden'));
     document.addEventListener('click', (e)=>{ if(!profileBtn?.contains(e.target) && !profileMenu?.contains(e.target)) profileMenu?.classList.add('hidden'); });
 
-    // Search/filter behavior (client-side quick filter)
+    // Search/filter behavior (client-side quick filter for static cards)
     document.getElementById('searchReports')?.addEventListener('input', function(){
       const q = this.value.toLowerCase().trim();
-      // table rows
-      document.querySelectorAll('#reportsTable tbody tr').forEach(tr => {
-        const text = tr.innerText.toLowerCase();
-        tr.style.display = text.includes(q) ? '' : 'none';
-      });
-      // mobile cards
-      document.querySelectorAll('#reportsArea .md\:hidden > div').forEach(card => {
+      // filter the Blade-rendered report cards
+      document.querySelectorAll('#reportsArea .report-card').forEach(card => {
         const text = card.innerText.toLowerCase();
         card.style.display = text.includes(q) ? '' : 'none';
       });

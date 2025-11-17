@@ -72,16 +72,6 @@ class AttachmentController extends Controller
             return response()->json(['ok' => false, 'message' => 'Không tìm thấy tệp đính kèm.'], 404);
         }
 
-        // TODO: kiểm tra quyền theo giảng viên hiện tại nếu cần
-
-        // DB::table('progress_logs')
-        //     ->where('id', $progress_log)
-        //     ->update([
-        //         'instructor_status'     => $data['status'],
-        //         'note'       => $data['note'] ?? null,
-        //         'updated_at' => now(),
-        //     ]);
-
         DB::table('progress_logs')
             ->where('id', $progress_log)
             ->update([

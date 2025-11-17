@@ -125,7 +125,7 @@ class CouncilProjectsController extends Controller
         ]);
     }
 
-public function show(CouncilProjects $council_project)
+    public function show(CouncilProjects $council_project)
     {
         $cp = $council_project->load([
             // SV, lớp, đề tài

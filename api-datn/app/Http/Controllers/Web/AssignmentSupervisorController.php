@@ -10,42 +10,43 @@ use App\Models\stage_timeline;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Schema;
 
 class AssignmentSupervisorController extends Controller
 {
     //
-public function getRequestManagementPage($supervisorId, $termId)
-{
-    $numberStage = 1;
+    public function getRequestManagementPage($supervisorId, $termId)
+    {
+        $numberStage = 1;
 
-    $timeStage = stage_timeline::where('project_term_id', $termId)
-        ->where('number_of_rounds', $numberStage)
-        ->first();
+        $timeStage = stage_timeline::where('project_term_id', $termId)
+            ->where('number_of_rounds', $numberStage)
+            ->first();
 
-    $rows = ProjectTerm::where('id', $termId)
-        ->with([
-            'academy_year',
-            'stageTimelines',
-            'assignments' => function ($query) use ($supervisorId, $termId) {
-                $query->where('project_term_id', $termId) // assignments trong term này
-                      ->whereHas('assignment_supervisors', function ($q) use ($supervisorId) {
-                          $q->where('supervisor_id', $supervisorId);
-                      })
-                      ->with([
-                          'student.user',
-                          'project.progressLogs.attachments',
-                          'project.reportFiles',
-                          'assignment_supervisors' => function ($q) use ($supervisorId) {
-                              $q->where('supervisor_id', $supervisorId)
-                                ->with('supervisor.teacher.user');
-                          }
-                      ]);
-            }
-        ])
-        ->firstOrFail();
+        $rows = ProjectTerm::where('id', $termId)
+            ->with([
+                'academy_year',
+                'stageTimelines',
+                'assignments' => function ($query) use ($supervisorId, $termId) {
+                    $query->where('project_term_id', $termId) // assignments trong term này
+                        ->whereHas('assignment_supervisors', function ($q) use ($supervisorId) {
+                            $q->where('supervisor_id', $supervisorId);
+                        })
+                        ->with([
+                            'student.user',
+                            'project.progressLogs.attachments',
+                            'project.reportFiles',
+                            'assignment_supervisors' => function ($q) use ($supervisorId) {
+                                $q->where('supervisor_id', $supervisorId)
+                                    ->with('supervisor.teacher.user');
+                            }
+                        ]);
+                }
+            ])
+            ->firstOrFail();
 
-    return view('lecturer-ui.requests-management', compact('rows', 'timeStage'));
-}
+        return view('lecturer-ui.requests-management', compact('rows', 'timeStage'));
+    }
 
     public function getProposeBySupervisor($supervisorId){
         return view('lecturer-ui.proposed-topics');
@@ -83,7 +84,7 @@ public function getRequestManagementPage($supervisorId, $termId)
 
         $assignmentSupervisor->status = $status;
         // Nếu có cột note/remark, lưu lại:
-        if (array_key_exists('note', $validated) && \Schema::hasColumn($assignmentSupervisor->getTable(), 'note')) {
+        if (array_key_exists('note', $validated) && Schema::hasColumn($assignmentSupervisor->getTable(), 'note')) {
             $assignmentSupervisor->note = $validated['note'];
         }
         $assignmentSupervisor->save();
