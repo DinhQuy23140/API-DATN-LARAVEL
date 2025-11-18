@@ -31,6 +31,7 @@ use App\Http\Controllers\Web\DepartmentRolesController as WebDepartmentRolesCont
 use App\Http\Controllers\Web\CouncilProjectDefencesController as WebCouncilProjectDefencesController;
 use App\Http\Controllers\Web\ReportFilesController as WebReportFilesController;
 use App\Http\Controllers\Web\StudentController as WebStudentController;
+use App\Http\Controllers\Web\RegisterProjectTermController as WebRegisterProjectTermController;
 
 // Chỉ cho guest
 Route::middleware('guest')->group(function () {
@@ -347,5 +348,10 @@ Route::middleware(['auth','verified'])->prefix('assistant')->name('web.assistant
         return view('assistant-ui.deferments', ['termId' => $termId]);
     })->name('deferred_students');
     Route::patch('deferments.update', [WebAssignmentController::class, 'updateDeferment'])->name('deferments.update');
-    Route::view('/registered-students', 'assistant-ui.assignment-registration')->name('registered_students');
+    Route::get('/registered-students/term/{termId}', [WebRegisterProjectTermController::class, 'getRegiterProjectTermByTermId'])->name('registered_students');
+    // Approve / Reject registration (AJAX)
+    Route::post('/register-project-terms/{registerProjectTerm}/approve', [WebRegisterProjectTermController::class, 'approve'])
+        ->name('register_project_terms.approve');
+    Route::post('/register-project-terms/{registerProjectTerm}/reject', [WebRegisterProjectTermController::class, 'reject'])
+        ->name('register_project_terms.reject');
 });

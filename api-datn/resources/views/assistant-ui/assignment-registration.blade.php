@@ -75,7 +75,6 @@
           <button id="toggleSidebar" class="w-full flex items-center justify-center gap-2 px-3 py-2 text-slate-600 hover:bg-slate-100 rounded-lg"><i class="ph ph-sidebar"></i><span class="sidebar-label">Thu gọn</span></button>
         </div>
       </aside>
-
     <div class="flex-1 h-screen overflow-hidden flex flex-col">
       <header class="h-16 bg-white border-b border-slate-200 flex items-center px-4 md:px-6 flex-shrink-0">
         <div class="flex items-center gap-3 flex-1">
@@ -148,17 +147,49 @@
           <thead class="bg-slate-100 text-slate-700 text-xs uppercase tracking-wide">
             <tr>
               <th class="px-4 py-3 text-left"><i class="ph ph-barcode mr-2"></i> MSSV</th>
-              <th class="px-4 py-3 text-left"><i class="ph ph-user-circle mr-2"></i> Họ tên</th>
+              <th class="px-4 py-3 text-center"><i class="ph ph-user-circle mr-2"></i> Họ tên</th>
               <th class="px-4 py-3 text-left hide-sm"><i class="ph ph-books mr-2"></i> Lớp</th>
-              <th class="px-4 py-3 text-left hide-sm"><i class="ph ph-at mr-2"></i> Email</th>
-              <th class="px-4 py-3 text-left"><i class="ph ph-clipboard-text mr-2"></i> Lý do</th>
-              <th class="px-4 py-3 text-left hide-sm"><i class="ph ph-paperclip mr-2"></i> Minh chứng</th>
+              <th class="px-4 py-3 text-center hide-sm"><i class="ph ph-at mr-2"></i> Email</th>
               <th class="px-4 py-3 text-center"><i class="ph ph-flag mr-2"></i> Trạng thái</th>
               <th class="px-4 py-3 text-left hide-sm"><i class="ph ph-calendar mr-2"></i> Ngày đăng ký</th>
               <th class="px-4 py-3 text-center">Hành động</th>
             </tr>
           </thead>
-          <tbody id="regList" class="divide-y divide-slate-100 bg-white"></tbody>
+          <tbody id="regList" class="divide-y divide-slate-100 bg-white">
+            @foreach ($registerProjectTerms as $registerProjectTerm)
+            @php
+              $student = $registerProjectTerm->student;
+              $user = $student->user;
+              $listStatus = ['approved' => 'Đã duyệt', 'rejected' => 'Đã hủy', 'pending' => 'Chờ duyệt'];
+              $listStatusBgColors = ['approved' => 'bg-emerald-50 text-emerald-700', 'rejected' => 'bg-rose-50 text-rose-700', 'pending' => 'bg-slate-100 text-slate-700'];
+            @endphp
+              <tr class="reg-row transition">
+                <td class="px-4 py-3 font-mono" data-label="MSSV">{{ $student->student_code }}</td>
+                <td class="px-4 py-3" data-label="Họ tên">
+                  <div class="flex items-center gap-3">
+                    <div class="h-8 w-8 rounded-full bg-blue-50 text-blue-600 grid place-items-center text-sm font-medium">{{ implode('', array_slice(array_map(fn($n) => $n[0] ?? '', explode(' ', $user->fullname)), -2)) }}</div>
+                    <div class="min-w-0">
+                      <div class="text-sm font-medium text-slate-800 truncate">{{ $user->fullname }}</div>
+                      <div class="text-xs text-slate-400 hide-sm">{{ $student->class_code }} · {{ $user->email ?? '—' }}</div>
+                    </div>
+                  </div>
+                </td>
+                <td class="px-4 py-3 hide-sm" data-label="Lớp">{{ $student->class_code }}</td>
+                <td class="px-4 py-3 hide-sm text-center" data-label="Email">{{ $user->email ?? '<span class="text-slate-400">—</span>' }}</td>
+                <td class="px-4 py-3 text-center" data-label="Trạng thái"><span class="{{ $listStatusBgColors[$registerProjectTerm->status] ?? '' }}">{{ $listStatus[$registerProjectTerm->status] ?? '—' }}</span></td>
+                <td class="px-4 py-3 hide-sm text-center" data-label="Ngày đăng ký">{{ $registerProjectTerm->created_at->format('d/m/Y') }}</td>
+                @if ($registerProjectTerm->status === "pending")
+                  <td class="px-4 py-3 text-right" data-label="Hành động">
+                    <div class="flex items-center justify-end gap-2">
+                      <button title="Xem chi tiết" class="action-btn btnView" data-id="{{ $registerProjectTerm->id }}"><i class="ph ph-eye"></i></button>
+                      <button title="Duyệt" class="action-btn btnApprove" data-id="{{ $registerProjectTerm->id }}" data-student="{{ $user->fullname }}"><i class="ph ph-check" style="color:#059669"></i></button>
+                      <button title="Hủy" class="action-btn btnReject" data-id="{{ $registerProjectTerm->id }}" data-student="{{ $user->fullname }}"><i class="ph ph-x" style="color:#dc2626"></i></button>
+                    </div>
+                  </td>
+                @endif
+              </tr>
+            @endforeach
+          </tbody>
         </table>
       </div>
     </section>
@@ -196,14 +227,6 @@
     const profileBtn = document.getElementById('profileBtn'); const profileMenu = document.getElementById('profileMenu');
     profileBtn?.addEventListener('click', ()=> profileMenu?.classList.toggle('hidden'));
 
-    // Registrations list (demo data)
-    const registrations = [
-      { id:1, student_code:'20123456', fullname:'Nguyễn Văn A', class:'KTPM2021', email:'a@example.com', project:'Đề tài A', preferred:'GV A', motivation:'Muốn học sâu về AI và áp dụng vào hệ thống', attachments:['don_xin_hoan.pdf'], status:'approved', applied_at:'02/09/2025' },
-      { id:2, student_code:'20124567', fullname:'Trần Thị B', class:'HTTT2021', email:'b@example.com', project:'', preferred:'GV B', motivation:'Cần hoàn thành luận văn do lý do gia đình', attachments:[], status:'pending', applied_at:'05/09/2025' },
-      { id:3, student_code:'20125678', fullname:'Lê Văn C', class:'CNPM2021', email:'c@example.com', project:'Đề tài B', preferred:'GV A', motivation:'Đã có công việc bán thời gian, xin hoãn', attachments:['xac_nhan_cty.jpg'], status:'rejected', applied_at:'10/09/2025' }
-    ];
-
-    const regList = document.getElementById('regList');
     function statusPillHtml(s){
       if (s==='approved') return '<span class="statusPill px-2 py-0.5 rounded-full text-xs bg-emerald-50 text-emerald-700">Đã duyệt</span>';
       if (s==='rejected') return '<span class="statusPill px-2 py-0.5 rounded-full text-xs bg-rose-50 text-rose-700">Đã hủy</span>';
@@ -238,7 +261,6 @@
       </tr>`).join('');
     }
 
-    renderRegs(registrations);
 
     // Search filter
     document.getElementById('searchReg')?.addEventListener('input', (e)=>{
@@ -247,22 +269,52 @@
       renderRegs(filtered);
     });
 
-    // action handlers
-    document.getElementById('regList')?.addEventListener('click', (e)=>{
+    // action handlers: call server routes for approve/reject
+    document.getElementById('regList')?.addEventListener('click', async (e)=>{
       const approveBtn = e.target.closest('.btnApprove');
       const rejectBtn = e.target.closest('.btnReject');
-      const viewBtn = e.target.closest('.btnView');
       if(!approveBtn && !rejectBtn) return;
       const btn = approveBtn || rejectBtn;
       const id = Number(btn.dataset.id);
-      const trIndex = registrations.findIndex(x=>x.id===id);
-      if(trIndex===-1) return;
+      if (!id) return;
       const isApprove = !!approveBtn;
-      const name = btn.dataset.student || registrations[trIndex].fullname;
-      if(!confirm(`${isApprove? 'Duyệt' : 'Hủy'} đăng ký của ${name}?`)) return;
-      // optimistic update
-      registrations[trIndex].status = isApprove ? 'approved' : 'rejected';
-      renderRegs(registrations);
+      const studentName = btn.dataset.student || '';
+      if(!confirm(`${isApprove? 'Duyệt' : 'Hủy'} đăng ký của ${studentName}?`)) return;
+
+      const token = document.querySelector('meta[name="csrf-token"]')?.content || '';
+      const url = `/assistant/register-project-terms/${id}/${isApprove ? 'approve' : 'reject'}`;
+
+      // UI feedback
+      btn.disabled = true;
+      btn.classList.add('opacity-60');
+
+      try {
+        const res = await fetch(url, { method: 'POST', headers: { 'Accept': 'application/json', 'X-CSRF-TOKEN': token, 'X-Requested-With': 'XMLHttpRequest' } });
+        const data = await res.json().catch(()=> ({}));
+        if (!res.ok || data.ok === false) {
+          alert(data.message || 'Thao tác thất bại.');
+          btn.disabled = false; btn.classList.remove('opacity-60');
+          return;
+        }
+
+        // update row status cell
+        const tr = btn.closest('tr');
+        if (tr) {
+          const statusCell = tr.querySelector('td[data-label="Trạng thái"]');
+          if (statusCell) {
+            // replace inner span
+            statusCell.innerHTML = isApprove
+              ? '<span class="px-2 py-1 rounded-full text-xs bg-emerald-50 text-emerald-700">Đã duyệt</span>'
+              : '<span class="px-2 py-1 rounded-full text-xs bg-rose-50 text-rose-700">Đã hủy</span>';
+          }
+        }
+
+        // optionally reload to sync lists/counts (commented): location.reload();
+      } catch (err) {
+        alert('Lỗi mạng, thử lại.');
+      } finally {
+        btn.disabled = false; btn.classList.remove('opacity-60');
+      }
     });
 
     // view detail
