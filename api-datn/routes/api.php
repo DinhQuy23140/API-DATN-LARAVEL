@@ -16,6 +16,7 @@ use App\Http\Controllers\Api\ProjectTermsController;
 use App\Http\Controllers\Api\BatchStudentController;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use App\Http\Controllers\Api\ProposedTopicController;
+use App\Http\Controllers\Api\RegisterProjectTermController;
 
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
@@ -66,6 +67,9 @@ Route::apiResource('users', UsersController::class);
 Route::post('auth/login', [UsersController::class, 'login']);
 Route::middleware('auth:sanctum')->post('auth/logout', [UsersController::class, 'logout']);
 
+//register project term
+Route::apiResource('project-term-registrations', RegisterProjectTermController::class);
+Route::get('/project-term-registrations/student/{studentId}', [RegisterProjectTermController::class, 'getRegisterProjectTermByStudentId']);
 //project
 Route::apiResource('projects', ProjectController::class);
 Route::post('assignments/{assignmentId}/project', [ProjectController::class, 'updateOrCreateProject']);

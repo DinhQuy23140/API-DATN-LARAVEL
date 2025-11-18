@@ -127,7 +127,7 @@
       </div>
     </aside>
 
-    <div class="flex-1">
+    <div class="flex-1 h-screen overflow-hidden">
       <header
         class="fixed left-0 md:left-[260px] right-0 top-0 h-16 bg-white border-b border-slate-200 flex items-center px-4 md:px-6 z-20">
         <div class="flex items-center gap-3 flex-1">
@@ -163,7 +163,7 @@
         </div>
       </header>
 
-      <main class="pt-20 px-4 md:px-6 pb-10 space-y-6">
+      <main class="pt-20 px-4 md:px-6 pb-10 space-y-6 h-[calc(100vh-4rem)] overflow-auto">
         <div class="max-w-6xl mx-auto space-y-6">
           <section class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             <!-- Profile card -->
@@ -368,7 +368,7 @@
 
   <script>
     const html = document.documentElement, sidebar = document.getElementById('sidebar');
-    function setCollapsed(c) { const h = document.querySelector('header'); const m = document.querySelector('main'); if (c) { html.classList.add('sidebar-collapsed'); h.classList.add('md:left-[72px]'); h.classList.remove('md:left-[260px]'); m.classList.add('md:pl-[72px]'); m.classList.remove('md:pl-[260px]'); } else { html.classList.remove('sidebar-collapsed'); h.classList.remove('md:left-[72px]'); h.classList.add('md:left-[260px]'); m.classList.remove('md:pl-[72px]'); m.classList.add('md:pl-[260px]'); } }
+    function setCollapsed(c) { const h = document.querySelector('header'); const m = document.querySelector('main'); if (c) { html.classList.add('sidebar-collapsed'); h.classList.add('md:left-[72px]'); h.classList.remove('md:left-[260px]'); m.classList.add('md:pl-[72px]'); m.classList.remove('md:pl-[260px]'); } else { html.classList.remove('sidebar-collapsed'); h.classList.remove('md:left-[72px]'); h.classList.add('md:left-[260px]'); m.classList.remove('md:pl-[72px]'); } }
     document.getElementById('toggleSidebar')?.addEventListener('click', () => { const c = !html.classList.contains('sidebar-collapsed'); setCollapsed(c); localStorage.setItem('lecturer_sidebar', '' + (c ? 1 : 0)); });
     document.getElementById('openSidebar')?.addEventListener('click', () => sidebar.classList.toggle('-translate-x-full'));
     if (localStorage.getItem('lecturer_sidebar') === '1') setCollapsed(true);

@@ -222,18 +222,6 @@ class AssignmentSupervisorController extends Controller
             'note'         => ['nullable', 'string', 'max:2000'],
         ]);
 
-        // $assignmentSupervisor->score_report = (float) $data['score_report'];
-        // if (array_key_exists('note', $data)) {
-        //     $assignmentSupervisor->note = $data['note'];
-        // }
-        // $assignmentSupervisor->save();
-
-        // return response()->json([
-        //     'ok'     => true,
-        //     'data'   => $assignmentSupervisor->only(['id', 'assignment_id', 'supervisor_id', 'score_report', 'note']),
-        //     'message'=> 'Lưu điểm thành công.',
-        // ]);
-
         $assignmentSupervisor->score_report = (float) $data['score_report'];
         $assignmentSupervisor->comments = $data['note'] ?? null;
         $assignmentSupervisor->save();

@@ -34,4 +34,9 @@ class ProjectTerm extends Model
     {
         return $this->hasMany(Council::class);
     }
+
+    public function registerProjectTerms()
+    {
+        return $this->hasMany(RegisterProjectTerm::class);
+    }
 }

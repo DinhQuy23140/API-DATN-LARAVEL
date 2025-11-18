@@ -99,4 +99,13 @@ class RegisterProjectTermController extends Controller
             return response()->json(['message' => 'Không thể xóa đăng ký'], 500);
         }
     }
+
+    public function getRegisterProjectTermByStudentId($studentId)
+    {
+        $result = RegisterProjectTerm::with('projectTerm.academy_year', 'projectTerm.registerProjectTerms')
+            ->where('student_id', $studentId)
+            ->get();
+
+        return response()->json($result);
+    }
 }

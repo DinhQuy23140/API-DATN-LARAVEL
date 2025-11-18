@@ -40,4 +40,9 @@ class Student extends Model
         return $this->belongsTo(Marjor::class);
     }
 
+    public function registerProjectTerms()
+    {
+        return $this->hasMany(RegisterProjectTerm::class);
+    }
+
 }
