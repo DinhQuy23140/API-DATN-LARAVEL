@@ -39,4 +39,9 @@ class Assignment extends Model
     {
         return $this->hasOne(CouncilProjects::class);
     }
+
+    public function postponeProjectTerms()
+    {
+        return $this->hasMany(PostponeProjectTerm::class);
+    }
 }
