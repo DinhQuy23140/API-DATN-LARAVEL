@@ -11,6 +11,7 @@ class PostponeProjectTerm extends Model
     protected $fillable = [
         'project_term_id',
         'assignment_id',
+        'note',
         'status',
     ];
 
@@ -22,5 +23,10 @@ class PostponeProjectTerm extends Model
     public function assignment()
     {
         return $this->belongsTo(Assignment::class);
+    }
+
+    public function projectTerm()
+    {
+        return $this->belongsTo(ProjectTerm::class);
     }
 }

@@ -17,6 +17,7 @@ return new class extends Migration
             $table->id();
             $table->unsignedBigInteger('project_term_id');
             $table->unsignedBigInteger('assignment_id');
+            $table->text('note')->nullable();
             $table->string('status')->default('pending');
             
             $table->foreign('project_term_id')->references('id')->on('project_terms')->onDelete('cascade');

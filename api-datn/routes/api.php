@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\API\ReportFilesController;
+use App\Models\PostponeProjectTerm;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\AttachmentController;
@@ -17,6 +18,8 @@ use App\Http\Controllers\Api\BatchStudentController;
 use Illuminate\Foundation\Auth\EmailVerificationRequest;
 use App\Http\Controllers\Api\ProposedTopicController;
 use App\Http\Controllers\Api\RegisterProjectTermController;
+use App\Http\Controllers\Api\PostponeProjectTermController;
+use App\Http\Controllers\Api\PostponeProjectTermFileController;
 
 
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
@@ -70,6 +73,13 @@ Route::middleware('auth:sanctum')->post('auth/logout', [UsersController::class, 
 //register project term
 Route::apiResource('project-term-registrations', RegisterProjectTermController::class);
 Route::get('/project-term-registrations/student/{studentId}', [RegisterProjectTermController::class, 'getRegisterProjectTermByStudentId']);
+
+//psotpone project term
+Route::apiResource('postpone-project-terms', PostponeProjectTermController::class);
+
+//postpone project term file
+Route::apiResource('postpone-project-term-files', PostponeProjectTermFileController::class);
+
 //project
 Route::apiResource('projects', ProjectController::class);
 Route::post('assignments/{assignmentId}/project', [ProjectController::class, 'updateOrCreateProject']);

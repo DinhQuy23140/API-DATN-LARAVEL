@@ -94,6 +94,7 @@ class AssignmentController extends Controller
             'council_project.council.department',
             'council_project.council_member.supervisor.teacher.user',
             'council_project.council.council_members.supervisor.teacher.user',
+            'postpone_project_term',
         ])
         ->where('student_id', $studentId)
         ->where('project_term_id', $projectTermId)
@@ -169,6 +170,7 @@ class AssignmentController extends Controller
             'council_project.council.department',
             'council_project.council_member.supervisor.teacher.user',
             'council_project.council.council_members.supervisor.teacher.user',
+            'postpone_project_term',
         ])
         ->where('student_id', $studentId)
         ->orderBy('project_term_id', 'desc')
@@ -189,6 +191,7 @@ class AssignmentController extends Controller
             'council_project.council.department',
             'council_project.council_member.supervisor.teacher.user',
             'council_project.council.council_members.supervisor.teacher.user',
+            'postpone_project_term',
         ])->findOrFail($assignmentId);
         return response()->json($assignment);
     }
@@ -207,6 +210,7 @@ class AssignmentController extends Controller
             'council_project.council.department',
             'council_project.council_member.supervisor.teacher.user',
             'council_project.council.council_members.supervisor.teacher.user',
+            'postpone_project_term',
         ])->get();
 
         return response()->json($assignments);

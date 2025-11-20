@@ -39,4 +39,9 @@ class ProjectTerm extends Model
     {
         return $this->hasMany(RegisterProjectTerm::class);
     }
+
+    public function postponeProjectTerms()
+    {
+        return $this->hasMany(PostponeProjectTerm::class);
+    }
 }
