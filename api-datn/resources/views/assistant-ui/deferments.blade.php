@@ -108,89 +108,61 @@
                 <thead class="bg-slate-100/80 text-slate-700 text-xs uppercase sticky top-0 z-10">
                   <tr>
                     <th class="text-left px-4 py-3">MSSV</th>
-                    <th class="text-left px-4 py-3">Họ tên</th>
-                    <th class="text-left px-4 py-3">Lớp</th>
-                    <th class="text-left px-4 py-3">Lý do</th>
-                    <th class="text-left px-4 py-3">Minh chứng</th>
+                    <th class="text-left px-4 py-3 text-center">Họ tên</th>
+                    <th class="text-left px-4 py-3 text-center">Lớp</th>
+                    <th class="text-left px-4 py-3 text-center">Lý do</th>
+                    <th class="text-left px-4 py-3 text-center">Minh chứng</th>
                     <th class="text-center px-4 py-3">Trạng thái</th>
-                    <th class="text-left px-4 py-3">Ngày duyệt</th>
+                    <th class="text-left px-4 py-3 text-center">Ngày duyệt</th>
                     <th class="text-center px-4 py-3">Hành động</th>
                   </tr>
                 </thead>
                 <tbody id="deferList" class="divide-y divide-slate-100">
-                  <tr class="hover:bg-slate-50 odd:bg-white even:bg-slate-50/40 transition">
-                    <td class="px-4 py-3 font-mono">20123456</td>
-                    <td class="px-4 py-3">Nguyễn Văn A</td>
-                    <td class="px-4 py-3">KTPM2021</td>
-                    <td class="px-4 py-3">Sức khỏe</td>
-                    <td class="px-4 py-3">
-                      <a href="#" class="inline-flex items-center gap-1 text-blue-600 hover:underline">
-                        <i class="ph ph-paperclip"></i> don_xin_hoan.pdf
-                      </a>
-                    </td>
-                    <td class="px-4 py-3 text-center">
-                      <span class="statusPill px-2 py-0.5 rounded-full text-xs bg-emerald-50 text-emerald-700">Đã duyệt</span>
-                    </td>
-                    <td class="px-4 py-3">02/09/2025</td>
-                    <td class="px-4 py-3 text-right space-x-2">
-                      <button class="btnApprove inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-emerald-200 text-emerald-700 hover:bg-emerald-50 transition"
-                              data-id="1" data-student="Nguyễn Văn A">
-                        <i class="ph ph-check"></i> Duyệt
-                      </button>
-                      <button class="btnReject inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-rose-200 text-rose-700 hover:bg-rose-50 transition"
-                              data-id="1" data-student="Nguyễn Văn A">
-                        <i class="ph ph-x"></i> Hủy
-                      </button>
-                    </td>
-                  </tr>
-                  
-                  <tr class="hover:bg-slate-50 odd:bg-white even:bg-slate-50/40 transition">
-                    <td class="px-4 py-3 font-mono">20124567</td>
-                    <td class="px-4 py-3">Trần Thị B</td>
-                    <td class="px-4 py-3">HTTT2021</td>
-                    <td class="px-4 py-3">Gia đình</td>
-                    <td class="px-4 py-3"><span class="text-slate-400">—</span></td>
-                    <td class="px-4 py-3 text-center">
-                      <span class="statusPill px-2 py-0.5 rounded-full text-xs bg-slate-100 text-slate-700">Chờ duyệt</span>
-                    </td>
-                    <td class="px-4 py-3">05/09/2025</td>
-                    <td class="px-4 py-3 text-right space-x-2">
-                      <button class="btnApprove inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-emerald-200 text-emerald-700 hover:bg-emerald-50 transition"
-                              data-id="2" data-student="Trần Thị B">
-                        <i class="ph ph-check"></i> Duyệt
-                      </button>
-                      <button class="btnReject inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-rose-200 text-rose-700 hover:bg-rose-50 transition"
-                              data-id="2" data-student="Trần Thị B">
-                        <i class="ph ph-x"></i> Hủy
-                      </button>
-                    </td>
-                  </tr>
-
-                  <tr class="hover:bg-slate-50 odd:bg-white even:bg-slate-50/40 transition">
-                    <td class="px-4 py-3 font-mono">20125678</td>
-                    <td class="px-4 py-3">Lê Văn C</td>
-                    <td class="px-4 py-3">CNPM2021</td>
-                    <td class="px-4 py-3">Việc làm</td>
-                    <td class="px-4 py-3">
-                      <a href="#" class="inline-flex items-center gap-1 text-blue-600 hover:underline">
-                        <i class="ph ph-paperclip"></i> xac_nhan_cty.jpg
-                      </a>
-                    </td>
-                    <td class="px-4 py-3 text-center">
-                      <span class="statusPill px-2 py-0.5 rounded-full text-xs bg-rose-50 text-rose-700">Đã hủy</span>
-                    </td>
-                    <td class="px-4 py-3">10/09/2025</td>
-                    <td class="px-4 py-3 text-right space-x-2">
-                      <button class="btnApprove inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-emerald-200 text-emerald-700 hover:bg-emerald-50 transition"
-                              data-id="3" data-student="Lê Văn C">
-                        <i class="ph ph-check"></i> Duyệt
-                      </button>
-                      <button class="btnReject inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-rose-200 text-rose-700 hover:bg-rose-50 transition"
-                              data-id="3" data-student="Lê Văn C">
-                        <i class="ph ph-x"></i> Hủy
-                      </button>
-                    </td>
-                  </tr>
+                  @foreach ($postponeProjectTerms as $postponeProjectTerm)
+                    @php
+                      $student = $postponeProjectTerm->assignment->student;
+                      $user = $student->user;
+                      $projectTerm = $postponeProjectTerm->assignment->projectTerm;
+                      $postponeProjectTermFiles = $postponeProjectTerm->postponeProjectTermFiles;
+                      $listStatus = ['pending' => 'Chờ duyệt', 'approved' => 'Đã duyệt', 'rejected' => 'Đã hủy'];
+                      $listBgStatus = ['pending' => ['bg' => 'bg-slate-100', 'text' => 'text-slate-700'], 'approved' => ['bg' => 'bg-emerald-50', 'text' => 'text-emerald-700'], 'rejected' => ['bg' => 'bg-rose-50', 'text' => 'text-rose-700']];
+                    @endphp
+                    <tr class="hover:bg-slate-50 odd:bg-white even:bg-slate-50/40 transition">
+                      <td class="px-4 py-3 font-mono">{{ $student->student_code }}</td>
+                      <td class="px-4 py-3 text-center">{{ $user->fullname }}</td>
+                      <td class="px-4 py-3 text-center">{{ $student->class_code }}</td>
+                      <td class="px-4 py-3 text-center">{{ $postponeProjectTerm->note }}</td>
+                      <td class="px-4 py-3 text-center">
+                        @if ($postponeProjectTermFiles && $postponeProjectTermFiles->isNotEmpty())
+                          @foreach ($postponeProjectTermFiles as $file)
+                            <a href="#" class="inline-flex items-center gap-1 text-blue-600 hover:underline">
+                              <i class="ph ph-paperclip"></i> {{ $file->file_name }}
+                            </a>
+                          @endforeach
+                        @else
+                          <span class="text-slate-400 italic">Không có</span>
+                        @endif
+                      </td>
+                      <td class="px-4 py-3 text-center">
+                        <span class="statusPill px-2 py-0.5 rounded-full text-xs {{ $listBgStatus[$postponeProjectTerm->status]['bg'] }} {{ $listBgStatus[$postponeProjectTerm->status]['text'] }}">{{ $listStatus[$postponeProjectTerm->status] }}</span>
+                      </td>
+                      @if ($postponeProjectTerm->status === 'pending')
+                      <td class="px-4 py-3 text-center">--</td>
+                        <td class="px-4 py-3 text-right space-x-2">
+                          <button id="btnApprove" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-emerald-200 text-emerald-700 hover:bg-emerald-50 transition"
+                                  data-id="{{ $postponeProjectTerm->id }}" data-student="{{ $user->fullname }}" data-note="{{ $postponeProjectTerm->note }}" data-assignment-id="{{ $postponeProjectTerm->assignment_id }}" data-status="approved" data-project-term-id="{{ $postponeProjectTerm->project_term_id }}">
+                            <i class="ph ph-check"></i> Duyệt
+                          </button>
+                          <button id="btnReject" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-rose-200 text-rose-700 hover:bg-rose-50 transition"
+                                  data-id="{{ $postponeProjectTerm->id }}" data-student="{{ $user->fullname }}" data-note="{{ $postponeProjectTerm->note }}" data-assignment-id="{{ $postponeProjectTerm->assignment_id }}" data-status="rejected" data-project-term-id="{{ $postponeProjectTerm->project_term_id }}">
+                            <i class="ph ph-x"></i> Hủy
+                          </button>
+                        </td>
+                      @else
+                        <td class="px-4 py-3 text-center">{{ $postponeProjectTerm->updated_at }}</td>
+                      @endif
+                    </tr>
+                  @endforeach
                 </tbody>
               </table>
             </div>
@@ -291,28 +263,91 @@
       const old = btn.innerHTML;
       btn.disabled = true;
       btn.innerHTML = '<i class="ph ph-spinner-gap animate-spin"></i>';
+    });
 
-      try {
-        // TODO: Gọi API backend tại đây (khi có route):
-        // const url = `{{ route('web.assistant.deferments.update', ['termId' => $termId, 'id' => 0]) }}`.replace('/0','/'+id);
-        // const res = await fetch(url, {
-        //   method: 'PATCH',
-        //   headers: { 'Content-Type':'application/json','Accept':'application/json','X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '' },
-        //   body: JSON.stringify({ action: isApprove ? 'approve' : 'reject' })
-        // });
-        // const data = await res.json().catch(()=>({}));
-        // if (!res.ok || data.ok === false) throw new Error(data.message || 'Lỗi cập nhật');
+    document.getElementById('btnApprove').addEventListener('click', async function(){
+      const id = this.dataset.id;
+      const assignmentId = this.dataset.assignmentId;
+      const status = this.dataset.status;
+      const projectTermId = this.dataset.projectTermId;
+      const note = this.dataset.note;
+      const data = {
+        id: id,
+        assignment_id: assignmentId,
+        project_term_id: projectTermId,
+        status: status,
+        note: note
+      }
+      try{
+        const response = await fetch("{{ route('web.assistant.postpone_project_terms.approved_deferments', ['postponeProjectTerm' => '__ID__']) }}".replace('__ID__', id), {
+          method: 'PATCH',
+          headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify(data)
+        })
 
-        // Hiện tại: cập nhật UI ngay (optimistic)
-        setStatusPill(tr, isApprove ? 'approved' : 'rejected');
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+
+        const result = await response.json();
+        if (result.success) {
+          // reload to sync UI/counts
+          location.reload();
+          return;
+        } else {
+          throw new Error(result.message || 'Lỗi không xác định từ server');
+        }
       } catch (err) {
         console.error(err);
-        alert('Không thể cập nhật. Vui lòng thử lại.');
-      } finally {
-        btn.disabled = false;
-        btn.innerHTML = old;
+        alert('Lỗi: ' + (err.message || 'Không xác định'));
       }
-    });
+    })
+
+    document.getElementById('btnReject').addEventListener('click', async function(){
+      const id = this.dataset.id;
+      const assignmentId = this.dataset.assignmentId;
+      const status = this.dataset.status;
+      const projectTermId = this.dataset.projectTermId;
+      const note = this.dataset.note;
+      const data = {
+        id: id,
+        assignment_id: assignmentId,
+        project_term_id: projectTermId,
+        status: status,
+        note: note
+      }
+      try {
+        const response = await fetch("{{ route('web.assistant.postpone_project_terms.rejected_deferments', ['postponeProjectTerm' => '__ID__']) }}".replace('__ID__', id), {
+          method: 'PATCH',
+          headers: {
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content'),
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
+          },
+          body: JSON.stringify(data)
+        });
+
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+
+        const result = await response.json();
+        if (result.success) {
+          // reload to sync UI/counts
+          location.reload();
+          return;
+        } else {
+          throw new Error(result.message || 'Lỗi không xác định từ server');
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Lỗi: ' + (err.message || 'Không xác định'));
+      }
+    })
   </script>
 </body>
 </html>

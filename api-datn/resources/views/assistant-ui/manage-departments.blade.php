@@ -470,11 +470,6 @@
       }
     });
 
-    // XÓA 2 hàm cũ dưới đây (nếu còn):
-    // function openModal(mode) { document.getElementById('modalTitle')...; const m = document.getElementById('modal'); ... }
-    // function closeModal() { const m = document.getElementById('modal'); ... }
-    // window.openModal = openModal; window.closeModal = closeModal;
-
     // Helper: nếu option chưa có thì thêm tạm rồi set value
 function ensureSelectedOption(selectEl, value, label) {
   if (!selectEl || !value) return;

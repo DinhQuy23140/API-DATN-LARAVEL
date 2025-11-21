@@ -32,6 +32,7 @@ use App\Http\Controllers\Web\CouncilProjectDefencesController as WebCouncilProje
 use App\Http\Controllers\Web\ReportFilesController as WebReportFilesController;
 use App\Http\Controllers\Web\StudentController as WebStudentController;
 use App\Http\Controllers\Web\RegisterProjectTermController as WebRegisterProjectTermController;
+use App\Http\Controllers\Web\PostponeProjectTermController as WebPostponeProjectTermController;
 
 // Chỉ cho guest
 Route::middleware('guest')->group(function () {
@@ -344,9 +345,7 @@ Route::middleware(['auth','verified'])->prefix('assistant')->name('web.assistant
     Route::post('/majors', [MarjorController::class, 'store'])->name('majors.store');
     Route::patch('/majors/{id}', [MarjorController::class, 'update'])->name('majors.update');
     Route::delete('/majors/{id}', [MarjorController::class, 'delete'])->name('majors.destroy');
-    Route::get('/rounds/{termId}/deferments', function ($termId) {
-        return view('assistant-ui.deferments', ['termId' => $termId]);
-    })->name('deferred_students');
+    Route::get('/rounds/{termId}/deferments', [WebPostponeProjectTermController::class, 'getPostponeProjectTermsByTermId'])->name('deferred_students');
     Route::patch('deferments.update', [WebAssignmentController::class, 'updateDeferment'])->name('deferments.update');
     Route::get('/registered-students/term/{termId}', [WebRegisterProjectTermController::class, 'getRegiterProjectTermByTermId'])->name('registered_students');
     // Approve / Reject registration (AJAX)
@@ -354,4 +353,10 @@ Route::middleware(['auth','verified'])->prefix('assistant')->name('web.assistant
         ->name('register_project_terms.approve');
     Route::post('/register-project-terms/{registerProjectTerm}/reject', [WebRegisterProjectTermController::class, 'reject'])
         ->name('register_project_terms.reject');
+
+    //Postpone project terms
+    Route::patch('/register-project-terms/{postponeProjectTerm}/approvedDeferments', [WebPostponeProjectTermController::class, 'approveDeferment'])
+        ->name('postpone_project_terms.approved_deferments');
+    Route::patch('/register-project-terms/{postponeProjectTerm}/rejectedDeferments', [WebPostponeProjectTermController::class, 'rejectDeferment'])
+        ->name('postpone_project_terms.rejected_deferments');
 });
