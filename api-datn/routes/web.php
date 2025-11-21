@@ -359,4 +359,5 @@ Route::middleware(['auth','verified'])->prefix('assistant')->name('web.assistant
         ->name('postpone_project_terms.approved_deferments');
     Route::patch('/register-project-terms/{postponeProjectTerm}/rejectedDeferments', [WebPostponeProjectTermController::class, 'rejectDeferment'])
         ->name('postpone_project_terms.rejected_deferments');
+    Route::get('rounds/term/{termId}/assignemnt/{assignmentId}', [WebAssignmentController::class, 'getAssignmentById'])->name('rounds.assignemnt');
 });

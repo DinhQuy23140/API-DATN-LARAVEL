@@ -172,7 +172,7 @@ class ProjectTermsController extends Controller
             'assignments.project.progressLogs.attachments'
             )->findOrFail($round_id);
         $departments = Department::get();
-        return view('assistant-ui.round-detail', compact('round_detail', 'departments'));
+        return view('assistant-ui.round-detail', compact('round_detail', 'departments', 'round_id'));
     }
 
     // Trích các mốc timeline từ request theo đúng cấu trúc bảng stage_timelines

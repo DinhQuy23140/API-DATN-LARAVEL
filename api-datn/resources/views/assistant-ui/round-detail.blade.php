@@ -1085,7 +1085,11 @@
                         <td class="px-4 py-3 font-semibold text-emerald-700">{{ $student_id }}</td>
 
                         <!-- Họ tên -->
-                        <td class="px-4 py-3 font-medium text-slate-800">{{ $name }}</td>
+                        <td class="px-4 py-3 font-medium text-slate-800">
+                          <a href="{{ route('web.assistant.rounds.assignemnt', ["termId" => $round_id, "assignmentId" => $assignment->id]) }}" class="hover:underline text-slate-800">
+                            {{ $name }}
+                          </a>
+                        </td>
 
                         <!-- Lớp -->
                         <td class="px-4 py-3 text-slate-700">{{ $marjor }}</td>

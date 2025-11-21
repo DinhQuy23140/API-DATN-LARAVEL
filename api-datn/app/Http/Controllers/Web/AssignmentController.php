@@ -299,4 +299,23 @@ class AssignmentController extends Controller
             'ok'     => true,
         ]);
     }
+
+    public function getAssignmentById($termId, $assignmentId)
+    {
+        $assignment = Assignment::with([
+            'student.user',
+            'assignment_supervisors.supervisor.teacher.user',
+            'project.progressLogs.attachments',
+            'project.reportFiles',
+            'council_project.council_project_defences',
+            'council_project.council.council_members'
+        ])
+        ->where('project_term_id', $termId)
+        ->where('id', $assignmentId)
+        ->first();
+        // if (!$assignment) {
+        //     return redirect()->back()->with('error', 'Không tìm thấy phân công phù hợp.');
+        // }
+        return view('assistant-ui.students-detail', compact('assignment'));
+    }
 }

@@ -194,31 +194,31 @@
         </header>
 
         <main class="flex-1 overflow-y-auto px-4 md:px-6 py-6">
-            <div class="max-w-6xl mx-auto">
-                <div class="flex items-center justify-between mb-4">
-                    <div></div>
-                    <a href="{{ url()->previous() }}" class="text-sm text-blue-600 hover:underline"><i class="ph ph-caret-left"></i> Quay lại danh sách</a>
-                </div>
+          <div class="max-w-6xl mx-auto">
+            <div class="flex items-center justify-between mb-4">
+                <div></div>
+                <a href="{{ url()->previous() }}" class="text-sm text-blue-600 hover:underline"><i class="ph ph-caret-left"></i> Quay lại danh sách</a>
+            </div>
 
                
-         <div class="rounded-2xl overflow-hidden shadow-lg mb-6 bg-gradient-to-r from-sky-600 via-indigo-600 to-violet-600 text-white">
-           <div class="p-5 md:p-6 flex items-center gap-4">
-             <img src="{{ $studentUser->avatar_url ?? ($studentUser->profile_photo_url ?? ('https://ui-avatars.com/api/?name=' . urlencode($studentUser->fullname ?? 'Sinh viên') . '&background=ffffff&color=000')) }}" alt="avatar" class="h-20 w-20 rounded-full ring-4 ring-white object-cover shadow-md" />
-             <div class="flex-1">
-               <div class="text-sm uppercase opacity-90">Sinh viên hướng dẫn</div>
-               <div class="text-2xl font-bold mt-1">{{ $studentUser->fullname ?? 'Sinh viên' }}</div>
-               <div class="text-sm opacity-90 mt-1">MSSV: <span class="font-medium">{{ $student->student_code ?? $student->id ?? '-' }}</span> • Lớp: {{ $student->class_code ?? '-' }}</div>
-             </div>
-             <div class="text-right">
-               <div class="text-sm opacity-90">Giảng viên hướng dẫn</div>
-               <div class="mt-1 inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-white/20">
-                 <i class="ph ph-user-circle text-white"></i>
-                 <div class="font-medium">{{ $supervisorTeacherUser->fullname ?? '—' }}</div>
-               </div>
-             </div>
-           </div>
-         </div>
-         <!-- (above) Student hero rendered -->
+            <div class="rounded-2xl overflow-hidden shadow-lg mb-6 bg-gradient-to-r from-sky-600 via-indigo-600 to-violet-600 text-white">
+              <div class="p-5 md:p-6 flex items-center gap-4">
+                <img src="{{ $studentUser->avatar_url ?? ($studentUser->profile_photo_url ?? ('https://ui-avatars.com/api/?name=' . urlencode($studentUser->fullname ?? 'Sinh viên') . '&background=ffffff&color=000')) }}" alt="avatar" class="h-20 w-20 rounded-full ring-4 ring-white object-cover shadow-md" />
+                <div class="flex-1">
+                  <div class="text-sm uppercase opacity-90">Sinh viên hướng dẫn</div>
+                  <div class="text-2xl font-bold mt-1">{{ $studentUser->fullname ?? 'Sinh viên' }}</div>
+                  <div class="text-sm opacity-90 mt-1">MSSV: <span class="font-medium">{{ $student->student_code ?? $student->id ?? '-' }}</span> • Lớp: {{ $student->class_code ?? '-' }}</div>
+                </div>
+                <div class="text-right">
+                  <div class="text-sm opacity-90">Giảng viên hướng dẫn</div>
+                  <div class="mt-1 inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-white/20">
+                    <i class="ph ph-user-circle text-white"></i>
+                    <div class="font-medium">{{ $supervisorTeacherUser->fullname ?? '—' }}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- (above) Student hero rendered -->
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <section class="md:col-span-2 bg-white border rounded-2xl p-5 shadow-sm hover:shadow-md transition">
@@ -409,105 +409,105 @@
                            <a class="px-3 py-1.5 bg-blue-600 text-white rounded text-sm" href="mailto:{{ $studentUser->email ?? '' }}"><i class="ph ph-envelope"></i> Gửi email</a>
                            <button class="px-3 py-1.5 border border-slate-200 rounded text-sm" disabled><i class="ph ph-chat-text"></i> Nhắn tin</button>
                        </div>
-                    </section>
-                </div>
-
-<section class="bg-white border rounded-2xl p-5 mt-6 shadow-sm hover:shadow-md transition-all duration-200">
-  <!-- Header -->
-  <div class="flex items-center gap-2 mb-4">
-    <i class="ph ph-notebook text-indigo-600 text-xl"></i>
-    <h2 class="font-semibold text-lg text-slate-800">Nhật ký theo tuần</h2>
-  </div>
-
-  <div class="text-sm">
-    @if($weeklyLogs->isEmpty())
-      <div class="text-slate-500 flex items-center gap-2 p-4 border border-dashed rounded-xl bg-slate-50/50">
-        <i class="ph ph-calendar-x text-slate-400 text-lg"></i>
-        Chưa có nhật ký tuần.
+          </section>
       </div>
-    @else
-      <div class="overflow-x-auto border border-slate-100 rounded-xl bg-white shadow-sm">
-        <table class="w-full text-sm border-collapse">
-          <thead class="bg-slate-50/70 text-slate-600">
-            <tr class="text-left">
-              <th class="py-2.5 px-4 font-medium text-center">Tuần</th>
-              <th class="py-2.5 px-4 font-medium text-center">Tiêu đề</th>
-              <th class="py-2.5 px-4 font-medium text-center">Thời gian</th>
-              <th class="py-2.5 px-4 font-medium text-center">Trạng thái</th>
-              <th class="py-2.5 px-4 font-medium text-center">Hành động</th>
-            </tr>
-          </thead>
 
-          <tbody>
-            @foreach($weeklyLogs as $w)
-              @php
-                $listStatus = [
-                    'pending'       => 'Chờ xử lý',
-                    'approved'      => 'Đã duyệt',
-                    'need_editing'  => 'Cần chỉnh sửa',
-                    'not_achieved'  => 'Chưa đạt',
-                ];
+        <section class="bg-white border rounded-2xl p-5 mt-6 shadow-sm hover:shadow-md transition-all duration-200">
+          <!-- Header -->
+          <div class="flex items-center gap-2 mb-4">
+            <i class="ph ph-notebook text-indigo-600 text-xl"></i>
+            <h2 class="font-semibold text-lg text-slate-800">Nhật ký theo tuần</h2>
+          </div>
 
-                $listColor = [
-                    'pending'       => 'bg-slate-100 text-slate-700',
-                    'approved'      => 'bg-emerald-100 text-emerald-700',
-                    'need_editing'  => 'bg-amber-100 text-amber-700',
-                    'not_achieved'  => 'bg-rose-100 text-rose-700',
-                ];
-              @endphp
+          <div class="text-sm">
+            @if($weeklyLogs->isEmpty())
+              <div class="text-slate-500 flex items-center gap-2 p-4 border border-dashed rounded-xl bg-slate-50/50">
+                <i class="ph ph-calendar-x text-slate-400 text-lg"></i>
+                Chưa có nhật ký tuần.
+              </div>
+            @else
+              <div class="overflow-x-auto border border-slate-100 rounded-xl bg-white shadow-sm">
+                <table class="w-full text-sm border-collapse">
+                  <thead class="bg-slate-50/70 text-slate-600">
+                    <tr class="text-left">
+                      <th class="py-2.5 px-4 font-medium text-center">Tuần</th>
+                      <th class="py-2.5 px-4 font-medium text-center">Tiêu đề</th>
+                      <th class="py-2.5 px-4 font-medium text-center">Thời gian</th>
+                      <th class="py-2.5 px-4 font-medium text-center">Trạng thái</th>
+                      <th class="py-2.5 px-4 font-medium text-center">Hành động</th>
+                    </tr>
+                  </thead>
 
-              <tr class="border-b border-slate-100 hover:bg-slate-50/70 transition-colors">
-                <td class="py-3 px-4 font-medium text-slate-700">
-                  <div class="flex items-center gap-1.5">
-                    <i class="ph ph-calendar text-indigo-500"></i>
-                    Tuần {{ $loop->index + 1 ?? '-' }}
-                  </div>
-                </td>
+                  <tbody>
+                    @foreach($weeklyLogs as $w)
+                      @php
+                        $listStatus = [
+                            'pending'       => 'Chờ xử lý',
+                            'approved'      => 'Đã duyệt',
+                            'need_editing'  => 'Cần chỉnh sửa',
+                            'not_achieved'  => 'Chưa đạt',
+                        ];
 
-                <td class="py-3 px-4">
-                  <a href="{{ route('web.teacher.weekly_log_detail', ['supervisorId' => $supervisorId, 'progressLogId' => $w->id]) }}"
-                     class="text-blue-600 hover:underline font-medium">
-                    {{ $w->title ?? '-' }}
-                  </a>
-                </td>
+                        $listColor = [
+                            'pending'       => 'bg-slate-100 text-slate-700',
+                            'approved'      => 'bg-emerald-100 text-emerald-700',
+                            'need_editing'  => 'bg-amber-100 text-amber-700',
+                            'not_achieved'  => 'bg-rose-100 text-rose-700',
+                        ];
+                      @endphp
 
-                <td class="py-3 px-4 text-slate-600 text-center">
-                  {{ $w->created_at->format('H:i:s d/m/Y') ?? '-' }}
-                </td>
+                      <tr class="border-b border-slate-100 hover:bg-slate-50/70 transition-colors">
+                        <td class="py-3 px-4 font-medium text-slate-700">
+                          <div class="flex items-center gap-1.5">
+                            <i class="ph ph-calendar text-indigo-500"></i>
+                            Tuần {{ $loop->index + 1 ?? '-' }}
+                          </div>
+                        </td>
 
-                <td class="py-3 px-4 text-center">
-                  <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium {{ $listColor[$w->instructor_status] ?? 'bg-slate-100 text-slate-700' }}">
-                    @switch($w->instructor_status)
-                      @case('approved')
-                        <i class="ph ph-check-circle text-emerald-600"></i>
-                        @break
-                      @case('need_editing')
-                        <i class="ph ph-pencil-simple text-amber-600"></i>
-                        @break
-                      @case('not_achieved')
-                        <i class="ph ph-x-circle text-rose-600"></i>
-                        @break
-                      @default
-                        <i class="ph ph-hourglass text-slate-500"></i>
-                    @endswitch
-                    {{ $listStatus[$w->instructor_status] ?? 'Chưa nộp' }}
-                  </span>
-                </td>
+                        <td class="py-3 px-4">
+                          <a href="{{ route('web.teacher.weekly_log_detail', ['supervisorId' => $supervisorId, 'progressLogId' => $w->id]) }}"
+                            class="text-blue-600 hover:underline font-medium">
+                            {{ $w->title ?? '-' }}
+                          </a>
+                        </td>
 
-                <td class="py-3 px-4 text-center">
-                  <a href="{{ route('web.teacher.weekly_log_detail', ['supervisorId' => $supervisorId, 'progressLogId' => $w->id]) }}"
-                     class="inline-flex items-center gap-1 text-indigo-600 hover:text-indigo-800 font-medium transition">
-                    <i class="ph ph-eye text-base"></i> Xem chi tiết
-                  </a>
-                </td>
-              </tr>
-            @endforeach
-          </tbody>
-        </table>
-      </div>
-    @endif
-  </div>
-</section>
+                        <td class="py-3 px-4 text-slate-600 text-center">
+                          {{ $w->created_at->format('H:i:s d/m/Y') ?? '-' }}
+                        </td>
+
+                        <td class="py-3 px-4 text-center">
+                          <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium {{ $listColor[$w->instructor_status] ?? 'bg-slate-100 text-slate-700' }}">
+                            @switch($w->instructor_status)
+                              @case('approved')
+                                <i class="ph ph-check-circle text-emerald-600"></i>
+                                @break
+                              @case('need_editing')
+                                <i class="ph ph-pencil-simple text-amber-600"></i>
+                                @break
+                              @case('not_achieved')
+                                <i class="ph ph-x-circle text-rose-600"></i>
+                                @break
+                              @default
+                                <i class="ph ph-hourglass text-slate-500"></i>
+                            @endswitch
+                            {{ $listStatus[$w->instructor_status] ?? 'Chưa nộp' }}
+                          </span>
+                        </td>
+
+                        <td class="py-3 px-4 text-center">
+                          <a href="{{ route('web.teacher.weekly_log_detail', ['supervisorId' => $supervisorId, 'progressLogId' => $w->id]) }}"
+                            class="inline-flex items-center gap-1 text-indigo-600 hover:text-indigo-800 font-medium transition">
+                            <i class="ph ph-eye text-base"></i> Xem chi tiết
+                          </a>
+                        </td>
+                      </tr>
+                    @endforeach
+                  </tbody>
+                </table>
+              </div>
+            @endif
+          </div>
+        </section>
 
                 <section class="bg-white border rounded-2xl p-5 mt-6 shadow-sm hover:shadow-md transition-all duration-200">
                   <!-- Header -->

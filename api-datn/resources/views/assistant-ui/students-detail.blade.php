@@ -158,14 +158,13 @@
 
             @php
               // Chuẩn bị biến hiển thị an toàn (có thể truyền từ controller: $round, $total_students)
-              
+              $projectTerm = $assignment->project_term ?? null;
               $round = $round ?? ($term ?? null);
               $roundStage = $projectTerm->stage;
               $roundName = optional($round)->term_name;
               $roundYear = optional(optional($projectTerm)->academy_year)->year_name;
               $roundStart = optional($projectTerm)->start_date;
               $roundEnd = optional($projectTerm)->end_date;
-              $totalStudents = $items->count() ?? null;
             @endphp
 
             <!-- Thông tin đợt đồ án -->
@@ -226,32 +225,6 @@
                   </tr>
                 </thead>
                 <tbody id="tableBody">
-                  @if ($items->count() > 0)
-                    @foreach ($items as $item)
-                      <tr class="hover:bg-slate-50">
-                        <td class="py-3 px-4">{{ $item->student->student_code }}</td>
-                        <td class="py-3 px-4"><a class="text-blue-600 hover:underline" href="student-profile.html">{{ $item->student->user->fullname }}</a></td>
-                        <td class="py-3 px-4">Công nghệ thông tin</td>
-                        <td class="py-3 px-4">{{ $item->student->class_code }}</td>
-                        <td class="py-3 px-4">3.10</td>
-                        <td class="py-3 px-4"><span class="px-2 py-1 rounded-full text-xs bg-slate-100 text-slate-700">Chưa
-                            duyệt</span></td>
-                        <td class="py-3 px-4 text-right space-x-2">
-                          <a class="px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-slate-600"
-                            href="student-detail.html"><i class="ph ph-eye"></i></a>
-                          <button class="px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-slate-600"><i
-                              class="ph ph-pencil"></i></button>
-                          <button class="px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-rose-600"><i
-                              class="ph ph-trash"></i></button>
-                        </td>
-                      </tr>
-                    @endforeach
-                  @elseif ($items->count() == 0)
-                    <tr>
-                      <td colspan="7" class="py-6 px-4 text-center text-slate-500">Chưa có sinh viên nào trong đợt này.
-                      </td>
-                    </tr>
-                  @endif
                 </tbody>
               </table>
             </div>
