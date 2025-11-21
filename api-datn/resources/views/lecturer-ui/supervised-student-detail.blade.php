@@ -153,47 +153,47 @@
       </div>
     </aside>
 
-        <div class="flex-1 h-screen overflow-hidden flex flex-col md:pl-[260px]">
-        <header class="h-16 bg-white border-b border-slate-200 flex items-center px-4 md:px-6 flex-shrink-0">
-            <div class="flex items-center gap-3 flex-1">
-            <button id="openSidebar" class="md:hidden p-2 rounded-lg hover:bg-slate-100"><i class="ph ph-list"></i></button>
-            <div>
-                <h1 class="text-lg md:text-xl font-semibold">Chi tiết sinh viên hướng dẫn</h1>
-                <nav class="text-xs text-slate-500 mt-0.5">
-                    <a href="overview.html" class="hover:underline text-slate-600">Trang chủ</a>
-                    <span class="mx-1">/</span>
-                    <a href="overview.html" class="hover:underline text-slate-600">Giảng viên</a>
-                    <span class="mx-1">/</span>
-                    <a href="thesis-rounds.html" class="hover:underline text-slate-600">Học phần tốt nghiệp</a>
-                    <span class="mx-1">/</span>
-                    <a href="thesis-rounds.html" class="hover:underline text-slate-600">Đồ án tốt nghiệp</a>
-                    <span class="mx-1">/</span>
-                    <a href="supervised-students.html" class="hover:underline text-slate-600">SV hướng dẫn</a>
-                    <span class="mx-1">/</span>
-                    <span class="text-slate-500">Chi tiết</span>
-                </nav>
-            </div>
-            </div>
-            <div class="relative">
-            <button id="profileBtn" class="flex items-center gap-3 px-2 py-1.5 rounded-lg hover:bg-slate-100">
-                <img class="h-9 w-9 rounded-full object-cover" src="{{ $avatarUrl }}" alt="avatar" />
-                <div class="hidden sm:block text-left">
-                <div class="text-sm font-semibold leading-4">{{ $userName }}</div>
-                <div class="text-xs text-slate-500">{{ $email }}</div>
-                </div>
-                <i class="ph ph-caret-down text-slate-500 hidden sm:block"></i>
-            </button>
-            <div id="profileMenu" class="hidden absolute right-0 mt-2 w-44 bg-white border border-slate-200 rounded-lg shadow-lg py-1 text-sm">
-                <a href="#" class="flex items-center gap-2 px-3 py-2 hover:bg-slate-50"><i class="ph ph-user"></i>Xem thông tin</a>
-                <a href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();" class="flex items-center gap-2 px-3 py-2 hover:bg-slate-50 text-rose-600"><i class="ph ph-sign-out"></i>Đăng xuất</a>
-                <form action="{{ route('web.auth.logout') }}" method="POST" class="hidden"><input type="submit">
-                    @csrf
-                </form>
-            </div>
-            </div>
-        </header>
+    <div class="flex-1 h-screen overflow-hidden flex flex-col md:pl-[260px]">
+      <header class="h-16 bg-white border-b border-slate-200 flex items-center px-4 md:px-6 flex-shrink-0">
+          <div class="flex items-center gap-3 flex-1">
+          <button id="openSidebar" class="md:hidden p-2 rounded-lg hover:bg-slate-100"><i class="ph ph-list"></i></button>
+          <div>
+              <h1 class="text-lg md:text-xl font-semibold">Chi tiết sinh viên hướng dẫn</h1>
+              <nav class="text-xs text-slate-500 mt-0.5">
+                  <a href="overview.html" class="hover:underline text-slate-600">Trang chủ</a>
+                  <span class="mx-1">/</span>
+                  <a href="overview.html" class="hover:underline text-slate-600">Giảng viên</a>
+                  <span class="mx-1">/</span>
+                  <a href="thesis-rounds.html" class="hover:underline text-slate-600">Học phần tốt nghiệp</a>
+                  <span class="mx-1">/</span>
+                  <a href="thesis-rounds.html" class="hover:underline text-slate-600">Đồ án tốt nghiệp</a>
+                  <span class="mx-1">/</span>
+                  <a href="supervised-students.html" class="hover:underline text-slate-600">SV hướng dẫn</a>
+                  <span class="mx-1">/</span>
+                  <span class="text-slate-500">Chi tiết</span>
+              </nav>
+          </div>
+          </div>
+          <div class="relative">
+          <button id="profileBtn" class="flex items-center gap-3 px-2 py-1.5 rounded-lg hover:bg-slate-100">
+              <img class="h-9 w-9 rounded-full object-cover" src="{{ $avatarUrl }}" alt="avatar" />
+              <div class="hidden sm:block text-left">
+              <div class="text-sm font-semibold leading-4">{{ $userName }}</div>
+              <div class="text-xs text-slate-500">{{ $email }}</div>
+              </div>
+              <i class="ph ph-caret-down text-slate-500 hidden sm:block"></i>
+          </button>
+          <div id="profileMenu" class="hidden absolute right-0 mt-2 w-44 bg-white border border-slate-200 rounded-lg shadow-lg py-1 text-sm">
+              <a href="#" class="flex items-center gap-2 px-3 py-2 hover:bg-slate-50"><i class="ph ph-user"></i>Xem thông tin</a>
+              <a href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();" class="flex items-center gap-2 px-3 py-2 hover:bg-slate-50 text-rose-600"><i class="ph ph-sign-out"></i>Đăng xuất</a>
+              <form action="{{ route('web.auth.logout') }}" method="POST" class="hidden"><input type="submit">
+                  @csrf
+              </form>
+          </div>
+          </div>
+      </header>
 
-        <main class="flex-1 overflow-y-auto px-4 md:px-6 py-6">
+      <main class="flex-1 overflow-y-auto px-4 md:px-6 py-6">
           <div class="max-w-6xl mx-auto">
             <div class="flex items-center justify-between mb-4">
                 <div></div>
@@ -875,8 +875,12 @@
 
             </div>
 
+      </main>
+    </div>
+    </div>
+
     <script>
-        // ...rất nhiều JS render nội dung...
+      // ...rất nhiều JS render nội dung...
     </script>
     <!-- Không cần JS để render nội dung; giữ lại nếu cần dropdown profile -->
     <script>
