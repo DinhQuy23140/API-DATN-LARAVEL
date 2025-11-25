@@ -177,8 +177,11 @@
                   <div class="text-right flex flex-col">
                     <div class="text-sm opacity-90">Giảng viên hướng dẫn</div>
                     @php
-                        $assignmentSupervisors = $assignment->assignment_supervisors ?? collect();
+                        $assignmentSupervisors = $assignment->assignment_supervisors->where('status', 'accepted') ?? collect();
                     @endphp
+                    @if($assignmentSupervisors->isEmpty())
+                      <div class="text-lg font-bold mt-1">Chưa có giảng viên hướng dẫn</div>
+                    @else
                     @foreach($assignmentSupervisors as $as)
                       @php
                           $supervisorTeacher = $as->supervisor->teacher ?? null;
@@ -189,6 +192,7 @@
                         <div class="font-medium">{{ $supervisorTeacherUser->fullname ?? '—' }}</div>
                       </div>
                     @endforeach
+                    @endif
                   </div>
                 </div>
               </div>

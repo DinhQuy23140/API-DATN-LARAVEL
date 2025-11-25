@@ -1339,7 +1339,7 @@
                           @php
                             $student = $assignment->student;
                             $topic = $assignment->project->name ?? 'Chưa có đề tài';
-                            $assignment_supervisors = $assignment->assignment_supervisors;
+                            $assignment_supervisors = $assignment->assignment_supervisors->where('status', 'accepted') ?? [];
                             $lastedReport = $assignment?->project
                                 ? $assignment->project->reportFiles()
                                     ->where('type_report', 'report')
