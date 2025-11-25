@@ -100,6 +100,7 @@ class CouncilProjectsController extends Controller
 
         $updates = [
             'review_score' => (float)$data['score'],
+            'comments'  => $data['comment'] ?? null,
             'updated_at'   => now(),
         ];
 
