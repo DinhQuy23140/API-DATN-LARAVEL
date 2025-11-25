@@ -10,7 +10,7 @@ class TeacherController extends Controller
 {
     public function index(Request $request)
     {
-        $teachers = Teacher::with('user')->paginate(15);
+        $teachers = Teacher::with('user.userResearches.research')->get();
         return response()->json($teachers);
     }
 

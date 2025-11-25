@@ -102,13 +102,13 @@
         <!-- Toolbar -->
         <section class="bg-white rounded-xl border border-slate-200 p-4 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
           <div class="flex items-center gap-2">
-            <button id="btnAdd" class="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm">
+            <button id="btnAdd" type="button" class="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white text-sm">
               <i class="ph ph-plus"></i> Thêm giảng viên
             </button>
-            <button id="btnAssignAssistant" class="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm">
+            <button id="btnAssignAssistant" type="button" class="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-sm">
               <i class="ph ph-user-list"></i> Phân trợ lý khoa
             </button>
-            <button id="btnExport" class="inline-flex items-center gap-2 px-3 py-2 rounded-lg border text-slate-700 hover:bg-slate-50 text-sm">
+            <button id="btnExport" type="button" class="inline-flex items-center gap-2 px-3 py-2 rounded-lg border text-slate-700 hover:bg-slate-50 text-sm">
               <i class="ph ph-download-simple"></i> Xuất danh sách
             </button>
           </div>
@@ -348,15 +348,29 @@
                   <div id="currentAssistantBlock" class="mt-2 p-3 border rounded-lg bg-slate-50">
                     <div id="currentAssistantName" class="font-medium">Chưa có</div>
                     <div id="currentAssistantEmail" class="text-xs text-slate-500">—</div>
+                    <div id="currentAssistantPhone" class="text-xs text-slate-500">—</div>
+                    <div id="currentAssistantDept" class="text-xs text-slate-500">—</div>
                   </div>
                 </div>
 
                 <div>
-                  <label class="text-xs text-slate-500">Chọn giảng viên</label>
+                  <label class="text-xs text-slate-500">Chọn tài khoản làm trợ lý khoa</label>
+                  @php
+                    // allow controller to pass $accounts (users or teacher accounts). fallback to $teachers
+                    $accountOptions = $accounts ?? $teachers ?? collect();
+                  @endphp
                   <select id="assistantSelect" class="mt-2 w-full border border-slate-200 rounded-lg px-3 py-2 text-sm">
-                    <option value="">-- Chọn giảng viên --</option>
-                    @foreach($teachers as $t)
-                      <option value="{{ $t->id }}" data-name="{{ $t->fullname ?? ($t->user->fullname ?? '') }}" data-email="{{ $t->email ?? ($t->user->email ?? '') }}">{{ $t->fullname ?? ($t->user->fullname ?? '') }} — {{ $t->teacher_code ?? ($t->code ?? '') }}</option>
+                    <option value="">-- Chọn tài khoản --</option>
+                    @foreach($accountOptions as $a)
+                      @php
+                        // normalize dataset values
+                        $name = $a->fullname ?? ($a->name ?? ($a->user->fullname ?? ''));
+                        $emailOpt = $a->email ?? ($a->user->email ?? '');
+                        $phoneOpt = $a->phone ?? ($a->user->phone ?? '');
+                        $deptOpt = $a->department_name ?? ($a->department->name ?? '');
+                        $label = $name . (isset($a->teacher_code) ? ' — ' . ($a->teacher_code ?? '') : (isset($a->code) ? ' — ' . ($a->code ?? '') : ''));
+                      @endphp
+                      <option value="{{ $a->id }}" data-name="{{ $name }}" data-email="{{ $emailOpt }}" data-phone="{{ $phoneOpt }}" data-dept="{{ $deptOpt }}">{{ $label }}</option>
                     @endforeach
                   </select>
                 </div>
@@ -571,6 +585,10 @@
     assistantEmailEl.textContent = "{{ $departmentAssistant->email ?? '—' }}";
     currentAssistantName.textContent = "{{ $departmentAssistant->fullname ?? $departmentAssistant->name ?? '—' }}";
     currentAssistantEmail.textContent = "{{ $departmentAssistant->email ?? '—' }}";
+    const currPhone = document.getElementById('currentAssistantPhone');
+    const currDept = document.getElementById('currentAssistantDept');
+    if(currPhone) currPhone.textContent = "{{ $departmentAssistant->phone ?? ($departmentAssistant->user->phone ?? '—') }}";
+    if(currDept) currDept.textContent = "{{ $departmentAssistant->department_name ?? ($departmentAssistant->department->name ?? '—') }}";
     assistantSession?.classList.remove('hidden');
   @endif
 
@@ -583,9 +601,19 @@
       // reset select
       const sel = document.getElementById('assistantSelect');
       if(sel) sel.value = '';
-      openAssignModal();
-      // focus the select for keyboard users
-      setTimeout(()=>{ try{ sel?.focus(); }catch(err){} }, 50);
+      // show assign modal directly (safer) and trap errors
+      try{
+        if(assignModal) {
+          assignModal.classList.remove('hidden');
+          document.body.classList.add('overflow-hidden');
+        } else {
+          console.warn('assignModal element not found');
+        }
+        // focus the select for keyboard users
+        setTimeout(()=>{ try{ sel?.focus(); }catch(err){ console.error(err); } }, 50);
+      } catch (err) {
+        console.error('Failed to open assign modal', err);
+      }
     });
   })();
 
@@ -594,6 +622,10 @@
     if(opt && opt.dataset){
       currentAssistantName.textContent = opt.dataset.name || '—';
       currentAssistantEmail.textContent = opt.dataset.email || '—';
+      const phoneEl = document.getElementById('currentAssistantPhone');
+      const deptEl = document.getElementById('currentAssistantDept');
+      if(phoneEl) phoneEl.textContent = opt.dataset.phone ? ('SĐT: ' + opt.dataset.phone) : '—';
+      if(deptEl) deptEl.textContent = opt.dataset.dept ? ('Bộ môn: ' + opt.dataset.dept) : '—';
     }
   });
 
@@ -625,6 +657,12 @@
       assistantEmailEl.textContent = email;
       currentAssistantName.textContent = name;
       currentAssistantEmail.textContent = email;
+      const phone = json.assistant.phone || (sel.selectedOptions[0]?.dataset?.phone) || '—';
+      const dept = json.assistant.department_name || (sel.selectedOptions[0]?.dataset?.dept) || '—';
+      const currPhoneEl = document.getElementById('currentAssistantPhone');
+      const currDeptEl = document.getElementById('currentAssistantDept');
+      if(currPhoneEl) currPhoneEl.textContent = phone;
+      if(currDeptEl) currDeptEl.textContent = dept;
       assistantSession?.classList.remove('hidden');
       closeAssignModal();
       // optionally show a brief success toast

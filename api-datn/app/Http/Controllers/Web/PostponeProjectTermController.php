@@ -28,7 +28,7 @@ class PostponeProjectTermController extends Controller
         $postponeProjectTerm->save();
 
         // If an assignment id was provided, remove that assignment (business logic kept from original)
-        Assignment::where('id', $data['assignment_id'])->delete();
+        Assignment::where('id', $data['assignment_id'])->update(['status' => 'stopped']);
 
         if ($request->wantsJson() || $request->ajax()) {
             return response()->json(['success' => true, 'message' => 'Đã phê duyệt đơn xin hoãn thành công.']);

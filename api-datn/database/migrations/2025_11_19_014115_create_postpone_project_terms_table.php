@@ -16,7 +16,7 @@ return new class extends Migration
         Schema::create('postpone_project_terms', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('project_term_id');
-            $table->unsignedBigInteger('assignment_id');
+            $table->unsignedBigInteger('assignment_id')->nullable();
             $table->text('note')->nullable();
             $table->string('status')->default('pending');
             
