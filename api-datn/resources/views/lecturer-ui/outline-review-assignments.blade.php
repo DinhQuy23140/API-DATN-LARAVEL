@@ -270,14 +270,14 @@
           $fullname = $row->student->user->fullname;
           $student_code = $row->student->student_code;
           $topic = $row->project->name ?? 'Chưa có đề tài';
-          $lastOutline = $row->project?->reportFiles()->latest('created_at')->first();
+          $lastOutline = $row->project?->reportFiles()->where('type_report', 'outline')->whereIn('status', ['approved', 'passed', 'failured'])->latest('created_at')->first();
           $status = $lastOutline->status ?? 'none';
           $lastOutlineDate = $lastOutline ? $lastOutline->created_at->format('H:i:s d/m/Y') : 'Chưa nộp báo cáo';
           $fileUrl = $lastOutline ? $lastOutline->file_url : '#';
 
           $statusLabels = [
             'passed' => ['label' => 'Đã duyệt',   'color' => 'bg-emerald-100 text-emerald-700'],
-            'rejected' => ['label' => 'Từ chối',    'color' => 'bg-rose-100 text-rose-700'],
+            'failured' => ['label' => 'Từ chối',    'color' => 'bg-rose-100 text-rose-700'],
             'approved'  => ['label' => 'Chưa duyệt',  'color' => 'bg-slate-100 text-slate-600'],
             'none'      => ['label' => 'Chưa nộp',   'color' => 'bg-slate-100 text-slate-400'],
           ];
@@ -313,7 +313,7 @@
                   Tải đề cương
                 </a>
               @endif
-              @if ($lastOutline && $status === 'approved')
+              @if ($lastOutline && $lastOutline->status === 'approved')
                 <div class="flex gap-2">
                   <button class="px-3 py-1 bg-emerald-600 text-white rounded text-xs hover:bg-emerald-700 transition"
                           onclick="approveOutline('{{ $row->id }}', '{{ $lastOutline->id }}', this)">

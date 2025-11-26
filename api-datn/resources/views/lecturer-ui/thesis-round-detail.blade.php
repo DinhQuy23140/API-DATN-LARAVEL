@@ -836,7 +836,7 @@
           $studentId = $student->id;
           $topic = $assignment->project->name ?? 'Chưa có đề tài';
 
-          $latestReport = $assignment->project?->reportFiles()->latest('created_at')->first();
+          $latestReport = $assignment->project?->reportFiles()->where('type_report', 'outline')->latest('created_at')->first();
           $statusRaw = $latestReport?->status ?? 'none';
 
           $listStatus = [
@@ -845,6 +845,8 @@
             'submitted' => ['label' => 'Đã nộp', 'class' => 'bg-amber-100 text-amber-700', 'icon' => 'ph-hourglass'],
             'approved' => ['label' => 'Đã duyệt', 'class' => 'bg-emerald-100 text-emerald-700', 'icon' => 'ph-check-circle'],
             'rejected' => ['label' => 'Bị từ chối', 'class' => 'bg-rose-100 text-rose-700', 'icon' => 'ph-x-circle'],
+            'passed' => ['label' => 'Đã duyệt phản biện kín', 'class' => 'bg-emerald-50 text-emerald-700', 'icon' => 'ph-check-circle'],
+            'failured' => ['label' => 'Bị từ chối phản biện kín', 'class' => 'bg-rose-50 text-rose-700', 'icon' => 'ph-x-circle'],
           ];
           $statusConfig = $listStatus[$statusRaw] ?? $listStatus['none'];
 
@@ -895,7 +897,7 @@
           $studentId = $student->id;
           $topic = $assignment->project->name ?? 'Chưa có đề tài';
 
-          $latestReport = $assignment->project?->reportFiles()->latest('created_at')->first();
+          $latestReport = $assignment->project?->reportFiles()->where('type_report', 'outline')->latest('created_at')->first();
           $statusRaw = $latestReport?->status ?? 'none';
 
           $listStatus = [
@@ -904,6 +906,8 @@
             'submitted' => ['label' => 'Đã nộp', 'class' => 'bg-amber-100 text-amber-700', 'icon' => 'ph-hourglass'],
             'approved' => ['label' => 'Đã duyệt', 'class' => 'bg-emerald-100 text-emerald-700', 'icon' => 'ph-check-circle'],
             'rejected' => ['label' => 'Bị từ chối', 'class' => 'bg-rose-100 text-rose-700', 'icon' => 'ph-x-circle'],
+            'passed' => ['label' => 'Đã duyệt phản biện kín', 'class' => 'bg-emerald-50 text-emerald-700', 'icon' => 'ph-check-circle'],
+            'failured' => ['label' => 'Bị từ chối phản biện kín', 'class' => 'bg-rose-50 text-rose-700', 'icon' => 'ph-x-circle'],
           ];
           $statusConfig = $listStatus[$statusRaw] ?? $listStatus['none'];
 

@@ -347,7 +347,7 @@
                   $fullname = $assignment->student->user->fullname ?? '';
                   $studentCode = $assignment->student->student_code ?? '';
                   $email = $assignment->student->user->email ?? '';
-                  $topic = $assignment->project->project_name ?? 'Chưa có đề tài';
+                  $topic = $assignment->project->name ?? 'Chưa có đề tài';
                 @endphp
                 <div class="assignment-card bg-gradient-to-r from-white to-indigo-50 rounded-2xl p-4 shadow hover:shadow-lg transform hover:-translate-y-0.5 transition border border-indigo-100 flex items-start gap-4" data-assignment-id="{{ $assignment->id }}">
                   <div class="flex-shrink-0">

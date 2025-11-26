@@ -92,6 +92,8 @@ Route::patch('/assignments/{assignmentId}/project/{projectId}', [AssignmentContr
 Route::get('/assignment/recent/student/{studentId}', [AssignmentController::class, 'getRecentAssignmentByStudentId']);
 Route::get('/assignment/{assignmentId}', [AssignmentController::class, 'getAssignmentById']);
 Route::get('/assignments/teacher/{teacherId}', [AssignmentController::class, 'getAssignmentByTeacherId']);
+Route::get('/assignments/with-outline-file/student/{studentId}/project-term/{projectTermId}', [AssignmentController::class, 'getAssignmentWithOutlineFileByStudentIdAndProjectTermId']);
+Route::get('/assignments/with-report-file/student/{studentId}/project-term/{projectTermId}', [AssignmentController::class, 'getAssignmentWithReportFileByStudentIdAndProjectTermId']);
 
 //student
 Route::apiResource('students', StudentController::class);

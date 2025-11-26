@@ -215,4 +215,44 @@ class AssignmentController extends Controller
 
         return response()->json($assignments);
     }
+
+    public function getAssignmentWithOutlineFileByStudentIdAndProjectTermId($studentId, $projectTermId) {
+        $assignment = Assignment::where('student_id', $studentId)->where('project_term_id', $projectTermId)->with([
+            'student.user',
+            'project_term.academy_year',
+            'project_term.stageTimelines',
+            'assignment_supervisors.supervisor.teacher.user',
+            'project.progressLogs.attachments',
+            'project.progressLogs.commentLogs.supervisor.teacher.user',
+            'project.reportFiles' => function($q) {
+                $q->where('type_report', 'outline');
+            },
+            'council_project.council_project_defences.council_member.supervisor.teacher.user',
+            'council_project.council.department',
+            'council_project.council_member.supervisor.teacher.user',
+            'council_project.council.council_members.supervisor.teacher.user',
+            'postpone_project_term',
+        ])->first();
+        return response()->json($assignment);
+    }
+
+        public function getAssignmentWithReportFileByStudentIdAndProjectTermId($studentId, $projectTermId) {
+        $assignment = Assignment::where('student_id', $studentId)->where('project_term_id', $projectTermId)->with([
+            'student.user',
+            'project_term.academy_year',
+            'project_term.stageTimelines',
+            'assignment_supervisors.supervisor.teacher.user',
+            'project.progressLogs.attachments',
+            'project.progressLogs.commentLogs.supervisor.teacher.user',
+            'project.reportFiles' => function($q) {
+                $q->where('type_report', 'outline');
+            },
+            'council_project.council_project_defences.council_member.supervisor.teacher.user',
+            'council_project.council.department',
+            'council_project.council_member.supervisor.teacher.user',
+            'council_project.council.council_members.supervisor.teacher.user',
+            'postpone_project_term',
+        ])->first();
+        return response()->json($assignment);
+    }
 }

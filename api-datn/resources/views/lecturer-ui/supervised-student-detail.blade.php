@@ -283,6 +283,8 @@
                                       'active' => 'Đang thực hiện',
                                       'approved' => 'Đã duyệt',
                                       'rejected' => 'Bị từ chối',
+                                      'passed' => 'Đã duyệt phản biện kín',
+                                      'failured' => 'Bị từ chối phản biện kín',
                                       ];
 
                                       $status = $listStatus[$statusOutline] ?? 'Chưa nộp';
@@ -293,10 +295,11 @@
                                       'active' => 'bg-amber-50 text-amber-700',
                                       'approved' => 'bg-emerald-50 text-emerald-700',
                                       'rejected' => 'bg-rose-50 text-rose-700',
+                                      'passed' => 'bg-emerald-50 text-emerald-700',
+                                      'failured' => 'bg-rose-50 text-rose-700',
                                       ];
 
                                       $statusOutlineColor = $listStatusColor[$statusOutline] ?? 'bg-slate-100 text-slate-700';
-
                                 @endphp
                                 @if(!$finalOutline)
                                     <div class="text-slate-500">Chưa có đề cương.</div>
@@ -372,6 +375,8 @@
                                                                       'submitted' => 'bg-amber-50 text-amber-700',
                                                                       'approved' => 'bg-emerald-50 text-emerald-700',
                                                                       'rejected' => 'bg-rose-50 text-rose-700',
+                                                                      'passed' => 'bg-emerald-50 text-emerald-700',
+                                                                      'failured' => 'bg-rose-50 text-rose-700',
                                                                       default => 'bg-slate-100 text-slate-700'
                                                                   };
                                                                   $listStatus = [
@@ -379,6 +384,8 @@
                                                                       'submitted' => 'Đã nộp',
                                                                       'approved' => 'Đã duyệt',
                                                                       'rejected' => 'Bị từ chối',
+                                                                      'passed' => 'Đã duyệt phản biện kín',
+                                                                      'failured' => 'Bị từ chối phản biện kín',
                                                                   ];
                                                                   $statusOutline = $listStatus[$outline->status] ?? 'Chưa nộp';
                                                               @endphp
