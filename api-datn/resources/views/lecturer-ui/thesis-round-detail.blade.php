@@ -85,7 +85,7 @@
         <div class="h-9 w-9 grid place-items-center rounded-lg bg-blue-600 text-white"><i
             class="ph ph-chalkboard-teacher"></i></div>
         <div class="sidebar-label">
-          <div class="font-semibold">Lecturer</div>
+          <div class="font-semibold">Giảng viên</div>
           <div class="text-xs text-slate-500">Bảng điều khiển</div>
         </div>
       </div>
@@ -175,13 +175,11 @@
             <nav class="text-xs text-slate-500 mt-0.5">
               <a href="overview.html" class="hover:underline text-slate-600">Trang chủ</a>
               <span class="mx-1">/</span>
-              <a href="overview.html" class="hover:underline text-slate-600">Giảng viên</a>
-              <span class="mx-1">/</span>
               <a href="thesis-rounds.html" class="hover:underline text-slate-600">Học phần tốt nghiệp</a>
               <span class="mx-1">/</span>
               <a href="thesis-rounds.html" class="hover:underline text-slate-600">Đồ án tốt nghiệp</a>
               <span class="mx-1">/</span>
-              <span class="text-slate-500">Chi tiết</span>
+              <span class="text-slate-500">Chi tiết đợt đồ án</span>
             </nav>
           </div>
         </div>
@@ -450,7 +448,7 @@
                     class="w-12 h-12 mx-auto {{ $backgroundStage4 }} rounded-full flex items-center justify-center text-white font-medium text-sm relative z-10 hover:scale-110 transition-transform">
                     4</div>
                   <div class="text-center mt-2">
-                    <div class="text-xs font-medium text-slate-900">Chấm báo cáo</div>
+                    <div class="text-xs font-medium text-slate-900">Báo cáo</div>
                     <div class="text-xs {{ $statusColor }} mt-1">{{ $statusStage4 }}</div>
                   </div>
                 </div>
@@ -1215,7 +1213,7 @@
                 <i class="ph ph-users-three"></i>
               </div>
               <div class="flex-1">
-                <div class="font-medium">Danh sách hội đồng chấm thi</div>
+                <div class="font-medium">Danh sách hội đồng tham gia</div>
                 <div class="text-xs text-slate-500 mt-0.5">Các hội đồng bạn tham gia, bấm để xem chi tiết.</div>
                 <div class="mt-3">
                   <span class="inline-flex items-center gap-1.5 text-sky-700 text-sm group-hover:gap-2 transition-all">
@@ -1566,7 +1564,7 @@
                     $committee = $assignment->council_project?->council?->name ?? 'Chưa có hội đồng';
                     $score = $assignment->council_project?->review_score ?? null;
                     if ($score !== null) {
-                      if ($score >= 5) {
+                      if ($score >= 5.5) {
                         $result = 'Đạt';
                         $resultClass = 'bg-emerald-100 text-emerald-700';
                       } else {

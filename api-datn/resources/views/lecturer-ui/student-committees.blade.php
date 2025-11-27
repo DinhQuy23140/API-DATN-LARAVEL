@@ -40,7 +40,7 @@
         <div class="h-9 w-9 grid place-items-center rounded-lg bg-blue-600 text-white"><i
             class="ph ph-chalkboard-teacher"></i></div>
         <div class="sidebar-label">
-          <div class="font-semibold">Lecturer</div>
+          <div class="font-semibold">Giảng viên</div>
           <div class="text-xs text-slate-500">Bảng điều khiển</div>
         </div>
       </div>
@@ -126,11 +126,11 @@
             <nav class="text-xs text-slate-500 mt-0.5">
               <a href="overview.html" class="hover:underline text-slate-600">Trang chủ</a>
               <span class="mx-1">/</span>
-              <a href="overview.html" class="hover:underline text-slate-600">Giảng viên</a>
-              <span class="mx-1">/</span>
               <a href="thesis-rounds.html" class="hover:underline text-slate-600">Học phần tốt nghiệp</a>
               <span class="mx-1">/</span>
-              <a href="thesis-round-detail.html" class="hover:underline text-slate-600">Chi tiết đợt</a>
+              <a href="thesis-rounds.html" class="hover:underline text-slate-600">Đồ án tốt nghiệp</a>
+              <span class="mx-1">/</span>
+              <a href="thesis-round-detail.html" class="hover:underline text-slate-600">Chi tiết đợt đồ án</a>
               <span class="mx-1">/</span>
               <span class="text-slate-500">Hội đồng của sinh viên</span>
             </nav>
@@ -163,7 +163,7 @@
           @php
             $stage = $rows->stage;
             $term = $rows->academy_year->name . ' - Học kỳ ' . $rows->stage;
-            $semester = ($rows->stage % 2 == 1) ? '1' : '2';
+            $semester = $rows->stage;
             $date = date('d/m/Y', strtotime($rows->start_date)) . ' - ' . date('d/m/Y', strtotime($rows->end_date));
           @endphp
 
