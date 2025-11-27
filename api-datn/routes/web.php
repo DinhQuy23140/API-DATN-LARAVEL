@@ -271,7 +271,7 @@ Route::middleware('auth')->group(function () {
     
     //stage 1 
     Route::get('/teacher/requests_management/{supervisorId}/term/{termId}', [AssignmentSupervisorController::class, 'getRequestManagementPage'])->name('web.teacher.requests_management');
-    Route::get('/teacher/proposed_topic/{supervisorId}', [AssignmentSupervisorController::class, 'getProposeBySupervisor'])->name('web.teacher.proposed_topic');
+    Route::get('/teacher/proposed_topic/{supervisorId}/term/{termId}', [AssignmentSupervisorController::class, 'getProposeBySupervisor'])->name('web.teacher.proposed_topic');
     // Proposed topics: create (store) and update
     Route::get('/teacher/proposed-topics', [ProposedTopicController::class, 'index'])->name('web.proposed_topics.index');
     Route::post('/teacher/proposed-topics', [ProposedTopicController::class, 'store'])->name('web.proposed_topics.store');

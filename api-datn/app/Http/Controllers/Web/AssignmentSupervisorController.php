@@ -49,9 +49,10 @@ class AssignmentSupervisorController extends Controller
         return view('lecturer-ui.requests-management', compact('rows', 'timeStage'));
     }
 
-    public function getProposeBySupervisor($supervisorId){
+    public function getProposeBySupervisor($supervisorId, $termId) {
         $proposedTopics = ProposedTopic::where('supervisor_id', $supervisorId)->orderByDesc('created_at')->get();
-        return view('lecturer-ui.proposed-topics', compact('proposedTopics', 'supervisorId'));
+        $projectTerm = ProjectTerm::with('academy_year')->find($termId);
+        return view('lecturer-ui.proposed-topics', compact('proposedTopics', 'supervisorId', 'projectTerm'));
     }
 
     public function getStudentBySupervisorAndTermId($supervisorId, $termId)

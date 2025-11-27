@@ -29,7 +29,14 @@ class ProposedTopicController extends Controller
         // query params, use ->appends(request()->query()) when rendering links.
         $topics = $query->orderBy('proposed_at', 'desc')->paginate(25);
 
-        return view('proposed_topics.index', compact('topics', 'q'));
+        // Return the lecturer UI view used in this project and provide
+        // the variable name expected by the Blade template (`$proposedTopics`).
+        // This keeps server-side search (via ?q=...) working with the
+        // `resources/views/lecturer-ui/proposed-topics.blade.php` page.
+        return view('lecturer-ui.proposed-topics', [
+            'proposedTopics' => $topics,
+            'q' => $q,
+        ]);
     }
 
     /**

@@ -258,7 +258,7 @@
                   </span>
                 </div>
 
-                <div class="grid grid-cols-2 gap-3 md:grid-cols-3">
+                <div class="grid">
                   <div class="flex items-center gap-3 bg-white border border-slate-100 rounded-lg px-3 py-2 shadow-sm">
                     <div class="p-2 rounded-md bg-indigo-50 text-indigo-600">
                       <i class="ph ph-list-bullets text-lg"></i>
@@ -266,26 +266,6 @@
                     <div>
                       <div class="text-xs text-slate-500">Đề tài</div>
                       <div class="text-sm font-semibold text-slate-800">{{ $topicCount }}</div>
-                    </div>
-                  </div>
-
-                  <div class="flex items-center gap-3 bg-white border border-slate-100 rounded-lg px-3 py-2 shadow-sm">
-                    <div class="p-2 rounded-md bg-indigo-50 text-indigo-600">
-                      <i class="ph ph-play text-lg"></i>
-                    </div>
-                    <div>
-                      <div class="text-xs text-slate-500">Đang mở</div>
-                      <div class="text-sm font-semibold text-slate-800">{{ $openCount }}</div>
-                    </div>
-                  </div>
-
-                  <div class="flex items-center gap-3 bg-white border border-slate-100 rounded-lg px-3 py-2 shadow-sm">
-                    <div class="p-2 rounded-md bg-indigo-50 text-indigo-600">
-                      <i class="ph ph-users-three text-lg"></i>
-                    </div>
-                    <div>
-                      <div class="text-xs text-slate-500">Tổng chỉ tiêu</div>
-                      <div class="text-sm font-semibold text-slate-800">{{ $totalSlots }}</div>
                     </div>
                   </div>
                 </div>
@@ -498,28 +478,30 @@
       wrap.setAttribute('data-registered', t.registered || 0);
       const tagsHtml = (t.tags||[]).length ? (t.tags||[]).map(tag=>`<span class="tag-chip">${tag}</span>`).join(' ') : '<span class="text-xs text-slate-400">Chưa có thẻ</span>';
       wrap.innerHTML = `
-        <div class="flex items-start justify-between gap-4">
+        <div class="flex items-start gap-4">
+          <div class="flex-shrink-0">
+            <div class="h-12 w-12 rounded-lg bg-indigo-50 text-indigo-600 grid place-items-center"><i class="ph ph-notebook text-xl"></i></div>
+          </div>
           <div class="flex-1">
-            <div class="flex items-center gap-3">
-              <div class="h-10 w-10 rounded-lg bg-blue-50 text-blue-600 grid place-items-center"><i class="ph ph-notebook text-lg"></i></div>
+            <div class="flex items-start justify-between gap-3">
               <div>
-                <h5 class="font-semibold text-slate-800">${t.title}</h5>
-                <div class="text-xs text-slate-500 mt-1 inline-flex items-center gap-2"><i class="ph ph-calendar text-slate-400"></i><span>Cập nhật: ${t.updatedAt||''}</span></div>
+                <h5 class="font-semibold text-slate-900 text-base">${escapeHtml(t.title)}</h5>
+                <div class="text-xs text-slate-400 mt-1"><i class="ph ph-calendar"></i> ${t.updatedAt||''}</div>
               </div>
+              <div class="text-right text-xs text-slate-500"></div>
             </div>
-            <p class="text-sm text-slate-600 mt-3">${t.description||''}</p>
-            <div class="mt-3 flex items-center gap-2 flex-wrap text-xs">
-              <div class="inline-flex items-center gap-2 text-slate-500"><i class="ph ph-tag text-slate-400"></i>${tagsHtml}</div>
+
+            <p class="text-sm text-slate-600 mt-3">${escapeHtml(t.description||'')}</p>
+
+            <div class="mt-3 flex items-center gap-2 flex-wrap">
+              ${tagsHtml}
             </div>
           </div>
-          <aside class="w-40 flex-shrink-0 text-right">
-            <div class="text-sm text-slate-700"><i class="ph ph-users-three text-slate-400"></i> <span class="font-semibold">${t.registered||0}</span>/<span>${t.slots||0}</span></div>
-            <div class="mt-2"><span class="px-2 py-1 rounded-full text-xs ${t.status==='Mở' ? 'bg-green-50 text-green-600' : 'bg-slate-100 text-slate-700'}">${t.status||'Mở'}</span></div>
-            <div class="mt-3 flex justify-end gap-2">
-              <button data-id="${t.id}" class="edit-topic-btn px-2 py-1 text-sm bg-yellow-50 text-yellow-700 rounded hover:bg-yellow-100 flex items-center gap-2"><i class="ph ph-pencil"></i><span class="hidden sm:inline">Sửa</span></button>
-              <button data-id="${t.id}" class="delete-topic-btn px-2 py-1 text-sm bg-rose-50 text-rose-700 rounded hover:bg-rose-100 flex items-center gap-2"><i class="ph ph-trash"></i><span class="hidden sm:inline">Xóa</span></button>
-            </div>
-          </aside>
+        </div>
+
+        <div class="mt-4 flex items-center justify-end gap-2">
+          <button data-id="${t.id}" class="edit-topic-btn px-3 py-1 rounded-lg bg-yellow-50 text-yellow-700 text-sm hover:bg-yellow-100"><i class="ph ph-pencil"></i> <span class="hidden sm:inline">Sửa</span></button>
+          <button data-id="${t.id}" class="delete-topic-btn px-3 py-1 rounded-lg bg-rose-50 text-rose-700 text-sm hover:bg-rose-100"><i class="ph ph-trash"></i> <span class="hidden sm:inline">Xóa</span></button>
         </div>
       `;
       return wrap;
@@ -784,6 +766,8 @@
 
             computeStats();
             closeAddModal();
+            // reload page so server-state (pagination, counts, etc.) is authoritative
+            try{ window.location.reload(); }catch(e){ /* ignore reload failure */ }
           }catch(err){
             console.error('Add topic failed:', err);
             // show more detailed message to help debugging while keeping user-friendly text
@@ -880,6 +864,21 @@
     document.getElementById('resetBtn').addEventListener('click',()=>{ if(searchEl) searchEl.value=''; if(statusEl) statusEl.value=''; applyFilters(); });
     searchEl?.addEventListener('input', applyFilters);
     statusEl?.addEventListener('change', applyFilters);
+
+    // Press Enter in search box -> perform server-side search (reload with ?q=...)
+    function performServerSearch(q){
+      q = String(q||'').trim();
+      const base = '/teacher/proposed-topics';
+      if(!q) return window.location.href = base;
+      window.location.href = base + '?q=' + encodeURIComponent(q);
+    }
+
+    searchEl?.addEventListener('keydown', (ev)=>{
+      if(ev.key === 'Enter'){
+        ev.preventDefault();
+        performServerSearch(searchEl.value || '');
+      }
+    });
 
     function applyFilters(){
       const q = (searchEl?.value||'').toLowerCase().trim();
