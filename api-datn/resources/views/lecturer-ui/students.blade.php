@@ -106,7 +106,7 @@
             <button id="openSidebar" class="md:hidden p-2 rounded-lg hover:bg-slate-100"><i class="ph ph-list"></i></button>
             <div>
               <h1 class="text-lg md:text-xl font-semibold">Danh sách sinh viên hướng dẫn</h1>
-              <nav class="text-xs text-slate-500 mt-0.5">Trang chủ / SV đăng ký</nav>
+              <nav class="text-xs text-slate-500 mt-0.5">Trang chủ / SV hướng dẫn</nav>
             </div>
           </div>
           <div class="relative">

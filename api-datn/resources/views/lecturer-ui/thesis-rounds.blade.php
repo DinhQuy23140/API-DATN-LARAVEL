@@ -53,7 +53,7 @@
         <div class="h-9 w-9 grid place-items-center rounded-lg bg-blue-600 text-white"><i
             class="ph ph-chalkboard-teacher"></i></div>
         <div class="sidebar-label">
-          <div class="font-semibold">Lecturer</div>
+          <div class="font-semibold">Giảng viên</div>
           <div class="text-xs text-slate-500">Bảng điều khiển</div>
         </div>
       </div>
@@ -143,8 +143,6 @@
             <h1 class="text-lg md:text-xl font-semibold">Đồ án tốt nghiệp</h1>
             <nav class="text-xs text-slate-500 mt-0.5">
               <a href="overview.html" class="hover:underline text-slate-600">Trang chủ</a>
-              <span class="mx-1">/</span>
-              <a href="overview.html" class="hover:underline text-slate-600">Giảng viên</a>
               <span class="mx-1">/</span>
               <span class="text-slate-500">Học phần tốt nghiệp / Đồ án tốt nghiệp</span>
             </nav>
