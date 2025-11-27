@@ -54,7 +54,7 @@
         <div class="h-9 w-9 grid place-items-center rounded-lg bg-blue-600 text-white"><i
             class="ph ph-chalkboard-teacher"></i></div>
         <div class="sidebar-label">
-          <div class="font-semibold">Lecturer</div>
+          <div class="font-semibold">Giảng viên</div>
           <div class="text-xs text-slate-500">Bảng điều khiển</div>
         </div>
       </div>
@@ -135,7 +135,7 @@
               class="ph ph-list"></i></button>
           <div>
             <h1 class="text-lg md:text-xl font-semibold">Tổng quan</h1>
-            <nav class="text-xs text-slate-500 mt-0.5">Trang chủ / Giảng viên / Tổng quan</nav>
+            <nav class="text-xs text-slate-500 mt-0.5">Trang chủ / Tổng quan</nav>
           </div>
         </div>
         <div class="relative">
@@ -177,11 +177,6 @@
                       {{ $degree }}
                   </div>
                   <div class="text-xs text-slate-500">{{ $email }}</div>
-                  <div class="mt-1">
-                    <span class="px-2 py-1 text-xs rounded-full bg-emerald-50 text-emerald-700">
-                      Đã cập nhật {{ optional($user->updated_at)->diffForHumans() ?? 'gần đây' }}
-                    </span>
-                  </div>
                 </div>
               </div>
             </div>
@@ -272,9 +267,6 @@
                           <th class="px-4 py-3 text-left">
                             <div class="flex items-center gap-2"><i class="ph ph-notebook text-lg text-slate-400"></i><span>Đề tài</span></div>
                           </th>
-                          <th class="px-4 py-3 text-left whitespace-nowrap">
-                            <div class="flex items-center gap-2"><i class="ph ph-flag text-lg text-slate-400"></i><span>Trạng thái</span></div>
-                          </th>
                         </tr>
                       </thead>
                       <tbody id="studentsTbody" class="divide-y divide-slate-100">
@@ -335,12 +327,6 @@
                             <div class="inline-flex items-center gap-2">
                               <i class="ph ph-notebook text-slate-400"></i>
                               <div class="truncate" title="{{ $topic }}">{{ $topic ?: '—' }}</div>
-                            </div>
-                          </td>
-                          <td class="px-4 py-3">
-                            <div class="inline-flex items-center gap-2">
-                              <i class="ph ph-flag text-slate-400"></i>
-                              <span class="px-2 py-1 rounded-full text-xs {{ $statusClass }} whitespace-nowrap">{{ $statusLabel }}</span>
                             </div>
                           </td>
                         </tr>
