@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Assignment;
 use App\Models\AssignmentSupervisor;
 use App\Models\ProjectTerm;
+use App\Models\ProposedTopic;
 use App\Models\stage_timeline;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -49,7 +50,8 @@ class AssignmentSupervisorController extends Controller
     }
 
     public function getProposeBySupervisor($supervisorId){
-        return view('lecturer-ui.proposed-topics');
+        $proposedTopics = ProposedTopic::where('supervisor_id', $supervisorId)->get();
+        return view('lecturer-ui.proposed-topics', compact('proposedTopics'));
     }
 
     public function getStudentBySupervisorAndTermId($supervisorId, $termId)

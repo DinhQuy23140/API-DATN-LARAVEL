@@ -73,7 +73,7 @@
         <div class="h-9 w-9 grid place-items-center rounded-lg bg-blue-600 text-white"><i
             class="ph ph-chalkboard-teacher"></i></div>
         <div class="sidebar-label">
-          <div class="font-semibold">Lecturer</div>
+          <div class="font-semibold">Giảng viên</div>
           <div class="text-xs text-slate-500">Bảng điều khiển</div>
         </div>
       </div>
@@ -159,11 +159,11 @@
             <nav class="text-xs text-slate-500 mt-0.5">
               <a href="overview.html" class="hover:underline text-slate-600">Trang chủ</a>
               <span class="mx-1">/</span>
-              <a href="overview.html" class="hover:underline text-slate-600">Giảng viên</a>
-              <span class="mx-1">/</span>
               <a href="thesis-rounds.html" class="hover:underline text-slate-600">Học phần tốt nghiệp</a>
               <span class="mx-1">/</span>
               <a href="thesis-rounds.html" class="hover:underline text-slate-600">Đồ án tốt nghiệp</a>
+              <span class="mx-1">/</span>
+              <a href="" class="hover:underline text-slate-600">Chi tiết đợt đồ án</a>
               <span class="mx-1">/</span>
               <span class="text-slate-500">Đề xuất đề tài</span>
             </nav>
@@ -237,21 +237,16 @@
         $topicsToShow = isset($topics) ? $topics : $defaultTopics;
       @endphp
 
-      @foreach($topicsToShow as $t)
+      @foreach($proposedTopics as $t)
         @php
           // allow both array and object shapes
           $id = is_object($t) ? ($t->id ?? '') : ($t['id'] ?? '');
           $title = is_object($t) ? ($t->title ?? '') : ($t['title'] ?? '');
           $description = is_object($t) ? ($t->description ?? '') : ($t['description'] ?? '');
-          $tags = is_object($t) ? ($t->tags ?? []) : ($t['tags'] ?? []);
-          $slots = is_object($t) ? ($t->slots ?? 0) : ($t['slots'] ?? 0);
-          $registered = is_object($t) ? ($t->registered ?? 0) : ($t['registered'] ?? 0);
-          $status = is_object($t) ? ($t->status ?? 'Mở') : ($t['status'] ?? 'Mở');
           $updatedAt = is_object($t) ? ($t->updatedAt ?? ($t->updated_at ?? '')) : ($t['updatedAt'] ?? ($t['updated_at'] ?? ''));
-          if(is_string($tags)) { $tags = array_filter(array_map('trim', preg_split('/[;,]/', $tags))); }
         @endphp
 
-        <article data-topic-id="{{ $id }}" data-status="{{ $status }}" data-slots="{{ $slots }}" data-registered="{{ $registered }}" class="border rounded-xl p-4 bg-white shadow-sm hover:shadow-md transition">
+        <article data-topic-id="{{ $id }}"  class="border rounded-xl p-4 bg-white shadow-sm hover:shadow-md transition">
           <div class="flex items-start justify-between gap-4">
             <div class="flex-1">
               <div class="flex items-center gap-3">
@@ -262,21 +257,8 @@
                 </div>
               </div>
               <p class="text-sm text-slate-600 mt-3">{{ $description }}</p>
-              <div class="mt-3 flex items-center gap-2 flex-wrap text-xs">
-                <div class="inline-flex items-center gap-2 text-slate-500"><i class="ph ph-tag text-slate-400"></i>
-                  @if(!empty($tags))
-                    @foreach($tags as $tag)
-                      <span class="tag-chip">{{ $tag }}</span>
-                    @endforeach
-                  @else
-                    <span class="text-xs text-slate-400">Chưa có thẻ</span>
-                  @endif
-                </div>
-              </div>
             </div>
             <aside class="w-40 flex-shrink-0 text-right">
-              <div class="text-sm text-slate-700"><i class="ph ph-users-three text-slate-400"></i> <span class="font-semibold">{{ $registered }}</span>/<span>{{ $slots }}</span></div>
-              <div class="mt-2"><span class="px-2 py-1 rounded-full text-xs {{ $status==='Mở' ? 'bg-green-50 text-green-600' : 'bg-slate-100 text-slate-700' }}">{{ $status }}</span></div>
               <div class="mt-3 flex justify-end gap-2">
                 <button data-id="{{ $id }}" class="edit-topic-btn px-2 py-1 text-sm bg-yellow-50 text-yellow-700 rounded hover:bg-yellow-100 flex items-center gap-2"><i class="ph ph-pencil"></i><span class="hidden sm:inline">Sửa</span></button>
                 <button data-id="{{ $id }}" class="delete-topic-btn px-2 py-1 text-sm bg-rose-50 text-rose-700 rounded hover:bg-rose-100 flex items-center gap-2"><i class="ph ph-trash"></i><span class="hidden sm:inline">Xóa</span></button>
