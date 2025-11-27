@@ -112,6 +112,56 @@ class UserController extends Controller
     }
 
     /**
+     * Update current user's profile and related teacher record (if present).
+     * Accepts user fields (fullname, email, phone, dob, gender, address, image)
+     * and teacher fields (teacher_code, degree, department_id, position).
+     */
+    public function updateProfile(Request $request)
+    {
+        $user = Auth::user();
+
+        $data = $request->validate([
+            'fullname' => ['sometimes', 'required', 'string', 'max:255'],
+            'email'    => ['sometimes', 'required', 'email', 'max:255', Rule::unique('users','email')->ignore($user->id)],
+            'phone'    => ['nullable', 'string', 'max:20'],
+            'dob'      => ['nullable', 'date'],
+            'gender'   => ['nullable', 'string', 'in:male,female,other'],
+            'address'  => ['nullable', 'string', 'max:500'],
+            'image'    => ['nullable', 'string', 'max:500'],
+
+            // Teacher-specific (optional)
+            'teacher_code'  => ['nullable', 'string', 'max:100'],
+            'degree'        => ['nullable', 'string', 'max:100'],
+            'department_id' => ['nullable', 'integer'],
+            'position'      => ['nullable', 'string', 'max:100'],
+        ]);
+
+        // Separate user and teacher data
+        $userKeys = ['fullname','email','phone','dob','gender','address','image'];
+        $teacherKeys = ['teacher_code','degree','department_id','position'];
+
+        $userData = array_intersect_key($data, array_flip($userKeys));
+        $teacherData = array_intersect_key($data, array_flip($teacherKeys));
+
+        if (!empty($userData)) {
+            $user->update($userData);
+        }
+
+        if (!empty($teacherData)) {
+            if ($user->teacher) {
+                $user->teacher->update($teacherData);
+            } else {
+                // If user has teacher role, create teacher record if missing
+                if ($user->role === 'teacher') {
+                    \App\Models\Teacher::create(array_merge($teacherData, ['user_id' => $user->id]));
+                }
+            }
+        }
+
+        return redirect()->route('web.teacher.profile')->with('status', 'Cập nhật hồ sơ thành công');
+    }
+
+    /**
      * Handle change password request from profile page.
      * Accepts: current_password, new_password, new_password_confirmation
      */

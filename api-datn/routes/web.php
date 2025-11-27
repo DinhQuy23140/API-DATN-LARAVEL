@@ -251,6 +251,8 @@ Route::middleware('auth')->group(function () {
     // Lecturer UI pages
     Route::get('/teacher/overview', [WebUserController::class, 'showOverView'])->name('web.teacher.overview'); // trang tổng quan
     Route::get('/teacher/profile', [WebUserController::class, 'showProfile'])->name('web.teacher.profile');
+    // Update profile (user + teacher info)
+    Route::patch('/teacher/profile', [WebUserController::class, 'updateProfile'])->name('web.teacher.profile.update');
 
     // Change password (web form from profile)
     Route::post('/user/change-password', [WebUserController::class, 'changePassword'])->name('web.user.change_password');

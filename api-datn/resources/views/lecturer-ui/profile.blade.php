@@ -323,9 +323,9 @@
     </div>
 
     <!-- Two-column modal: left summary, right form -->
-    <form id="editProfileForm" method="POST" action="" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+    <form id="editProfileForm" method="POST" action="{{ route('web.teacher.profile.update') }}" enctype="multipart/form-data" class="grid grid-cols-1 lg:grid-cols-12 gap-6">
       @csrf
-      <input type="hidden" name="_method" value="PUT">
+      @method('PATCH')
 
       <!-- Left: compact summary / avatar -->
       <aside class="lg:col-span-4 bg-slate-50 rounded-xl p-4 border border-slate-100 flex flex-col items-center gap-4">
