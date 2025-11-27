@@ -42,7 +42,7 @@
         <div class="h-16 flex items-center gap-3 px-4 border-b border-slate-200">
           <div class="h-9 w-9 grid place-items-center rounded-lg bg-blue-600 text-white"><i class="ph ph-chalkboard-teacher"></i></div>
           <div class="sidebar-label">
-            <div class="font-semibold">Lecturer</div>
+            <div class="font-semibold">Giảng viên</div>
             <div class="text-xs text-slate-500">Bảng điều khiển</div>
           </div>
         </div>
@@ -110,7 +110,7 @@
             <button id="openSidebar" class="md:hidden p-2 rounded-lg hover:bg-slate-100"><i class="ph ph-list"></i></button>
             <div>
               <h1 class="text-lg md:text-xl font-semibold">Hướng nghiên cứu</h1>
-              <nav class="text-xs text-slate-500 mt-0.5">Trang chủ / Giảng viên / Hướng nghiên cứu</nav>
+              <nav class="text-xs text-slate-500 mt-0.5">Trang chủ / Hướng nghiên cứu</nav>
             </div>
           </div>
           <div class="relative">

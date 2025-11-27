@@ -72,7 +72,7 @@
         <div class="h-9 w-9 grid place-items-center rounded-lg bg-blue-600 text-white"><i
             class="ph ph-chalkboard-teacher"></i></div>
         <div class="sidebar-label">
-          <div class="font-semibold">Lecturer</div>
+          <div class="font-semibold">Giảng viên</div>
           <div class="text-xs text-slate-500">Bảng điều khiển</div>
         </div>
       </div>
@@ -149,7 +149,7 @@
               class="ph ph-list"></i></button>
           <div>
             <h1 class="text-lg md:text-xl font-semibold">Hồ sơ cá nhân</h1>
-            <nav class="text-xs text-slate-500 mt-0.5">Trang chủ / Giảng viên / Hồ sơ cá nhân</nav>
+            <nav class="text-xs text-slate-500 mt-0.5">Trang chủ /Hồ sơ cá nhân</nav>
           </div>
         </div>
         <div class="relative">

@@ -38,7 +38,7 @@
         <div class="h-16 flex items-center gap-3 px-4 border-b border-slate-200">
           <div class="h-9 w-9 grid place-items-center rounded-lg bg-blue-600 text-white"><i class="ph ph-chalkboard-teacher"></i></div>
           <div class="sidebar-label">
-            <div class="font-semibold">Lecturer</div>
+            <div class="font-semibold">Giảng viên</div>
             <div class="text-xs text-slate-500">Bảng điều khiển</div>
           </div>
         </div>
@@ -106,7 +106,7 @@
             <button id="openSidebar" class="md:hidden p-2 rounded-lg hover:bg-slate-100"><i class="ph ph-list"></i></button>
             <div>
               <h1 class="text-lg md:text-xl font-semibold">Danh sách sinh viên hướng dẫn</h1>
-              <nav class="text-xs text-slate-500 mt-0.5">Trang chủ / Giảng viên / SV đăng ký</nav>
+              <nav class="text-xs text-slate-500 mt-0.5">Trang chủ / SV đăng ký</nav>
             </div>
           </div>
           <div class="relative">
@@ -140,14 +140,6 @@
             <div class="flex items-center justify-between">
               @php
                 $user = Auth::user();
-                //$assignmentSupervisors = $user->teacher->supervisor->assignment_supervisors;
-                //$years = collect($assignmentSupervisors)
-                //  ->map(fn($as) => data_get($as, 'assignment.batch_student.project_term.academy_year.year_name'))
-                //  ->filter()->unique()->values();
-                //$terms = collect($assignmentSupervisors)
-                //  ->map(fn($as) => data_get($as, 'assignment.batch_student.project_term.stage'))
-                //  ->filter()->unique()->values();
-                //if ($terms->isEmpty()) { $terms = collect(['HK1','HK2','HK Hè']); }
               @endphp
 
               <div class="flex items-center gap-2 flex-wrap">
@@ -165,19 +157,10 @@
                 <div class="relative">
                   <i class="ph ph-clock text-slate-400 absolute left-2 top-2.5"></i>
                   <select id="filterTerm" class="pl-8 pr-3 py-2 rounded-lg border border-slate-200 text-sm">
-                    <option value="">Tất cả kỳ học</option>
+                    <option value="">Tất cả các đợt</option>
                     @foreach ($terms as $t)
                       <option value="{{ $t }}">{{ $t }}</option>
                     @endforeach
-                  </select>
-                </div>
-                <!-- Trạng thái -->
-                <div class="relative">
-                  <i class="ph ph-funnel text-slate-400 absolute left-2 top-2.5"></i>
-                  <select id="filterStatus" class="pl-8 pr-3 py-2 rounded-lg border border-slate-200 text-sm">
-                    <option value="">Tất cả trạng thái</option>
-                    <option value="approved">Đã duyệt</option>
-                    <option value="pending">Chưa duyệt</option>
                   </select>
                 </div>
               </div>
@@ -199,7 +182,6 @@
                       <th class="py-3 px-4 border-b text-left">Đề tài</th>
                       <th class="py-3 px-4 border-b text-center">Đợt</th>
                       <th class="py-3 px-4 border-b text-center">Năm học</th>
-                      <th class="py-3 px-4 border-b text-center">Trạng thái</th>
                     </tr>
                   </thead>
                   <tbody id="tableBody" class="divide-y divide-slate-100">
@@ -248,7 +230,7 @@
                       $statusLabel = $statusLabels[$statusRaw] ?? ucfirst($statusRaw);
                     @endphp
 
-                    <tr class="hover:bg-slate-50 transition">
+                    <tr data-year="{{ $yearName }}" data-term="{{ $stage }}" class="hover:bg-slate-50 transition">
                       <td class="py-3 px-4 text-left align-top">{{ optional($assignmentSupervisor->assignment->student)->student_code ?? '—' }}</td>
                       <td class="py-3 px-4 font-medium text-slate-700 align-top">{{ optional($assignmentSupervisor->assignment->student->user)->fullname ?? '—' }}</td>
                       <td class="py-3 px-4 text-center align-top">{{ optional($assignmentSupervisor->assignment->student->marjor)->name ?? 'Chưa có ngành' }}</td>
@@ -257,18 +239,6 @@
                       </td>
                       <td class="py-3 px-4 text-left align-top whitespace-nowrap">{{ $stage ?: '—' }}</td>
                       <td class="py-3 px-4 text-left align-top whitespace-nowrap">{{ $yearName ?: '—' }}</td>
-                      <td class="py-3 px-4 text-center align-top">
-                        <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium {{ $statusClass }}">
-                          @if (in_array($statusRaw, ['approved', 'accepted', 'actived']))
-                            <i class="ph ph-check-circle"></i>
-                          @elseif ($statusRaw === 'pending')
-                            <i class="ph ph-clock"></i>
-                          @elseif (in_array($statusRaw, ['cancelled', 'stopped']))
-                            <i class="ph ph-x-circle"></i>
-                          @endif
-                          {{ $statusLabel }}
-                        </span>
-                      </td>
                     </tr>
                   @endforeach
                 @endif
@@ -277,7 +247,7 @@
               </div>
 
               <!-- Mobile card list -->
-              <div class="md:hidden space-y-3">
+              <div id="mobileList" class="md:hidden space-y-3">
                 @if ($validSupervisors->isEmpty())
                   <div class="text-center text-slate-500 py-8">
                     <i class="ph ph-users text-2xl"></i>
@@ -298,7 +268,7 @@
                       ][$statusRaw] ?? ucfirst($statusRaw);
                     @endphp
 
-                    <div class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm hover:shadow-md">
+                    <div data-year="{{ $yearName }}" data-term="{{ $stage }}" class="bg-white border border-slate-200 rounded-xl p-4 shadow-sm hover:shadow-md">
                       <div class="flex items-start gap-3">
                         <div class="flex-1">
                           <div class="flex items-center justify-between gap-3">
@@ -363,16 +333,27 @@
         const term = norm(ft?.value);
         const q    = norm(qEl?.value);
 
-        document.querySelectorAll('#tableBody tr').forEach(tr=>{
-          const ry = norm(tr.dataset.year);
-          const rt = norm(tr.dataset.term);
-          const fullname = norm(tr.querySelector('td:nth-child(2)')?.innerText); // cột Họ tên
+        // Collect items to filter: desktop rows and mobile cards
+        const items = Array.from(document.querySelectorAll('#tableBody tr[data-year], #mobileList > div[data-year]'));
+
+        items.forEach(item => {
+          const ry = norm(item.dataset.year);
+          const rt = norm(item.dataset.term);
+
+          // Get fullname depending on item type (table row vs card)
+          let fullname = '';
+          if (item.tagName === 'TR') {
+            fullname = norm(item.querySelector('td:nth-child(2)')?.innerText);
+          } else {
+            // mobile card: name is in .text-sm.font-semibold
+            fullname = norm(item.querySelector('.text-sm.font-semibold')?.innerText || item.innerText);
+          }
 
           const okYear = !year || ry === year;
           const okTerm = !term || rt === term;
-          const okQ    = !q || fullname.includes(q); // chỉ so khớp theo họ tên
+          const okQ    = !q || fullname.includes(q);
 
-          tr.style.display = (okYear && okTerm && okQ) ? '' : 'none';
+          item.style.display = (okYear && okTerm && okQ) ? '' : 'none';
         });
       }
 
