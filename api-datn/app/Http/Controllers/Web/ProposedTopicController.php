@@ -1,6 +1,7 @@
 <?php
 
-namespace App\Http\Web;
+namespace App\Http\Controllers\Web;
+
 use App\Http\Controllers\Controller;
 
 use App\Models\ProposedTopic;
@@ -23,7 +24,10 @@ class ProposedTopicController extends Controller
             });
         }
 
-        $topics = $query->orderBy('proposed_at', 'desc')->paginate(25)->withQueryString();
+        // Note: avoid calling ->withQueryString() on the paginator in environments
+        // where that method may not be available. If you need links to preserve
+        // query params, use ->appends(request()->query()) when rendering links.
+        $topics = $query->orderBy('proposed_at', 'desc')->paginate(25);
 
         return view('proposed_topics.index', compact('topics', 'q'));
     }
@@ -42,23 +46,29 @@ class ProposedTopicController extends Controller
      */
     public function store(Request $request)
     {
+        // Normalize incoming payload so empty strings become null for nullable fields.
+        if ($request->input('supervisor_id') === '') {
+            $request->merge(['supervisor_id' => null]);
+        }
+
         $data = $request->validate([
-            'supervisor_id' => ['required', 'integer', Rule::exists('supervisors', 'id')],
+            'supervisor_id' => ['nullable', 'integer', Rule::exists('supervisors', 'id')],
             'title'         => ['required', 'string', 'max:255'],
             'description'   => ['nullable', 'string'],
             'proposed_at'   => ['nullable', 'date'],
         ]);
 
+        // If supervisor_id not provided by the client, default to the
+        // authenticated user's teacher id when available.
+        if (empty($data['supervisor_id'])) {
+            $data['supervisor_id'] = optional(auth()->user()->teacher)->id;
+        }
+
         $data['proposed_at'] = $data['proposed_at'] ?? Carbon::now();
 
         $topic = ProposedTopic::create($data);
-
-        if ($request->wantsJson()) {
-            return response()->json(['ok' => true, 'topic' => $topic], 201);
-        }
-
-        return redirect()->route('web.proposed_topics.index')
-                         ->with('success', 'Đã tạo đề tài đề xuất.');
+        // eager load relationship for the response
+        return response()->json(['ok' => true, 'topic' => $topic], 201);
     }
 
     /**
@@ -84,18 +94,29 @@ class ProposedTopicController extends Controller
      */
     public function update(Request $request, ProposedTopic $proposedTopic)
     {
+        // Normalize incoming payload so empty strings become null for nullable fields.
+        if ($request->input('supervisor_id') === '') {
+            $request->merge(['supervisor_id' => null]);
+        }
+
         $data = $request->validate([
-            'supervisor_id' => ['required', 'integer', Rule::exists('supervisors', 'id')],
+            'supervisor_id' => ['nullable', 'integer', Rule::exists('supervisors', 'id')],
             'title'         => ['required', 'string', 'max:255'],
             'description'   => ['nullable', 'string'],
             'proposed_at'   => ['nullable', 'date'],
         ]);
 
+        if (empty($data['supervisor_id'])) {
+            $data['supervisor_id'] = $proposedTopic->supervisor_id ?? optional(auth()->user()->teacher)->id;
+        }
+
         $data['proposed_at'] = $data['proposed_at'] ?? $proposedTopic->proposed_at;
 
         $proposedTopic->update($data);
+        $proposedTopic->refresh();
+        $proposedTopic->load('supervisor');
 
-        if ($request->wantsJson()) {
+        if ($request->wantsJson() || $request->expectsJson()) {
             return response()->json(['ok' => true, 'topic' => $proposedTopic]);
         }
 

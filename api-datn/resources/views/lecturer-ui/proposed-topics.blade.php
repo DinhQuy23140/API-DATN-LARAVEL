@@ -4,6 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Đề xuất danh sách đề tài</title>
+  <meta name="csrf-token" content="{{ csrf_token() }}">
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -150,7 +151,7 @@
       </div>
     </aside>
 
-    <div class="flex-1 h-screen overflow-hidden flex flex-col">
+    <div class="flex-1 h-screen overflow-hidden flex flex-col ">
       <header class="h-16 bg-white border-b border-slate-200 flex items-center px-4 md:px-6 flex-shrink-0">
         <div class="flex items-center gap-3 flex-1">
           <button id="openSidebar" class="md:hidden p-2 rounded-lg hover:bg-slate-100"><i class="ph ph-list"></i></button>
@@ -188,21 +189,109 @@
         </div>
       </header>
 
-      <main class="flex-1 overflow-y-auto px-4 md:px-6 py-6">
+      <main class="flex-1 overflow-y-auto px-4 md:px-6 py-6 bg-white" style="background-color:#FFFFFF">
         <div class="max-w-6xl mx-auto">
-          <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center justify-between mb-4">
             <div></div>
             <a href="thesis-round-detail.html" class="text-sm text-blue-600 hover:underline"><i class="ph ph-caret-left"></i> Quay lại đợt</a>
           </div>
 
-    <!-- Stats -->
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4" id="stats">
-      <div class="bg-blue-50 p-4 rounded-lg flex items-center gap-3"><div class="h-10 w-10 rounded-lg bg-blue-600/10 text-blue-600 grid place-items-center"><i class="ph ph-list-bullets"></i></div><div><div class="text-2xl font-bold text-blue-600" id="stTotal">0</div><div class="text-sm text-blue-800">Tổng đề tài</div></div></div>
-      <div class="bg-green-50 p-4 rounded-lg flex items-center gap-3"><div class="h-10 w-10 rounded-lg bg-green-600/10 text-green-600 grid place-items-center"><i class="ph ph-play"></i></div><div><div class="text-2xl font-bold text-green-600" id="stOpen">0</div><div class="text-sm text-green-800">Đang mở</div></div></div>
-      <div class="bg-slate-50 p-4 rounded-lg flex items-center gap-3"><div class="h-10 w-10 rounded-lg bg-slate-600/10 text-slate-700 grid place-items-center"><i class="ph ph-users-three"></i></div><div><div class="text-2xl font-bold text-slate-700" id="stSlots">0</div><div class="text-sm text-slate-700">Tổng chỉ tiêu</div></div></div>
-      <div class="bg-purple-50 p-4 rounded-lg flex items-center gap-3"><div class="h-10 w-10 rounded-lg bg-purple-600/10 text-purple-600 grid place-items-center"><i class="ph ph-user-plus"></i></div><div><div class="text-2xl font-bold text-purple-600" id="stReg">0</div><div class="text-sm text-purple-800">Đã đăng ký</div></div></div>
-    </div>
+          @php
+            // Normalize project term info if provided by controller
+            $termName = isset($projectTerm) ? ($projectTerm->academy_year->year_name ?? '—') . ' - Học kỳ ' . ($projectTerm->stage ?? '') : ($termName ?? 'Đợt');
+            $startLabel = isset($projectTerm) && $projectTerm->start_date ? \Carbon\Carbon::parse($projectTerm->start_date)->format('d/m/Y') : '—';
+            $endLabel   = isset($projectTerm) && $projectTerm->end_date ? \Carbon\Carbon::parse($projectTerm->end_date)->format('d/m/Y') : '—';
+            $now = \Carbon\Carbon::now();
+            if (isset($projectTerm) && $projectTerm->start_date && $projectTerm->end_date) {
+              $start = \Carbon\Carbon::parse($projectTerm->start_date);
+              $end = \Carbon\Carbon::parse($projectTerm->end_date);
+              if ($now->lt($start)) { $statusText = 'Sắp diễn ra'; $badge = 'bg-yellow-50 text-yellow-700'; $iconClass = 'text-yellow-600'; }
+              elseif ($now->gt($end)) { $statusText = 'Đã kết thúc'; $badge = 'bg-slate-100 text-slate-600'; $iconClass = 'text-slate-500'; }
+              else { $statusText = 'Đang diễn ra'; $badge = 'bg-emerald-50 text-emerald-700'; $iconClass = 'text-emerald-600'; }
+            } else { $statusText = 'Đang diễn ra'; $badge = 'bg-emerald-50 text-emerald-700'; $iconClass = 'text-emerald-600'; }
 
+            // Aggregate proposed topics stats
+            $topicCount = isset($proposedTopics) ? (is_countable($proposedTopics) ? count($proposedTopics) : $proposedTopics->count()) : (isset($topicsToShow) ? count($topicsToShow) : 0);
+            $openCount = 0; $totalSlots = 0; $totalRegistered = 0;
+            if (isset($proposedTopics)) {
+              foreach ($proposedTopics as $pt) {
+                $status = is_object($pt) ? ($pt->status ?? ($pt['status'] ?? 'Mở')) : ($pt['status'] ?? 'Mở');
+                $slots = is_object($pt) ? ($pt->slots ?? ($pt['slots'] ?? 0)) : ($pt['slots'] ?? 0);
+                $reg = is_object($pt) ? ($pt->registered ?? ($pt['registered'] ?? 0)) : ($pt['registered'] ?? 0);
+                if (trim($status) === 'Mở') $openCount++;
+                $totalSlots += (int) $slots;
+                $totalRegistered += (int) $reg;
+              }
+            } elseif (isset($topicsToShow)) {
+              foreach ($topicsToShow as $pt) {
+                $status = $pt['status'] ?? 'Mở';
+                $slots = $pt['slots'] ?? 0;
+                $reg = $pt['registered'] ?? 0;
+                if (trim($status) === 'Mở') $openCount++;
+                $totalSlots += (int) $slots;
+                $totalRegistered += (int) $reg;
+              }
+            }
+          @endphp
+
+          <section class="rounded-xl overflow-hidden mb-4">
+            <div class="bg-gradient-to-r from-indigo-50 to-white border border-slate-200 p-4 md:p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <div class="flex items-center gap-4">
+                <div class="h-14 w-14 rounded-lg bg-indigo-600/10 grid place-items-center">
+                  <i class="ph ph-graduation-cap text-indigo-600 text-2xl"></i>
+                </div>
+                <div>
+                  <div class="text-sm text-slate-500">Đợt đồ án</div>
+                  <div class="text-lg md:text-xl font-semibold text-slate-900">{{ $termName }}</div>
+                  <div class="mt-1 text-sm text-slate-600 flex items-center gap-2">
+                    <i class="ph ph-calendar-dots text-slate-400"></i>
+                    <span>Thời gian: {{ $startLabel }} — {{ $endLabel }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex items-center gap-3 md:gap-4">
+                <div class="hidden md:flex items-center gap-3">
+                  <span class="inline-flex items-center gap-2 px-3 py-2 rounded-lg {{ $badge }} text-sm">
+                    <i class="ph ph-circle {{ $iconClass }}"></i>
+                    {{ $statusText }}
+                  </span>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 md:grid-cols-3">
+                  <div class="flex items-center gap-3 bg-white border border-slate-100 rounded-lg px-3 py-2 shadow-sm">
+                    <div class="p-2 rounded-md bg-indigo-50 text-indigo-600">
+                      <i class="ph ph-list-bullets text-lg"></i>
+                    </div>
+                    <div>
+                      <div class="text-xs text-slate-500">Đề tài</div>
+                      <div class="text-sm font-semibold text-slate-800">{{ $topicCount }}</div>
+                    </div>
+                  </div>
+
+                  <div class="flex items-center gap-3 bg-white border border-slate-100 rounded-lg px-3 py-2 shadow-sm">
+                    <div class="p-2 rounded-md bg-indigo-50 text-indigo-600">
+                      <i class="ph ph-play text-lg"></i>
+                    </div>
+                    <div>
+                      <div class="text-xs text-slate-500">Đang mở</div>
+                      <div class="text-sm font-semibold text-slate-800">{{ $openCount }}</div>
+                    </div>
+                  </div>
+
+                  <div class="flex items-center gap-3 bg-white border border-slate-100 rounded-lg px-3 py-2 shadow-sm">
+                    <div class="p-2 rounded-md bg-indigo-50 text-indigo-600">
+                      <i class="ph ph-users-three text-lg"></i>
+                    </div>
+                    <div>
+                      <div class="text-xs text-slate-500">Tổng chỉ tiêu</div>
+                      <div class="text-sm font-semibold text-slate-800">{{ $totalSlots }}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
     <!-- Controls -->
     <div class="bg-white border rounded-xl p-3 mb-3">
       <div class="flex flex-col md:flex-row md:items-center justify-between gap-3">
@@ -211,23 +300,16 @@
             <i class="ph ph-magnifying-glass absolute left-2 top-2.5 text-slate-400"></i>
             <input id="searchBox" class="pl-8 pr-3 py-2 border border-slate-200 rounded text-sm w-64" placeholder="Tìm theo tiêu đề/thẻ" />
           </div>
-          <select id="statusFilter" class="px-3 py-2 border border-slate-200 rounded text-sm">
-            <option value="">Tất cả trạng thái</option>
-            <option value="Mở">Mở</option>
-            <option value="Đóng">Đóng</option>
-          </select>
-          <button id="resetBtn" class="px-2 py-1 text-sm text-slate-600 hover:text-slate-800">Đặt lại</button>
         </div>
         <div class="flex items-center gap-2">
           <button id="btnImport" class="px-3 py-1.5 border border-slate-200 rounded text-sm"><i class="ph ph-upload-simple"></i> Import Excel</button>
-          <button id="btnTemplate" class="px-3 py-1.5 border border-slate-200 rounded text-sm"><i class="ph ph-download-simple"></i> Tải mẫu</button>
           <button id="btnAdd" class="px-3 py-1.5 bg-blue-600 text-white rounded text-sm"><i class="ph ph-plus"></i> Thêm đề tài</button>
         </div>
       </div>
     </div>
 
     <!-- Topics list rendered server-side -->
-    <div id="topicsList" class="grid grid-cols-1 gap-3">
+    <div id="topicsList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       @php
         // provide fallback topics when controller does not pass $topics
         $defaultTopics = [
@@ -244,33 +326,147 @@
           $title = is_object($t) ? ($t->title ?? '') : ($t['title'] ?? '');
           $description = is_object($t) ? ($t->description ?? '') : ($t['description'] ?? '');
           $updatedAt = is_object($t) ? ($t->updatedAt ?? ($t->updated_at ?? '')) : ($t['updatedAt'] ?? ($t['updated_at'] ?? ''));
+          $tags = is_object($t) ? ($t->tags ?? ($t->tags ?? [])) : ($t['tags'] ?? []);
         @endphp
 
-        <article data-topic-id="{{ $id }}"  class="border rounded-xl p-4 bg-white shadow-sm hover:shadow-md transition">
-          <div class="flex items-start justify-between gap-4">
-            <div class="flex-1">
-              <div class="flex items-center gap-3">
-                <div class="h-10 w-10 rounded-lg bg-blue-50 text-blue-600 grid place-items-center"><i class="ph ph-notebook text-lg"></i></div>
-                <div>
-                  <h5 class="font-semibold text-slate-800">{{ $title }}</h5>
-                  <div class="text-xs text-slate-500 mt-1 inline-flex items-center gap-2"><i class="ph ph-calendar text-slate-400"></i><span>Cập nhật: {{ $updatedAt }}</span></div>
-                </div>
-              </div>
-              <p class="text-sm text-slate-600 mt-3">{{ $description }}</p>
+        <article data-topic-id="{{ $id }}" class="bg-white rounded-2xl p-4 shadow hover:shadow-xl transition transform hover:-translate-y-1">
+          <div class="flex items-start gap-4">
+            <div class="flex-shrink-0">
+              <div class="h-12 w-12 rounded-lg bg-indigo-50 text-indigo-600 grid place-items-center"><i class="ph ph-notebook text-xl"></i></div>
             </div>
-            <aside class="w-40 flex-shrink-0 text-right">
-              <div class="mt-3 flex justify-end gap-2">
-                <button data-id="{{ $id }}" class="edit-topic-btn px-2 py-1 text-sm bg-yellow-50 text-yellow-700 rounded hover:bg-yellow-100 flex items-center gap-2"><i class="ph ph-pencil"></i><span class="hidden sm:inline">Sửa</span></button>
-                <button data-id="{{ $id }}" class="delete-topic-btn px-2 py-1 text-sm bg-rose-50 text-rose-700 rounded hover:bg-rose-100 flex items-center gap-2"><i class="ph ph-trash"></i><span class="hidden sm:inline">Xóa</span></button>
+            <div class="flex-1">
+              <div class="flex items-start justify-between gap-3">
+                <div>
+                  <h5 class="font-semibold text-slate-900 text-base">{{ $title }}</h5>
+                  <div class="text-xs text-slate-400 mt-1"><i class="ph ph-calendar"></i> {{ $updatedAt }}</div>
+                </div>
+                <div class="text-right text-xs text-slate-500"> <!-- reserved for quick stats --> </div>
               </div>
-            </aside>
+
+              <p class="text-sm text-slate-600 mt-3">{{ $description }}</p>
+
+              <div class="mt-3 flex items-center gap-2 flex-wrap">
+                @if(!empty($tags) && is_array($tags))
+                  @foreach($tags as $tag)
+                    <span class="tag-chip">{{ $tag }}</span>
+                  @endforeach
+                @endif
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-4 flex items-center justify-end gap-2">
+            <button data-id="{{ $id }}" class="edit-topic-btn px-3 py-1 rounded-lg bg-yellow-50 text-yellow-700 text-sm hover:bg-yellow-100"><i class="ph ph-pencil"></i> <span class="hidden sm:inline">Sửa</span></button>
+            <button data-id="{{ $id }}" class="delete-topic-btn px-3 py-1 rounded-lg bg-rose-50 text-rose-700 text-sm hover:bg-rose-100"><i class="ph ph-trash"></i> <span class="hidden sm:inline">Xóa</span></button>
           </div>
         </article>
       @endforeach
     </div>
-  </div>
 
-  <script>
+    <!-- Add Topic Modal (static, simplified) -->
+    <div id="addTopicModal" class="hidden fixed inset-0 z-50 flex items-center justify-center px-4">
+      <div class="absolute inset-0 bg-black/40" id="addTopicBackdrop"></div>
+      <div id="addTopicContent" class="relative w-full max-w-2xl bg-gradient-to-br from-white via-indigo-50 to-white rounded-2xl shadow-2xl p-6 sm:p-8 transform scale-95 opacity-0 transition duration-200 max-h-[90vh] overflow-auto">
+        <div class="flex items-start gap-4 mb-4">
+          <div class="flex-shrink-0 w-14 h-14 rounded-xl bg-indigo-600/10 grid place-items-center">
+            <div class="w-11 h-11 rounded-lg bg-gradient-to-tr from-indigo-600 to-indigo-400 text-white grid place-items-center shadow-md">
+              <i class="ph ph-notebook text-xl"></i>
+            </div>
+          </div>
+
+            
+          <div class="flex-1">
+            <h3 class="text-lg sm:text-xl font-semibold text-slate-900">Thêm đề tài mới</h3>
+            <p class="text-sm text-slate-500 mt-1">Chỉ cần tên đề tài và mô tả ngắn. Các thiết lập khác có thể chỉnh sau.</p>
+          </div>
+          <button id="closeAddTopic" class="ml-4 text-slate-500 hover:text-slate-700 text-2xl">✕</button>
+        </div>
+
+        <form id="addTopicForm" class="space-y-4 bg-white/50 p-3 rounded-lg">
+          <div>
+            <label class="text-xs text-slate-500">Tiêu đề *</label>
+            <input name="title" required maxlength="180" class="mt-1 w-full px-3 py-3 rounded-lg border border-slate-200 shadow-sm focus:ring-2 focus:ring-indigo-300" placeholder="Tiêu đề đề tài" />
+          </div>
+
+          <div>
+            <label class="text-xs text-slate-500">Mô tả (tùy chọn)</label>
+            <textarea name="desc" rows="4" class="mt-1 w-full px-3 py-3 rounded-lg border border-slate-200 shadow-sm focus:ring-2 focus:ring-indigo-300" placeholder="Mô tả ngắn về mục tiêu / kết quả"></textarea>
+          </div>
+
+          <div class="text-right pt-2 flex items-center justify-end gap-3">
+            <button type="button" id="cancelAddTopic" class="px-4 py-2 rounded-lg border hover:bg-slate-50">Hủy</button>
+            <button type="submit" class="px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700">Thêm đề tài</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+      <!-- Edit Topic Modal (static, simplified: title + description) -->
+      <div id="editTopicModal" class="hidden fixed inset-0 z-50 flex items-center justify-center px-4">
+        <div class="absolute inset-0 bg-black/40" id="editTopicBackdrop"></div>
+        <div id="editTopicContent" class="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl p-6 sm:p-8 transform scale-95 opacity-0 transition duration-200 max-h-[90vh] overflow-auto">
+          <div class="flex items-start gap-4 mb-4">
+            <div class="flex-shrink-0 w-14 h-14 rounded-xl bg-indigo-600/10 grid place-items-center">
+              <div class="w-11 h-11 rounded-lg bg-gradient-to-tr from-indigo-600 to-indigo-400 text-white grid place-items-center shadow-md">
+                <i class="ph ph-pencil text-lg"></i>
+              </div>
+            </div>
+            <div class="flex-1">
+              <h3 class="text-lg sm:text-xl font-semibold text-slate-900">Chỉnh sửa đề tài</h3>
+              <p class="text-sm text-slate-500 mt-1">Chỉ gồm tên đề tài và mô tả ngắn.</p>
+            </div>
+            <button id="closeEditTopic" class="ml-4 text-slate-500 hover:text-slate-700 text-2xl">✕</button>
+          </div>
+
+          <form id="editTopicForm" class="space-y-4 bg-white/50 p-3 rounded-lg">
+            <div>
+              <label class="text-xs text-slate-500">Tiêu đề *</label>
+              <input name="title" required maxlength="180" class="mt-1 w-full px-3 py-3 rounded-lg border border-slate-200 shadow-sm focus:ring-2 focus:ring-indigo-300" placeholder="Tiêu đề đề tài" />
+            </div>
+
+            <div>
+              <label class="text-xs text-slate-500">Mô tả (tùy chọn)</label>
+              <textarea name="desc" rows="4" class="mt-1 w-full px-3 py-3 rounded-lg border border-slate-200 shadow-sm focus:ring-2 focus:ring-indigo-300" placeholder="Mô tả ngắn về mục tiêu / kết quả"></textarea>
+            </div>
+
+            <div class="text-right pt-2 flex items-center justify-end gap-3">
+              <button type="button" id="cancelEditTopic" class="px-4 py-2 rounded-lg border hover:bg-slate-50">Hủy</button>
+              <button type="submit" class="px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700">Lưu thay đổi</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+    </div>
+
+    <script>
+      // expose current supervisor id to JS; null when absent so server validation treats it as nullable
+      const SUPERVISOR_ID = @json($supervisorId ?? null);
+      const html=document.documentElement, sidebar=document.getElementById('sidebar');
+      function setCollapsed(c){
+        const h=document.querySelector('header'); const m=document.querySelector('main');
+        if(c){ html.classList.add('sidebar-collapsed'); h.classList.add('md:left-[72px]'); m.classList.add('md:pl-[72px]');}
+        else { html.classList.remove('sidebar-collapsed'); h.classList.remove('md:left-[72px]'); m.classList.remove('md:pl-[72px]');}
+      }
+      document.getElementById('toggleSidebar')?.addEventListener('click',()=>{const c=!html.classList.contains('sidebar-collapsed'); setCollapsed(c); localStorage.setItem('lecturer_sidebar',''+(c?1:0));});
+      document.getElementById('openSidebar')?.addEventListener('click',()=>sidebar.classList.toggle('-translate-x-full'));
+      if(localStorage.getItem('lecturer_sidebar')==='1') setCollapsed(true);
+      sidebar.classList.add('md:translate-x-0','-translate-x-full','md:static');
+      const profileBtn=document.getElementById('profileBtn'); const profileMenu=document.getElementById('profileMenu');
+      profileBtn?.addEventListener('click', ()=> profileMenu.classList.toggle('hidden'));
+      document.addEventListener('click', (e)=>{ if(!profileBtn?.contains(e.target) && !profileMenu?.contains(e.target)) profileMenu?.classList.add('hidden'); });
+
+      //tonggle submenu
+      const toggleBtn = document.getElementById('toggleThesisMenu');
+      const thesisMenu = document.getElementById('thesisSubmenu');
+      const thesisCaret = document.getElementById('thesisCaret');
+      toggleBtn?.addEventListener('click', () => {
+        const isHidden = thesisMenu?.classList.toggle('hidden');
+        const expanded = !isHidden;
+        toggleBtn?.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+        thesisCaret?.classList.toggle('rotate-180', expanded);
+      });
+
     // DOM-based topic handlers (server-rendered cards)
     const listEl = document.getElementById('topicsList');
     const searchEl = document.getElementById('searchBox');
@@ -282,10 +478,14 @@
       const open = cards.filter(c => (c.dataset.status||'').trim() === 'Mở').length;
       const slots = cards.reduce((s,c) => s + Number(c.dataset.slots||0), 0);
       const reg = cards.reduce((s,c) => s + Number(c.dataset.registered||0), 0);
-      document.getElementById('stTotal').textContent = total;
-      document.getElementById('stOpen').textContent = open;
-      document.getElementById('stSlots').textContent = slots;
-      document.getElementById('stReg').textContent = reg;
+      const stTotalEl = document.getElementById('stTotal');
+      const stOpenEl = document.getElementById('stOpen');
+      const stSlotsEl = document.getElementById('stSlots');
+      const stRegEl = document.getElementById('stReg');
+      if (stTotalEl) stTotalEl.textContent = total;
+      if (stOpenEl) stOpenEl.textContent = open;
+      if (stSlotsEl) stSlotsEl.textContent = slots;
+      if (stRegEl) stRegEl.textContent = reg;
     }
 
     // Create article element from payload
@@ -338,8 +538,33 @@
         const id = delBtn.getAttribute('data-id');
         if(!confirm('Bạn có chắc muốn xóa đề tài này?')) return;
         const el = document.querySelector(`#topicsList [data-topic-id="${id}"]`);
-        el?.remove();
-        computeStats();
+        const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        (async ()=>{
+          try{
+            const res = await fetch('/teacher/proposed-topics/' + encodeURIComponent(id), {
+              method: 'DELETE',
+              headers: {
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest',
+                'X-CSRF-TOKEN': token || ''
+              }
+            });
+            if(res.ok){
+              // remove element from DOM
+              el?.remove();
+              computeStats();
+            } else {
+              // try to read response text/json for debug
+              let text = '';
+              try{ text = await res.text(); }catch(e){ text = String(e); }
+              console.warn('Delete failed', res.status, text);
+              alert('Không thể xóa đề tài. Server trả: ' + res.status + '\n' + (text||''));
+            }
+          }catch(err){
+            console.error('Delete request failed', err);
+            alert('Không thể xóa đề tài: ' + (err && err.message ? err.message : String(err)));
+          }
+        })();
         return;
       }
     });
@@ -347,147 +572,236 @@
     function openEditModalForId(id){
       const el = document.querySelector(`#topicsList [data-topic-id="${id}"]`);
       if(!el) return alert('Không tìm thấy đề tài');
-      const title = el.querySelector('h5')?.textContent || '';
-      const desc = el.querySelector('p')?.textContent || '';
-      const tags = Array.from(el.querySelectorAll('.tag-chip')).map(x=>x.textContent.trim()).join(', ');
-      const slots = el.dataset.slots || 1;
-      const status = el.dataset.status || 'Mở';
+      const editModal = document.getElementById('editTopicModal');
+      const editContent = document.getElementById('editTopicContent');
+      const editForm = document.getElementById('editTopicForm');
+      const editBackdrop = document.getElementById('editTopicBackdrop');
+      const editClose = document.getElementById('closeEditTopic');
+      const editCancel = document.getElementById('cancelEditTopic');
 
-      const formHTML = `
-        <form id="topicEditForm" class="space-y-6">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="floating-label">
-              <label>Tiêu đề *</label>
-              <input name="title" required maxlength="180" class="${baseInputCls()}" placeholder=" " value="${escapeHtml(title)}" />
-            </div>
-            <div class="floating-label">
-              <label>Chỉ tiêu (SV)</label>
-              <input type="number" name="slots" min="1" class="${baseInputCls()}" placeholder=" " value="${escapeHtml(slots)}" />
-            </div>
-          </div>
-          <div class="floating-label">
-            <label>Mô tả</label>
-            <textarea name="desc" rows="5" class="${baseInputCls('resize-y')}" placeholder="">${escapeHtml(desc)}</textarea>
-          </div>
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="floating-label md:col-span-2">
-              <label>Thẻ (ngăn cách phẩy / chấm phẩy)</label>
-              <input name="tags" class="${baseInputCls()}" placeholder=" " value="${escapeHtml(tags)}" />
-              ${chipsPreviewTemplate()}
-            </div>
-            <div class="floating-label">
-              <label>Trạng thái</label>
-              <select name="status" class="${baseInputCls()}">
-                <option value="Mở">Mở</option>
-                <option value="Đóng">Đóng</option>
-              </select>
-            </div>
-          </div>
-        </form>
-      `;
-      const modal = createModal({ title: 'Sửa đề tài', content: formHTML });
-      document.body.appendChild(modal.el);
-      const form = modal.el.querySelector('#topicEditForm');
-      const tagsInput = form.querySelector('input[name="tags"]');
-      const tagsPreview = modal.el.querySelector('#tagsPreview');
-      renderTagPreview(tagsPreview, tagsInput.value || '');
-      tagsInput?.addEventListener('input', ()=> renderTagPreview(tagsPreview, tagsInput.value || ''));
-      // set select value
-      form.querySelector('select[name="status"]').value = status;
+      // populate values
+      editForm.elements['title'].value = el.querySelector('h5')?.textContent?.trim() || '';
+      editForm.elements['desc'].value = el.querySelector('p')?.textContent?.trim() || '';
 
-      form.addEventListener('submit', (e)=>{
-        e.preventDefault();
-        const fd = new FormData(form);
-        const newTitle = String(fd.get('title')||'').trim();
-        if(!newTitle) return alert('Tiêu đề không được để trống');
-        el.querySelector('h5').textContent = newTitle;
-        el.querySelector('p').textContent = String(fd.get('desc')||'').trim();
-        const newTags = String(fd.get('tags')||'').split(/[;,]/).map(x=>x.trim()).filter(Boolean);
-        const tagsContainer = el.querySelector('.tag-chip')?.parentElement || el.querySelector('.inline-flex');
-        // rebuild tags
-        const tagsWrap = el.querySelector('.inline-flex.items-center') || el.querySelector('.mt-3');
-        const tagHtml = newTags.length ? newTags.map(t=>`<span class="tag-chip">${t}</span>`).join(' ') : '<span class="text-xs text-slate-400">Chưa có thẻ</span>';
-        const tagsArea = el.querySelector('.mt-3 .inline-flex') || el.querySelector('.mt-3');
-        if(tagsArea) tagsArea.innerHTML = `<i class="ph ph-tag text-slate-400"></i> ${tagHtml}`;
-        el.dataset.slots = Number(fd.get('slots')||1);
-        el.dataset.status = fd.get('status')||'Mở';
-        // update status pill
-        const pill = el.querySelector('aside .px-2.py-1');
-        if(pill) pill.textContent = fd.get('status')||'Mở';
-        modal.destroy();
-        computeStats();
-      });
+      // store editing id
+      editModal.dataset.editingId = id;
+
+      // open modal
+      editModal.classList.remove('hidden');
+      setTimeout(()=>{
+        editContent.classList.remove('scale-95','opacity-0');
+        editContent.classList.add('scale-100','opacity-100');
+        editForm.elements['title'].focus();
+      },10);
+
+      // initialize listeners once
+      if(!editModal.dataset.init){
+        editModal.dataset.init = '1';
+
+        function closeEditModal(){
+          editContent.classList.add('scale-95','opacity-0');
+          setTimeout(()=>{
+            editModal.classList.add('hidden');
+            try{ editForm.reset(); }catch(e){}
+            delete editModal.dataset.editingId;
+          },180);
+        }
+
+        editClose?.addEventListener('click', closeEditModal);
+        editCancel?.addEventListener('click', closeEditModal);
+        editBackdrop?.addEventListener('click', closeEditModal);
+
+        editForm.addEventListener('submit', async (e)=>{
+          e.preventDefault();
+          const id = editModal.dataset.editingId;
+          const el = document.querySelector(`#topicsList [data-topic-id="${id}"]`);
+          if(!el){ alert('Không tìm thấy đề tài'); closeEditModal(); return; }
+          const fd = new FormData(editForm);
+          const newTitle = String(fd.get('title')||'').trim();
+          if(!newTitle) return alert('Tiêu đề không được để trống');
+
+          const body = {
+            title: newTitle,
+            description: String(fd.get('desc')||'').trim(),
+            supervisor_id: SUPERVISOR_ID
+          };
+          const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+
+          let updated = null;
+            try{
+            const res = await fetch('/teacher/proposed-topics/' + encodeURIComponent(id), {
+              method: 'PATCH',
+              headers: {
+                'Content-Type':'application/json',
+                'Accept':'application/json',
+                'X-Requested-With':'XMLHttpRequest',
+                'X-CSRF-TOKEN': token || ''
+              },
+              body: JSON.stringify(body)
+            });
+            if(res.ok){
+              const j = await res.json();
+              updated = j.topic || null;
+            } else {
+              console.warn('Server rejected update', res.status);
+            }
+          }catch(err){ console.warn('Update request failed, falling back to local DOM', err); }
+
+          if(updated){
+            el.querySelector('h5').textContent = updated.title || newTitle;
+            el.querySelector('p').textContent = updated.description || body.description;
+            const dateNode = el.querySelector('.text-xs.text-slate-400');
+            if(dateNode) dateNode.textContent = updated.updated_at ? new Date(updated.updated_at).toLocaleDateString('vi-VN') : new Date().toLocaleDateString('vi-VN');
+          } else {
+            // fallback local update
+            el.querySelector('h5').textContent = newTitle;
+            el.querySelector('p').textContent = body.description;
+            const dateNode = el.querySelector('.text-xs.text-slate-400');
+            if(dateNode) dateNode.textContent = new Date().toLocaleDateString('vi-VN');
+          }
+
+          closeEditModal();
+          computeStats();
+        });
+      }
     }
 
     // escape helper for inserting into HTML
     function escapeHtml(s){ return String(s||'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;'); }
 
-    // Add topic (uses createModal defined below)
-    document.getElementById('btnAdd').addEventListener('click', () => {
-      const formHTML = `
-        <form id="topicForm" class="space-y-6">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div class="floating-label">
-              <label>Tiêu đề *</label>
-              <input name="title" required maxlength="180" class="${baseInputCls()}" placeholder=" " />
-              <p class="mt-1 text-xs text-slate-500">Đặt tên rõ ràng, mô tả sản phẩm/kết quả cuối.</p>
-            </div>
-            <div class="floating-label">
-              <label>Chỉ tiêu (SV)</label>
-              <input type="number" name="slots" min="1" value="1" class="${baseInputCls()}" placeholder=" " />
-            </div>
-          </div>
-          <div class="floating-label">
-            <label>Mô tả</label>
-            <textarea name="desc" rows="5" class="${baseInputCls('resize-y')}" placeholder=" "></textarea>
-          </div>
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="floating-label md:col-span-2">
-              <label>Thẻ (ngăn cách phẩy / chấm phẩy)</label>
-              <input name="tags" class="${baseInputCls()}" placeholder=" " />
-              ${chipsPreviewTemplate()}
-            </div>
-            <div class="floating-label">
-              <label>Trạng thái</label>
-              <select name="status" class="${baseInputCls()}">
-                <option value="Mở">Mở</option>
-                <option value="Đóng">Đóng</option>
-              </select>
-            </div>
-          </div>
-        </form>
-      `;
-      const modal = createModal({ title: 'Thêm đề tài mới', content: formHTML });
-      document.body.appendChild(modal.el);
+    // Add topic: open the static #addTopicModal, wire preview/submit/close
+    (function(){
+      const addBtn = document.getElementById('btnAdd');
+      const addModal = document.getElementById('addTopicModal');
+      const addBackdrop = document.getElementById('addTopicBackdrop');
+      const addContent = document.getElementById('addTopicContent');
+      const addForm = document.getElementById('addTopicForm');
+      const addTagsInput = document.getElementById('addTagsInput');
+      const addTagsPreview = document.getElementById('addTagsPreview');
+      const closeBtn = document.getElementById('closeAddTopic');
+      const cancelBtn = document.getElementById('cancelAddTopic');
 
-      // Preview tags
-      const tagsInput = modal.el.querySelector('input[name="tags"]');
-      const tagsPreview = modal.el.querySelector('#tagsPreview');
-      const updateTags = () => renderTagPreview(tagsPreview, tagsInput.value || '');
-      tagsInput?.addEventListener('input', updateTags);
-      updateTags();
+      if(!addBtn || !addModal) return; // nothing to do
 
-      modal.el.querySelector('#topicForm')?.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const fd = new FormData(e.target);
-        const title = String(fd.get('title')||'').trim();
-        if(!title) return;
-        const payload = {
-          id: 'T' + Math.floor(Math.random()*900+100),
-          title,
-          description: String(fd.get('desc')||'').trim(),
-          tags: String(fd.get('tags')||'').split(',').map(x=>x.trim()).filter(Boolean),
-          slots: Math.max(1, Number(fd.get('slots')||1)),
-          status: fd.get('status')||'Mở',
-          registered: 0,
-          updatedAt: new Date().toLocaleDateString('vi-VN')
-        };
-        const node = createArticleElement(payload);
-        listEl.prepend(node);
-        modal.destroy();
-        computeStats();
-      });
-    });
+      function openAddModal(){
+        addModal.classList.remove('hidden');
+        // animate in
+        setTimeout(()=>{
+          addContent.classList.remove('scale-95','opacity-0');
+          addContent.classList.add('scale-100','opacity-100');
+          const t = addForm.querySelector('[name="title"]'); if(t) t.focus();
+        },10);
+      }
+
+      function closeAddModal(){
+        // animate out
+        addContent.classList.add('scale-95','opacity-0');
+        setTimeout(()=>{
+          addModal.classList.add('hidden');
+          try{ addForm.reset(); }catch(e){}
+          if(typeof renderTagPreview === 'function') try{ renderTagPreview(addTagsPreview, ''); }catch(e){}
+        }, 180);
+      }
+
+      // ensure we only attach listeners once
+      if(!addModal.dataset.init){
+        addModal.dataset.init = '1';
+
+        addBtn.addEventListener('click', openAddModal);
+        closeBtn?.addEventListener('click', closeAddModal);
+        cancelBtn?.addEventListener('click', closeAddModal);
+        addBackdrop?.addEventListener('click', closeAddModal);
+
+        // tags preview (guarded: helper may not exist in simplified modal)
+        if(addTagsInput && typeof renderTagPreview === 'function'){
+          addTagsInput.addEventListener('input', ()=> renderTagPreview(addTagsPreview, addTagsInput.value || ''));
+        }
+
+        // submit (POST to server route, fallback to local DOM on error)
+        addForm?.addEventListener('submit', async (e)=>{
+          e.preventDefault();
+          try{
+            const fd = new FormData(addForm);
+            const title = String(fd.get('title')||'').trim();
+            if(!title) return alert('Tiêu đề không được để trống');
+            const body = {
+              title,
+              description: String(fd.get('desc')||'').trim(),
+              supervisor_id: SUPERVISOR_ID
+            };
+
+            const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            let created = null;
+              try{
+              const res = await fetch('/teacher/proposed-topics', {
+                method: 'POST',
+                headers: {
+                  'Content-Type':'application/json',
+                  'Accept':'application/json',
+                  'X-Requested-With':'XMLHttpRequest',
+                  'X-CSRF-TOKEN': token || ''
+                },
+                body: JSON.stringify(body)
+              });
+              if(res.ok){
+                const j = await res.json();
+                created = j.topic || null;
+              } else {
+                console.warn('Server rejected create', res.status);
+              }
+            } catch(fetchErr){
+              console.warn('Create request failed, falling back to client DOM only', fetchErr);
+            }
+
+            if(created){
+              const payload = {
+                id: created.id || ('T' + Math.floor(Math.random()*900+100)),
+                title: created.title || title,
+                description: created.description || body.description,
+                tags: created.tags || [],
+                slots: created.slots || 1,
+                status: created.status || 'Mở',
+                registered: created.registered || 0,
+                updatedAt: created.updated_at ? new Date(created.updated_at).toLocaleDateString('vi-VN') : new Date().toLocaleDateString('vi-VN')
+              };
+              const node = createArticleElement(payload);
+              listEl.prepend(node);
+            } else {
+              // fallback: create client-only node
+              const payload = {
+                id: 'T' + Math.floor(Math.random()*900+100),
+                title,
+                description: body.description,
+                tags: [],
+                slots: 1,
+                status: 'Mở',
+                registered: 0,
+                updatedAt: new Date().toLocaleDateString('vi-VN')
+              };
+              const node = createArticleElement(payload);
+              listEl.prepend(node);
+            }
+
+            computeStats();
+            closeAddModal();
+          }catch(err){
+            console.error('Add topic failed:', err);
+            // show more detailed message to help debugging while keeping user-friendly text
+            try{
+              const msg = err && err.message ? err.message : String(err);
+              alert('Không thể thêm đề tài: ' + msg);
+            }catch(e){
+              alert('Không thể thêm đề tài');
+            }
+          }
+        });
+
+        // initialize preview empty (only if helper exists)
+        if(typeof renderTagPreview === 'function'){
+          try{ renderTagPreview(addTagsPreview, ''); }catch(e){}
+        }
+      }
+    })();
 
     // Import from Excel: create DOM nodes per row
     document.getElementById('btnImport').addEventListener('click', ()=>{
@@ -613,7 +927,10 @@
       });
       document.getElementById('openSidebar')?.addEventListener('click',()=> sidebar?.classList.toggle('-translate-x-full'));
       if(localStorage.getItem('lecturer_sidebar')==='1') setCollapsed(true);
-      sidebar?.classList.add('md:translate-x-0','-translate-x-full','md:static');
+      // Ensure sidebar is hidden on small screens and visible on md+ by default
+      sidebar?.classList.add('md:translate-x-0');
+      sidebar?.classList.add('-translate-x-full');
+      sidebar?.classList.add('md:static');
 
       const profileBtn = document.getElementById('profileBtn');
       const profileMenu = document.getElementById('profileMenu');

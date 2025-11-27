@@ -33,6 +33,7 @@ use App\Http\Controllers\Web\ReportFilesController as WebReportFilesController;
 use App\Http\Controllers\Web\StudentController as WebStudentController;
 use App\Http\Controllers\Web\RegisterProjectTermController as WebRegisterProjectTermController;
 use App\Http\Controllers\Web\PostponeProjectTermController as WebPostponeProjectTermController;
+use App\Http\Controllers\Web\ProposedTopicController;
 
 // Chỉ cho guest
 Route::middleware('guest')->group(function () {
@@ -271,6 +272,11 @@ Route::middleware('auth')->group(function () {
     //stage 1 
     Route::get('/teacher/requests_management/{supervisorId}/term/{termId}', [AssignmentSupervisorController::class, 'getRequestManagementPage'])->name('web.teacher.requests_management');
     Route::get('/teacher/proposed_topic/{supervisorId}', [AssignmentSupervisorController::class, 'getProposeBySupervisor'])->name('web.teacher.proposed_topic');
+    // Proposed topics: create (store) and update
+    Route::get('/teacher/proposed-topics', [ProposedTopicController::class, 'index'])->name('web.proposed_topics.index');
+    Route::post('/teacher/proposed-topics', [ProposedTopicController::class, 'store'])->name('web.proposed_topics.store');
+    Route::patch('/teacher/proposed-topics/{proposedTopic}', [ProposedTopicController::class, 'update'])->name('web.proposed_topics.update');
+    Route::delete('/teacher/proposed-topics/{proposedTopic}', [ProposedTopicController::class, 'destroy'])->name('web.proposed_topics.destroy');
     Route::get('/teacher/student_supervisor_term/{supervisorId}/term/{termId}', [AssignmentSupervisorController::class, 'getStudentBySupervisorAndTermId'])->name('web.teacher.student_supervisor_term');
     // Optional: /teacher -> overview
     Route::get('/teacher', fn () => redirect()->route('web.teacher.overview'))->name('web.teacher.home');

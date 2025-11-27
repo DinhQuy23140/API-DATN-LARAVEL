@@ -50,8 +50,8 @@ class AssignmentSupervisorController extends Controller
     }
 
     public function getProposeBySupervisor($supervisorId){
-        $proposedTopics = ProposedTopic::where('supervisor_id', $supervisorId)->get();
-        return view('lecturer-ui.proposed-topics', compact('proposedTopics'));
+        $proposedTopics = ProposedTopic::where('supervisor_id', $supervisorId)->orderByDesc('created_at')->get();
+        return view('lecturer-ui.proposed-topics', compact('proposedTopics', 'supervisorId'));
     }
 
     public function getStudentBySupervisorAndTermId($supervisorId, $termId)
