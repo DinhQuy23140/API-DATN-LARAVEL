@@ -145,7 +145,7 @@
             <i class="ph ph-briefcase"></i><span class="sidebar-label">Thực tập tốt nghiệp</span>
           </a>
           @if ($departmentRole)
-          <a href="{{ route('web.teacher.all_thesis_rounds', ['teacherId' => $teacherId]) }}"
+          <a href="{{ route('web.teacher.thesis_rounds', ['teacherId' => $teacherId]) }}"
             class="flex items-center gap-3 px-3 py-2 rounded-lg {{ $isThesisRoundsActive ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}"
             @if($isThesisRoundsActive) aria-current="page" @endif>
             <i class="ph ph-calendar"></i><span class="sidebar-label">Đồ án tốt nghiệp</span>

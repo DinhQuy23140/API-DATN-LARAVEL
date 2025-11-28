@@ -122,7 +122,7 @@
             <i class="ph ph-briefcase"></i><span class="sidebar-label">Thực tập tốt nghiệp</span>
           </a>
           @if ($departmentRole)
-          <a href="{{ route('web.teacher.all_thesis_rounds', ['teacherId' => $teacherId]) }}"
+          <a href="{{ route('web.teacher.thesis_rounds', ['teacherId' => $teacherId]) }}"
             class="flex items-center gap-3 px-3 py-2 rounded-lg {{ request()->routeIs('web.teacher.thesis_rounds') ? 'bg-slate-100 font-semibold' : 'hover:bg-slate-100' }}">
             <i class="ph ph-calendar"></i><span class="sidebar-label">Học phần tốt nghiệp</span>
           </a>
