@@ -10,6 +10,9 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Str;
+use Illuminate\Auth\Events\PasswordReset;
 
 class UsersController extends Controller
 {
@@ -245,5 +248,56 @@ class UsersController extends Controller
             'success' => true,
             'message' => 'Đã đăng xuất'
         ]);
+    }
+
+    public function sendResetLink(Request $request)
+    {
+        $data = $request->validate(['email' => ['required','email']]);
+
+        $status = Password::sendResetLink($data);
+
+        if ($status === Password::RESET_LINK_SENT) {
+            return response()->json([
+                'success' => true,
+                'message' => trans($status)
+            ]);
+        }
+
+        return response()->json([
+            'success' => false,
+            'message' => trans($status)
+        ], 400);
+    }
+
+    public function resetPassword(Request $request)
+    {
+        $data = $request->validate([
+            'token' => 'required|string',
+            'email' => 'required|email',
+            'password' => ['required','string'],
+            'password_confirmation' => ['required','string'],
+        ]);
+
+        $status = Password::reset(
+            [
+                'email' => $data['email'],
+                'password' => $data['password'],
+                'password_confirmation' => $data['password_confirmation'],
+                'token' => $data['token'],
+            ],
+            function ($user, $password) {
+                // Hash the password and save
+                $user->password = Hash::make($password);
+                $user->setRememberToken(Str::random(60));
+                $user->save();
+                event(new PasswordReset($user));
+            }
+        );
+
+        if ($status === Password::PASSWORD_RESET) {
+            return response()->json(['success' => true, 'message' => trans($status)]);
+        }
+
+        return response()->json(['success' => false, 'message' => trans($status)], 400);
     }
 }

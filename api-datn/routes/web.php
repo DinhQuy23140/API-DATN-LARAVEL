@@ -45,6 +45,12 @@ Route::middleware('guest')->group(function () {
     Route::get('/forgot-password', function () {
         return view('login.forgot_pass_ui');
     })->name('web.auth.forgot');
+    // Submit email to send reset link
+    Route::post('/forgot-password', [WebUserController::class, 'sendResetLink'])->name('password.email');
+    // Password reset form (from email)
+    Route::get('/reset-password/{token}', [WebUserController::class, 'showResetForm'])->name('password.reset');
+    // Perform password reset
+    Route::post('/reset-password', [WebUserController::class, 'resetPassword'])->name('password.update');
     
     // Register
     Route::get('/register', [RegisterController::class, 'showRegisterForm'])->name('register');

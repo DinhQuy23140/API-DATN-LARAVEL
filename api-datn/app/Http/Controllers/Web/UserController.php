@@ -10,6 +10,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Str;
+use Illuminate\Auth\Events\PasswordReset;
+use Illuminate\Support\Facades\Hash as HashFacade;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 
 class UserController extends Controller
@@ -241,6 +245,60 @@ class UserController extends Controller
 
         return redirect()->route('web.auth.login')
             ->with('status', 'Đã đăng xuất');
+    }
+
+    /**
+     * Send password reset link to email
+     */
+    public function sendResetLink(Request $request)
+    {
+        $data = $request->validate(['email' => ['required', 'email']]);
+
+        $status = Password::sendResetLink($data);
+
+        if ($status === Password::RESET_LINK_SENT) {
+            return back()->with('status', trans($status));
+        }
+
+        return back()->withErrors(['email' => trans($status)]);
+    }
+
+    /**
+     * Show reset password form
+     */
+    public function showResetForm($token, Request $request)
+    {
+        $email = $request->query('email') ?? '';
+        return view('login.reset_pass_ui', compact('token', 'email'));
+    }
+
+    /**
+     * Handle reset password submission
+     */
+    public function resetPassword(Request $request)
+    {
+        $data = $request->validate([
+            'token' => 'required|string',
+            'email' => 'required|email',
+            'password' => ['required','string','min:8','confirmed'],
+        ]);
+
+        $status = Password::reset(
+            $data,
+            function ($user, $password) {
+                // Support legacy unhashed passwords in DB by always hashing now
+                $user->password = HashFacade::make($password);
+                $user->setRememberToken(Str::random(60));
+                $user->save();
+                event(new PasswordReset($user));
+            }
+        );
+
+        if ($status === Password::PASSWORD_RESET) {
+            return redirect()->route('web.auth.login')->with('status', trans($status));
+        }
+
+        return back()->withErrors(['email' => trans($status)]);
     }
 
     // Danh sách người dùng

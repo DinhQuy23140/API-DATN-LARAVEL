@@ -69,6 +69,9 @@ Route::apiResource('users', UsersController::class);
 //auth
 Route::post('auth/login', [UsersController::class, 'login']);
 Route::middleware('auth:sanctum')->post('auth/logout', [UsersController::class, 'logout']);
+// Password reset for mobile API (send link and perform reset)
+Route::post('auth/forgot-password', [UsersController::class, 'sendResetLink']);
+Route::post('auth/reset-password', [UsersController::class, 'resetPassword']);
 
 //register project term
 Route::apiResource('project-term-registrations', RegisterProjectTermController::class);
