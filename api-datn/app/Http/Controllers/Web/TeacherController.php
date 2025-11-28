@@ -3,6 +3,9 @@
 namespace App\Http\Controllers\Web;
 
 use App\Http\Controllers\Controller;
+use App\Models\Department;
+use App\Models\Marjor;
+use App\Models\ProjectTerm;
 use App\Models\Teacher;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -46,8 +49,21 @@ class TeacherController extends Controller
 
     public function loadDashboardAssistant(){
         $countTeachers = Teacher::count();
+        $departmentCount = Department::count();
+        $marjorCount = Marjor::count();
+        $projectTerms = ProjectTerm::with('academy_year', 'councils')->where(function ($q) {
+        // Đang diễn ra
+        $q->where('start_date', '<=', now())
+          ->where('end_date', '>=', now());
+        })
+        ->orWhere(function ($q) {
+            // Sắp diễn ra
+            $q->where('start_date', '>', now());
+        })
+        ->orderBy('start_date', 'asc')
+        ->get();
         $teachers = Teacher::with('user')->latest('created_at')->paginate(7);
-        return view('assistant-ui.dashboard', compact('countTeachers', 'teachers'));
+        return view('assistant-ui.dashboard', compact('countTeachers', 'teachers', 'departmentCount', 'marjorCount', 'projectTerms'));
     }
 
     public function loadProfile($teacherId){

@@ -112,11 +112,11 @@
           <section class="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div class="bg-white rounded-xl border border-slate-200 p-5 flex items-center gap-4">
               <div class="h-12 w-12 rounded-lg bg-blue-50 text-blue-600 grid place-items-center"><i class="ph ph-buildings text-xl"></i></div>
-              <div><div class="text-sm text-slate-500">Bộ môn</div><div class="text-2xl font-semibold">18</div></div>
+              <div><div class="text-sm text-slate-500">Bộ môn</div><div class="text-2xl font-semibold">{{ $marjorCount }}</div></div>
             </div>
             <div class="bg-white rounded-xl border border-slate-200 p-5 flex items-center gap-4">
               <div class="h-12 w-12 rounded-lg bg-blue-50 text-blue-600 grid place-items-center"><i class="ph ph-book-open-text text-xl"></i></div>
-              <div><div class="text-sm text-slate-500">Ngành</div><div class="text-2xl font-semibold">32</div></div>
+              <div><div class="text-sm text-slate-500">Ngành</div><div class="text-2xl font-semibold">{{ $departmentCount }}</div></div>
             </div>
             <div class="bg-white rounded-xl border border-slate-200 p-5 flex items-center gap-4">
               <div class="h-12 w-12 rounded-lg bg-blue-50 text-blue-600 grid place-items-center"><i class="ph ph-chalkboard-teacher text-xl"></i></div>
@@ -124,28 +124,13 @@
             </div>
           </section>
 
-          <section class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <!-- Bar chart mock -->
-            <div class="bg-white rounded-xl border border-slate-200 p-5">
-              <h2 class="font-semibold">Số lượng giảng viên theo bộ môn</h2>
-              <div class="mt-6 grid grid-cols-6 gap-4 items-end h-48">
-                <div class="group">
-                  <div class="w-full bg-blue-600/80 rounded-t-md" style="height:65%"></div>
-                  <div class="text-xs mt-2 text-center text-slate-600">CNTT</div>
-                </div>
-                <div class="group"><div class="w-full bg-blue-600/80 rounded-t-md" style="height:52%"></div><div class="text-xs mt-2 text-center text-slate-600">Điện</div></div>
-                <div class="group"><div class="w-full bg-blue-600/80 rounded-t-md" style="height:40%"></div><div class="text-xs mt-2 text-center text-slate-600">Cơ khí</div></div>
-                <div class="group"><div class="w-full bg-blue-600/80 rounded-t-md" style="height:70%"></div><div class="text-xs mt-2 text-center text-slate-600">Quản trị</div></div>
-                <div class="group"><div class="w-full bg-blue-600/80 rounded-t-md" style="height:30%"></div><div class="text-xs mt-2 text-center text-slate-600">Marketing</div></div>
-                <div class="group"><div class="w-full bg-blue-600/80 rounded-t-md" style="height:55%"></div><div class="text-xs mt-2 text-center text-slate-600">Tài chính</div></div>
-              </div>
-            </div>
+          <section class="grid grid-cols-1 gap-6">
 
             <!-- Latest lecturers -->
             <div class="bg-white rounded-xl border border-slate-200 p-5">
               <div class="flex items-center justify-between"><h2 class="font-semibold">Giảng viên mới thêm</h2>
                 <div class="relative">
-                  <input class="pl-9 pr-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 text-sm" placeholder="Tìm theo tên" />
+                  <input id="teacherSearch" class="pl-9 pr-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 text-sm" placeholder="Tìm theo tên" />
                   <i class="ph ph-magnifying-glass absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
                 </div>
               </div>
@@ -182,31 +167,34 @@
             <div class="flex items-center justify-between">
               <h2 class="font-semibold">Đợt đồ án hiện tại & sắp tới</h2>
               <div class="flex items-center gap-2">
-                <a href="rounds.html" class="px-3 py-2 rounded-lg border hover:bg-slate-50 text-sm">Xem tất cả</a>
-                <a href="rounds.html" class="px-3 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 text-sm">Tạo đợt mới</a>
+                <a href="{{ route('web.assistant.rounds') }}" class="px-3 py-2 rounded-lg border hover:bg-slate-50 text-sm">Xem tất cả</a>
               </div>
             </div>
             <div class="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div class="border border-slate-200 rounded-lg p-4">
-                <div class="flex items-center justify-between">
-                  <div class="font-medium">Đợt HK1 2025-2026</div>
-                  <span class="px-2 py-1 rounded-full text-xs bg-emerald-50 text-emerald-700">Đang diễn ra</span>
+              @foreach ($projectTerms as $prj)
+                <div class="border border-slate-200 rounded-lg p-4">
+                  <div class="flex items-center justify-between">
+                    @php
+                      $name = "Đợt " . $prj->stage . " " . $prj->academy_year->year_name;
+                      if($prj->start_date < now() && $prj->end_date > now()) {
+                        $statusName = 'Đang diễn ra';
+                        $statusBackground = 'bg-emerald-50';
+                        $statusText = 'text-emerald-700';
+                      } else {
+                        $statusName = 'Sắp diễn ra';
+                        $statusBackground = 'bg-yellow-50';
+                        $statusText = 'text-yellow-700';
+                      }
+                    @endphp
+                    <div class="font-medium">{{ $name }}</div>
+                    <span class="px-2 py-1 rounded-full text-xs {{ $statusBackground }} {{ $statusText }}">{{ $statusName }}</span>
+                  </div>
+                  <div class="text-sm text-slate-600 mt-1">{{ Carbon\Carbon::parse($prj->start_date)->format('d/m/Y') }} - {{ Carbon\Carbon::parse($prj->end_date)->format('d/m/Y') }} • {{ $prj->councils->count() . " Hội đồng" }}</div>
+                  <div class="mt-3 flex items-center gap-2">
+                    <a class="text-blue-600 hover:underline text-sm" href="{{ route('web.assistant.round_detail', ['round_id' => $prj->id]) }}">Chi tiết</a>
+                  </div>
                 </div>
-                <div class="text-sm text-slate-600 mt-1">01/08/2025 - 30/10/2025 • 12 hội đồng</div>
-                <div class="mt-3 flex items-center gap-2">
-                  <a class="text-blue-600 hover:underline text-sm" href="round-detail.html">Chi tiết</a>
-                </div>
-              </div>
-              <div class="border border-slate-200 rounded-lg p-4">
-                <div class="flex items-center justify-between">
-                  <div class="font-medium">Đợt HK2 2025-2026</div>
-                  <span class="px-2 py-1 rounded-full text-xs bg-amber-50 text-amber-700">Sắp diễn ra</span>
-                </div>
-                <div class="text-sm text-slate-600 mt-1">15/12/2025 - 30/03/2026 • 10 hội đồng</div>
-                <div class="mt-3 flex items-center gap-2">
-                  <a class="text-blue-600 hover:underline text-sm" href="round-detail.html">Chi tiết</a>
-                </div>
-              </div>
+              @endforeach
             </div>
           </section>
         </div>
@@ -246,6 +234,23 @@
       const profileMenu=document.getElementById('profileMenu');
       profileBtn?.addEventListener('click', ()=> profileMenu.classList.toggle('hidden'));
       document.addEventListener('click', (e)=>{ if(!profileBtn?.contains(e.target) && !profileMenu?.contains(e.target)) profileMenu?.classList.add('hidden'); });
+
+      // Local teacher table search (immediate, no debounce)
+      (function(){
+        const searchInput = document.getElementById('teacherSearch');
+        const tbody = document.querySelector('table tbody');
+        if(!searchInput || !tbody) return;
+        searchInput.addEventListener('input', (e)=>{
+          const q = String(e.target.value||'').toLowerCase().trim();
+          tbody.querySelectorAll('tr').forEach(row=>{
+            const cells = row.querySelectorAll('td');
+            const id = (cells[1]?.textContent||'').toLowerCase();
+            const name = (cells[2]?.textContent||'').toLowerCase();
+            const matches = !q || id.includes(q) || name.includes(q);
+            row.style.display = matches ? '' : 'none';
+          });
+        });
+      })();
 
       // auto active nav highlight
       (function(){
