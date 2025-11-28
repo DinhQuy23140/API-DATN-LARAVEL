@@ -503,4 +503,37 @@ class CouncilController extends Controller
         $council = Council::with('project_term.academy_year', 'council_members.supervisor.teacher.user', 'council_projects.council_project_defences', 'council_projects.assignment.project', 'council_projects.assignment.student.user', 'council_projects.assignment.assignment_supervisors.supervisor.teacher.user')->find($councilId);
         return view ('lecturer-ui.committee-detail', compact('council', 'supervisorId'));
     }
+
+    /**
+     * Delete a council and related records (defences, council_projects, council_members).
+     * DELETE /assistant/councils/{council}
+     */
+    public function destroy(Council $council)
+    {
+        try {
+            DB::transaction(function() use ($council) {
+                // Collect related council_project ids
+                $projectIds = $council->council_projects()->pluck('id')->all();
+
+                if (!empty($projectIds)) {
+                    // Delete defences tied to council projects first
+                    DB::table('council_project_defences')->whereIn('council_project_id', $projectIds)->delete();
+                }
+
+                // Delete council_projects
+                DB::table('council_projects')->where('council_id', $council->id)->delete();
+
+                // Delete council members
+                DB::table('council_members')->where('council_id', $council->id)->delete();
+
+                // Finally delete the council itself
+                $council->delete();
+            });
+
+            return response()->json(['ok' => true, 'message' => 'Đã xóa hội đồng.']);
+        } catch (\Exception $e) {
+            logger()->error('Failed to delete council: ' . $e->getMessage());
+            return response()->json(['ok' => false, 'message' => 'Xóa hội đồng thất bại. Vui lòng thử lại.'], 500);
+        }
+    }
 }

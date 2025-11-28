@@ -1597,6 +1597,38 @@
               }
               searchEl?.addEventListener('input', filter);
               filter();
+
+              // Delegated delete handler for councils in Stage 5
+              // Finds the council id from the row's edit button data-id and calls DELETE
+              const tableBody = stageContent.querySelector('#tableBody');
+              tableBody?.addEventListener('click', async (ev) => {
+                const btn = ev.target.closest('button');
+                if (!btn) return;
+                // detect trash button by icon inside or explicit class
+                const isTrash = !!btn.querySelector('.ph.ph-trash') || btn.classList.contains('btn-delete-council');
+                if (!isTrash) return;
+
+                const tr = btn.closest('tr');
+                const editBtn = tr?.querySelector('.editCouncilBtn');
+                const id = editBtn?.dataset?.id;
+                if (!id) return;
+
+                if (!confirm('Bạn có chắc muốn xóa hội đồng này?')) return;
+
+                const token = document.querySelector('meta[name="csrf-token"]')?.content || '';
+                try {
+                  const res = await fetch(`/assistant/councils/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'X-CSRF-TOKEN': token, 'Accept': 'application/json' }
+                  });
+                  if (!res.ok) throw new Error('Network response was not ok');
+                  // Success: reload to reflect authoritative server state
+                  window.location.reload();
+                } catch (err) {
+                  console.error(err);
+                  alert('Không thể xóa hội đồng. Vui lòng thử lại.');
+                }
+              });
             })();
 
             return;

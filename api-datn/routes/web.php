@@ -211,6 +211,8 @@ Route::middleware('auth')->prefix('assistant')->name('web.assistant.')->group(fu
     Route::post('/batch-students/bulk', [WebAssignmentController::class,'storeBulk'])->name('batch_students.bulk_store');
     Route::post('/supervisors/bulk', [WebSupervisorController::class,'storeBulk'])->name('supervisors.bulk_store');
     Route::post('/councils', [CouncilController::class, 'store'])->name('councils.store');
+    // Delete a council
+    Route::delete('/councils/{council}', [CouncilController::class, 'destroy'])->name('councils.destroy');
     // Delete an assignment (assistant) - used by assistant UI to remove a student's assignment
     Route::delete('/assignments/{assignment}', [WebAssignmentController::class, 'destroy'])->name('assistant.assignments.destroy');
     // Delete a supervisor (assistant) - used by assistant UI to remove a supervisor
