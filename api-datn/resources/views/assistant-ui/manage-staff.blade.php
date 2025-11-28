@@ -177,7 +177,7 @@
                           {{ $teacher->user->fullname }}
                         </a>
                       </td>
-                      <td class="py-3 px-4">{{ $teacher->department->name }}</td>
+                      <td class="py-3 px-4">{{ $teacher->department->name ?? 'Chưa có bộ môn' }}</td>
                       <td class="py-3 px-4 text-left">{{ $rolesText }}</td>
                       <td class="py-3 px-4">{{ $teacher->user->email }}</td>
                       <td class="py-3 px-4 text-right space-x-1">

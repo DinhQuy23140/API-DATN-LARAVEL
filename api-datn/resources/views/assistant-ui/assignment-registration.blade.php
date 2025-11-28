@@ -309,7 +309,8 @@
           }
         }
 
-        // optionally reload to sync lists/counts (commented): location.reload();
+        // reload to sync lists/counts with server-side state
+        try { window.location.reload(); } catch(e) { /* ignore reload failure */ }
       } catch (err) {
         alert('Lỗi mạng, thử lại.');
       } finally {

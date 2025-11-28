@@ -242,6 +242,8 @@
       }
 
       tr?.remove();
+      // reload to reflect server-side state and pagination
+      try { window.location.reload(); } catch(e) { /* ignore reload failure */ }
     } catch(err){
       alert('Lỗi mạng hoặc máy chủ');
       console.error(err);
@@ -331,6 +333,8 @@ async function assignHead(e){
     selDept?.querySelector(`option[value="${department_id}"]`)?.remove();
 
     alert('Gán quyền Trưởng bộ môn thành công');
+    // reload to reflect server-side state and pagination
+    try { window.location.reload(); } catch(e) { /* ignore */ }
   } catch(err){
     console.error(err);
     alert('Lỗi: ' + (err.message || 'Không xác định'));

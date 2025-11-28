@@ -112,11 +112,11 @@
           <section class="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div class="bg-white rounded-xl border border-slate-200 p-5 flex items-center gap-4">
               <div class="h-12 w-12 rounded-lg bg-blue-50 text-blue-600 grid place-items-center"><i class="ph ph-buildings text-xl"></i></div>
-              <div><div class="text-sm text-slate-500">Bộ môn</div><div class="text-2xl font-semibold">{{ $marjorCount }}</div></div>
+              <div><div class="text-sm text-slate-500">Bộ môn</div><div class="text-2xl font-semibold">{{ $departmentCount }}</div></div>
             </div>
             <div class="bg-white rounded-xl border border-slate-200 p-5 flex items-center gap-4">
               <div class="h-12 w-12 rounded-lg bg-blue-50 text-blue-600 grid place-items-center"><i class="ph ph-book-open-text text-xl"></i></div>
-              <div><div class="text-sm text-slate-500">Ngành</div><div class="text-2xl font-semibold">{{ $departmentCount }}</div></div>
+              <div><div class="text-sm text-slate-500">Ngành</div><div class="text-2xl font-semibold">{{ $majorCount }}</div></div>
             </div>
             <div class="bg-white rounded-xl border border-slate-200 p-5 flex items-center gap-4">
               <div class="h-12 w-12 rounded-lg bg-blue-50 text-blue-600 grid place-items-center"><i class="ph ph-chalkboard-teacher text-xl"></i></div>
