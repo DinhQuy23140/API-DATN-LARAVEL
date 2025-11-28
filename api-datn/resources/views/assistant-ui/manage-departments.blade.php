@@ -457,6 +457,24 @@
       });
     })();
 
+    // Local search for departments table (immediate, no debounce)
+    (function(){
+      const input = document.getElementById('searchInput');
+      const tbody = document.getElementById('tableBody');
+      if(!input || !tbody) return;
+      input.addEventListener('input', (e)=>{
+        const q = String(e.target.value||'').toLowerCase().trim();
+        tbody.querySelectorAll('tr').forEach(tr=>{
+          const tds = tr.querySelectorAll('td');
+          if(!tds.length) return; // skip non-data rows
+          const code = (tds[1]?.textContent||'').toLowerCase();
+          const name = (tds[2]?.textContent||'').toLowerCase();
+          const matches = !q || code.includes(q) || name.includes(q);
+          tr.style.display = matches ? '' : 'none';
+        });
+      });
+    })();
+
     document.addEventListener('DOMContentLoaded', () => {
       const graduationItem = document.querySelector('.graduation-item');
       const toggleButton = graduationItem.querySelector('.toggle-button');
