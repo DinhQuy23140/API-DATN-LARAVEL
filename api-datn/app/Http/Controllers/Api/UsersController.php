@@ -300,4 +300,95 @@ class UsersController extends Controller
 
         return response()->json(['success' => false, 'message' => trans($status)], 400);
     }
+
+    /**
+     * Change password for authenticated API user.
+     * POST /api/auth/change-password (auth:sanctum)
+     * Body: { current_password, password, password_confirmation }
+     */
+    // public function changePassword(Request $request)
+    // {
+    //     $data = $request->validate([
+    //         'current_password' => ['required','string'],
+    //         'password' => ['required','string','min:8','confirmed'],
+    //     ]);
+
+    //     $user = $request->user();
+    //     if (!$user) {
+    //         return response()->json(['success' => false, 'message' => 'Unauthenticated'], 401);
+    //     }
+
+    //     $currentOk = false;
+    //     if (\Illuminate\Support\Facades\Hash::check($data['current_password'], $user->password)) {
+    //         $currentOk = true;
+    //     } elseif ($user->password === $data['current_password']) {
+    //         // legacy plain-text support
+    //         $currentOk = true;
+    //     }
+
+    //     if (!$currentOk) {
+    //         return response()->json(['success' => false, 'message' => 'Mật khẩu hiện tại không đúng'], 422);
+    //     }
+
+    //     // Update password (hash) and revoke existing tokens
+    //     $user->password = \Illuminate\Support\Facades\Hash::make($data['password']);
+    //     $user->save();
+
+    //     // revoke all previous tokens to force re-login (we'll return a fresh token)
+    //     try {
+    //         $user->tokens()->delete();
+    //     } catch (\Throwable $e) {
+    //         // ignore token deletion errors
+    //     }
+
+    //     $newToken = $user->createToken('api-token')->plainTextToken;
+
+    //     return response()->json([
+    //         'success' => true,
+    //         'message' => 'Đã đổi mật khẩu thành công',
+    //         'access_token' => $newToken,
+    //         'token_type' => 'Bearer'
+    //     ]);
+    // }
+
+public function changePassword(Request $request)
+{
+    $data = $request->validate([
+        'current_password' => ['required','string'],
+        'password' => ['required','string'],
+    ]);
+
+    $user = $request->user();
+    if (!$user) {
+        return response()->json(['success' => false, 'message' => 'Unauthenticated'], 401);
+    }
+
+    // ❗❗ BỎ Hash::check – so sánh trực tiếp mật khẩu nhập vào với mật khẩu trong DB
+    if ($user->password !== $data['current_password']) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Mật khẩu hiện tại không đúng (so sánh trực tiếp DB)'
+        ], 422);
+    }
+
+    // ✔ Đổi mật khẩu (nhớ hash để lưu lại)
+    $user->password = \Illuminate\Support\Facades\Hash::make($data['password']);
+    $user->save();
+
+    try {
+        $user->tokens()->delete();
+    } catch (\Throwable $e) {
+        // ignore errors
+    }
+
+    $newToken = $user->createToken('api-token')->plainTextToken;
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Đổi mật khẩu thành công (bản test – compare trực tiếp)',
+        'access_token' => $newToken,
+        'token_type' => 'Bearer'
+    ]);
+}
+
 }
