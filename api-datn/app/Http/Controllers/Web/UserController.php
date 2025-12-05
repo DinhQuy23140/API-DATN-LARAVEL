@@ -84,7 +84,9 @@ class UserController extends Controller
             case 'admin':
                 return redirect()->route('web.admin.dashboard')->with('status','Đăng nhập thành công');
             case 'assistant':
-                return redirect()->route('web.assistant.dashboard')->with('status','Đăng nhập thành công');
+                $majorCount = \App\Models\Marjor::count();
+                $departmentCount = \App\Models\Department::count();
+                return redirect()->route('web.assistant.dashboard', compact('majorCount', 'departmentCount'))->with('status','Đăng nhập thành công');
         }
 
         return redirect()->intended('/')->with('status','Đăng nhập thành công');

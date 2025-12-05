@@ -322,6 +322,7 @@ Route::middleware('auth')->group(function () {
     //stage 8 
     Route::get('/teacher/my-council-scoring/supervisor/{supervisorId}/term/{termId}', [WebCouncilMembersController::class, 'myCouncilScoring'])->name('web.teacher.my_evaluations');
     Route::get('/teacher/council-scoring-detail/supervisor/{supervisorId}/council/{councilId}/term/{termId}', [WebProjectTermsController::class, 'scoringCouncilDetail' ])->name('web.teacher.council_scoring_detail');
+    Route::get('/teacher/manage-report-file-council/supervisor/{supervisorId}/term/{termId}', [WebProjectTermsController::class, 'loadRoundDetailWithReportFilesBySupervisorId'])->name('web.teacher.manage_report_file_council');
     Route::get('/council-projects/{council_project}', [WebCouncilProjectController::class, 'show'])
             ->name('web.teacher.council_projects.show');
     Route::get('/teacher/student-council/term/{termId}/supervisor/{supervisorId}', [WebProjectTermsController::class, 'studentCouncil'])->name('web.teacher.student_council');

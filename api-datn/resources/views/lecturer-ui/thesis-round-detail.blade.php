@@ -1683,7 +1683,7 @@
             </div>
           </a>
 
-          <a href=""
+          <a href="{{ route('web.teacher.manage_report_file_council', ['supervisorId' => $supervisorId, 'termId' => $rows->id]  ) }}"
             class="group rounded-xl border border-slate-200 bg-white p-4 shadow-sm hover:shadow-md hover:border-indigo-300 transition">
             <div class="flex items-start gap-3">
               <!-- Icon -->

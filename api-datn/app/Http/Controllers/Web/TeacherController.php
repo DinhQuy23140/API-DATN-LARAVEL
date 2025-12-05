@@ -50,7 +50,7 @@ class TeacherController extends Controller
     public function loadDashboardAssistant(){
         $countTeachers = Teacher::count();
         $departmentCount = Department::count();
-        $marjorCount = Marjor::count();
+        $majorCount = Marjor::count();
         $projectTerms = ProjectTerm::with('academy_year', 'councils')->where(function ($q) {
         // Đang diễn ra
         $q->where('start_date', '<=', now())
@@ -63,7 +63,7 @@ class TeacherController extends Controller
         ->orderBy('start_date', 'asc')
         ->get();
         $teachers = Teacher::with('user')->latest('created_at')->paginate(7);
-        return view('assistant-ui.dashboard', compact('countTeachers', 'teachers', 'departmentCount', 'marjorCount', 'projectTerms'));
+        return view('assistant-ui.dashboard', compact('countTeachers', 'teachers', 'departmentCount', 'majorCount', 'projectTerms'));
     }
 
     public function loadProfile($teacherId){

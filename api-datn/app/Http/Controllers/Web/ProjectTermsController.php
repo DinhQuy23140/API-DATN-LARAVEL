@@ -571,6 +571,36 @@ class ProjectTermsController extends Controller
         return view('lecturer-ui.supervised-outline-reports', compact('rows', 'supervisorId'));
     }
 
+    public function loadRoundDetailWithReportFilesBySupervisorId($supervisorId, $termId)
+    {
+        $rows = ProjectTerm::where('id', $termId)
+            ->whereHas('supervisors', function ($query) use ($supervisorId) {
+                $query->where('id', $supervisorId);
+            })
+            ->with([
+                'academy_year',
+                'stageTimelines',
+                'assignments' => function ($query) use ($supervisorId) {
+                    $query->whereHas('assignment_supervisors', function ($q) use ($supervisorId) {
+                        $q->where('supervisor_id', $supervisorId);
+                    })
+                    ->with([
+                        'assignment_supervisors' => function ($q) use ($supervisorId) {
+                            $q->where('supervisor_id', $supervisorId);
+                        },
+                        'student.user',
+                        'project.progressLogs.attachments',
+                        'project.reportFiles' => function ($q) {
+                            $q->where('type_report', 'report_council');
+                        },
+                    ]);
+                }
+            ])
+            ->firstOrFail();
+
+        return view('lecturer-ui.manage_report_file_council', compact('rows', 'supervisorId'));
+    }
+
 public function assignmentSupervisor($departmentId, $termId)
 {
     $projectTerm = ProjectTerm::with([
