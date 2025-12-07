@@ -154,7 +154,7 @@
           data-status="{{ $status }}">
                       <i class="ph ph-pencil"></i>
                     </button>
-                    <button class="btnDelete px-2 py-1.5 rounded-lg border hover:bg-slate-50 text-rose-600" data-id="{{ $st->id }}">
+                    <button class="btnDelete px-2 py-1.5 rounded-lg border hover:bg-slate-50 text-rose-600" data-id="{{ $st->user->id }}">
                       <i class="ph ph-trash"></i>
                     </button>
                   </td>
@@ -387,15 +387,35 @@
     if(!confirm('Xóa sinh viên này?')) return;
 
     const old = btn.innerHTML; btn.disabled = true; btn.innerHTML = '<i class="ph ph-spinner-gap animate-spin"></i>';
+    const url = '{{ route("web.users.destroy", "__id__") }}'.replace('__id__', id);
     try {
-      // TODO: gọi API xóa khi có route:
-      // const res = await fetch(url, { method:'DELETE', headers:{'X-CSRF-TOKEN': document.querySelector('meta[name="ication/json'} });
-      // const data = await res.json().catch(()=>({}));
-      // if(!res.ok || data.ok===false) throw new Error(data.message || 'Xóa thất bại');
+      const res = await fetch(url, {
+        method: 'DELETE',
+        headers: {
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content,
+          'Accept': 'application/json'
+        }
+      });
+
+      // Try parse JSON; if not JSON, fallback to empty object
+      let data = {};
+      try { data = await res.json(); } catch (parseErr) { data = {}; }
+
+      // If HTTP status indicates error, surface message
+      if (!res.ok) {
+        throw new Error(data.message || `HTTP ${res.status}`);
+      }
+
+      // If server returned structured JSON with ok:false
+      if (typeof data.ok !== 'undefined' && data.ok === false) {
+        throw new Error(data.message || 'Xóa thất bại');
+      }
+
+      // Success — remove row
       btn.closest('tr')?.remove();
     } catch (err) {
-      console.error(err);
-      alert('Không thể xóa. Vui lòng thử lại.');
+      console.error('Delete failed', err);
+      alert(err?.message || 'Không thể xóa. Vui lòng thử lại.');
     } finally {
       btn.disabled = false; btn.innerHTML = old;
     }

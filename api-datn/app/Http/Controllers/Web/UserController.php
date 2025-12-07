@@ -380,9 +380,23 @@ class UserController extends Controller
     }
 
     // Xóa
-    public function destroy(User $user)
+    public function destroy(Request $request, User $user)
     {
-        $user->delete();
+        try {
+            $user->delete();
+        } catch (\Throwable $e) {
+            \Log::error('Failed to delete user: ' . $e->getMessage());
+            $message = 'Không thể xóa người dùng';
+            if ($request->wantsJson()) {
+                return response()->json(['ok' => false, 'message' => $message], 500);
+            }
+            return redirect()->route('web.users.index')->withErrors($message);
+        }
+
+        if ($request->wantsJson()) {
+            return response()->json(['ok' => true, 'message' => 'Đã xóa người dùng']);
+        }
+
         return redirect()->route('web.users.index')->with('status', 'Đã xóa người dùng');
     }
 }
