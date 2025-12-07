@@ -180,7 +180,7 @@
           data-status="{{ $status }}">
                       <i class="ph ph-pencil"></i>
                     </button>
-                    <button class="btnDelete px-2 py-1.5 rounded-lg border hover:bg-slate-50 text-rose-600" data-id="{{ $gv->id }}">
+                    <button class="btnDelete px-2 py-1.5 rounded-lg border hover:bg-slate-50 text-rose-600" data-id="{{ $gv->user->id }}">
                       <i class="ph ph-trash"></i>
                     </button>
                   </td>
@@ -481,21 +481,48 @@
     openModal();
   });
 
-  // Delete row (confirm)
+  // Delete row (confirm) — send Accept header and handle JSON or HTML responses
   document.getElementById('tableBody')?.addEventListener('click', async (e)=>{
     const el = getEventElement(e);
     const btn = el ? el.closest('.btnDelete') : null;
     if(!btn) return;
     const id = btn.dataset.id;
+    const url = '{{route("web.users.destroy", "__id__")}}'.replace("__id__", id);
     if(!id) return alert('Thiếu ID giảng viên');
     if(!confirm('Xóa giảng viên này?')) return;
 
     const old = btn.innerHTML; btn.disabled = true; btn.innerHTML = '<i class="ph ph-spinner-gap animate-spin"></i>';
     try {
-      btn.closest('tr')?.remove();
+      const resp = await fetch(url, {
+        method: 'DELETE',
+        headers: {
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}',
+          'Accept': 'application/json'
+        }
+      });
+
+      // Try to parse JSON if present, but fall back gracefully to text
+      let data = null;
+      const text = await resp.text();
+      try { data = text ? JSON.parse(text) : null; } catch (err) { data = null; }
+
+      if (!resp.ok) {
+        const msg = (data && data.message) ? data.message : ('HTTP ' + resp.status);
+        throw new Error(msg);
+      }
+
+      // If server responded with structured JSON { ok: true/false }
+      if (data && typeof data === 'object') {
+        if (data.ok === false) throw new Error(data.message || 'Không thể xóa.');
+        // success
+        btn.closest('tr')?.remove();
+      } else {
+        // Non-JSON (likely a redirect HTML) — treat 2xx as success
+        btn.closest('tr')?.remove();
+      }
     } catch (err) {
       console.error(err);
-      alert('Không thể xóa. Vui lòng thử lại.');
+      alert(err.message || 'Không thể xóa. Vui lòng thử lại.');
     } finally {
       btn.disabled = false; btn.innerHTML = old;
     }
