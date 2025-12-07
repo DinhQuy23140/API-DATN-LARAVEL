@@ -389,7 +389,7 @@
     const old = btn.innerHTML; btn.disabled = true; btn.innerHTML = '<i class="ph ph-spinner-gap animate-spin"></i>';
     try {
       // TODO: gọi API xóa khi có route:
-      // const res = await fetch(url, { method:'DELETE', headers:{'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content, 'Accept':'application/json'} });
+      // const res = await fetch(url, { method:'DELETE', headers:{'X-CSRF-TOKEN': document.querySelector('meta[name="ication/json'} });
       // const data = await res.json().catch(()=>({}));
       // if(!res.ok || data.ok===false) throw new Error(data.message || 'Xóa thất bại');
       btn.closest('tr')?.remove();
