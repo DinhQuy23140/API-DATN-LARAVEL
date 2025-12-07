@@ -9,6 +9,9 @@ use App\Models\ProjectTerm;
 use App\Models\Teacher;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class TeacherController extends Controller
 {
@@ -36,14 +39,59 @@ class TeacherController extends Controller
     public function show(Teacher $teacher){$teacher->load('user'); return view('teachers.show', compact('teacher'));}
     public function edit(Teacher $teacher){return view('teachers.edit',['teacher'=>$teacher,'users'=>User::all()]);}
     public function update(Request $request, Teacher $teacher){
-        $data=$request->validate([
-            'user_id'=>'sometimes|exists:users,id',
-            'teacher_code'=>'sometimes|string|max:100',
-            'degree'=>'nullable|string|max:100',
-            'department_id'=>'nullable|integer',
-            'position'=>'nullable|string|max:100',
+        // Validate teacher fields and optional nested user fields
+        $user = $teacher->user;
+
+        $data = $request->validate([
+            'user_id' => 'sometimes|exists:users,id',
+            'teacher_code' => 'sometimes|string|max:100',
+            'degree' => 'nullable|string|max:100',
+            'department_id' => 'nullable|integer',
+            'position' => 'nullable|string|max:100',
+
+            // optional user fields
+            'fullname' => ['sometimes','required','string','max:255'],
+            'email' => ['sometimes','required','email','max:255', Rule::unique('users','email')->ignore($user->id ?? null)],
+            'dob' => ['nullable','date'],
+            'address' => ['nullable','string','max:500'],
+            'password' => ['nullable','string','min:6'],
         ]);
-        $teacher->update($data);
+
+        try {
+            DB::transaction(function() use ($teacher, $data, $user) {
+                // Teacher updates
+                $teacherUpdates = array_intersect_key($data, array_flip(['teacher_code','degree','department_id','position','user_id']));
+                if (!empty($teacherUpdates)) {
+                    $teacher->update($teacherUpdates);
+                }
+
+                // Update related user if exists
+                if ($user) {
+                    $userUpdates = array_intersect_key($data, array_flip(['fullname','email','dob','address','password']));
+                    if (!empty($userUpdates)) {
+                        if (!empty($userUpdates['password'])) {
+                            $userUpdates['password'] = Hash::make($userUpdates['password']);
+                        } else {
+                            unset($userUpdates['password']);
+                        }
+                        $user->update($userUpdates);
+                    }
+                }
+            });
+        } catch (\Throwable $e) {
+            \Log::error('Failed to update teacher/user: ' . $e->getMessage());
+            if ($request->wantsJson()) {
+                return response()->json(['ok' => false, 'message' => 'Cập nhật thất bại'], 500);
+            }
+            return redirect()->back()->withErrors('Cập nhật thất bại');
+        }
+
+        $teacher->load('user','department');
+
+        if ($request->wantsJson()) {
+            return response()->json(['ok' => true, 'teacher' => $teacher]);
+        }
+
         return redirect()->route('web.teachers.show',$teacher)->with('status','Cập nhật thành công');
     }
     public function destroy(Teacher $teacher){$teacher->delete(); return redirect()->route('web.teachers.index')->with('status','Đã xóa');}

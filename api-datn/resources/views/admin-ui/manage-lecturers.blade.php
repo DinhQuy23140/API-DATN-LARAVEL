@@ -535,22 +535,88 @@
 
     try {
       if(id){
-        const tr = [...document.querySelectorAll('#tableBody tr')].find(x => x.querySelector('.btnEdit')?.dataset.id === id);
-        if(tr){
-          tr.setAttribute('data-status', status);
-          tr.children[1].textContent = code;
-          tr.children[2].textContent = name;
-          tr.children[3].textContent = deptLabel;
-          tr.children[4].textContent = email || '-';
-          const pillMap = {active:['Đang công tác','bg-emerald-50 text-emerald-700'], probation:['Thử việc','bg-amber-50 text-amber-700'], inactive:['Ngừng công tác','bg-slate-100 text-slate-700']};
-          const [label, cls] = pillMap[status] || ['Khác','bg-slate-100 text-slate-700'];
-          tr.children[5].querySelector('span').className = 'px-2 py-0.5 rounded-full text-xs ' + cls;
-          tr.children[5].querySelector('span').textContent = label;
-          const editBtn = tr.querySelector('.btnEdit');
-          editBtn.dataset.code = code; editBtn.dataset.name = name; editBtn.dataset.dept = dept; editBtn.dataset.email = email; editBtn.dataset.status = status;
-          // new fields
-          editBtn.dataset.dob = document.getElementById('gvDob').value || '';
-          editBtn.dataset.address = document.getElementById('gvAddress').value || '';
+        // If id looks like a newly-created client-only row, keep client behavior
+        if (String(id).startsWith('new-')) {
+          const tr = [...document.querySelectorAll('#tableBody tr')].find(x => x.querySelector('.btnEdit')?.dataset.id === id);
+          if(tr){
+            tr.setAttribute('data-status', status);
+            tr.children[1].textContent = code;
+            tr.children[2].textContent = name;
+            tr.children[3].textContent = deptLabel;
+            tr.children[4].textContent = email || '-';
+            const pillMap = {active:['Đang công tác','bg-emerald-50 text-emerald-700'], probation:['Thử việc','bg-amber-50 text-amber-700'], inactive:['Ngừng công tác','bg-slate-100 text-slate-700']};
+            const [label, cls] = pillMap[status] || ['Khác','bg-slate-100 text-slate-700'];
+            tr.children[5].querySelector('span').className = 'px-2 py-0.5 rounded-full text-xs ' + cls;
+            tr.children[5].querySelector('span').textContent = label;
+            const editBtn = tr.querySelector('.btnEdit');
+            editBtn.dataset.code = code; editBtn.dataset.name = name; editBtn.dataset.dept = dept; editBtn.dataset.email = email; editBtn.dataset.status = status;
+            // new fields
+            editBtn.dataset.dob = document.getElementById('gvDob').value || '';
+            editBtn.dataset.address = document.getElementById('gvAddress').value || '';
+          }
+        } else {
+          // Existing teacher: send PUT to server to update teacher + user
+          const url = '{{ route("web.admin.manage_lecturers.update", "__id__") }}'.replace('__id__', id);
+          const payload = {
+            teacher_code: code || null,
+            department_id: dept ? parseInt(dept, 10) : null,
+            // user fields
+            fullname: name || null,
+            email: email || null,
+            dob: document.getElementById('gvDob').value || null,
+            address: document.getElementById('gvAddress').value || null,
+            password: document.getElementById('gvPassword').value || null,
+          };
+
+          const resp = await fetch(url, {
+            method: 'PUT',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+              'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').getAttribute('content')
+            },
+            body: JSON.stringify(payload)
+          });
+
+          let json = null;
+          const text = await resp.text();
+          try { json = text ? JSON.parse(text) : null; } catch (err) { json = null; }
+
+          if (!resp.ok) {
+            const msg = (json && json.message) ? json.message : ('HTTP ' + resp.status);
+            throw new Error(msg);
+          }
+
+          if (json && json.ok === false) {
+            throw new Error(json.message || 'Cập nhật thất bại');
+          }
+
+          // Use returned teacher object when available to update the row
+          const teacher = (json && json.teacher) ? json.teacher : null;
+          const tr = [...document.querySelectorAll('#tableBody tr')].find(x => x.querySelector('.btnEdit')?.dataset.id === id);
+          if (tr) {
+            tr.setAttribute('data-status', status);
+            tr.children[1].textContent = teacher?.teacher_code || code || '';
+            tr.children[2].textContent = teacher?.user?.fullname || name || '';
+            tr.children[3].textContent = teacher?.department?.name || deptLabel;
+            tr.children[4].textContent = teacher?.user?.email || email || '-';
+            const pillMap = {active:['Đang công tác','bg-emerald-50 text-emerald-700'], probation:['Thử việc','bg-amber-50 text-amber-700'], inactive:['Ngừng công tác','bg-slate-100 text-slate-700']};
+            const [label, cls] = pillMap[status] || ['Khác','bg-slate-100 text-slate-700'];
+            tr.children[5].querySelector('span').className = 'px-2 py-0.5 rounded-full text-xs ' + cls;
+            tr.children[5].querySelector('span').textContent = label;
+            const editBtn = tr.querySelector('.btnEdit');
+            // keep data attributes consistent: dept should be id
+            editBtn.dataset.code = teacher?.teacher_code || code || '';
+            editBtn.dataset.name = teacher?.user?.fullname || name || '';
+            editBtn.dataset.dept = teacher?.department?.id ?? dept;
+            editBtn.dataset.email = teacher?.user?.email || email || '';
+            editBtn.dataset.status = status;
+            editBtn.dataset.dob = teacher?.user?.dob || document.getElementById('gvDob').value || '';
+            editBtn.dataset.address = teacher?.user?.address || document.getElementById('gvAddress').value || '';
+          }
+
+          // clear password input after successful update
+          document.getElementById('gvPassword').value = '';
         }
       } else {
         const tr = document.createElement('tr');
