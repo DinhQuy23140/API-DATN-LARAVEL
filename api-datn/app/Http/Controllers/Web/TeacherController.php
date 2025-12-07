@@ -14,7 +14,8 @@ class TeacherController extends Controller
 {
     public function index(){
         $teachers = Teacher::with('user', 'department')->latest('id')->paginate(15);
-        return view('admin-ui.manage-lecturers', compact('teachers'));
+        $departments = Department::all();
+        return view('admin-ui.manage-lecturers', compact('teachers', 'departments'));
     }
     public function loadTeachers(){
         $teachers = Teacher::with('user.facultyRoles', 'departmentRoles')->latest('id')->get();

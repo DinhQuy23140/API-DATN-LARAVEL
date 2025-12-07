@@ -173,10 +173,10 @@
           data-id="{{ $gv->id }}"
           data-code="{{ $gv->teacher_code ?? ($gv->code ?? '') }}"
           data-name="{{ $gv->fullname ?? ($gv->user->fullname ?? '') }}"
-          data-dept="{{ $gv->department_name ?? ($gv->department->name ?? '') }}"
+          data-dept="{{ $gv->department->id ?? ($gv->department_id ?? '') }}"
           data-email="{{ $gv->email ?? ($gv->user->email ?? '') }}"
-          data-dob="{{ $gv->dob ?? $gv->date_of_birth ?? '' }}"
-          data-address="{{ $gv->address ?? '' }}"
+          data-dob="{{ $gv->user->dob ?? $gv->date_of_birth ?? '' }}"
+          data-address="{{ $gv->user->address ?? '' }}"
           data-status="{{ $status }}">
                       <i class="ph ph-pencil"></i>
                     </button>
@@ -250,22 +250,15 @@
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label class="text-xs text-slate-500">Bộ môn</label>
-              @php
-                $deptOptions = isset($departments) ? $departments : collect([
-                  (object)['code'=>'KTPM','name'=>'Kỹ thuật phần mềm'],
-                  (object)['code'=>'HTTT','name'=>'Hệ thống thông tin'],
-                  (object)['code'=>'CNPM','name'=>'Công nghệ phần mềm'],
-                ]);
-              @endphp
               <div class="flex items-center gap-2">
                 <span class="inline-flex items-center justify-center h-9 w-9 rounded-md bg-sky-50 text-sky-600"><i class="ph ph-building"></i></span>
                 <select id="gvDept" class="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-sky-400 focus:border-sky-400">
-                  @foreach($deptOptions as $d)
+                  @foreach($departments as $d)
                     @php
-                      $val = is_object($d) ? ($d->code ?? $d->name ?? '') : (is_array($d) ? ($d['code'] ?? $d['name'] ?? '') : $d);
-                      $label = is_object($d) ? ($d->name ?? $d->code ?? $d->id ?? '') : (is_array($d) ? ($d['name'] ?? $d['code'] ?? '') : $d);
+                      $id_department = $d->id ?? ($d['id'] ?? null);
+                      $label = is_object($d) ? ($d->name ?? $d->code ?? $id_department) : (is_array($d) ? ($d['name'] ?? $d['code'] ?? $id_department) : $d);
                     @endphp
-                    <option value="{{ $val }}">{{ $label }}</option>
+                    <option value="{{ $id_department }}">{{ $label }}</option>
                   @endforeach
                 </select>
               </div>
@@ -534,6 +527,7 @@
     const code = document.getElementById('gvCode').value.trim();
     const name = document.getElementById('gvName').value.trim();
     const dept = document.getElementById('gvDept').value.trim();
+    const deptLabel = document.getElementById('gvDept').selectedOptions[0]?.text?.trim() || dept || '-';
     const email = document.getElementById('gvEmail').value.trim();
     const status = document.getElementById('gvStatus').value;
 
@@ -546,7 +540,7 @@
           tr.setAttribute('data-status', status);
           tr.children[1].textContent = code;
           tr.children[2].textContent = name;
-          tr.children[3].textContent = dept || '-';
+          tr.children[3].textContent = deptLabel;
           tr.children[4].textContent = email || '-';
           const pillMap = {active:['Đang công tác','bg-emerald-50 text-emerald-700'], probation:['Thử việc','bg-amber-50 text-amber-700'], inactive:['Ngừng công tác','bg-slate-100 text-slate-700']};
           const [label, cls] = pillMap[status] || ['Khác','bg-slate-100 text-slate-700'];
@@ -569,7 +563,7 @@
           <td class="px-4 py-3"><input type="checkbox" class="rowChk h-4 w-4"></td>
           <td class="px-4 py-3 font-mono">${code}</td>
           <td class="px-4 py-3 font-medium text-slate-800">${name}</td>
-          <td class="px-4 py-3">${dept || '-'}</td>
+          <td class="px-4 py-3">${deptLabel}</td>
           <td class="px-4 py-3">${email || '-'}</td>
           <td class="px-4 py-3 text-center"><span class="px-2 py-0.5 rounded-full text-xs ${cls}">${label}</span></td>
           <td class="px-4 py-3 text-right space-x-2">
