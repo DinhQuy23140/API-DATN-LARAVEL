@@ -145,12 +145,15 @@
                     {{ $st->marjor->name ??  '-' }}
                   </td>
                   <td class="px-4 py-3 text-right space-x-2">
-        <button class="btnEdit px-2 py-1.5 rounded-lg border hover:bg-slate-50 text-indigo-600"
+          <button class="btnEdit px-2 py-1.5 rounded-lg border hover:bg-slate-50 text-indigo-600"
           data-id="{{ $st->id }}"
           data-code="{{ $st->student_code ?? '' }}"
           data-name="{{ $st->fullname ?? ($st->user->fullname ?? '') }}"
           data-classname="{{ $st->class_code ?? ($st->classroom->name ?? '') }}"
           data-email="{{ $st->email ?? ($st->user->email ?? '') }}"
+          data-phone="{{ $st->phone ?? ($st->user->phone ?? '') }}"
+          data-dob="{{ $st->dob ?? ($st->user->dob ?? '') }}"
+          data-major="{{ $st->marjor->id ?? '' }}"
           data-status="{{ $status }}">
                       <i class="ph ph-pencil"></i>
                     </button>
@@ -253,7 +256,14 @@
               <label class="text-xs text-slate-500">Ngành học</label>
               <div class="flex items-center gap-2">
                 <span class="inline-flex items-center justify-center h-9 w-9 rounded-md bg-violet-50 text-violet-600"><i class="ph ph-books"></i></span>
-                <input id="stMajor" class="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-violet-400 focus:border-violet-400" placeholder="Ví dụ: Công nghệ phần mềm">
+                @php $majorOptions = $majors ?? $marjors ?? collect(); @endphp
+                <select id="stMajor" class="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-violet-400 focus:border-violet-400">
+                  <option value="">-- Chọn ngành --</option>
+                  @foreach($majors as $m)
+                    @php $mid = $m->id ?? ($m['id'] ?? $m); $mname = $m->name ?? ($m['name'] ?? ($m->code ?? $m)); @endphp
+                    <option value="{{ $mid }}">{{ $mname }}</option>
+                  @endforeach
+                </select>
               </div>
             </div>
           </div>
@@ -272,18 +282,6 @@
                 <span class="inline-flex items-center justify-center h-9 w-9 rounded-md bg-sky-50 text-sky-600"><i class="ph ph-calendar"></i></span>
                 <input id="stDob" type="date" class="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-sky-400 focus:border-sky-400">
               </div>
-            </div>
-          </div>
-
-          <div>
-            <label class="text-xs text-slate-500">Trạng thái</label>
-            <div class="flex items-center gap-2">
-              <span class="inline-flex items-center justify-center h-9 w-9 rounded-md bg-slate-50 text-slate-600"><i class="ph ph-activity"></i></span>
-              <select id="stStatus" class="flex-1 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
-                <option value="active">Đang học</option>
-                <option value="pending">Chờ xác nhận</option>
-                <option value="paused">Tạm dừng</option>
-              </select>
             </div>
           </div>
         </div>
@@ -339,7 +337,6 @@
     document.getElementById('stMajor').value = '';
     document.getElementById('stPhone').value = '';
     document.getElementById('stDob').value = '';
-    document.getElementById('stStatus').value = 'active';
     openModal();
   });
 
@@ -374,7 +371,6 @@
     document.getElementById('stMajor').value = btn.dataset.major || '';
     document.getElementById('stPhone').value = btn.dataset.phone || '';
     document.getElementById('stDob').value = btn.dataset.dob || '';
-    document.getElementById('stStatus').value = btn.dataset.status || 'active';
     openModal();
   });
 
@@ -421,7 +417,7 @@
     }
   });
 
-  // Save (create/update) — demo client-side; gắn API khi có route
+  // Save (create/update) — call API for update, fallback to local for new rows
   document.getElementById('btnSave')?.addEventListener('click', async ()=>{
     const id = document.getElementById('stId').value.trim();
     const code = document.getElementById('stCode').value.trim();
@@ -429,66 +425,111 @@
     const className = document.getElementById('stClass').value.trim();
     const email = document.getElementById('stEmail').value.trim();
     const password = document.getElementById('stPassword').value;
-    const major = document.getElementById('stMajor').value.trim();
+    const majorSelect = document.getElementById('stMajor');
+    const major = (majorSelect?.value || '').toString().trim();
+    const majorLabel = (majorSelect?.selectedOptions && majorSelect.selectedOptions[0]) ? (majorSelect.selectedOptions[0].text || major) : (major || '-');
     const phone = document.getElementById('stPhone').value.trim();
     const dob = document.getElementById('stDob').value;
-    const status = document.getElementById('stStatus').value;
 
     if(!code || !name){ alert('Vui lòng nhập MSSV và Họ tên'); return; }
 
-    try {
-      // TODO: gọi API khi có route:
-      // const method = id ? 'PATCH' : 'POST';
-      // const url = id
-      // const res = await fetch(url, {
-      //   method, headers:{'Content-Type':'application/json','Accept':'application/json','X-CSRF-TOKEN':document.querySelector('meta[name="csrf-token"]')?.content},
-      //   body: JSON.stringify({ student_code:code, fullname:name, class_name:className, email, status })
-      // });
-      // const data = await res.json().catch(()=>({}));
-      // if(!res.ok || data.ok===false) throw new Error(data.message || 'Lưu thất bại');
+    // If this is an existing persisted student (not a local new-* row), call the PUT route
+    if(id && !id.startsWith('new-')){
+      const btn = document.getElementById('btnSave');
+      const oldHtml = btn.innerHTML;
+      btn.disabled = true; btn.innerHTML = '<i class="ph ph-spinner-gap animate-spin"></i> Đang lưu...';
 
-      // Demo: cập nhật UI cục bộ
-      if(id){
+      const url = '{{ route("web.admin.manage_students.update", "__id__") }}'.replace('__id__', id);
+      try {
+        const payload = {
+          student_code: code,
+          class_code: className || null,
+          marjor_id: major || null,
+          fullname: name,
+          email: email || null,
+          phone: phone || null,
+          dob: dob || null
+        };
+        if(password) payload.password = password;
+
+        const res = await fetch(url, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
+          },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await res.json().catch(()=>({}));
+
+        if(res.status === 422 && data.errors){
+          // validation errors
+          const messages = Object.values(data.errors).flat().join('\n');
+          alert(messages);
+          return;
+        }
+
+        if(!res.ok || data.ok === false){
+          throw new Error(data.message || 'Lưu thất bại');
+        }
+
+        // Success — update row from returned student
+        const student = data.student || {};
         const tr = [...document.querySelectorAll('#tableBody tr')].find(x => x.querySelector('.btnEdit')?.dataset.id === id);
         if(tr){
-          tr.setAttribute('data-status', status);
-          tr.children[1].textContent = code;
-          tr.children[2].textContent = name;
-          tr.children[3].textContent = className || '-';
-          tr.children[4].textContent = email || '-';
-          // Update major cell if exists
+          if(student.student_code) tr.children[1].textContent = student.student_code;
+          tr.children[2].textContent = (student.user && student.user.fullname) || student.fullname || name;
+          tr.children[3].textContent = student.class_code || className || '-';
+          tr.children[4].textContent = (student.user && student.user.email) || student.email || email || '-';
           if(tr.children[5]){
-            tr.children[5].textContent = major || '-';
+            tr.children[5].textContent = (student.marjor && student.marjor.name) || majorLabel || '-';
           }
           const editBtn = tr.querySelector('.btnEdit');
-          editBtn.dataset.code = code; editBtn.dataset.name = name; editBtn.dataset.classname = className; editBtn.dataset.email = email; editBtn.dataset.status = status;
-          editBtn.dataset.major = major || '';
-          editBtn.dataset.phone = phone || '';
-          editBtn.dataset.dob = dob || '';
+          editBtn.dataset.code = student.student_code || code;
+          editBtn.dataset.name = (student.user && student.user.fullname) || student.fullname || name;
+          editBtn.dataset.classname = student.class_code || className || '';
+          editBtn.dataset.email = (student.user && student.user.email) || student.email || '';
+          editBtn.dataset.major = (student.marjor && student.marjor.id) || major || '';
+          editBtn.dataset.phone = (student.user && student.user.phone) || phone || '';
+          editBtn.dataset.dob = (student.user && student.user.dob) || dob || '';
         }
-      } else {
-        const tr = document.createElement('tr');
-        tr.className = 'hover:bg-slate-50';
-        tr.setAttribute('data-status', status);
-        const newId = 'new-' + Date.now();
-        tr.innerHTML = `
-          <td class="px-4 py-3"><input type="checkbox" class="rowChk h-4 w-4"></td>
-          <td class="px-4 py-3 font-mono">${code}</td>
-          <td class="px-4 py-3 font-medium text-slate-800">${name}</td>
-          <td class="px-4 py-3">${className || '-'}</td>
-          <td class="px-4 py-3">${email || '-'}</td>
-          <td class="px-4 py-3 text-center">${major || '-'}</td>
-          <td class="px-4 py-3 text-right space-x-2">
-            <button class="btnEdit px-2 py-1.5 rounded-lg border hover:bg-slate-50 text-indigo-600"
-                    data-id="${newId}" data-code="${code}" data-name="${name}" data-classname="${className}" data-email="${email}" data-major="${major}" data-phone="${phone}" data-dob="${dob}" data-status="${status}">
-              <i class="ph ph-pencil"></i>
-            </button>
-            <button class="btnDelete px-2 py-1.5 rounded-lg border hover:bg-slate-50 text-rose-600" data-id="${newId}">
-              <i class="ph ph-trash"></i>
-            </button>
-          </td>`;
-        document.getElementById('tableBody')?.prepend(tr);
+
+        closeModal();
+      } catch(err){
+        console.error('Update failed', err);
+        alert(err?.message || 'Không thể lưu. Vui lòng thử lại.');
+      } finally {
+        btn.disabled = false; btn.innerHTML = oldHtml;
       }
+
+      return;
+    }
+
+    // Otherwise fallback to local demo insertion for new rows
+    try {
+      const tr = document.createElement('tr');
+      tr.className = 'hover:bg-slate-50';
+      tr.setAttribute('data-status', 'active');
+      const newId = 'new-' + Date.now();
+      tr.innerHTML = `
+        <td class="px-4 py-3"><input type="checkbox" class="rowChk h-4 w-4"></td>
+        <td class="px-4 py-3 font-mono">${code}</td>
+        <td class="px-4 py-3 font-medium text-slate-800">${name}</td>
+        <td class="px-4 py-3">${className || '-'}</td>
+        <td class="px-4 py-3">${email || '-'}</td>
+        <td class="px-4 py-3 text-center">${majorLabel || '-'}</td>
+        <td class="px-4 py-3 text-right space-x-2">
+          <button class="btnEdit px-2 py-1.5 rounded-lg border hover:bg-slate-50 text-indigo-600"
+                  data-id="${newId}" data-code="${code}" data-name="${name}" data-classname="${className}" data-email="${email}" data-major="${major}" data-phone="${phone}" data-dob="${dob}">
+            <i class="ph ph-pencil"></i>
+          </button>
+          <button class="btnDelete px-2 py-1.5 rounded-lg border hover:bg-slate-50 text-rose-600" data-id="${newId}">
+            <i class="ph ph-trash"></i>
+          </button>
+        </td>`;
+      document.getElementById('tableBody')?.prepend(tr);
       closeModal();
     } catch (err) {
       console.error(err);

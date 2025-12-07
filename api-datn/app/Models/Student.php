@@ -22,7 +22,7 @@ class Student extends Model
         'user_id',
         'student_code',
         'class_code',
-        'major_id',
+        'marjor_id',
         'course_year',
         'graduation_project',
     ];

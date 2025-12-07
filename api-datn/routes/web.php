@@ -244,6 +244,8 @@ Route::middleware(['web','auth'])->prefix('admin')->name('web.admin.')->group(fu
     Route::view('/manage_academy_years', 'admin-ui.manage-academy-years')->name('manage_academy_years');
     Route::view('/manage_projects', 'admin-ui.manage-projects')->name('manage_projects');
     Route::get('/manage_students', [WebStudentController::class, 'index'])->name('manage_students');
+    // PUT route to update a student (used by admin modal)
+    Route::put('/manage_students/{student}', [WebStudentController::class, 'update'])->name('manage_students.update');
     Route::get('/manage_lecturers', [WebTeacherController::class, 'index'])->name('manage_lecturers');
     // PUT route to update a teacher (used by admin modal)
     Route::put('/manage_lecturers/{teacher}', [WebTeacherController::class, 'update'])->name('manage_lecturers.update');
