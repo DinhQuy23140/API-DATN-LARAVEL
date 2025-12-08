@@ -318,4 +318,22 @@ class AssignmentController extends Controller
         // }
         return view('assistant-ui.students-detail', compact('assignment'));
     }
+
+    public function getAssignmentWithReportCouncil($termId) {
+        $assignments = Assignment::with([
+            'student.user',
+            'assignment_supervisors.supervisor.teacher.user',
+            'project.progressLogs.attachments',
+            'council_project.council_project_defences',
+            'council_project.council.council_members',
+            'project.reportFiles'
+        ])
+        ->where('project_term_id', $termId)
+        ->whereHas('council_project')
+        ->get();
+
+        $projectTerm = ProjectTerm::with('academy_year')->find($termId);
+
+        return view('assistant-ui.manage_report_council', compact('assignments', 'projectTerm'));
+    }
 }
