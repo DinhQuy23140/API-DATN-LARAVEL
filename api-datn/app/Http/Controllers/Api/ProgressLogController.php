@@ -41,7 +41,7 @@ class ProgressLogController extends Controller
     public function getProjectLogByIdProject($projectId)
     {
         $logs = ProgressLog::where('project_id', $projectId)
-            ->with('attachments')
+            ->with('attachments', 'commentLogs.supervisor.teacher.user')
             ->get();
         return response()->json($logs);
     }
