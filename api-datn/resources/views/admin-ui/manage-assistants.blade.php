@@ -95,7 +95,7 @@
         </header>
 
   <!-- Content -->
-  <main class="pt-20 px-4 md:px-6 pb-10">
+  <main class="pt-10 px-4 md:px-6 pb-10">
     <div class="max-w-6xl mx-auto space-y-5">
           <!-- Search + Add -->
           <div class="bg-white border border-slate-200 rounded-xl p-4 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
@@ -107,43 +107,39 @@
           </div>
           <!-- Role assignment UI (static) -->
           <div class="bg-white border border-slate-200 rounded-xl p-4 mb-4">
-            @php
-              // Collect unique assistant accounts from faculties
-              $assistants = collect();
-              if (!empty($faculties)) {
-                foreach ($faculties as $f) {
-                  $a = $f->facultyRoles?->firstWhere('role', 'assistant');
-                  if ($a && $a->user) {
-                    $assistants->push([ 'id' => $a->user->id, 'name' => $a->user->fullname, 'email' => $a->user->email, 'faculty' => $f->name ]);
-                  }
-                }
-                // unique by id
-                $assistants = $assistants->unique('id')->values();
-              }
-            @endphp
 
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
               <!-- Current assistants list -->
               <div class="md:col-span-2 bg-slate-50 rounded-lg p-3">
                 <div class="font-semibold mb-2 flex items-center gap-2"><i class="ph ph-users text-sky-600"></i> Tài khoản trợ lý khoa hiện tại</div>
-                @if($assistants->isEmpty())
-                  <div class="text-sm text-slate-500 italic">Chưa có trợ lý khoa được gán.</div>
-                @else
-                  <ul class="space-y-2">
-                    @foreach($assistants as $as)
-                        <li class="flex items-center justify-between p-2 bg-white rounded-lg shadow-sm">
-                          <div>
-                            <div class="font-medium flex items-center gap-2"><i class="ph ph-user-circle text-indigo-500"></i> {{ $as['name'] }}</div>
-                            <div class="text-xs text-slate-500 flex items-center gap-3">
-                              <span class="inline-flex items-center gap-2"><i class="ph ph-envelope simple text-slate-400"></i> {{ $as['email'] }}</span>
-                              <span class="inline-flex items-center gap-2"><i class="ph ph-building text-slate-400"></i> <span class="text-slate-600">{{ $as['faculty'] }}</span></span>
-                            </div>
+                <!-- Assistants list: support both array-of-data and model shapes -->
+                <ul class="space-y-2">
+                  @if (empty($assistants) || $assistants->isEmpty())
+                    <li class="text-sm text-slate-500">Chưa có trợ lý khoa nào được phân quyền.</li>
+                  @else
+                    @foreach($assistants as $asst)
+                      @php
+                        // support two shapes: array like ['id','name','email','faculty'] or object with user relation
+                        $name = $asst['name'] ?? $asst->user->fullname ?? $asst->fullname ?? '';
+                        $email = $asst['email'] ?? $asst->user->email ?? $asst->email ?? '';
+                        $phone = $asst['phone'] ?? $asst->user->phone ?? $asst->phone ?? '';
+                        $dob = $asst['dob'] ?? ($asst->user->dob ?? '') ?? '';
+                        $aid = $asst['id'] ?? $asst->user->id ?? ($asst->id ?? '');
+                      @endphp
+                      <li class="flex items-center justify-between p-3 bg-white rounded-lg shadow-sm">
+                        <div>
+                          <div class="font-medium flex items-center gap-2"><i class="ph ph-user-circle text-indigo-500"></i> {{ $name }}</div>
+                          <div class="text-xs text-slate-500 mt-1">
+                            <div class="flex items-center gap-3"><i class="ph ph-envelope simple text-slate-400"></i> {{ $email }}</div>
+                            <div class="flex items-center gap-3 mt-1"><i class="ph ph-phone simple text-slate-400"></i> {{ $phone ?: '-' }}</div>
+                            <div class="flex items-center gap-3 mt-1"><i class="ph ph-calendar simple text-slate-400"></i> {{ $dob ?: '-' }}</div>
                           </div>
-                          <div class="text-xs text-slate-400">ID: {{ $as['id'] }}</div>
-                        </li>
+                        </div>
+                        <div class="text-xs text-slate-400">ID: {{ $aid }}</div>
+                      </li>
                     @endforeach
-                  </ul>
-                @endif
+                  @endif
+                </ul>
               </div>
 
               <!-- Assignment control -->
@@ -154,8 +150,12 @@
                 <label class="block text-sm font-medium text-slate-700">Chọn tài khoản</label>
                 <select id="assistantSelect" class="mt-2 w-full px-3 py-2 rounded-lg border border-slate-200 text-sm">
                   <option value="">-- Chọn trợ lý --</option>
-                  @foreach($assistants as $as)
-                    <option value="{{ $as['id'] }}">{{ $as['name'] }} — {{ $as['faculty'] }} ({{ $as['email'] }})</option>
+                  @foreach(($userTeachers ?? []) as $userTeacher)
+                    @php
+                      $optValue = $userTeacher->id;
+                      $optLabel = $userTeacher-> fullname ?? " Không có tên";
+                    @endphp
+                    <option value="{{ $optValue }}">{{ $optLabel }}</option>
                   @endforeach
                 </select>
 

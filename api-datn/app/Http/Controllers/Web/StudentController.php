@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Log;
 class StudentController extends Controller
 {
     public function index(){
-        $students = Student::with('user', 'marjor')->latest('id')->paginate(15);
+        $students = Student::with('user', 'marjor')->latest('id')->get();
         $majors = Marjor::all();
         return view('admin-ui.manage-students', compact('students', 'majors'));
     }

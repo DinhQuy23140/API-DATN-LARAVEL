@@ -158,9 +158,20 @@ class FacultiesController extends Controller
     }
 
     public function getAssistants() {
-        $faculties = Faculties::with('facultyRoles.user')->latest('created_at')->get();
-        return view('admin-ui.manage-assistants', compact('faculties'));
+
+        // teachers used for the select (all teachers who are not assistants)
+        $userTeachers = User::where('role', '!=' , 'assistant')
+        ->where('role', '!=' , 'admin')
+        ->where('role', '!=' , 'head')->with('teacher')->get();
+        // Build a consistent assistants collection shaped as simple arrays so the view
+        // can render name/email/phone/dob/faculty reliably regardless of model shapes.
+        $faculties = Faculties::with('facultyRoles.user')->latest()->get();
+
+        $assistants = User::where('role', '=' , 'assistant')->with('teacher')->get();
+
+        return view('admin-ui.manage-assistants', compact('faculties', 'userTeachers', 'assistants'));
     }
+
 
     /**
      * Assign a teacher as the assistant for a faculty.
