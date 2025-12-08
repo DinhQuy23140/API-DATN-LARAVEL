@@ -181,67 +181,45 @@ class FacultiesController extends Controller
     public function assignAssistant(Request $request)
     {
         $data = $request->validate([
-            'teacher_id' => ['required','exists:teachers,id'],
-            'faculty_id' => ['nullable','exists:faculties,id'],
+            'user_id' => ['required','exists:users,id']
+        ]);
+
+            DB::beginTransaction();
+            try {
+                $userId = $data['user_id'];
+
+                User::where('id', $userId)->update(['role' => 'assistant']);
+
+                DB::commit();
+
+                return response()->json(['ok' => true, 'message' => 'Đã phân trợ lý']);
+            } catch (\Throwable $e) {
+                DB::rollBack();
+                Log::error('Remove assistant error', ['err' => $e->getMessage(), 'payload' => $request->all()]);
+                return response()->json(['ok' => false, 'message' => 'Không thể phân trợ lý'], 500);
+            }
+    }
+
+    /**
+     * Remove assistant role from a user.
+     * Expects: user_id (required)
+     */
+    public function removeAssistant(Request $request)
+    {
+        $data = $request->validate([
+            'user_id' => ['required','exists:users,id']
         ]);
 
         DB::beginTransaction();
         try {
-            $teacher = Teacher::with('user','department')->findOrFail($data['teacher_id']);
-
-            // determine faculty
-            $faculty = null;
-            if(!empty($data['faculty_id'])){
-                $faculty = Faculties::find($data['faculty_id']);
-            } else {
-                // try via department -> faculty
-                if($teacher->department && $teacher->department->faculty_id){
-                    $faculty = Faculties::find($teacher->department->faculty_id);
-                }
-            }
-
-            if(!$faculty){
-                return response()->json(['ok'=>false,'message'=>'Không xác định được khoa để phân trợ lý'], 400);
-            }
-
-            $userId = $teacher->user->id ?? null;
-            if(!$userId){
-                return response()->json(['ok'=>false,'message'=>'Giảng viên chưa liên kết user'], 400);
-            }
-
-            // find existing assistant role for this faculty
-            $oldRole = FacultyRoles::where('faculty_id', $faculty->id)->where('role','assistant')->first();
-
-            // If there is an old assistant and it's different, reset their role
-            if($oldRole && $oldRole->user_id != $userId){
-                User::where('id', $oldRole->user_id)->update(['role' => 'teacher']);
-            }
-
-            // set or update assistant role
-            FacultyRoles::updateOrCreate(
-                ['faculty_id' => $faculty->id, 'role' => 'assistant'],
-                ['user_id' => $userId]
-            );
-
-            // set user's role
-            User::where('id', $userId)->update(['role' => 'assistant']);
-
+            $userId = $data['user_id'];
+            User::where('id', $userId)->update(['role' => 'teacher']);
             DB::commit();
-
-            return response()->json([
-                'ok'=>true,
-                'message'=>'Đã phân trợ lý khoa',
-                'assistant'=>[
-                    'id' => $teacher->id,
-                    'fullname' => $teacher->fullname ?? ($teacher->user->fullname ?? null),
-                    'email' => $teacher->email ?? ($teacher->user->email ?? null),
-                ],
-                'faculty_id' => $faculty->id,
-            ]);
-    } catch (\Throwable $e) {
+            return response()->json(['ok' => true, 'message' => 'Đã huỷ phân trợ lý']);
+        } catch (\Throwable $e) {
             DB::rollBack();
-            Log::error('Assign assistant error', ['err' => $e->getMessage(), 'payload'=>$request->all()]);
-            return response()->json(['ok'=>false,'message'=>'Không thể phân trợ lý'], 500);
+            Log::error('Remove assistant error', ['err' => $e->getMessage(), 'payload' => $request->all()]);
+            return response()->json(['ok' => false, 'message' => 'Không thể huỷ phân trợ lý'], 500);
         }
     }
 }

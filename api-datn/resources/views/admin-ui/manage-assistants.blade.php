@@ -3,6 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Quản lý Trợ lý khoa</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -64,8 +65,8 @@
         </div>
       </aside>
 
-      <!-- Main area -->
-      <div class="flex-1 h-screen overflow-hidden flex flex-col">
+      <!-- Main area (header fixed; make main content scrollable) -->
+      <div class="flex-1 h-screen flex flex-col">
         <!-- Topbar -->
         <header class="h-16 bg-white border-b border-slate-200 flex items-center px-4 md:px-6 flex-shrink-0">
           <div class="flex items-center gap-3 flex-1">
@@ -95,7 +96,7 @@
         </header>
 
   <!-- Content -->
-  <main class="pt-10 px-4 md:px-6 pb-10">
+  <main class="flex-1 overflow-auto pt-16 px-4 md:px-6 pb-10">
     <div class="max-w-6xl mx-auto space-y-5">
           <!-- Search + Add -->
           <div class="bg-white border border-slate-200 rounded-xl p-4 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
@@ -126,17 +127,36 @@
                         $dob = $asst['dob'] ?? ($asst->user->dob ?? '') ?? '';
                         $aid = $asst['id'] ?? $asst->user->id ?? ($asst->id ?? '');
                       @endphp
-                      <li class="flex items-center justify-between p-3 bg-white rounded-lg shadow-sm">
-                        <div>
-                          <div class="font-medium flex items-center gap-2"><i class="ph ph-user-circle text-indigo-500"></i> {{ $name }}</div>
-                          <div class="text-xs text-slate-500 mt-1">
-                            <div class="flex items-center gap-3"><i class="ph ph-envelope simple text-slate-400"></i> {{ $email }}</div>
-                            <div class="flex items-center gap-3 mt-1"><i class="ph ph-phone simple text-slate-400"></i> {{ $phone ?: '-' }}</div>
-                            <div class="flex items-center gap-3 mt-1"><i class="ph ph-calendar simple text-slate-400"></i> {{ $dob ?: '-' }}</div>
+                        <li class="flex items-center justify-between p-3 bg-white rounded-lg shadow-sm">
+                          <div>
+                            <div class="font-medium flex items-center gap-2">
+                              <i class="ph ph-user-circle text-indigo-500"></i> {{ $name }}
+                            </div>
+                            <div class="text-xs text-slate-500 mt-1">
+                              <div class="flex items-center gap-3">
+                                <i class="ph ph-envelope simple text-slate-400"></i> {{ $email }}
+                              </div>
+                              <div class="flex items-center gap-3 mt-1">
+                                <i class="ph ph-phone simple text-slate-400"></i> {{ $phone ?: '-' }}
+                              </div>
+                              <div class="flex items-center gap-3 mt-1">
+                                <i class="ph ph-calendar simple text-slate-400"></i> {{ $dob ?: '-' }}
+                              </div>
+                            </div>
                           </div>
-                        </div>
-                        <div class="text-xs text-slate-400">ID: {{ $aid }}</div>
-                      </li>
+
+                          <div class="flex flex-col items-end gap-2">
+                            <div class="text-xs text-slate-400">ID: {{ $aid }}</div>
+
+                            <!-- Nút xóa -->
+                            <button 
+                              class="text-red-500 hover:text-red-600 transition"
+                              onclick="deleteAssistant('{{ $aid }}')"
+                            >
+                              <i class="ph ph-trash text-lg"></i>
+                            </button>
+                          </div>
+                        </li>
                     @endforeach
                   @endif
                 </ul>
@@ -348,6 +368,87 @@
       document.addEventListener('click', (e)=>{
         if(!profileBtn?.contains(e.target) && !profileMenu?.contains(e.target)) profileMenu?.classList.add('hidden');
       });
+
+      // Assign assistant AJAX
+      document.getElementById('assignRoleBtn')?.addEventListener('click', async ()=>{
+        const sel = document.getElementById('assistantSelect');
+        const msg = document.getElementById('assignMsg');
+        const userId = sel ? sel.value : null;
+        if(!userId){
+          msg.textContent = 'Vui lòng chọn một tài khoản trợ lý.';
+          msg.classList.remove('text-emerald-600');
+          msg.classList.add('text-rose-600');
+          return;
+        }
+
+        const btn = document.getElementById('assignRoleBtn');
+        const oldHtml = btn.innerHTML;
+        btn.disabled = true; btn.innerHTML = '<i class="ph ph-spinner-gap animate-spin"></i> Đang gửi...';
+
+        try {
+          const url = '{{ route("web.admin.faculties.assign_assistant") }}';
+          const res = await fetch(url, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+              'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
+            },
+            body: JSON.stringify({ user_id: userId })
+          });
+
+          const data = await res.json().catch(()=>({}));
+          if(!res.ok || data.ok === false){
+            throw new Error(data.message || 'Không thể phân quyền');
+          }
+
+          // Success: show message and reload to refresh assistants list
+          msg.textContent = data.message || 'Đã phân trợ lý khoa';
+          msg.classList.remove('text-rose-600');
+          msg.classList.add('text-emerald-600');
+          setTimeout(()=> location.reload(), 700);
+        } catch(err){
+          console.error('Assign assistant failed', err);
+          msg.textContent = err?.message || 'Lỗi khi phân quyền';
+          msg.classList.remove('text-emerald-600');
+          msg.classList.add('text-rose-600');
+        } finally {
+          btn.disabled = false; btn.innerHTML = oldHtml;
+        }
+      });
+
+      // Delete / Unassign assistant
+      async function deleteAssistant(userId){
+        if(!confirm('Bạn có chắc muốn huỷ phân trợ lý cho người này?')) return;
+        const msgEl = document.getElementById('assignMsg');
+        const url = '{{ route("web.admin.faculties.remove_assistant") }}';
+        const btn = document.getElementById('assignRoleBtn');
+        const oldHtml = btn ? btn.innerHTML : null;
+        if(btn){ btn.disabled = true; btn.innerHTML = '<i class="ph ph-spinner-gap animate-spin"></i> Đang xử lý...'; }
+
+        try{
+          const res = await fetch(url, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+              'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
+            },
+            body: JSON.stringify({ user_id: userId })
+          });
+
+          const data = await res.json().catch(()=>({}));
+          if(!res.ok || data.ok === false) throw new Error(data.message || 'Không thể huỷ phân trợ lý');
+
+          if(msgEl){ msgEl.textContent = data.message || 'Đã huỷ trợ lý'; msgEl.classList.remove('text-rose-600'); msgEl.classList.add('text-emerald-600'); }
+          setTimeout(()=> location.reload(), 600);
+        }catch(err){
+          console.error('Remove assistant failed', err);
+          if(msgEl){ msgEl.textContent = err?.message || 'Lỗi khi huỷ phân trợ lý'; msgEl.classList.remove('text-emerald-600'); msgEl.classList.add('text-rose-600'); }
+        }finally{
+          if(btn){ btn.disabled = false; btn.innerHTML = oldHtml; }
+        }
+      }
     </script>
   </body>
 </html>
