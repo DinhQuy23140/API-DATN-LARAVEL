@@ -146,9 +146,15 @@
             </div>
             <i class="ph ph-caret-down text-slate-500 hidden sm:block"></i>
           </button>
-          <div id="profileMenu" class="hidden absolute right-0 mt-2 w-44 bg-white border border-slate-200 rounded-lg shadow-lg py-1 text-sm">
-            <a href="#" class="flex items-center gap-2 px-3 py-2 hover:bg-slate-50"><i class="ph ph-user"></i>Xem thông tin</a>
-            <a href="#" class="flex items-center gap-2 px-3 py-2 hover:bg-slate-50 text-rose-600"><i class="ph ph-sign-out"></i>Đăng xuất</a>
+          <div id="profileMenu"
+            class="hidden absolute right-0 mt-2 w-44 bg-white border border-slate-200 rounded-lg shadow-lg py-1 text-sm">
+            <a href="{{ route('web.teacher.profile') }}" class="flex items-center gap-2 px-3 py-2 hover:bg-slate-50">
+              <i class="ph ph-user"></i>Xem thông tin
+            </a>
+            <a href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();"
+              class="flex items-center gap-2 px-3 py-2 hover:bg-slate-50 text-rose-600">
+              <i class="ph ph-sign-out"></i>Đăng xuất
+            </a>
             <form id="logout-form" action="{{ route('web.auth.logout') }}" method="POST" class="hidden">
               @csrf
             </form>
