@@ -150,12 +150,12 @@
             <div class="overflow-x-auto">
               <table class="min-w-full table-auto text-sm">
                 <thead class="bg-slate-50">
-                    <tr class="text-left text-slate-600 border-b">
+                  <tr class="text-left text-slate-600 border-b">
                     <th class="py-3 px-4 w-10"><input type="checkbox" disabled /></th>
-                    <th class="py-3 px-4">Hành động</th>
                     <th class="py-3 px-4">Mã</th>
                     <th class="py-3 px-4">Tên</th>
                     <th class="py-3 px-4 text-right">Số sinh viên</th>
+                    <th class="py-3 px-4">Hành động</th>
                   </tr>
                 </thead>
                 @php
