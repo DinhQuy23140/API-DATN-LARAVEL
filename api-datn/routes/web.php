@@ -383,4 +383,5 @@ Route::middleware(['auth','verified'])->prefix('assistant')->name('web.assistant
     Route::patch('/register-project-terms/{postponeProjectTerm}/rejectedDeferments', [WebPostponeProjectTermController::class, 'rejectDeferment'])
         ->name('postpone_project_terms.rejected_deferments');
     Route::get('rounds/term/{termId}/assignemnt/{assignmentId}', [WebAssignmentController::class, 'getAssignmentById'])->name('rounds.assignemnt');
+    Route::view('assistant-ui/manage-report-council/{termId}', 'assistant-ui.manage_report_council')->name('report_council');
 });
