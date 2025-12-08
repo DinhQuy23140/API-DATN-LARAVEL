@@ -319,7 +319,6 @@
                     <th class="py-3 px-3 font-medium w-28">MSSV</th>
                     <th class="py-3 px-3 font-medium w-64">Đề tài</th>
                     <th class="py-3 px-3 font-medium w-40">Báo cáo</th>
-                    <th class="py-3 px-3 font-medium w-28 text-center">Thứ tự</th>
                     <th class="py-3 px-3 font-medium w-32 text-center">Điểm</th>
                     <th class="py-3 px-3 font-medium w-44 text-center">Thao tác</th>
                   </tr>
@@ -388,7 +387,6 @@
                           <span class="text-slate-500">Chưa có báo cáo</span>
                         @endif
                       </td>
-                      <td class="py-3 px-3 text-center">{{ $index }}</td>
                       <td class="py-3 px-3 text-center">
                         <span class="px-2 py-1 text-xs font-medium rounded-full border {{ $statusColor }}">
                           {{ $scoreCouncilMember }}
