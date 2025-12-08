@@ -658,6 +658,7 @@
                         $members2 = $listMember->where('role', 2)->first() ?? null;
                         $members3 = $listMember->where('role', 1)->first() ?? null;
                         $reviewer = $assignment->council_project->council_member ?? null;
+                        $councilProject = $assignment->council_project ?? null;
                         $time = optional($assignment->council_project)->time;
                         $date = optional($assignment->council_project)->date;
 
@@ -776,7 +777,7 @@
 
                             <div class="text-slate-500 text-sm italic mt-3 bg-slate-50 rounded-md p-3 flex items-start gap-2">
                               <i class="ph ph-quotes text-slate-400 text-lg"></i>
-                              <span>Nhận xét: Nhận xét tốt, cần bổ sung kiểm thử.</span>
+                              <span>{{ $councilProject->comments ?? "-" }}</span>
                             </div>
                           </div>
                         </div>

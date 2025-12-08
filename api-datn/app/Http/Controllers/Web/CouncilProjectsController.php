@@ -25,16 +25,16 @@ class CouncilProjectsController extends Controller
         $assignmentIds = array_values(array_unique($validated['assignment_ids']));
         $now = now();
 
-        $defaultRoom = $request->input('room', $council->address ?? null);
+        // $defaultRoom = $request->input('room', $council->address ?? null);
         $defaultDate = $request->input('date'); // có thể null
         $defaultTime = $request->input('time'); // có thể null
 
-        $rows = array_map(function ($aid) use ($council, $now, $defaultRoom, $defaultDate, $defaultTime) {
+        $rows = array_map(function ($aid) use ($council, $now, $defaultDate, $defaultTime) {
             return [
                 'council_id'        => (int)$council->id,
                 'assignment_id'     => (int)$aid,
                 'council_member_id' => null,
-                'room'              => $defaultRoom,   // đảm bảo có room nếu DB NOT NULL
+                'room'              => null,   // đảm bảo có room nếu DB NOT NULL
                 'date'              => $defaultDate,
                 'time'              => $defaultTime,
                 'created_at'        => $now,

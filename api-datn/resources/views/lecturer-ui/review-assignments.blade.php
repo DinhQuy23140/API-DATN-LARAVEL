@@ -18,6 +18,7 @@
   <meta name="csrf-token" content="{{ csrf_token() }}">
 </head>
     @php
+      use Carbon\Carbon;
       $user = auth()->user();
       $userName = $user->fullname ?? $user->name ?? 'Giảng viên';
       $email = $user->email ?? '';
@@ -332,7 +333,7 @@
                     <th class="py-3 px-3 font-medium w-40">Báo cáo</th>
                     <th class="py-3 px-3 font-medium w-28 text-center">Thứ tự</th>
                     <th class="py-3 px-3 font-medium w-32">Điểm</th>
-                    <th class="py-3 px-3 font-medium w-40">Thời gian</th>
+                    <th class="py-3 px-3 font-medium w-40 text-center">Thời gian</th>
                     <th class="py-3 px-3 font-medium w-44 text-center">Thao tác</th>
                   </tr>
                 </thead>
@@ -356,7 +357,7 @@
                       $statusColor = $scoreReview !== 'Chưa chấm'
                                     ? 'bg-green-50 text-green-700 border-green-200'
                                     : 'bg-rose-50 text-rose-700 border-rose-200';
-                      $time = $council_project->time ?? 'N/A';
+                      $time = Carbon::parse($council_project->assignment->created_at)->format('H:i d/m/Y') ?? 'N/A';
                       $councilId = $council_project->council_id ?? null;
                     @endphp
                     <tr class="border-b hover:bg-slate-50 hover:shadow-sm transition">
@@ -378,7 +379,11 @@
                           {{ $scoreReview }}
                         </span>
                       </td>
-                      <td class="py-3 px-3 whitespace-nowrap">{{ $time }}</td>
+                      @if ($scoreReview !== 'Chưa chấm')
+                        <td class="py-3 px-3 whitespace-nowrap text-center">{{ $time }}</td>
+                      @else
+                        <td class="py-3 px-3 whitespace-nowrap text-center">—</td>
+                      @endif
                       <td class="py-3 px-3">
                         <div class="flex items-center justify-center gap-2">
                            <button type="button"

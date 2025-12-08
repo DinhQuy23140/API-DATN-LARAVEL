@@ -876,7 +876,7 @@
                             $teacherCode = $s->teacher->teacher_code ?? 'N/A';
                             $teacherName = $s->teacher->user->fullname ?? 'N/A';
                             $department = $s->teacher->department->name ?? 'N/A';
-                            $studentCount = $s->assignment_supervisors->where('assignment.project_term_id', $round_detail->id)->count() ?? 0;
+                            $studentCount = $s->assignment_supervisors->where('assignment.project_term_id', $round_detail->id)->where('status', 'accepted')->count() ?? 0;
                           @endphp
                           <tr class="lecturer-row" data-supervisor-id="{{ $s->id }}">
                             <td class="px-4 py-2 font-semibold text-lime-700">{{ $teacherCode }}</td>

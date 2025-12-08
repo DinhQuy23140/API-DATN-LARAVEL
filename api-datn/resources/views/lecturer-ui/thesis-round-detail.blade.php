@@ -1410,7 +1410,6 @@
                   <th class="px-4 py-3 font-semibold text-center">Hội đồng</th>
                   <th class="px-4 py-3 font-semibold text-left">GV phản biện</th>
                   <th class="px-4 py-3 font-semibold text-center">Chức vụ</th>
-                  <th class="px-4 py-3 font-semibold text-center">STT PB</th>
                   <th class="px-4 py-3 font-semibold text-left">Thời gian</th>
                   <th class="px-4 py-3 font-semibold text-center">Hành động</th>
                 </tr>
@@ -1475,11 +1474,6 @@
         <span class="inline-block whitespace-nowrap px-2 py-1 text-xs rounded-full bg-indigo-50 text-indigo-700 font-medium">
           {{ $role }}
         </span>
-      </td>
-
-      <!-- STT PB -->
-      <td class="px-4 py-3 text-center">
-        <span class="px-2 py-1 text-xs rounded-md bg-slate-100 text-slate-700">{{ $order }}</span>
       </td>
 
       <!-- Thời gian -->
