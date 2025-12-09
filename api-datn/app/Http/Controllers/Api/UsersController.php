@@ -28,21 +28,22 @@ class UsersController extends Controller
             'password' => ['required','string']
         ]);
 
-        // $user = User::where('email', $data['email'])->first();
-        // if (!$user || !Hash::check($data['password'], $user->password)) {
-        //         'success' => false,
-        //         'message' => 'Sai email hoặc mật khẩu'
-        //     ], 401);
-        // }
-
         $user = User::where('email', $data['email'])->first();
-
-        if (!$user || $data['password'] !== $user->password) {
+        if (!$user || !Hash::check($data['password'], $user->password)) {
             return response()->json([
                 'success' => false,
                 'message' => 'Sai email hoặc mật khẩu'
             ], 401);
         }
+
+        // $user = User::where('email', $data['email'])->first();
+
+        // if (!$user || $data['password'] !== $user->password) {
+        //     return response()->json([
+        //         'success' => false,
+        //         'message' => 'Sai email hoặc mật khẩu'
+        //     ], 401);
+        // }
 
 
         // Xóa tất cả token cũ để đảm bảo chỉ duy nhất 1 phiên đăng nhập
