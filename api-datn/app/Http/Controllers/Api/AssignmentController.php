@@ -245,7 +245,7 @@ class AssignmentController extends Controller
             'project.progressLogs.attachments',
             'project.progressLogs.commentLogs.supervisor.teacher.user',
             'project.reportFiles' => function($q) {
-                $q->where('type_report', 'outline');
+                $q->where('type_report', 'report');
             },
             'council_project.council_project_defences.council_member.supervisor.teacher.user',
             'council_project.council.department',
