@@ -59,6 +59,7 @@ Route::post('auth/register', [UsersController::class, 'register']);
 Route::apiResource('progress-logs', ProgressLogController::class);
 Route::get('/progress-logs/project/{projectId}', [ProgressLogController::class, 'getProjectLogByIdProject']);
 Route::apiResource('progress-logs.attachments', AttachmentController::class)->shallow();
+Route::get('/progress-logs/log/{logId}', [ProgressLogController::class, 'getLogById']);
 
 //attachments
 Route::get('/all-attachments', [AttachmentController::class, 'getAllAttachment']);

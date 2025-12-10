@@ -46,6 +46,14 @@ class ProgressLogController extends Controller
         return response()->json($logs);
     }
 
+    public function getLogById($logId)
+    {
+        $log = ProgressLog::where('id', $logId)
+            ->with('attachments', 'commentLogs.supervisor.teacher.user')
+            ->firstOrFail();
+        return response()->json($log);
+    }
+
     public function update(Request $request, ProgressLog $progressLog)
     {
         $data = $request->validate([
