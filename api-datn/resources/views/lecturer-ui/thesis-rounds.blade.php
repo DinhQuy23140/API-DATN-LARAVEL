@@ -197,8 +197,8 @@
                   <th class="text-left px-4 py-3 font-medium">Năm học</th>
                   <th class="text-left px-4 py-3 font-medium">Thời gian</th>
                   <th class="text-left px-4 py-3 font-medium">Mã đợt</th>
-                  <th class="text-center px-4 py-3 font-medium">SV hướng dẫn</th>
-                  <th class="text-center px-4 py-3 font-medium">Hội đồng</th>
+                  <th class="text-center px-4 py-3 font-medium">Số sinh viên hướng dẫn</th>
+                  <th class="text-center px-4 py-3 font-medium">Số hội đồng</th>
                   <th class="text-left px-4 py-3 font-medium">Trạng thái</th>
                   <th class="text-right px-4 py-3 font-medium">Hành động</th>
                 </tr>
@@ -217,7 +217,7 @@
                     </td>
                     <td class="px-4 py-3 text-center">
                       <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-xs">
-                        <i class="ph ph-users-three"></i>3
+                        <i class="ph ph-users-three"></i>{{ $row->councils->count() ?? 0 }}
                       </span>
                     </td>
                     <td class="px-4 py-3">

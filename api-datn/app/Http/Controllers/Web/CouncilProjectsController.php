@@ -51,6 +51,8 @@ class CouncilProjectsController extends Controller
         return response()->json(['ok'=>true,'message'=>'Đã gán sinh viên vào hội đồng.','count'=>count($rows)]);
     }
 
+
+    //phan cong phan bien
     public function assign(Request $request, Council $council)
     {
         $validated = $request->validate([

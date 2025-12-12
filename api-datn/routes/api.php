@@ -132,10 +132,12 @@ Route::get('attachment/progress/{progressId}', [AttachmentController::class, 'ge
 Route::post('attachment/create/{progressId}', [AttachmentController::class, 'crateListAssignmentByProgressId']);
 Route::post('attachment/create-general', [AttachmentController::class, 'create']);
 
-
 //reportFile
 Route::apiResource('report-files', ReportFilesController::class);
 Route::get('/report-files/project/{projectId}/type/{typeReport}', [ReportFilesController::class, 'getReportFileByProjectAndType']);
 
 //proposed topic
 Route::get('/proposed-topics/assignment/{assignmentId}', [ProposedTopicController::class, 'forAssignment']);
+
+//marjor
+Route::apiResource('marjors', App\Http\Controllers\Api\MarjorController::class);

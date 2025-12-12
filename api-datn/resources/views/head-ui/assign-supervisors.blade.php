@@ -277,7 +277,7 @@
         </div>
         <button id="btnAssignMain" class="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700 text-sm">
           <i class="ph ph-user-switch"></i>
-          Phân công sinh viên
+          Phân công hướng dẫn
         </button>
       </div>
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">

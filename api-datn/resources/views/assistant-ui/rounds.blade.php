@@ -156,7 +156,7 @@
                   <tr class="hover:bg-slate-50" data-term='@json($termData)'>
                     <td class="py-3 px-4"><a href="{{ route('web.assistant.round_detail', ['round_id' => $term->id]) }}" class="text-blue-600 hover:underline">{{$termName}}</a></td>
                     <td class="py-3 px-4">{{$term->start_date}} - {{$term->end_date}}</td>
-                    <td class="py-3 px-4">12</td>
+                    <td class="py-3 px-4">{{ $term->councils->count() }}</td>
                     <td class="py-3 px-4 text-right space-x-2">
                       <a class="px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-slate-600" href="{{ route('web.assistant.round_detail', ['round_id' => $term->id]) }}"><i class="ph ph-eye"></i></a>
                       <button type="button" class="btn-edit-round px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-slate-600" title="Sửa đợt"><i class="ph ph-pencil"></i></button>

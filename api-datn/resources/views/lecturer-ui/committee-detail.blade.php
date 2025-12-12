@@ -408,6 +408,7 @@
       <th class="py-3 px-4 text-center font-semibold"><i class="ph ph-books text-amber-500 mr-2"></i> Lớp</th>
       <th class="py-3 px-4 text-left font-semibold"><i class="ph ph-book-open text-sky-500 mr-2"></i> Đề tài</th>
       <th class="py-3 px-4 text-left font-semibold"><i class="ph ph-chalkboard-teacher text-violet-500 mr-2"></i> Giảng viên hướng dẫn</th>
+      <th class="py-3 px-4 text-center font-semibold"><i class="ph ph-gear-six text-rose-500 mr-2"></i> Giảng viên phản biện</th>
       <th class="py-3 px-4 text-center font-semibold"><i class="ph ph-gear-six text-rose-500 mr-2"></i> Hành động</th>
     </tr>
   </thead>
@@ -474,6 +475,19 @@
               <span>{{ $supervisorName }}</span>
             </div>
           @endforeach
+        </td>
+        <!-- Giảng viên phản biện -->
+        <td class="py-3 px-4 text-slate-600 text-center">
+          @php
+            $reviewer = $council_project->council_member ?? null;
+            $reviewerName = $reviewer ? ($reviewer->supervisor->teacher->user->fullname ?? 'Chưa có') : 'Chưa có';
+          @endphp
+          <div class="flex items-center gap-2 justify-center">
+            <div class="h-6 w-6 rounded-md bg-rose-50 text-rose-600 grid place-items-center">
+              <i class="ph ph-gear-six text-sm"></i>
+            </div>
+            <span>{{ $reviewerName }}</span>
+          </div>
         </td>
 
         <!-- Hành động -->

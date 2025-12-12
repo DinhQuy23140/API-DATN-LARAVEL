@@ -825,8 +825,7 @@
 
     <!-- Body -->
     <tbody class="divide-y divide-slate-100">
-      @if ($user->role === 'head')
-      @foreach ($allAssignments as $assignment)
+          @foreach ($assignments as $assignment)
         @php
           $student = $assignment->student;
           $fullname = $student->user->fullname;
@@ -886,68 +885,6 @@
           </td>
         </tr>
       @endforeach
-      @else
-      @foreach ($assignments as $assignment)
-        @php
-          $student = $assignment->student;
-          $fullname = $student->user->fullname;
-          $student_code = $student->student_code;
-          $studentId = $student->id;
-          $topic = $assignment->project->name ?? 'Chưa có đề tài';
-
-          $latestReport = $assignment->project?->reportFiles()->where('type_report', 'outline')->latest('created_at')->first();
-          $statusRaw = $latestReport?->status ?? 'none';
-
-          $listStatus = [
-            'none' => ['label' => 'Chưa nộp', 'class' => 'bg-slate-100 text-slate-600', 'icon' => 'ph-clock'],
-            'pending' => ['label' => 'Đã nộp', 'class' => 'bg-amber-100 text-amber-700', 'icon' => 'ph-hourglass'],
-            'submitted' => ['label' => 'Đã nộp', 'class' => 'bg-amber-100 text-amber-700', 'icon' => 'ph-hourglass'],
-            'approved' => ['label' => 'Đã duyệt', 'class' => 'bg-emerald-100 text-emerald-700', 'icon' => 'ph-check-circle'],
-            'rejected' => ['label' => 'Bị từ chối', 'class' => 'bg-rose-100 text-rose-700', 'icon' => 'ph-x-circle'],
-            'passed' => ['label' => 'Đã duyệt phản biện kín', 'class' => 'bg-emerald-50 text-emerald-700', 'icon' => 'ph-check-circle'],
-            'failured' => ['label' => 'Bị từ chối phản biện kín', 'class' => 'bg-rose-50 text-rose-700', 'icon' => 'ph-x-circle'],
-          ];
-          $statusConfig = $listStatus[$statusRaw] ?? $listStatus['none'];
-
-          $updateLast = $latestReport?->created_at?->format('H:i:s d/m/Y') ?? 'Chưa nộp báo cáo';
-        @endphp
-
-        <tr class="hover:bg-slate-50 transition-colors">
-          <!-- Sinh viên -->
-          <td class="py-3 px-4">
-            <a href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $rows->id, 'supervisorId' => $supervisorId]) }}"
-               class="text-blue-600 hover:underline font-medium">
-              {{ $fullname }}
-            </a>
-          </td>
-
-          <!-- MSSV -->
-          <td class="py-3 px-4 text-center font-mono text-slate-700">{{ $student_code }}</td>
-
-          <!-- Đề tài -->
-          <td class="py-3 px-4 text-slate-700">{{ $topic }}</td>
-
-          <!-- Trạng thái -->
-          <td class="py-3 px-4 text-center">
-            <span class="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium {{ $statusConfig['class'] }}">
-              <i class="ph {{ $statusConfig['icon'] }} text-sm"></i>
-              {{ $statusConfig['label'] }}
-            </span>
-          </td>
-
-          <!-- Lần nộp cuối -->
-          <td class="py-3 px-4 text-slate-600">{{ $updateLast }}</td>
-
-          <!-- Hành động -->
-          <td class="py-3 px-4 text-center">
-            <a href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $studentId, 'termId' => $rows->id, 'supervisorId' => $supervisorId]) }}"
-               class="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-slate-600 hover:bg-slate-100 transition">
-              <i class="ph ph-eye"></i> Xem
-            </a>
-          </td>
-        </tr>
-      @endforeach
-      @endif
     </tbody>
   </table>
 </div>

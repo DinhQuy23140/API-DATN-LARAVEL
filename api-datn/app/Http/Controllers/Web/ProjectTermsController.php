@@ -153,7 +153,7 @@ class ProjectTermsController extends Controller
     public function loadRounds() {
         $years  = AcademyYear::orderByDesc('year_name')->get();
         $stages = ProjectTerm::select('stage')->distinct()->pluck('stage')->filter()->values();
-        $terms  = ProjectTerm::with('academy_year')->latest('id')->get();
+        $terms  = ProjectTerm::with('academy_year', 'councils')->latest('id')->get();
 
         return view('assistant-ui.rounds', compact('years', 'stages', 'terms'));
     }
@@ -263,34 +263,63 @@ class ProjectTermsController extends Controller
     //     return view('lecturer-ui.thesis-rounds', compact('rows'));
     // }
 
+    // public function getProjectTermByTeacherId($teacherId)
+    // {
+    //     $rows = ProjectTerm::whereHas('supervisors', function ($q) use ($teacherId) {
+    //         $q->where('teacher_id', $teacherId);
+    //     })
+    //     ->with([
+    //         'academy_year',
+    //         'assignments' => function ($q) use ($teacherId) {
+    //             $q->whereHas('assignment_supervisors.supervisor', function ($qq) use ($teacherId) {
+    //                 $qq->where('teacher_id', $teacherId);
+    //             })
+    //             ->with([
+    //                 'student.user',
+    //                 'project.reportFiles',
+    //                 'assignment_supervisors' => function ($sub) use ($teacherId) {
+    //                     $sub->whereHas('supervisor', function ($ss) use ($teacherId) {
+    //                         $ss->where('teacher_id', $teacherId);
+    //                     });
+    //                 }
+    //             ]);
+    //         },
+    //         'supervisors' => function ($q) use ($teacherId) {
+    //             $q->where('teacher_id', $teacherId);
+    //         },
+    //         'councils'
+    //     ])
+    //     ->get();
+
+    //     return view('lecturer-ui.thesis-rounds', compact('rows'));
+    // }
+
     public function getProjectTermByTeacherId($teacherId)
     {
-    $rows = ProjectTerm::whereHas('supervisors', function ($q) use ($teacherId) {
-        $q->where('teacher_id', $teacherId);
-    })
-    ->with([
-        'academy_year',
-        'assignments' => function ($q) use ($teacherId) {
-            $q->whereHas('assignment_supervisors.supervisor', function ($qq) use ($teacherId) {
-                $qq->where('teacher_id', $teacherId);
-            })
-            ->with([
-                'student.user',
-                'project.reportFiles',
-                'assignment_supervisors' => function ($sub) use ($teacherId) {
-                    $sub->whereHas('supervisor', function ($ss) use ($teacherId) {
-                        $ss->where('teacher_id', $teacherId);
-                    });
-                }
-            ]);
-        },
-        'supervisors' => function ($q) use ($teacherId) {
+        $rows = ProjectTerm::whereHas('supervisors', function ($q) use ($teacherId) {
             $q->where('teacher_id', $teacherId);
-        }
-    ])
-    ->get();
+        })
+        ->with([
+            'academy_year',
+            'assignments' => function ($q) use ($teacherId) {
+                $q->whereHas('assignment_supervisors.supervisor', function ($qq) use ($teacherId) {
+                    $qq->where('teacher_id', $teacherId);
+                    $qq->where('status', '=', 'accepted');
+                })
+                ->with([
+                    'student.user',
+                    'project.reportFiles',
+                    'assignment_supervisors'
+                ]);
+            },
+            'supervisors' => function ($q) use ($teacherId) {
+                $q->where('teacher_id', $teacherId);
+            },
+            'councils'
+        ])
+        ->get();
 
-    return view('lecturer-ui.thesis-rounds', compact('rows'));
+        return view('lecturer-ui.thesis-rounds', compact('rows'));
     }
 
     public function getAllProjectTermsByHead($teacherId) {
