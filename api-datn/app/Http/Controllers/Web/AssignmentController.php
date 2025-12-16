@@ -329,7 +329,6 @@ class AssignmentController extends Controller
             'project.reportFiles'
         ])
         ->where('project_term_id', $termId)
-        ->whereHas('council_project')
         ->get();
 
         $projectTerm = ProjectTerm::with('academy_year')->find($termId);
