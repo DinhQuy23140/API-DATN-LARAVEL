@@ -207,13 +207,13 @@
     <table class="w-full text-sm">
       <thead>
         <tr class="text-left text-slate-500">
-          <th class="py-3 px-4 border-b w-10">
+          <th class="py-3 px-4 border-b w-10 align-middle">
             <input id="chkAll" type="checkbox" class="h-4 w-4" />
           </th>
-          <th class="py-3 px-4 border-b">Mã ngành</th>
+          <th class="py-3 px-4 border-b align-middle">Mã ngành</th>
           <th class="py-3 px-4 border-b">Thông tin ngành</th>
-          <th class="py-3 px-4 border-b">Số sinh viên</th>
-          <th class="py-3 px-4 border-b text-right">Hành động</th>
+          <th class="py-3 px-4 border-b align-middle">Số sinh viên</th>
+          <th class="py-3 px-4 border-b text-right align-middle">Hành động</th>
         </tr>
       </thead>
       <tbody id="tableBody">
@@ -223,14 +223,14 @@
           </tr>
         @else
           @foreach($majors as $major)
-            <tr class="hover:bg-slate-50 align-top">
+            <tr class="hover:bg-slate-50 align-middle">
               <!-- Checkbox -->
-              <td class="py-3 px-4">
+              <td class="py-3 px-4 align-middle">
                 <input type="checkbox" class="rowChk h-4 w-4" />
               </td>
 
               <!-- Mã ngành -->
-              <td class="py-3 px-4 font-semibold text-indigo-700 flex items-center gap-2">
+              <td class="py-3 px-4 font-semibold text-indigo-700">
                 <i class="ph ph-identification-card text-indigo-600"></i>
                 {{ $major->code }}
               </td>
@@ -259,14 +259,14 @@
               </td>
 
               <!-- Số sinh viên -->
-              <td class="py-3 px-4 font-medium text-slate-700">
+              <td class="py-3 px-4 font-medium text-slate-700 align-middle">
                 <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-xs font-medium">
                   <i class="ph ph-users-three"></i> {{ $major->students->count() }}
                 </span>
               </td>
 
               <!-- Hành động -->
-              <td class="py-3 px-4 text-right space-x-2">
+              <td class="py-3 px-4 text-right space-x-2 align-middle">
                 <button
                   class="btnEdit px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-indigo-600"
                   data-id="{{ $major->id }}"
@@ -576,13 +576,13 @@ document.getElementById('tableBody')?.addEventListener('click', async (e) => {
         // Thêm hàng mới
         const tb = document.getElementById('tableBody');
         const tr = document.createElement('tr');
-        tr.className = 'hover:bg-slate-50 align-top';
+        tr.className = 'hover:bg-slate-50 align-middle';
         tr.innerHTML = `
-          <td class="py-3 px-4"><input type="checkbox" class="rowChk h-4 w-4" /></td>
-          <td class="py-3 px-4 font-semibold text-indigo-700 flex items-center gap-2">
+          <td class="py-3 px-4 align-middle"><input type="checkbox" class="rowChk h-4 w-4" /></td>
+          <td class="py-3 px-4 font-semibold text-indigo-700 flex items-center gap-2 align-middle">
             <i class="ph ph-identification-card text-indigo-600"></i>${m.code}
           </td>
-          <td class="py-3 px-4">
+          <td class="py-3 px-4 align-middle">
             <div class="font-semibold text-slate-800 flex items-center gap-2">
               <i class="ph ph-graduation-cap text-indigo-600"></i>
               <span>${m.name}</span>
@@ -597,12 +597,12 @@ document.getElementById('tableBody')?.addEventListener('click', async (e) => {
                 <span>${m.description}</span>
               </div>` : ''}
           </td>
-          <td class="py-3 px-4 font-medium text-slate-700">
+          <td class="py-3 px-4 font-medium text-slate-700 align-middle">
             <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-xs font-medium">
               <i class="ph ph-users-three"></i> ${m.students_count ?? 0}
             </span>
           </td>
-          <td class="py-3 px-4 text-right space-x-2">
+          <td class="py-3 px-4 text-right space-x-2 align-middle">
             <button
               class="btnEdit px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-indigo-600"
               data-id="${m.id}"
@@ -657,11 +657,11 @@ document.getElementById('tableBody')?.addEventListener('click', async (e) => {
         const tr = tb?.querySelector(`button.btnEdit[data-id="${id}"]`)?.closest('tr');
         if (!tr) throw new Error('ROW_NOT_FOUND');
         tr.innerHTML = `
-          <td class="py-3 px-4"><input type="checkbox" class="rowChk h-4 w-4" /></td>
-          <td class="py-3 px-4 font-semibold text-indigo-700 flex items-center gap-2">
+          <td class="py-3 px-4 align-middle"><input type="checkbox" class="rowChk h-4 w-4" /></td>
+          <td class="py-3 px-4 font-semibold text-indigo-700 flex items-center gap-2 align-middle">
             <i class="ph ph-identification-card text-indigo-600"></i>${m.code}
           </td>
-          <td class="py-3 px-4">
+          <td class="py-3 px-4 align-middle">
             <div class="font-semibold text-slate-800 flex items-center gap-2">
               <i class="ph ph-graduation-cap text-indigo-600"></i>
               <span>${m.name}</span>
@@ -676,12 +676,12 @@ document.getElementById('tableBody')?.addEventListener('click', async (e) => {
                 <span>${m.description}</span>
               </div>` : ''}
           </td>
-          <td class="py-3 px-4 font-medium text-slate-700">
+          <td class="py-3 px-4 font-medium text-slate-700 align-middle">
             <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-xs font-medium">
               <i class="ph ph-users-three"></i> ${m.students_count ?? 0}
             </span>
           </td>
-          <td class="py-3 px-4 text-right space-x-2">
+          <td class="py-3 px-4 text-right space-x-2 align-middle">
             <button
               class="btnEdit px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-indigo-600"
               data-id="${m.id}"
