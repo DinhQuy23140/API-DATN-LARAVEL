@@ -1681,14 +1681,15 @@
                     if(count($list_score_defences) > 0) {
                       $totalScore = 0;
                       $countScores = 0;
+                      $comment = "";
                       foreach ($list_score_defences as $score_defence) {
                         if ($score_defence->score !== null) {
                           $totalScore += $score_defence->score;
                           $countScores++;
+                          $comment .= $score_defence->comments . "." . "\n";
                         }
                       }
                       $score = $countScores > 0 ? round($totalScore / $countScores, 2) : null;
-                      $comment = "Trình bày tốt, trả lời câu hỏi rõ ràng.";
                       $resultClass = "bg-emerald-100 text-emerald-700";
                       $result = "Đạt"; // Hoặc tính theo điểm
                     } else {
@@ -1731,7 +1732,8 @@
 
                     <!-- Nhận xét -->
                     <td class="px-4 py-3 text-slate-600 max-w-xs break-words text-center">
-                      <i class="ph ph-chat-text text-slate-400 mr-1"></i>{{ $comment }}
+                      <i class="ph ph-chat-text text-slate-400 mr-1"></i>
+                      {!! nl2br(e($comment)) !!}
                     </td>
 
                     <!-- Hành động -->

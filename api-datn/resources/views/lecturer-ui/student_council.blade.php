@@ -257,14 +257,15 @@
                     if(count($list_score_defences) > 0) {
                       $totalScore = 0;
                       $countScores = 0;
+                      $comment = "";
                       foreach ($list_score_defences as $score_defence) {
                         if ($score_defence->score !== null) {
                           $totalScore += $score_defence->score;
                           $countScores++;
+                          $comment .= $score_defence->comments . "." . "\n";
                         }
                       }
                       $score = $countScores > 0 ? round($totalScore / $countScores, 2) : null;
-                      $comment = "Trình bày tốt, trả lời câu hỏi rõ ràng.";
                       $resultClass = "bg-emerald-100 text-emerald-700";
                       $result = "Đạt"; // Hoặc tính theo điểm
                     } else {
@@ -292,7 +293,10 @@
                         <i class="ph ph-check-circle text-xs mr-1"></i>{{ $result }}
                       </span>
                     </td>
-                    <td class="py-3 px-4 text-center">{{ $comment }}</td>
+                    <td class="py-3 px-4 text-center">
+                      <i class="ph ph-chat-text text-slate-400 mr-1"></i>
+                      {!! nl2br(e($comment)) !!}
+                    </td>
                     <td class="py-3 px-4 text-center">
                       <div class="flex items-center justify-center gap-2">
                         <a href="{{ route('web.teacher.supervised_student_detail', ['studentId' => $assignment->student->id, 'termId' => $rows->id, 'supervisorId'=>$supervisorId]) }}"

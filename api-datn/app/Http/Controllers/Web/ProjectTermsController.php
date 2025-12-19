@@ -504,9 +504,6 @@ class ProjectTermsController extends Controller
         $council = $projectTerm->councils()->where('id', $councilId)->with('council_members.supervisor.teacher.user')->first();
         $council_projects = CouncilProjects::with(['assignment.student.user', 'assignment.project.reportFiles', 'assignment.assignment_supervisors.supervisor.teacher.user', 'council', 'council.council_members.supervisor.teacher.user', 'council_project_defences'])
         ->where('council_id', $councilId)
-        ->whereHas('council_member', function($q) use ($supervisorId) {
-            $q->where('supervisor_id', $supervisorId);
-        })
         ->get();
         return view('lecturer-ui.council-scoring-detail', compact('council_projects', 'supervisorId', 'council', 'projectTerm', 'councilId'));
     }
