@@ -721,6 +721,8 @@
 
         // Đóng modal
         typeof closeGrade === 'function' && closeGrade();
+        // reload page immediately to reflect server-side changes and ensure consistency
+        location.reload();
       } catch (e) {
         console.error(e);
         alert('Lỗi mạng khi lưu điểm.');
