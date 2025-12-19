@@ -137,7 +137,7 @@
         </div>
       </header>
 
-      <main class="pt-20 px-4 md:px-6 pb-10 space-y-5">
+      <main class="pt-20 px-4 md:px-6 pb-10 space-y-5 md:ml-[260px]">
         <div class="max-w-6xl mx-auto space-y-5">
           <div
             class="bg-white border border-slate-200 rounded-xl p-4 flex flex-col sm:flex-row gap-3 sm:items-center sm:justify-between">
@@ -161,7 +161,7 @@
                       <input id="chkAll" type="checkbox" class="h-4 w-4 rounded border-slate-300">
                     </th>
                     <th class="py-3 px-4">Mã</th>
-                    <th class="py-3 px-4">Tên bộ môn</th>
+                    <th class="py-3 px-4 text-center align-middle">Tên bộ môn</th>
                     <th class="py-3 px-4">Trưởng bộ môn</th>
                     <th class="py-3 px-4">Môn học</th>
                     <th class="py-3 px-4">Số GV</th>
@@ -180,7 +180,7 @@
                           <input type="checkbox" class="rowChk h-4 w-4 rounded border-slate-300" />
                         </td>
                         <td class="py-3 px-4 font-mono text-slate-700">{{ $department->code }}</td>
-                        <td class="py-3 px-4 font-medium text-slate-800 flex items-center gap-2">
+                        <td class="py-3 px-4 font-medium text-slate-800 gap-2 text-center">
                           <i class="ph ph-buildings text-slate-400"></i>
                           {{ $department->name }}
                         </td>
@@ -430,11 +430,11 @@
 
   <script>
     const html = document.documentElement, sidebar = document.getElementById('sidebar');
-    function setCollapsed(c) { const h = document.querySelector('header'); const m = document.querySelector('main'); if (c) { html.classList.add('sidebar-collapsed'); h.classList.add('md:left-[72px]'); h.classList.remove('md:left-[260px]'); m.classList.add('md:pl-[72px]'); m.classList.remove('md:pl-[260px]'); } else { html.classList.remove('sidebar-collapsed'); h.classList.remove('md:left-[72px]'); h.classList.add('md:left-[260px]'); m.classList.remove('md:pl-[72px]'); } }
+    function setCollapsed(c) { const h = document.querySelector('header'); const m = document.querySelector('main'); if (c) { html.classList.add('sidebar-collapsed'); h.classList.add('md:left-[72px]'); h.classList.remove('md:left-[260px]'); m.classList.add('md:ml-[72px]'); m.classList.remove('md:ml-[260px]'); } else { html.classList.remove('sidebar-collapsed'); h.classList.remove('md:left-[72px]'); h.classList.add('md:left-[260px]'); m.classList.remove('md:ml-[72px]'); m.classList.add('md:ml-[260px]'); } }
     document.getElementById('toggleSidebar')?.addEventListener('click', () => { const c = !html.classList.contains('sidebar-collapsed'); setCollapsed(c); localStorage.setItem('assistant_sidebar', '' + (c ? 1 : 0)); });
     document.getElementById('openSidebar')?.addEventListener('click', () => sidebar.classList.toggle('-translate-x-full'));
     if (localStorage.getItem('assistant_sidebar') === '1') setCollapsed(true);
-    sidebar.classList.add('md:translate-x-0', '-translate-x-full', 'md:static');
+    sidebar.classList.add('md:translate-x-0', '-translate-x-full', 'md:fixed');
 
     // checkbox all
     document.getElementById('chkAll')?.addEventListener('change', (e) => { document.querySelectorAll('.rowChk').forEach(chk => chk.checked = e.target.checked); });
