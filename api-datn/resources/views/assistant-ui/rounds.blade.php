@@ -121,8 +121,8 @@
                 <thead>
                   <tr class="text-left text-slate-500">
                     <th data-sort-key="name" data-sort-type="string" class="py-3 px-4 border-b cursor-pointer select-none">Tên đợt <i class="ph ph-caret-up-down ml-1 text-slate-400"></i></th>
-                    <th data-sort-key="time" data-sort-type="date-range" class="py-3 px-4 border-b cursor-pointer select-none">Thời gian <i class="ph ph-caret-up-down ml-1 text-slate-400"></i></th>
-                    <th data-sort-key="committees" data-sort-type="number" class="py-3 px-4 border-b cursor-pointer select-none">Số hội đồng <i class="ph ph-caret-up-down ml-1 text-slate-400"></i></th>
+                    <th data-sort-key="time" data-sort-type="date-range" class="py-3 px-4 border-b cursor-pointer select-none text-center">Thời gian <i class="ph ph-caret-up-down ml-1 text-slate-400"></i></th>
+                    <th data-sort-key="committees" data-sort-type="number" class="py-3 px-4 border-b cursor-pointer select-none text-center">Số hội đồng <i class="ph ph-caret-up-down ml-1 text-slate-400"></i></th>
                     <th class="py-3 px-4 border-b text-right">Hành động</th>
                   </tr>
                 </thead>
@@ -154,9 +154,24 @@
                       ];
                     @endphp
                   <tr class="hover:bg-slate-50" data-term='@json($termData)'>
-                    <td class="py-3 px-4"><a href="{{ route('web.assistant.round_detail', ['round_id' => $term->id]) }}" class="text-blue-600 hover:underline">{{$termName}}</a></td>
-                    <td class="py-3 px-4">{{$term->start_date}} - {{$term->end_date}}</td>
-                    <td class="py-3 px-4">{{ $term->councils->count() }}</td>
+                    <td class="py-3 px-4">
+                      <a href="{{ route('web.assistant.round_detail', ['round_id' => $term->id]) }}" class="flex items-center gap-2 text-blue-600 hover:underline">
+                        <i class="ph ph-calendar-check text-slate-600"></i>
+                        <span class="font-medium">{{$termName}}</span>
+                      </a>
+                    </td>
+                    <td class="py-3 px-4 text-center">
+                      <span class="inline-flex items-center gap-2 px-3 py-1 rounded-md bg-blue-50 text-blue-700 text-sm">
+                        <i class="ph ph-clock text-blue-600"></i>
+                        <span>{{$term->start_date}} - {{$term->end_date}}</span>
+                      </span>
+                    </td>
+                    <td class="py-3 px-4 text-center">
+                      <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-xs font-medium">
+                        <i class="ph ph-users-three"></i>
+                        {{ $term->councils->count() }}
+                      </span>
+                    </td>
                     <td class="py-3 px-4 text-right space-x-2">
                       <a class="px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-slate-600" href="{{ route('web.assistant.round_detail', ['round_id' => $term->id]) }}"><i class="ph ph-eye"></i></a>
                       <button type="button" class="btn-edit-round px-3 py-1.5 rounded-lg border hover:bg-slate-50 text-slate-600" title="Sửa đợt"><i class="ph ph-pencil"></i></button>
